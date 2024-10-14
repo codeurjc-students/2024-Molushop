@@ -53,7 +53,6 @@ CREATE TABLE Product (
     cover VARCHAR(255)  -- URL o path de la imagen de portada del producto
 );
 
-drop table Product cascade;
 
 create table Category(
 	id varchar(10) primary key,

@@ -54,7 +54,7 @@ CREATE TABLE Product (
     cover VARCHAR(255)  -- URL o path de la imagen de portada del producto
 );
 
-drop table Product cascade;
+
 
 create table Category(
 	id varchar(10) primary key,
@@ -76,22 +76,18 @@ CREATE TABLE Category_product (
     CONSTRAINT fk_product_category_product FOREIGN KEY (product_id) REFERENCES Product (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'Product'
 );
 
-
-
-create table Product_attributes_category (
-	product_att_id UUID references Product_attributes(id),
-	category_id varchar(10) references Category(id),
-	constraint unique_dupla UNIQUE (product_att_id,category_id)
-);
-
-
-
 -- Tabla 'Product_attributes'
 CREATE TABLE Product_attributes (
     id UUID PRIMARY KEY,  -- Llave primaria del atributo
     name VARCHAR(255) NOT NULL  -- Nombre del atributo (ej: Color, Tamaño)
 );
 
+create table Product_attributes_category (
+    id serial primary key,
+	product_att_id UUID references Product_attributes(id),
+	category_id varchar(10) references Category(id),
+	constraint unique_dupla UNIQUE (product_att_id,category_id)
+);
 
 
 -- Tabla 'Product_attributes_options' (relacionada con 'Product_attributes')
