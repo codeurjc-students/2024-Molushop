@@ -69,18 +69,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    ejemplo (id) {
-        #[max_length = 10]
-        id -> Varchar,
-        #[max_length = 50]
-        nombre -> Nullable<Varchar>,
-        #[max_length = 50]
-        apellido -> Nullable<Varchar>,
-        edad -> Nullable<Int4>,
-    }
-}
-
-diesel::table! {
     product (id) {
         id -> Uuid,
         #[max_length = 255]
@@ -156,7 +144,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     category,
     category_product,
     customer_address,
-    ejemplo,
     product,
     product_attributes,
     product_attributes_category,

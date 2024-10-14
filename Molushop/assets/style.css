@@ -1,0 +1,281 @@
+nav {
+    background-color: #00a000;
+    overflow: visible;
+    height: 3em;
+    display: flex;
+}
+
+nav a {
+    float: left;
+    color: #f2f2f2;
+    display: flex;
+    text-align: center;
+    /*padding: 14px 16px;*/
+    text-decoration: none;
+    padding: 0.5em;
+    /*font-size: 17px;*/
+    font-size: 1.2em;
+    max-height: 100%;
+    width: auto;
+}
+
+nav a:hover {
+    background-color: #33b644;
+    color: rgb(255, 255, 255);
+}
+
+nav a.active {
+    background-color: #1b0bff;
+    color: white;
+}
+
+.cart-icon {
+    padding: 0.2em;
+    margin-left:auto;
+    margin-right: 1em;
+    position: relative;
+}
+
+.numero-carrito{
+    background-color: #ff0000;
+    color: white;
+    border-radius: 50%;
+    padding: 0.2em;
+    font-size: 0.6em;
+    position:absolute;
+    top: 0;
+    right: 0;
+    
+}
+
+nav img{
+    height: 100%;
+    width: auto;
+}
+
+
+
+.botonxdddd{
+    background-color: #4CAF50; /* Verde */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.boton {
+    background-color: #4CAF50; /* Verde */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 4px; /* Bordes redondeados */
+}
+
+.boton:hover {
+    background-color: #45a049; /* Verde más oscuro al pasar el ratón */
+}
+
+.prueba{
+    background-color: #f2f2f2;
+    padding: 20px;
+    margin: 20px;
+    border-radius: 5px;
+}
+
+
+.product-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+}
+.product-card {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 20px;
+    width: 200px;
+    text-align: center;
+}
+.product-card img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 5px;
+}
+.product-card h2 {
+    font-size: 1.2em;
+    margin: 10px 0;
+}
+.product-card p {
+    font-size: 0.9em;
+    color: #555;
+}
+.product-card .price {
+    font-size: 1.1em;
+    color: #ffffff;
+    margin: 10px 0;
+}
+.product-card button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+.product-card button:hover {
+    background-color: #218838;
+}
+
+/***** MODAL DIALOG ****/
+#modal {
+	/* Underlay covers entire screen. */
+	position: fixed;
+	top:0px;
+	bottom: 0px;
+	left:0px;
+	right:0px;
+	/*background-color:rgba(0,0,0,0.5);*/
+	z-index:1000;
+
+	/* Flexbox centers the .modal-content vertically and horizontally */
+	display:flex;
+	flex-direction:column;
+	align-items:center;
+
+	/* Animate when opening */
+	animation-name: fadeIn;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+#modal > .modal-underlay {
+	/* underlay takes up the entire viewport. This is only
+	required if you want to click to dismiss the popup */
+	position: absolute;
+	z-index: -1;
+	top:0px;
+	bottom:0px;
+	left: 0px;
+	right: 0px;
+}
+
+#modal > .modal-content {
+	/* Position visible dialog near the top of the window */
+	margin-top:10vh;
+
+	/* Sizing for visible dialog */
+	width:80%;
+	max-width:600px;
+
+	/* Display properties for visible dialog*/
+	border:solid 1px #999;
+	border-radius:8px;
+	/*box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.3);*/
+	background-color:rgb(22, 185, 44);
+	padding:20px;
+
+	/* Animate when opening */
+	animation-name:zoomIn;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+#modal.closing {
+	/* Animate when closing */
+	animation-name: fadeOut;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+#modal.closing > .modal-content {
+	/* Animate when closing */
+	animation-name: zoomOut;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+@keyframes fadeIn {
+	0% {opacity: 0;}
+	100% {opacity: 1;}
+}
+
+@keyframes fadeOut {
+	0% {opacity: 1;}
+	100% {opacity: 0;}
+}
+
+@keyframes zoomIn {
+	0% {transform: scale(0.9);}
+	100% {transform: scale(1);}
+}
+
+@keyframes zoomOut {
+	0% {transform: scale(1);}
+	100% {transform: scale(0.9);}
+}
+
+/* Carrito */
+
+.contenedor-carrito {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  .product-carrito {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Ajusta el espacio entre elementos */
+  }
+  
+  .product-carrito img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+  }
+  
+  .product-carrito h3 {
+    margin: 0;
+  }
+  
+  .product-carrito .price {
+    font-weight: bold;
+  }
+  
+  .product-carrito button {
+    border: none;
+    background: none;
+    cursor: pointer;
+    padding: 5px 10px; /* Agrega un poco de padding a los botones */
+    font-size: 1.2em; /* Aumenta el tamaño de la fuente */
+  }
+  
+  /* Estilos adicionales para los botones */
+  .product-carrito .menos:hover,
+  .product-carrito .mas:hover {
+    background-color: #f0f0f0;
+  }
+
+.basura-icon img{
+    width: 2em;
+    height: auto;
+}
+
+.basura-icon:hover{
+    background-color: aquamarine; 
+}
