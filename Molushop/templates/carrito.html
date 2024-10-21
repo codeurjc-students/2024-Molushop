@@ -1,0 +1,21 @@
+{%extends 'nav.html'%}
+{%block content%}
+<div class="contenedor-carrito">
+    {% for product in products %}
+    <div class="product-carrito" id="pc-{{product.id}}">
+            <img src="{{product.imagen}}" alt="{{product.nombre}}">
+            <h3>{{product.nombre}}</h3>
+            <div class="price">{{product.precio}} &#8364;</div>
+            <button hx-get="/quitar-producto/{{product.id}}" hx-target="#cant-{{product.num}}" class="menos" id="menos-{{product.num}}"  {{product.disabled}}>-</button>
+            <div class="cantidad-{{product.num}}" id="cant-{{product.num}}" 
+                _="on mutation of anything if my innerHTML is '1' add @disabled to #menos-{{product.num}} else remove @disabled from #menos-{{product.num}}"
+            >{{product.cantidad}}</div>
+            <button class="mas" hx-get="/add-producto/{{product.id}}" hx-target="#cant-{{product.num}}" id="mas-{{product.num}}">+</button>
+            <button  class="basura-icon" hx-get="/reset-carrito-pop/{{product.id}}" hx-target="body" hx-swap="beforeend"><img src="assets/imgs/basura.png"/></button>
+    </div>
+    {% endfor %}
+    <div class="total">
+        <h3>Total:</h3>
+        <div class="price" hx-get="/actualizar-precio" hx-trigger="actualizar-precio from:body">{{total}} &#8364;</div>
+</div>
+{%endblock%}

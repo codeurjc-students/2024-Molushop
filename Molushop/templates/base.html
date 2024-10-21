@@ -1,0 +1,46 @@
+{%extends 'nav.html'%}
+{%block content%}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Formulario de Compra</title>
+    <style>
+        /* Estilos básicos para el formulario */
+        form {
+            width: 300px;
+            margin: 0 auto;
+        }
+        label {
+            display: block;
+        }
+        input[type="text"],
+        input[type="email"] {
+            width: 100%;
+            padding: 10px;
+        }
+    </style>
+    <meta charset="UTF-8" />
+</head>
+<body>
+    <h1>Formulario de Compra</h1>
+    <form action="/procesar_compra" method="post">
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" required>
+
+        <label for="email">Correo electrónico:</label>
+        <input type="email" id="email" name="email" required>
+
+        <label for="direccion">Dirección:</label>
+        <textarea id="direccion" name="direccion" required></textarea>
+
+        <label for="ciudad">Ciudad:</label>
+        <input type="text" id="ciudad" name="ciudad" required>
+
+        <label for="codigo_postal">Código postal:</label>
+        <input type="text" id="codigo_postal" name="codigo_postal" required>
+
+        <button type="submit">Realizar Compra</button>
+    </form>
+</body>
+</html>
+{%endblock%}

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>MoluxoShop</title>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/htmx.js"></script>
+    <script src="assets/hyperscript.js"></script>
+    <script src="assets/extraScript.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <h1>Bienvenido a mi Web</h1>
+    <button hx-get="/prueba-insertar" hx-target=".objetivo">Insertar</button>
+    <button hx-get="/prueba-modificar" hx-target=".objetivo">Modificar</button>
+    <p class="objetivo">Aqui el resultado</p>
+</body>
+</html>

@@ -1,0 +1,11 @@
+<div id="modal" _="on closeModal add .closing then wait for animationend then remove me">
+	<div class="modal-underlay" _="on click trigger closeModal"></div>
+	<div class="modal-content">
+		<!--Aqui debajo se pone un opción de trigger cunado se carga el elemento Se podría poner en otro elemento tmb en vez del h1-->
+		<h1 _="on load wait 1s then trigger closeModal">{{titulo_aviso}}</h1>
+		{{mensaje_aviso}}
+		<br>
+		<br>
+		<button class="btn danger" _="on click trigger closeModal">Close</button>
+	</div>
+</div>

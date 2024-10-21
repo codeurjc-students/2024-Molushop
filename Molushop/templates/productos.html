@@ -1,0 +1,18 @@
+{%extends 'nav.html'%}
+{%block content%}
+<div class="product-list">
+    {% for product in products %}
+    <div class="product-card">
+        <a href="/producto/{{product.id}}">
+            <img src="{{product.imagen}}" alt="{{product.nombre}}">
+            <h3>{{product.nombre}}</h3>
+            <p>{{product.descripcion}}</p>
+            <div class="price">{{product.precio}} &#8364;</div>
+        </a>
+        <button id="incrementButton" class="boton" hx-get="/add-carrito/{{product.id}}" hx-target="body" hx-swap="beforeend" >
+            Añadir al carrito
+        </button>        
+    </div>
+    {% endfor %}
+</div>
+{%endblock%}

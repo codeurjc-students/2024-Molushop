@@ -1,0 +1,14 @@
+{%extends 'main.html'%}
+{%block navegacion%}
+<nav>
+    <a href="/">Inicio</a>
+    <a href="#">Productos</a>
+    <a href="#">Contacto</a>
+    <a href="#" class="active">Acerca de</a>
+    <a href="/carrito" class="cart-icon">
+        <img src="assets/imgs/carrito.png"/>
+        <p id="numCarrito" class="numero-carrito" hx-get="/actualizar-num-carrito" hx-trigger="actualizar-num-carrito from:body">{{num_carrito}}</p>
+    </a>
+</nav>
+{%block content%} {%endblock%}
+{%endblock%}

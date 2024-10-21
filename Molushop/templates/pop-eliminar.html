@@ -1,0 +1,9 @@
+<div id="modal" _="on closeModal add .closing then wait for animationend then remove me">
+    <div class="modal-underlay" _="on click trigger closeModal"></div>
+    <div class="modal-content">
+        <h1>Quitar articulo</h1>
+        <p>¿Estás seguro de que quieres quitar este artículo del carrito?</p>
+        <button class="btn danger" hx-delete="/quitar-carrito/{{id}}" hx-target="#pc-{{id}}" hx-swap="outerHTML" _="on click trigger closeModal">Quitar</button>
+        <button _="on click trigger closeModal">Cancelar</button>
+    </div>
+</div>
