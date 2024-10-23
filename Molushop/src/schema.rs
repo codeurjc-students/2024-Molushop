@@ -1,6 +1,12 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
+    admins (id) {
+        id -> Uuid,
+    }
+}
+
+diesel::table! {
     attribute_option_sku (sku_id, prod_att_option_id) {
         sku_id -> Uuid,
         prod_att_option_id -> Uuid,
@@ -75,8 +81,6 @@ diesel::table! {
         name -> Varchar,
         description -> Nullable<Text>,
         summary -> Nullable<Text>,
-        #[max_length = 255]
-        cover -> Nullable<Varchar>,
     }
 }
 
@@ -125,6 +129,7 @@ diesel::table! {
     }
 }
 
+diesel::joinable!(admins -> base_user (id));
 diesel::joinable!(attribute_option_sku -> product_attributes_options (prod_att_option_id));
 diesel::joinable!(attribute_option_sku -> product_sku (sku_id));
 diesel::joinable!(buyer -> base_user (id));
@@ -138,6 +143,7 @@ diesel::joinable!(product_sku -> product (product_id));
 diesel::joinable!(seller -> base_user (id));
 
 diesel::allow_tables_to_appear_in_same_query!(
+    admins,
     attribute_option_sku,
     base_user,
     buyer,

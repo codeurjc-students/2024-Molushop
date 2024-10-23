@@ -51,6 +51,7 @@ pub struct Buyer {
     pub id: Uuid,
 }
 
+#[derive(serde::Serialize)]
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(table_name = category)]
 pub struct Category {
@@ -87,7 +88,6 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub summary: Option<String>,
-    pub cover: Option<String>,
 }
 
 #[derive(Queryable, Debug)]

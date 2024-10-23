@@ -11,3 +11,7 @@ DROP TABLE Product_attributes cascade;
 DROP TABLE Product_attributes_options cascade;
 DROP TABLE Product_sku cascade;
 DROP TABLE Attribute_option_sku cascade;
+DROP TABLE Admins cascade;
+
+DROP TRIGGER IF EXISTS set_depth_before_insert_update ON Category;
+DROP FUNCTION IF EXISTS calculate_depth();

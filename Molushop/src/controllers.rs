@@ -13,6 +13,21 @@ use uuid::Uuid;
 use crate::services::*;
 
 
+lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
+    pub static ref TEMPLATES: Tera = {
+        let source = "templates/**/*";
+        let tera = Tera::new(&source).unwrap();
+        tera
+    };
+
+    //momentaneo
+    static ref ID_BASE:Uuid =Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
+    static ref ID_BASE_JOKER:Uuid =Uuid::parse_str("95023733-f013-301a-0ada-abc18f151006").unwrap();
+
+    //static ref TASK_COUNTER: Mutex<i32> = Mutex::new(0);
+    //static ref NEXT_ID: AtomicI32 = AtomicI32::new(1);
+}
+
 #[get("/prueba-insertar")]
 async fn prueba_insertar() -> impl Responder {
     
@@ -35,4 +50,17 @@ async fn prueba_modificar() -> impl Responder {
     }
 
     //HttpResponse::Ok().body(database::total_carrito(&ID_BASE).to_string()+" €")
+}
+
+#[get("/category-children/{category_id}")]
+async fn category_children(path: web::Path<String>) -> impl Responder {
+    let category_id= path.into_inner();
+    //println!("category_id: {}",&category_id);
+    println!("hola");
+    println!("category_id: {}",&category_id);
+    let categories = obtain_categories_children(&category_id);
+    let mut context = tera::Context::new();
+    context.insert("categories",&categories);
+    let rendered = TEMPLATES.render("list-category-base.html", &context).unwrap();
+    HttpResponse::Ok().body(rendered)
 }

@@ -10,7 +10,7 @@ use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
-
+use crate::services::*;
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     pub static ref TEMPLATES: Tera = {
@@ -83,6 +83,21 @@ async fn index2() -> impl Responder {
     let context1 = tera::Context::new();
     
     let page_content: String = TEMPLATES.render("test.html", &context1).unwrap();
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(page_content)
+}
+
+#[get("/category")]
+async fn categories() -> impl Responder {
+ 
+    let mut context1 = tera::Context::new();
+    
+    //obtener vector de datos de la base de datos
+    let categories = obtain_base_categories();
+
+    context1.insert("categories",&categories);
+
+    let page_content: String = TEMPLATES.render("category.html", &context1).unwrap();
     //print!("{}",page_content);
     HttpResponse::Ok().body(page_content)
 }

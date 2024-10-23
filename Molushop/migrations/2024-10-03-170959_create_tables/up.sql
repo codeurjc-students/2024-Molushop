@@ -30,7 +30,10 @@ CREATE TABLE Seller (
     CONSTRAINT fk_user_seller FOREIGN KEY (id) REFERENCES base_user (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'User'
 );
 
-
+CREATE TABLE Admins (
+    id UUID PRIMARY KEY,  -- Llave primaria y foránea
+    CONSTRAINT fk_user_admin FOREIGN KEY (id) REFERENCES base_user (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'User'
+);
 
 -- Tabla 'Customer_address' (relacionada con 'User' a través de customer_id)
 CREATE TABLE Customer_address (
@@ -44,17 +47,12 @@ CREATE TABLE Customer_address (
     CONSTRAINT fk_user_address FOREIGN KEY (customer_id) REFERENCES base_user (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'User'
 );
 
-
-
 CREATE TABLE Product (
     id UUID PRIMARY KEY,  -- Llave primaria del producto
     name VARCHAR(255) NOT NULL,  -- Nombre del producto
     description TEXT,  -- Descripción detallada del producto
-    summary TEXT,  -- Resumen corto del producto
-    cover VARCHAR(255)  -- URL o path de la imagen de portada del producto
+    summary TEXT  -- Resumen corto del producto
 );
-
-
 
 create table Category(
 	id varchar(10) primary key,
@@ -64,8 +62,39 @@ create table Category(
 	foreign key (parent) references Category(id)
 );
 
+--------------FUNCION CALCULAR PROFUNDIDAD----------------
+CREATE OR REPLACE FUNCTION calculate_depth() 
+RETURNS TRIGGER AS $$
+DECLARE
+    current_parent varchar(10);
+    current_depth integer := 0;
+BEGIN
+    -- Inicializar el valor del parent de la fila que se está insertando o actualizando
+    current_parent := NEW.parent;
 
+    -- Subir en la jerarquía contando los niveles hasta que no haya más padres
+    WHILE current_parent IS NOT NULL LOOP
+        -- Buscar el padre del parent actual
+        SELECT parent INTO current_parent
+        FROM Category
+        WHERE id = current_parent;
 
+        -- Incrementar el contador de profundidad
+        current_depth := current_depth + 1;
+    END LOOP;
+
+    -- Asignar la profundidad calculada
+    NEW.depth := current_depth;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER set_depth_before_insert_update
+BEFORE INSERT OR UPDATE ON Category
+FOR EACH ROW
+EXECUTE FUNCTION calculate_depth();
+--------------FUNCION CALCULAR PROFUNDIDAD----------------
 
 -- Tabla 'Category_product' (relaciona 'Sub_category' con 'Product')
 CREATE TABLE Category_product (

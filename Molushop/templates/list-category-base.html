@@ -1,0 +1,3 @@
+{% for category in categories %}
+        <li hx-get="/category-children/{category.id}" hx-swap="outerHTML" hx-trigger="click">{{category.name}}</li>
+{% endfor %}

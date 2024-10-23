@@ -1,5 +1,6 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use actix_files as fs;
+use services::obtain_base_categories;
 use uuid::Uuid;
 
 pub mod schema;
@@ -17,8 +18,10 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .service(routes::index2)
+            .service(routes::categories)
             .service(controllers::prueba_insertar)
             .service(controllers::prueba_modificar)
+            .service(controllers::category_children)
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             
     })

@@ -1,5 +1,5 @@
 
-use crate::schema::base_user::dsl::*;
+
 use diesel::dsl::exists;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -28,6 +28,7 @@ pub fn establish_connection() -> PgConnection {
 
 
 pub fn insert_data_test() -> bool {
+    use crate::schema::base_user::dsl::*;
     let other_id= Uuid::new_v4();
     let newUser = NewBaseUser{
         id: &other_id,
@@ -56,6 +57,7 @@ pub fn insert_data_test() -> bool {
 
 
 pub fn modify_data_test() -> bool {
+    use crate::schema::base_user::dsl::*;
     let connection = &mut establish_connection();
     let result = update(base_user).set((email.eq("otro@gmail.com"),name.eq("GIGA"),modified.eq(Utc::now().naive_utc()))).execute(connection);
     match result {
@@ -68,4 +70,18 @@ pub fn modify_data_test() -> bool {
             false 
         }
     }
+}
+
+pub fn obtain_base_categories() -> Vec<Category> {
+    use crate::schema::category::dsl::*;
+    let connection = &mut establish_connection();
+    let results = category.filter(depth.eq(0)).load::<Category>(connection).expect("Error loading categories");
+    results
+}
+
+pub fn obtain_categories_children(id_category:&String) -> Vec<Category> {
+    use crate::schema::category::dsl::*;
+    let connection = &mut establish_connection();
+    let results = category.filter(parent.eq(id_category)).load::<Category>(connection).expect("Error loading categories");
+    results
 }
