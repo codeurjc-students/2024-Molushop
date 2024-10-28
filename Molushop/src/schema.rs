@@ -7,13 +7,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    attribute_option_sku (sku_id, prod_att_option_id) {
-        sku_id -> Uuid,
-        prod_att_option_id -> Uuid,
-    }
-}
-
-diesel::table! {
     base_user (id) {
         id -> Uuid,
         #[max_length = 255]
@@ -46,6 +39,8 @@ diesel::table! {
         #[max_length = 10]
         parent -> Nullable<Varchar>,
         depth -> Nullable<Int4>,
+        base_specs -> Nullable<Jsonb>,
+        is_parent -> Nullable<Bool>,
     }
 }
 
@@ -75,16 +70,6 @@ diesel::table! {
 }
 
 diesel::table! {
-    product (id) {
-        id -> Uuid,
-        #[max_length = 255]
-        name -> Varchar,
-        description -> Nullable<Text>,
-        summary -> Nullable<Text>,
-    }
-}
-
-diesel::table! {
     product_attributes (id) {
         id -> Uuid,
         #[max_length = 255]
@@ -93,30 +78,30 @@ diesel::table! {
 }
 
 diesel::table! {
-    product_attributes_category (id) {
-        id -> Int4,
-        product_att_id -> Nullable<Uuid>,
-        #[max_length = 10]
-        category_id -> Nullable<Varchar>,
-    }
-}
-
-diesel::table! {
-    product_attributes_options (id) {
-        id -> Uuid,
-        attribute_id -> Uuid,
-        #[max_length = 255]
-        name -> Varchar,
-    }
-}
-
-diesel::table! {
-    product_sku (id) {
-        id -> Uuid,
+    product_variations (id) {
+        id -> Text,
         product_id -> Uuid,
-        #[max_length = 255]
-        sku -> Varchar,
-        stock -> Int4,
+        identifiers -> Nullable<Jsonb>,
+        sku -> Nullable<Text>,
+        attributes -> Nullable<Jsonb>,
+        stock -> Nullable<Int4>,
+        images -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    products (id) {
+        id -> Uuid,
+        #[max_length = 100]
+        code -> Nullable<Varchar>,
+        #[max_length = 100]
+        name -> Nullable<Varchar>,
+        description -> Nullable<Text>,
+        #[max_length = 100]
+        brand -> Nullable<Varchar>,
+        specs -> Nullable<Jsonb>,
+        variations -> Nullable<Jsonb>,
+        images -> Nullable<Jsonb>,
     }
 }
 
@@ -130,30 +115,22 @@ diesel::table! {
 }
 
 diesel::joinable!(admins -> base_user (id));
-diesel::joinable!(attribute_option_sku -> product_attributes_options (prod_att_option_id));
-diesel::joinable!(attribute_option_sku -> product_sku (sku_id));
 diesel::joinable!(buyer -> base_user (id));
 diesel::joinable!(category_product -> category (category_id));
-diesel::joinable!(category_product -> product (product_id));
+diesel::joinable!(category_product -> products (product_id));
 diesel::joinable!(customer_address -> base_user (customer_id));
-diesel::joinable!(product_attributes_category -> category (category_id));
-diesel::joinable!(product_attributes_category -> product_attributes (product_att_id));
-diesel::joinable!(product_attributes_options -> product_attributes (attribute_id));
-diesel::joinable!(product_sku -> product (product_id));
+diesel::joinable!(product_variations -> products (product_id));
 diesel::joinable!(seller -> base_user (id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     admins,
-    attribute_option_sku,
     base_user,
     buyer,
     category,
     category_product,
     customer_address,
-    product,
     product_attributes,
-    product_attributes_category,
-    product_attributes_options,
-    product_sku,
+    product_variations,
+    products,
     seller,
 );

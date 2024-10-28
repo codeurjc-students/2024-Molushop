@@ -7,11 +7,22 @@
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
 </head>
 <body>
-    <h2>Lista de elementos</h2>
-    <ul class="list">
-    {% for category in categories %}
-        <li hx-get="/category-children/{{category.id}}" hx-target=".list" hx-trigger="click">{{category.name}}</li>
-    {% endfor %}
-    </ul>
+    <div class="cont-base">
+        <h2>Lista de elementos</h2>
+        
+        <div class="chain">
+            
+            <h4>Selecciona  una categoría</h4> 
+            <ul class="list">    
+            {% for category in categories %}
+                {% if category.is_parent %}
+                <li hx-get="/category-children/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+                {% else %}
+                <li hx-get="/next-select/{{category.id}}" hx-target=".cont-base" hx-trigger="click">{{category.name}}</li>
+                {% endif %}
+            {% endfor %}
+            </ul>
+        </div>
+    </div>
 </body>
 </html>

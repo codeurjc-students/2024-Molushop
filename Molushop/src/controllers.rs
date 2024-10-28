@@ -58,9 +58,57 @@ async fn category_children(path: web::Path<String>) -> impl Responder {
     //println!("category_id: {}",&category_id);
     println!("hola");
     println!("category_id: {}",&category_id);
-    let categories = obtain_categories_children(&category_id);
+    
     let mut context = tera::Context::new();
-    context.insert("categories",&categories);
-    let rendered = TEMPLATES.render("list-category-base.html", &context).unwrap();
+
+    let categories_result = obtain_categories_children(&category_id);
+    let ancestors_result: Result<Vec<crate::models::Category>, diesel::result::Error> = obtain_ancestors(&category_id);
+    match (categories_result, ancestors_result) {
+        (Ok(categories), Ok(ancestors)) => {
+            context.insert("categories", &categories);
+            context.insert("padres", &ancestors);
+        },
+        (Err(e), Ok(_)) => {
+            println!("Error loading categories: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading categories");
+        },
+        (Ok(_), Err(e)) => {
+            println!("Error loading ancestors: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading ancestors");
+        },
+        (Err(e1), Err(e2)) => {
+            println!("Error loading categories: {}", e1);
+            println!("Error loading ancestors: {}", e2);
+            return HttpResponse::InternalServerError().body("Error loading categories and ancestors");
+        }
+    }
+    //revisar los mensajes de error
+    let rendered = TEMPLATES.render("create_product/list-category-base2.html", &context).unwrap();
+    HttpResponse::Ok().body(rendered)
+}
+
+#[get("/reset-category")]
+async fn reset_category() -> impl Responder {
+    let categories = obtain_base_categories();
+    match (categories){
+        Ok(categories) => {
+            let mut context = tera::Context::new();
+            context.insert("categories",&categories);
+            let rendered = TEMPLATES.render("create_product/base-category.html", &context).unwrap();
+            HttpResponse::Ok().body(rendered)
+        },
+        Err(e) => {
+            println!("Error loading categories: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading categories");
+        }
+    }
+}
+
+#[get("/next-select/{category_id}")]
+async fn next_category(path: web::Path<String>) -> impl Responder {
+    let category_id= path.into_inner();
+    let mut context = tera::Context::new();
+    context.insert("category_id", &category_id);
+    let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
     HttpResponse::Ok().body(rendered)
 }

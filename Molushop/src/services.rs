@@ -8,6 +8,7 @@ use diesel::dsl::sum;
 use diesel::sql_query;
 use diesel::sql_types::Bool;
 use diesel::prelude::QueryDsl;
+use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
 use crate::models::*;
@@ -72,16 +73,35 @@ pub fn modify_data_test() -> bool {
     }
 }
 
-pub fn obtain_base_categories() -> Vec<Category> {
+pub fn obtain_base_categories() -> Result<Vec<Category>,Error> {
     use crate::schema::category::dsl::*;
     let connection = &mut establish_connection();
-    let results = category.filter(depth.eq(0)).load::<Category>(connection).expect("Error loading categories");
+    let results = category.filter(depth.eq(0)).load::<Category>(connection);
     results
 }
 
-pub fn obtain_categories_children(id_category:&String) -> Vec<Category> {
+pub fn obtain_categories_children(id_category:&String) -> Result<Vec<Category>,Error> {
     use crate::schema::category::dsl::*;
     let connection = &mut establish_connection();
-    let results = category.filter(parent.eq(id_category)).load::<Category>(connection).expect("Error loading categories");
+    let results = category.filter(parent.eq(id_category)).load::<Category>(connection);
     results
+}
+
+pub fn obtain_category(id_category:&String) -> Category {
+    use crate::schema::category::dsl::*;
+    let connection = &mut establish_connection();
+    let result = category.filter(id.eq(id_category)).first::<Category>(connection).expect("Error loading category");
+    result
+}
+
+pub fn obtain_ancestors(id_category:&String) -> Result<Vec<Category>,Error> {
+    use crate::models::Category;
+    let connection = &mut establish_connection();
+
+    println!("ID: {}",id_category);
+    //el placeholder $1 es para evitar sql injection
+    let ancestors:Result<Vec<Category>, Error>  = sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
+    .bind::<Text,_>(id_category.to_string()).get_results(connection);
+    
+    ancestors
 }

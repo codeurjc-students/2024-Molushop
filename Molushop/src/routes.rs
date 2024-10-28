@@ -94,8 +94,15 @@ async fn categories() -> impl Responder {
     
     //obtener vector de datos de la base de datos
     let categories = obtain_base_categories();
-
-    context1.insert("categories",&categories);
+    match(categories){
+        Ok(categories) => {
+            context1.insert("categories",&categories);
+        },
+        Err(e) => {
+            println!("Error loading categories: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading categories");
+        }
+    }
 
     let page_content: String = TEMPLATES.render("category.html", &context1).unwrap();
     //print!("{}",page_content);

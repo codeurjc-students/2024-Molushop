@@ -4,18 +4,11 @@ use diesel::prelude::*;
 
 //#![allow(unused)]
 //#![allow(clippy::all)]
-
-
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use uuid::Uuid;
-#[derive(Queryable, Debug, Identifiable)]
-#[diesel(table_name = attribute_option_sku)]
-#[diesel(primary_key(sku_id, prod_att_option_id))]
-pub struct AttributeOptionSku {
-    pub sku_id: Uuid,
-    pub prod_att_option_id: Uuid,
-}
+use serde_json::Value;
+
 
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(table_name = base_user)]
@@ -54,11 +47,14 @@ pub struct Buyer {
 #[derive(serde::Serialize)]
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(table_name = category)]
+#[derive(QueryableByName)]
 pub struct Category {
     pub id: String,
     pub name: Option<String>,
     pub parent: Option<String>,
     pub depth: Option<i32>,
+    pub base_specs: Option<Value>,
+    pub is_parent: Option<bool>,
 }
 
 #[derive(Queryable, Debug, Identifiable)]
@@ -86,6 +82,7 @@ pub struct CustomerAddress {
 pub struct Product {
     pub id: Uuid,
     pub name: String,
+    pub brand: String,
     pub description: Option<String>,
     pub summary: Option<String>,
 }

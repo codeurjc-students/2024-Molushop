@@ -47,15 +47,12 @@ CREATE TABLE Customer_address (
     CONSTRAINT fk_user_address FOREIGN KEY (customer_id) REFERENCES base_user (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'User'
 );
 
-CREATE TABLE Products (
-    id UUID PRIMARY KEY default gen_random_uuid(),
-    code VARCHAR(100) unique,
-    name VARCHAR(100),
-    description TEXT,
-    brand VARCHAR(100),
-    specs JSONB, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
-    variations JSONB, --> LAS VARIACIONES DEL PRODUCTO 
-    images JSONB  --> thumbnail, otras imagenes
+CREATE TABLE Product (
+    id UUID PRIMARY KEY,  -- Llave primaria del producto
+    name VARCHAR(255) NOT NULL,  -- Nombre del producto
+    brand VARCHAR(255) NOT NULL,  -- Marca del producto
+    description TEXT,  -- Descripción detallada del producto
+    summary TEXT  -- Resumen corto del producto
 );
 
 create table Category(
@@ -63,7 +60,6 @@ create table Category(
 	name text,
 	parent varchar(10),
 	depth integer,
-    base_specs jsonb,
 	foreign key (parent) references Category(id),
     is_parent boolean default false
 );
@@ -138,7 +134,7 @@ CREATE TABLE Category_product (
     product_id UUID NOT NULL,  -- Llave foránea a la tabla 'Product'
     PRIMARY KEY (category_id, product_id),  -- Llave compuesta entre subcategoría y producto
     CONSTRAINT fk_sub_category_product FOREIGN KEY (category_id) REFERENCES Category (id) ON DELETE CASCADE,  -- Llave foránea referenciando a 'Sub_category'
-    CONSTRAINT fk_product_category_product FOREIGN KEY (product_id) REFERENCES Products (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'Product'
+    CONSTRAINT fk_product_category_product FOREIGN KEY (product_id) REFERENCES Product (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'Product'
 );
 
 -- Tabla 'Product_attributes'
@@ -147,17 +143,43 @@ CREATE TABLE Product_attributes (
     name VARCHAR(255) NOT NULL  -- Nombre del atributo (ej: Color, Tamaño)
 );
 
--- Tabla 'Product_sku' (relacionada con 'Product') Son las variaciones de un product
-
-CREATE TABLE Product_variations (
-    id TEXT PRIMARY KEY,
-    product_id UUID NOT NULL,
-    identifiers JSONB,
-    sku TEXT,
-    attributes JSONB,
-    stock INT,
-    FOREIGN KEY (product_id) REFERENCES products(id),
-    images JSONB -- imagenes para la variacion
+create table Product_attributes_category (
+    id serial primary key,
+	product_att_id UUID references Product_attributes(id),
+	category_id varchar(10) references Category(id),
+	constraint unique_dupla UNIQUE (product_att_id,category_id)
 );
 
 
+-- Tabla 'Product_attributes_options' (relacionada con 'Product_attributes')
+CREATE TABLE Product_attributes_options (
+    id UUID PRIMARY KEY,  -- Llave primaria de la opción de atributo
+    attribute_id UUID NOT NULL,  -- Llave foránea a 'Product_attributes'
+    name VARCHAR(255) NOT NULL,  -- Nombre de la opción (ej: Rojo, Azul, Grande)
+    CONSTRAINT fk_product_attributes_options FOREIGN KEY (attribute_id) REFERENCES Product_attributes (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'Product_attributes'
+);
+
+
+
+-- Tabla 'Product_sku' (relacionada con 'Product') Son las variaciones de un producto
+CREATE TABLE Product_variations (
+    id UUID PRIMARY KEY,  -- Llave primaria de la variación
+    product_id UUID NOT NULL,  -- Llave foránea a la tabla 'Product'
+    upc VARCHAR(255) NOT NULL UNIQUE,  -- Código UPC único del producto
+    ean VARCHAR(255) NOT NULL UNIQUE,  -- Código EAN único del producto
+    isbn VARCHAR(255) NOT NULL UNIQUE,  -- Código ISBN único del producto
+    sku VARCHAR(255) NOT NULL UNIQUE,  -- Código SKU único del producto
+    stock INT NOT NULL,  -- Cantidad en inventario
+    CONSTRAINT fk_product_sku FOREIGN KEY (product_id) REFERENCES Product (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'Product'
+);
+
+
+
+-- Tabla 'Attribute_option_sku' (relaciona 'Product_sku' con 'Product_attributes_options')
+CREATE TABLE Attribute_option_var (
+    sku_id UUID NOT NULL,  -- Llave foránea a 'Product_sku'
+    prod_att_option_id UUID NOT NULL,  -- Llave foránea a 'Product_attributes_options'
+    PRIMARY KEY (sku_id, prod_att_option_id),  -- Llave compuesta entre SKU y opción de atributo
+    CONSTRAINT fk_sku_attribute_option FOREIGN KEY (sku_id) REFERENCES Product_sku (id) ON DELETE CASCADE,  -- Llave foránea referenciando a 'Product_sku'
+    CONSTRAINT fk_attribute_option_sku FOREIGN KEY (prod_att_option_id) REFERENCES Product_attributes_options (id) ON DELETE CASCADE  -- Llave foránea referenciando a 'Product_attributes_options'
+);
