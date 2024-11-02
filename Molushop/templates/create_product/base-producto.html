@@ -1,6 +1,12 @@
 <h1>Formulario de Producto</h1>
     <form action="/submit-product" method="post">
-        
+        {% for elem in specs %}
+            <div>
+                <label for="{{elem}}">{{elem}}</label>
+                <input type="text" id="{{elem}}" name="{{elem}}" required>
+            </div>
+        {% endfor %}
+
         <div>
             <label for="id">ID:</label>
             <input type="text" id="id" name="id" required>

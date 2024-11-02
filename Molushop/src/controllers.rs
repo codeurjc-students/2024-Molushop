@@ -56,8 +56,8 @@ async fn prueba_modificar() -> impl Responder {
 async fn category_children(path: web::Path<String>) -> impl Responder {
     let category_id= path.into_inner();
     //println!("category_id: {}",&category_id);
-    println!("hola");
-    println!("category_id: {}",&category_id);
+    //println!("hola");
+    //println!("category_id: {}",&category_id);
     
     let mut context = tera::Context::new();
 
@@ -90,7 +90,7 @@ async fn category_children(path: web::Path<String>) -> impl Responder {
 #[get("/reset-category")]
 async fn reset_category() -> impl Responder {
     let categories = obtain_base_categories();
-    match (categories){
+    match categories{
         Ok(categories) => {
             let mut context = tera::Context::new();
             context.insert("categories",&categories);
@@ -107,8 +107,52 @@ async fn reset_category() -> impl Responder {
 #[get("/next-select/{category_id}")]
 async fn next_category(path: web::Path<String>) -> impl Responder {
     let category_id= path.into_inner();
+    //vamos a obtener el json de la plantilla de la categoría
+    let specs_result= obtain_base_specs(&category_id);
+    match specs_result {
+        Ok(specs) => {
+            let mut context = tera::Context::new();
+            context.insert("category_id", &category_id);
+            //obtenemos el primer elemento de la lista
+            
+            let first = specs.first().unwrap();
+            match(first){
+                Some(spec) => {
+                    //obtener los valores de "specs""
+                    //let value = &spec.get("specs").unwrap();
+                    //println!("{}",value);
+                    //println!("que pasa");
+                    //context.insert("spec", &spec);
+
+                    if let Some(specs_array) = spec.get("specs").and_then(|s| s.as_array()) {
+                        /*let spec_vec: Vec<String> = specs_array.iter()
+                            .filter_map(|s| s.as_str().map(|s| s.to_string()))
+                            .collect();
+                        */
+                        context.insert("specs", &specs_array);
+                    }
+        
+                    let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
+                    return HttpResponse::Ok().body(rendered)
+                },
+                None => {
+                    println!("Error loading specs");
+                    return HttpResponse::InternalServerError().body("Error loading specs");
+                }
+            }
+
+            //context.insert("specs", &specs);
+            let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
+            return HttpResponse::Ok().body(rendered)
+        },
+        Err(e) => {
+            println!("Error loading specs: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading specs");
+        }
+    }
+    
     let mut context = tera::Context::new();
-    context.insert("category_id", &category_id);
+    //context.insert("category_id", &category_id);
     let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
     HttpResponse::Ok().body(rendered)
 }

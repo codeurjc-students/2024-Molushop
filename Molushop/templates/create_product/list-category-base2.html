@@ -1,19 +1,22 @@
-<ul>
-{% for elem in padres %}
-    {% if loop.last %}
-        <li>{{elem.name}}</li>
-    {% else %}
-        <li hx-get="/category-children/{{elem.id}}" hx-target=".chain" hx-trigger="click">{{elem.name}}</li>
-    {% endif %}
-{% endfor %}
-    <li hx-get="/reset-category" hx-target=".chain" hx-trigger="click">X</li>
-</ul>
+<div class="top">
+    <ul>
+    {% for elem in padres %}
+        {% if loop.last %}
+            <li>{{elem.name}}</li>
+        {% else %}
+            <li hx-get="/category-children/{{elem.id}}" hx-target=".chain" hx-trigger="click">{{elem.name}}</li>
+        {% endif %}
+    {% endfor %}
+        <li hx-get="/reset-category" hx-target=".chain" hx-trigger="click">X</li>
+    </ul>
+</div>
+<div class="select-cat"></div>
 <ul class="list">    
 {% for category in categories %}
     {% if category.is_parent %}
         <li hx-get="/category-children/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
     {% else %}
-        <li hx-get="/next-select/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+        <li hx-get="/next-select/{{category.id}}" hx-target=".select-cat" hx-trigger="click">{{category.name}}</li>
     {% endif %}
 {% endfor %}
 </ul>

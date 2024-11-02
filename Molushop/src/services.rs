@@ -18,6 +18,7 @@ use diesel::result::Error;
 use diesel::{insert_into,update};
 use chrono::NaiveDate;
 use chrono::prelude::*;
+use serde_json::Value;
 
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
@@ -100,8 +101,17 @@ pub fn obtain_ancestors(id_category:&String) -> Result<Vec<Category>,Error> {
 
     println!("ID: {}",id_category);
     //el placeholder $1 es para evitar sql injection
-    let ancestors:Result<Vec<Category>, Error>  = sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
+    let ancestors:Result<Vec<Category>, Error>  = sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, base_specs, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.base_specs, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
     .bind::<Text,_>(id_category.to_string()).get_results(connection);
     
     ancestors
+}
+
+pub fn obtain_base_specs(id_category:&String) -> Result<Vec<Option<Value>>,Error> {
+   
+    use crate::schema::category::dsl::*;
+    let connection = &mut establish_connection();
+    let result = category.filter(id.eq(id_category)).select(base_specs).load::<Option<Value>>(connection);
+    result
+    
 }

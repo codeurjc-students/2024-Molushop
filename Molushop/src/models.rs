@@ -56,6 +56,15 @@ pub struct Category {
     pub base_specs: Option<Value>,
     pub is_parent: Option<bool>,
 }
+//consulta solo del JsonB
+#[derive(Queryable)]
+#[diesel(table_name = category)]
+#[derive(QueryableByName)]
+pub struct BaseSpecs {
+    pub base_specs: Option<Value>,
+}
+
+
 
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(primary_key(category_id, product_id))]
