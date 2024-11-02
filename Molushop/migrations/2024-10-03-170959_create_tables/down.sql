@@ -12,3 +12,6 @@ drop table product_attributes cascade;
 
 DROP TRIGGER IF EXISTS set_depth_before_insert_update ON Category;
 DROP FUNCTION IF EXISTS calculate_depth();
+
+DROP FUNCTION IF EXISTS update_is_parent() cascade;
+DROP TRIGGER IF EXISTS update_is_parent_trigger ON Category;

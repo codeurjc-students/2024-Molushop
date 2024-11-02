@@ -2,7 +2,9 @@ delete from Category;
 
 drop table Category cascade;
 
-select * from Category order by depth;
+select * from Category order by id;
+
+delete from Category where id='BALLPAD';
 
 create table Category(
 	id varchar(10) primary key,
@@ -71,8 +73,7 @@ VALUES
 
 INSERT INTO Category (id, name, parent, depth, base_specs) 
 VALUES 
-('PADEL', 'Padel', 'SPORT', 1, '{"specs": ["use", "recommended_skill"]}'),
-('BALLPAD', 'Padel Balls', 'PADEL', 2, '{"specs": ["material", "size"]}');
+('PADEL', 'Padel', 'SPORT', 1, '{"specs": ["use", "recommended_skill"]}');
 
 
 
@@ -126,3 +127,43 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_is_parent_trigger
 AFTER INSERT OR UPDATE ON Category
 FOR EACH ROW EXECUTE FUNCTION update_is_parent();
+
+---------------NUEVO UPDATE IS_PARENT----------------
+CREATE OR REPLACE FUNCTION update_is_parent() RETURNS TRIGGER AS $$
+BEGIN
+    -- Si se inserta una nueva categoría, actualizar el padre
+    IF TG_OP = 'INSERT' THEN
+        UPDATE Category SET is_parent = TRUE WHERE id = NEW.parent;
+    END IF;
+
+    -- Si se actualiza una categoría, actualizar el padre antiguo y el nuevo
+    IF TG_OP = 'UPDATE' THEN
+        IF OLD.parent IS DISTINCT FROM NEW.parent THEN
+            -- Si el padre antiguo ya no tiene hijos, actualizar is_parent a FALSE
+            UPDATE Category SET is_parent = FALSE WHERE id = OLD.parent AND NOT EXISTS (
+                SELECT 1 FROM Category WHERE parent = OLD.parent
+            );
+            -- Actualizar el nuevo padre a TRUE
+            UPDATE Category SET is_parent = TRUE WHERE id = NEW.parent;
+        END IF;
+    END IF;
+
+    -- Si se elimina una categoría, actualizar el padre
+    IF TG_OP = 'DELETE' THEN
+        -- Si el padre antiguo ya no tiene hijos, actualizar is_parent a FALSE
+        UPDATE Category SET is_parent = FALSE WHERE id = OLD.parent AND NOT EXISTS (
+            SELECT 1 FROM Category WHERE parent = OLD.parent
+        );
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Crear el trigger para llamar a la función en INSERT, UPDATE y DELETE
+CREATE TRIGGER update_is_parent_trigger
+AFTER INSERT OR UPDATE OR DELETE ON Category
+FOR EACH ROW EXECUTE FUNCTION update_is_parent();
+
+DROP FUNCTION IF EXISTS update_is_parent() cascade;
+DROP TRIGGER IF EXISTS update_is_parent_trigger ON Category;

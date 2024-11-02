@@ -156,3 +156,4 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
     let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
     HttpResponse::Ok().body(rendered)
 }
+

@@ -122,13 +122,21 @@ BEGIN
         END IF;
     END IF;
 
+    -- Si se elimina una categoría, actualizar el padre
+    IF TG_OP = 'DELETE' THEN
+        -- Si el padre antiguo ya no tiene hijos, actualizar is_parent a FALSE
+        UPDATE Category SET is_parent = FALSE WHERE id = OLD.parent AND NOT EXISTS (
+            SELECT 1 FROM Category WHERE parent = OLD.parent
+        );
+    END IF;
+
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
--- Crear el trigger para llamar a la función en INSERT y UPDATE
+-- Crear el trigger para llamar a la función en INSERT, UPDATE y DELETE
 CREATE TRIGGER update_is_parent_trigger
-AFTER INSERT OR UPDATE ON Category
+AFTER INSERT OR UPDATE OR DELETE ON Category
 FOR EACH ROW EXECUTE FUNCTION update_is_parent();
 -------------------END UPDATE IS_PARENT-------------------
 

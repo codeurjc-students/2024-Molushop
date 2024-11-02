@@ -27,6 +27,10 @@
             <label for="summary">Resumen:</label>
             <textarea id="summary" name="summary"></textarea>
         </div>
+        <div class="variations">
+        </div>
+        <buton hx-get="/addVariations" hx-target=".variations">Add Variation</buton>
+        
         <input type="hidden" id="hidden_field" name="hidden_field" value="{{category_id}}">
         <div>
             <button type="submit">Enviar</button>
