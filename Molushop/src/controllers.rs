@@ -10,8 +10,15 @@ use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
+use crate::models::Product;
 use crate::services::*;
+use crate::models::ProductForm;
 
+use std::any::type_name;
+
+fn print_type_of<T>(_: &T) {
+    println!("El tipo de dato es: {}", type_name::<T>());
+}
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     pub static ref TEMPLATES: Tera = {
@@ -154,6 +161,34 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
     let mut context = tera::Context::new();
     //context.insert("category_id", &category_id);
     let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
+    HttpResponse::Ok().body(rendered)
+}
+
+#[post("/create-product/{category_id}")]
+async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
+    let category_id= path.into_inner();
+    println!("{:?}",category_id);
+    
+    print_type_of(&data);
+    //hacer print del tipo que es data
+    let datox = data.into_inner();
+    println!("{:?}",datox);
+    match(insert_new_product(&datox)){
+        Ok(_) => {
+            println!("Producto insertado");
+            HttpResponse::Ok().body("Producto creado")
+        },
+        Err(e) => {
+            println!("Error al insertar producto: {}", e);
+            return HttpResponse::InternalServerError().body("Error al insertar producto");
+        }
+    }
+}
+
+#[get("/add-variation")]
+async fn add_variation() -> impl Responder {
+    let mut context = tera::Context::new();
+    let rendered = TEMPLATES.render("create_product/add-variation.html", &context).unwrap();
     HttpResponse::Ok().body(rendered)
 }
 

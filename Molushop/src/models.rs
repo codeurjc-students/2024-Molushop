@@ -6,6 +6,7 @@ use diesel::prelude::*;
 //#![allow(clippy::all)]
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
+use serde::Deserialize;
 use uuid::Uuid;
 use serde_json::Value;
 
@@ -86,14 +87,41 @@ pub struct CustomerAddress {
     pub province: String,
 }
 
-#[derive(Queryable, Debug)]
+#[derive(Queryable, Debug, Deserialize)]
 #[diesel(table_name = product)]
 pub struct Product {
     pub id: Uuid,
+    pub code : String,
     pub name: String,
-    pub brand: String,
     pub description: Option<String>,
-    pub summary: Option<String>,
+    pub brand: String,
+    pub specs: Value,
+    pub variation: Value,
+    pub images: Value,
+}
+
+#[derive(Deserialize, Debug)]
+pub struct ProductForm{
+    pub code : String,
+    pub name: String,
+    pub description: String,
+    pub brand: String,
+    pub specs: Value,
+    pub variations: Option<Value>,
+    pub images: Option<Value>,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = products)]
+pub struct NewProduct<'a> {
+    pub id: &'a Uuid,
+    pub code : &'a str,
+    pub name: &'a str,
+    pub description: &'a str,
+    pub brand: &'a str,
+    pub specs: &'a Value,
+    pub variations:  Option<&'a Value>,
+    pub images:Option<&'a Value>,
 }
 
 #[derive(Queryable, Debug)]

@@ -115,3 +115,21 @@ pub fn obtain_base_specs(id_category:&String) -> Result<Vec<Option<Value>>,Error
     result
     
 }
+
+pub fn insert_new_product(form:&ProductForm) -> Result<usize, Error> {
+    use crate::schema::products::dsl::*;
+    let connection = &mut establish_connection();
+    let new_product = NewProduct{
+        id: &Uuid::new_v4(),
+        code: &form.code,
+        name: &form.name,
+        description: &form.description,
+        brand: &form.brand,
+        specs: &form.specs,
+        variations: form.variations.as_ref(),
+        images: form.images.as_ref(),
+    };
+    let result = insert_into(products).values(new_product).execute(connection);
+    result
+}
+

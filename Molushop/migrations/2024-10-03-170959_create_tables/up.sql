@@ -49,13 +49,13 @@ CREATE TABLE Customer_address (
 
 CREATE TABLE Products (
     id UUID PRIMARY KEY default gen_random_uuid(),
-    code VARCHAR(100) unique,
-    name VARCHAR(100),
-    description TEXT,
-    brand VARCHAR(100),
-    specs JSONB, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
+    code VARCHAR(100) unique not null,
+    name VARCHAR(100) not null,
+    description TEXT not null,
+    brand VARCHAR(100) not null,
+    specs JSONB not null, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
     variations JSONB, --> LAS VARIACIONES DEL PRODUCTO 
-    images JSONB  --> thumbnail, otras imagenes
+    images JSONB --> thumbnail, otras imagenes
 );
 
 create table Category(

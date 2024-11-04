@@ -93,13 +93,13 @@ diesel::table! {
     products (id) {
         id -> Uuid,
         #[max_length = 100]
-        code -> Nullable<Varchar>,
+        code -> Varchar,
         #[max_length = 100]
-        name -> Nullable<Varchar>,
-        description -> Nullable<Text>,
+        name -> Varchar,
+        description -> Text,
         #[max_length = 100]
-        brand -> Nullable<Varchar>,
-        specs -> Nullable<Jsonb>,
+        brand -> Varchar,
+        specs -> Jsonb,
         variations -> Nullable<Jsonb>,
         images -> Nullable<Jsonb>,
     }

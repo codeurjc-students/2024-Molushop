@@ -1,15 +1,18 @@
 <h1>Formulario de Producto</h1>
-    <form action="/submit-product" method="post">
+    <form 
+        hx-post="/create-product/{{category_id}}"
+        hx-traget=".objetivo"
+        hx-ext="json-enc-custom">
         {% for elem in specs %}
             <div>
                 <label for="{{elem}}">{{elem}}</label>
-                <input type="text" id="{{elem}}" name="{{elem}}" required>
+                <input type="text" id="{{elem}}" name="specs[{{elem}}]" required>
             </div>
         {% endfor %}
 
         <div>
-            <label for="id">ID:</label>
-            <input type="text" id="id" name="id" required>
+            <label for="id">CODE:</label>
+            <input type="text" id="id" name="code" required>
         </div>
         <div>
             <label for="name">Nombre:</label>
@@ -23,16 +26,18 @@
             <label for="description">Descripción:</label>
             <textarea id="description" name="description"></textarea>
         </div>
-        <div>
-            <label for="summary">Resumen:</label>
-            <textarea id="summary" name="summary"></textarea>
-        </div>
+        <!--
         <div class="variations">
+            <input type="hidden" name="variation" value=null>
         </div>
+        <input type="hidden" name="images" value=null>
+        --> 
+        
         <buton hx-get="/addVariations" hx-target=".variations">Add Variation</buton>
         
-        <input type="hidden" id="hidden_field" name="hidden_field" value="{{category_id}}">
+    
         <div>
             <button type="submit">Enviar</button>
         </div>
     </form>
+    <div class="objetivo"></div>
