@@ -32,8 +32,14 @@
         </div>
         <input type="hidden" name="images" value=null>
         --> 
+        <div class="variations">
+            
+            <buton class="btnAddVar" 
+                hx-get="/add-variations" 
+                hx-target="this" 
+                hx-swap="beforebegin">++ ADD VARIATION ++</buton>
+        </div>
         
-        <buton hx-get="/addVariations" hx-target=".variations">Add Variation</buton>
         
     
         <div>

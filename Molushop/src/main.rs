@@ -27,6 +27,8 @@ async fn main() -> std::io::Result<()> {
             .service(controllers::category_children)
             .service(controllers::next_category)
             .service(controllers::create_product)
+            .service(controllers::add_variation)
+            .service(controllers::add_variation_value)
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             
     })

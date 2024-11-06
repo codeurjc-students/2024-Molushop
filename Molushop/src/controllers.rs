@@ -185,10 +185,18 @@ async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> 
     }
 }
 
-#[get("/add-variation")]
+#[get("/add-variations")]
 async fn add_variation() -> impl Responder {
-    let mut context = tera::Context::new();
-    let rendered = TEMPLATES.render("create_product/add-variation.html", &context).unwrap();
+    let context = tera::Context::new();
+    let rendered = TEMPLATES.render("create_product/variations-input.html", &context).unwrap();
     HttpResponse::Ok().body(rendered)
 }
 
+#[get("/add-variations-attributes")]
+async fn add_variation_value() -> impl Responder {
+    let context = tera::Context::new();
+    let rendered = TEMPLATES.render("create_product/variations-input-extra.html", &context).unwrap();
+    HttpResponse::Ok()
+        .insert_header(("HX-Trigger","update_num"))
+        .body(rendered)
+}
