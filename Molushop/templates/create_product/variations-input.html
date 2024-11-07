@@ -1,6 +1,6 @@
 //va a ser una lista de 
 //add variations
-<div>
+<div _="on load set @x to 0" class="cont-vars">
     <label for="cat">Nombre categoría:</label>
     <input type="text" id="cat"  required
     _="on keyup 
@@ -16,9 +16,21 @@
         hx-target="previous .var-cont"
         hx-swap="beforeend"
         _="on htmx:afterRequest
-            increment :x
+            set father to the closest .cont-vars
+            increment father's @x
+            log father's @x
             set divChildren to the children of the previous <div/>
             set lastChild to the last of divChildren
-            set lastChild's id to :x"
+            set lastChild's id to father's @x"
             >Add more variations</button>
+    <button type="button" 
+        _="on click
+            set father to the closest .cont-vars
+            if father's @x > 0
+                decrement father's @x
+                log father's @x
+                set divChildren to the children of the previous <div/>
+                set lastChild to the last of divChildren
+                remove lastChild"
+            >Delete last variation</button>
 </div>

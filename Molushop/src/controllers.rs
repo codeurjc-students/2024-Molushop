@@ -173,7 +173,7 @@ async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> 
     //hacer print del tipo que es data
     let datox = data.into_inner();
     println!("{:?}",datox);
-    match(insert_new_product(&datox)){
+    match insert_new_product(&datox){
         Ok(_) => {
             println!("Producto insertado");
             HttpResponse::Ok().body("Producto creado")

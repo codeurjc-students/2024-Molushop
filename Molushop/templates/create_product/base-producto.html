@@ -26,22 +26,14 @@
             <label for="description">Descripción:</label>
             <textarea id="description" name="description"></textarea>
         </div>
-        <!--
-        <div class="variations">
-            <input type="hidden" name="variation" value=null>
-        </div>
-        <input type="hidden" name="images" value=null>
-        --> 
         <div class="variations">
             
             <buton class="btnAddVar" 
                 hx-get="/add-variations" 
                 hx-target="this" 
-                hx-swap="beforebegin">++ ADD VARIATION ++</buton>
+                hx-swap="beforebegin" 
+                >++ ADD VARIATION ++</buton>
         </div>
-        
-        
-    
         <div>
             <button type="submit">Enviar</button>
         </div>
