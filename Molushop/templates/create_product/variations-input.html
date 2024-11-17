@@ -1,9 +1,9 @@
-//va a ser una lista de 
-//add variations
+
 <div _="on load set @x to 0" class="cont-vars">
     <label for="cat">Nombre categoría:</label>
-    <input type="text" id="cat"  required
-    _="on keyup 
+    <input class="objetivo" type="text" id="cat"  required
+    _="on eventoPrueba or keyup
+        log 'hola'
         set valueNow to my value.trim()
         set divAux to the next <div/>
         set inputChild to the children of divAux
@@ -17,18 +17,19 @@
         hx-swap="beforeend"
         _="on htmx:afterRequest
             set father to the closest .cont-vars
-            increment father's @x
-            log father's @x
+            increment father's x
+            log father's x
             set divChildren to the children of the previous <div/>
             set lastChild to the last of divChildren
-            set lastChild's id to father's @x"
-            >Add more variations</button>
+            set lastChild's id to father's x
+            trigger eventoPrueba on the previous .objetivo">
+            Add more variations</button>
     <button type="button" 
         _="on click
             set father to the closest .cont-vars
-            if father's @x > 0
-                decrement father's @x
-                log father's @x
+            if father's x > 0
+                decrement father's x
+                log father's x
                 set divChildren to the children of the previous <div/>
                 set lastChild to the last of divChildren
                 remove lastChild"

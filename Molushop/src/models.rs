@@ -7,6 +7,7 @@ use diesel::prelude::*;
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use serde::Deserialize;
+use serde::Serialize;
 use uuid::Uuid;
 use serde_json::Value;
 
@@ -87,17 +88,17 @@ pub struct CustomerAddress {
     pub province: String,
 }
 
-#[derive(Queryable, Debug, Deserialize)]
-#[diesel(table_name = product)]
-pub struct Product {
+#[derive(Queryable, Debug, Deserialize,Serialize)]
+#[diesel(table_name = products)]
+pub struct Products {
     pub id: Uuid,
     pub code : String,
     pub name: String,
-    pub description: Option<String>,
+    pub description: String,
     pub brand: String,
     pub specs: Value,
-    pub variation: Value,
-    pub images: Value,
+    pub variations: Option<Value>,
+    pub images: Option<Value>,
 }
 
 #[derive(Deserialize, Debug)]

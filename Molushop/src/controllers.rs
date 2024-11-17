@@ -10,7 +10,7 @@ use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
-use crate::models::Product;
+use crate::models::Products;
 use crate::services::*;
 use crate::models::ProductForm;
 
@@ -199,4 +199,11 @@ async fn add_variation_value() -> impl Responder {
     HttpResponse::Ok()
         .insert_header(("HX-Trigger","update_num"))
         .body(rendered)
+}
+
+#[get("/add-specs")]
+async fn add_specs() -> impl Responder {
+    let context = tera::Context::new();
+    let rendered = TEMPLATES.render("create_product/specs-input.html", &context).unwrap();
+    HttpResponse::Ok().body(rendered)
 }

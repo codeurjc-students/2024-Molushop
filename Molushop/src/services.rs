@@ -29,6 +29,52 @@ pub fn establish_connection() -> PgConnection {
 }
 
 
+
+pub fn combine<T: Clone>(lists: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    if lists.is_empty() {
+        return vec![vec![]];
+    }
+
+    let mut result = Vec::new();
+    let first_list = &lists[0];
+    let rest_lists = &lists[1..];
+
+    for item in first_list {
+        for combination in combine(rest_lists.to_vec()) {
+            let mut new_combination = vec![item.clone()];
+            new_combination.extend(combination);
+            result.push(new_combination);
+        }
+    }
+
+    result
+}
+
+pub fn combine_tail_recursive<T: Clone>(lists: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    fn helper<T: Clone>(lists: &[Vec<T>], acc: Vec<Vec<T>>) -> Vec<Vec<T>> {
+        if lists.is_empty() {
+            return acc;
+        }
+
+        let first_list = &lists[0];
+        let rest_lists = &lists[1..];
+
+        let mut new_acc = Vec::new();
+        for combination in acc { //tiene un elemento vacio
+            for item in first_list {
+                let mut new_combination = combination.clone();
+                new_combination.push(item.clone());
+                new_acc.push(new_combination);
+            }
+        }
+
+        helper(rest_lists, new_acc)
+    }
+
+    helper(&lists, vec![vec![]])
+}
+
+
 pub fn insert_data_test() -> bool {
     use crate::schema::base_user::dsl::*;
     let other_id= Uuid::new_v4();
@@ -133,3 +179,11 @@ pub fn insert_new_product(form:&ProductForm) -> Result<usize, Error> {
     result
 }
 
+pub fn get_product(id_product:&Uuid) -> Result<Products,Error> {
+    use crate::schema::products::dsl::*;
+    let connection = &mut establish_connection();
+    let result = products.filter(id.eq(id_product)).first::<Products>(connection);
+    result
+}
+
+ 

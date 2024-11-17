@@ -13,14 +13,25 @@ pub mod models;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     println!("Hello, world!");
+
     //let id_base = Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
     //database::list_tareas(); //print de la base de datos
     //let ancestor_str = String::from("ACCESS");
     //services::obtainAncestors(&ancestor_str);
+    /*let lists = vec![
+        vec![1, 2, 3],
+        vec![4, 5],
+        vec![6, 7]
+    ];
+    let result = services::combine_tail_recursive(lists);
+    println!("{:?}",result);*/
+
+
     HttpServer::new(|| {
         App::new()
             .service(routes::index2)
             .service(routes::categories)
+            .service(routes::new_created_product)
             .service(controllers::prueba_insertar)
             .service(controllers::prueba_modificar)
             .service(controllers::reset_category)
@@ -29,6 +40,7 @@ async fn main() -> std::io::Result<()> {
             .service(controllers::create_product)
             .service(controllers::add_variation)
             .service(controllers::add_variation_value)
+            .service(controllers::add_specs)
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             
     })

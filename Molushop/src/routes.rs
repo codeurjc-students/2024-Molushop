@@ -6,11 +6,14 @@ use tera::Tera;
 use actix_files as fs;
 use serde::Deserialize;
 use serde::Serialize;
+use uuid::timestamp::context;
 use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
 use crate::services::*;
+use serde_json::Value;
+
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     pub static ref TEMPLATES: Tera = {
@@ -105,6 +108,62 @@ async fn categories() -> impl Responder {
     }
 
     let page_content: String = TEMPLATES.render("category.html", &context1).unwrap();
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(page_content)
+}
+
+#[get("/products/{product}")]
+async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
+    
+    let mut context1 = tera::Context::new();
+    
+    let id_product = path.into_inner();
+    //let id_product= Uuid::parse_str(&product).unwrap();
+    //print!("{}",product);
+    //obtener vector de datos de la base de datos
+    let product = get_product(&id_product);
+    let mut keys:Vec<&String> = Vec::new();
+    match(product){
+        Ok(product) => {
+            context1.insert("product",&product);
+            let cosa = product.variations;
+            match cosa {
+                Some(variations) => {
+                    let var_aux = variations.as_object().unwrap();
+                    //println!("Content variations: {:?}",content_variations);
+                    keys = var_aux.keys().collect(); 
+                    let content_variations:Vec<Vec<String>> = var_aux.iter().map(|(_,v)| {
+                        let values = v.as_array().unwrap();
+                        let values_str:Vec<String> = values.iter().map(|v| v.as_str().unwrap().to_string()).collect();
+                        values_str
+                    }).collect();
+                    
+                    let values_new = combine_tail_recursive(content_variations);
+                    println!("Hola");
+                    println!("{:?}",values_new);
+                    context1.insert("variations", &values_new);
+                    context1.insert("variationsTitles", &keys);
+                    context1.insert("flag", &true);
+                },
+                None => {
+                    println!("No variations");
+                    keys = Vec::new();
+                    let values_new2:Vec<String> = Vec::new();
+                    context1.insert("variations", &values_new2);
+                    context1.insert("variationsTitles", &keys);
+                    context1.insert("flag", &false);
+                }
+            }
+            //context1.insert("variationsTitles", &keys);
+            //context1.insert("product",&product);
+        },
+        Err(e) => {
+            println!("Error loading product: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading product");
+        }
+    }
+
+    let page_content: String = TEMPLATES.render("create_product/product.html", &context1).unwrap();
     //print!("{}",page_content);
     HttpResponse::Ok().body(page_content)
 }

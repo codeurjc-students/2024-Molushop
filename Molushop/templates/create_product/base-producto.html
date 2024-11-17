@@ -3,12 +3,36 @@
         hx-post="/create-product/{{category_id}}"
         hx-traget=".objetivo"
         hx-ext="json-enc-custom">
-        {% for elem in specs %}
+        <div class="specsContainer" _="on load set @z to 0">
+            <h4>Specs:</h4>
+            {% for elem in specs %}
             <div>
                 <label for="{{elem}}">{{elem}}</label>
                 <input type="text" id="{{elem}}" name="specs[{{elem}}]" required>
             </div>
-        {% endfor %}
+            {% endfor %}
+            <div class="extra"></div>
+            <div class="btn-double-container">
+                <button
+                    hx-get="/add-specs"
+                    hx-swap="beforebegin"
+                    hx-target="closest .btn-double-container"
+                    _="on htmx:afterRequest
+                    set father to the closest .specsContainer
+                    increment father's z
+                    log father's z">Add Specs</button>
+                <button type="button" 
+                    _="on click
+                    set father to the closest .specsContainer
+                    if father's z > 0
+                        decrement father's z 
+                        set btnCont to the closest .btn-double-container
+                        set lastSpec to the previous <div/> from btnCont
+                        remove lastSpec" 
+                        >DeleteSpecs</button>
+            </div> 
+        </div>
+        
 
         <div>
             <label for="id">CODE:</label>
@@ -26,13 +50,26 @@
             <label for="description">Descripción:</label>
             <textarea id="description" name="description"></textarea>
         </div>
-        <div class="variations">
+        <div class="variations" _="on load set @y to 0">
             
-            <buton class="btnAddVar" 
+            <button class="btnAddVar" 
                 hx-get="/add-variations" 
                 hx-target="this" 
                 hx-swap="beforebegin" 
-                >++ ADD VARIATION ++</buton>
+                _="on htmx:afterRequest
+                    set father to the closest .variations
+                    increment father's y
+                    log father's y"
+                    
+                >++ ADD VARIATION ++</button>
+            <button class="btnDelVar" type="button" 
+                _="on click
+                    set father to the closest .variations
+                    if father's y > 0
+                        decrement father's y then
+                        set varCont to the previous .cont-vars
+                        remove varCont" 
+                >-- DEL VARIATION --</button>
         </div>
         <div>
             <button type="submit">Enviar</button>
