@@ -11,7 +11,7 @@ use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
-use crate::services::*;
+use crate::servicesX::*;
 use serde_json::Value;
 
 
@@ -146,7 +146,7 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
                     context1.insert("flag", &true);
                 },
                 None => {
-                    println!("No variations");
+                    println!("No variations");  
                     keys = Vec::new();
                     let values_new2:Vec<String> = Vec::new();
                     context1.insert("variations", &values_new2);
@@ -164,6 +164,15 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
     }
 
     let page_content: String = TEMPLATES.render("create_product/product.html", &context1).unwrap();
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(page_content)
+}
+
+#[get("/imagen-prueba")]
+async fn imagen_prueba() -> impl Responder {
+    let context1 = tera::Context::new();
+    
+    let page_content: String = TEMPLATES.render("imagen-prueba.html", &context1).unwrap();
     //print!("{}",page_content);
     HttpResponse::Ok().body(page_content)
 }

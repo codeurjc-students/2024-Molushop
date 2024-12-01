@@ -1,18 +1,32 @@
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use actix_files as fs;
-use services::obtain_base_categories;
+use servicesX::obtain_base_categories;
 use uuid::Uuid;
 use serde_json::Value;
+use std::sync::Arc;
 
 pub mod schema;
-pub mod services;
-pub mod routes;
-pub mod controllers;
+//pub mod servicesX;
+//pub mod routes;
+//pub mod controllersX;
 pub mod models;
+//pub mod client;
+//pub mod upload;
+//pub mod startup;
+
+pub mod  routes;
+pub mod controllers;
+pub mod services;
+
+use services::servicesX;
+use routes::routes_x;
+use controllers::aws::s3::aws_s3;
+use controllers::controllersX;
+use services::aws::s3::{client, startup};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    println!("Hello, world!");
+    
 
     //let id_base = Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
     //database::list_tareas(); //print de la base de datos
@@ -26,21 +40,39 @@ async fn main() -> std::io::Result<()> {
     let result = services::combine_tail_recursive(lists);
     println!("{:?}",result);*/
 
+    /*Probar lo de AWS */
+    //let s3_client = actix_web::web::Data::new(configure_and_return_s3_client().await);
+    //obtener el cliente
+    
 
-    HttpServer::new(|| {
+    let client = startup::configure_and_return_s3_client().await;
+    let client_data = web::Data::new(Arc::new(client));
+
+    println!("Hello, world!");
+
+    HttpServer::new(move|| {
         App::new()
-            .service(routes::index2)
-            .service(routes::categories)
-            .service(routes::new_created_product)
-            .service(controllers::prueba_insertar)
-            .service(controllers::prueba_modificar)
-            .service(controllers::reset_category)
-            .service(controllers::category_children)
-            .service(controllers::next_category)
-            .service(controllers::create_product)
-            .service(controllers::add_variation)
-            .service(controllers::add_variation_value)
-            .service(controllers::add_specs)
+            .app_data(client_data.clone())
+            .service(routes_x::index2)
+            .service(routes_x::categories)
+            .service(routes_x::imagen_prueba)
+            .service(routes_x::new_created_product)
+            .service(controllersX::prueba_insertar)
+            .service(controllersX::prueba_modificar)
+            .service(controllersX::reset_category)
+            .service(controllersX::category_children)
+            .service(controllersX::next_category)
+            .service(controllersX::create_product)
+            .service(controllersX::add_variation)
+            .service(controllersX::add_variation_value)
+            .service(controllersX::add_specs)
+            // AWS S3
+            .service(aws_s3::save_files)
+            .service(aws_s3::delete_files)
+            .service(aws_s3::listar_archivos_s3)
+            .service(aws_s3::delete_fail)
+            .service(aws_s3::delete_all_files_2)
+            // Static files
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             
     })

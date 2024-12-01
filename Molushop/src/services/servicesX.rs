@@ -11,7 +11,7 @@ use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
-use crate::models::*;
+use crate::models::models_x::*;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
@@ -142,7 +142,7 @@ pub fn obtain_category(id_category:&String) -> Category {
 }
 
 pub fn obtain_ancestors(id_category:&String) -> Result<Vec<Category>,Error> {
-    use crate::models::Category;
+    use crate::models::models_x::Category;
     let connection = &mut establish_connection();
 
     println!("ID: {}",id_category);

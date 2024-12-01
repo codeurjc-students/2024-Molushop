@@ -1,5 +1,6 @@
 // logica de las llamadas al server
 use actix_web::{get, post, web,delete, App, HttpResponse, HttpServer, Responder, http::StatusCode};
+use aws_config::imds::client;
 use bigdecimal::BigDecimal;
 use lazy_static::lazy_static;
 use tera::Tera;
@@ -7,12 +8,37 @@ use actix_files as fs;
 use serde::Deserialize;
 use serde::Serialize;
 use std::{str::FromStr, sync::Mutex};
-//use crate::database::carrito_numero_productos;
-//use crate::database::{self, tiene_productos};
+use std::sync::Arc;
+
+
+use actix_multipart::{
+    form::{
+        tempfile::{TempFile, TempFileConfig},
+        MultipartForm,
+        json::Json as MpJson
+    },
+    Multipart,
+};
+
+#[derive(Debug, MultipartForm)]
+struct UploadForm {
+    #[multipart(limit = "100MB")]
+    file: TempFile,
+}
+
+#[derive(Debug, Deserialize)]
+struct Metadata {
+    name: String,
+}
+
+
 use uuid::Uuid;
-use crate::models::Products;
-use crate::services::*;
-use crate::models::ProductForm;
+use crate::models::models_x::Products;
+use crate::services::servicesX::*;
+use crate::models::models_x::ProductForm;
+
+use crate::services::aws::s3::client::Client;
+use crate::services::aws::s3::upload::UploadedFile;
 
 use std::any::type_name;
 
@@ -69,7 +95,7 @@ async fn category_children(path: web::Path<String>) -> impl Responder {
     let mut context = tera::Context::new();
 
     let categories_result = obtain_categories_children(&category_id);
-    let ancestors_result: Result<Vec<crate::models::Category>, diesel::result::Error> = obtain_ancestors(&category_id);
+    let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = obtain_ancestors(&category_id);
     match (categories_result, ancestors_result) {
         (Ok(categories), Ok(ancestors)) => {
             context.insert("categories", &categories);
@@ -206,4 +232,95 @@ async fn add_specs() -> impl Responder {
     let context = tera::Context::new();
     let rendered = TEMPLATES.render("create_product/specs-input.html", &context).unwrap();
     HttpResponse::Ok().body(rendered)
+}
+
+#[post("/prueba-aws")]
+async fn save_files(
+    client_data: web::Data<Arc<Client>>,
+    MultipartForm(form): MultipartForm<UploadForm>,
+) -> impl Responder {
+    println!("Vamos a ver si se sube el archivo!");
+    let client_data_x = client_data.get_ref().as_ref();
+    let uploaded_file=  client_data_x.upload(&form.file, "").await;
+    println!("Archivo subido!");
+
+    HttpResponse::Ok().body(format!("File uploaded: {:?}", uploaded_file))
+}
+
+#[derive(Deserialize)]
+struct Delete {
+    key: String,
+}
+
+
+#[post("/delete-aws")]
+async fn delete_files(
+    client_data: web::Data<Arc<Client>>,
+    web::Form(form): web::Form<Delete>
+) -> impl Responder {
+    println!("Vamos a borrar un archivo!");
+    let client_data_x = client_data.get_ref().as_ref();
+    //let uploaded_file=  client_data_x.upload(&form.file, "").await;
+    let end =  client_data_x.delete_file(&form.key).await;
+    let result = if end {"Archivo borrado!"} else {"Error al borrar el archivo"};
+
+    HttpResponse::Ok().body(result)
+}
+
+
+#[get("/delete-all")]
+async fn delete_all_files_2(
+    client_data: web::Data<Arc<Client>>
+) -> impl Responder {
+    println!("Vamos a borrar un archivo!");
+    let client_data_x = client_data.get_ref().as_ref();
+    //let uploaded_file=  client_data_x.upload(&form.file, "").await;
+    let end =  client_data_x.delete_all_files().await;
+    match end {
+        Ok(_) => {
+            println!("Archivos borrados!");
+            return HttpResponse::Ok().body("Archivos borrados");
+        },
+        Err(e) => {
+            println!("Error al borrar archivos: {}", e);
+            return HttpResponse::InternalServerError().body("Error al borrar archivos");
+        }
+    }
+}
+
+
+
+#[get("/delete-fail")]
+async fn delete_fail(
+    client_data: web::Data<Arc<Client>>
+) -> impl Responder{
+    let client_data_x = client_data.get_ref().as_ref();
+    //let lista = vec!["hola".to_string(),"adios".to_string()];
+    let lista = vec!["1733000369bone.jpg".to_string(),"xd".to_string()];
+
+    let end =  client_data_x.delete_files_from_vec(lista).await;
+    match end {
+        Ok(_) => {
+            println!("Archivos borrados!");
+            return HttpResponse::Ok().body("Archivos borrados");
+        },
+        Err(e) => {
+            println!("Error al borrar archivos: {}", e);
+            return HttpResponse::InternalServerError().body("Error al borrar archivos");
+        }
+    }
+}
+
+#[get("/listar-archivos-s3")]
+async fn listar_archivos_s3(
+    client_data: web::Data<Arc<Client>>
+) -> impl Responder {
+    println!("Vamos a listar los archivos!");
+    let client_data_x = client_data.get_ref().as_ref();
+    //let uploaded_file=  client_data_x.upload(&form.file, "").await;
+    let end =  client_data_x.list_objects().await;
+    //let result = if end {"Archivos listados!"} else {"Error al listar los archivos"};
+    println!("Archivos: {:?}",end);
+
+    HttpResponse::Ok().body("Archivos listados")
 }
