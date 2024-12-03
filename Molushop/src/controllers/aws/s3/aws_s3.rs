@@ -9,6 +9,8 @@ use serde::Serialize;
 use std::{str::FromStr, sync::Mutex};
 use std::sync::Arc;
 
+use actix_web::Scope;
+
 use crate::services::aws::s3::client::Client;
 
 use actix_multipart::{
@@ -19,6 +21,19 @@ use actix_multipart::{
     },
     Multipart,
 };
+
+pub fn scope_s3() -> Scope {
+    web::scope("/s3")
+        .configure(config)
+}
+
+pub fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(save_files);
+    cfg.service(delete_files);
+    cfg.service(delete_all_files_2);
+    cfg.service(delete_fail);
+    cfg.service(listar_archivos_s3);
+}
 
 #[derive(Deserialize)]
 struct Delete {
@@ -31,7 +46,7 @@ struct UploadForm {
     file: TempFile,
 }
 
-#[post("/prueba-aws")]
+#[post("/upload-file")]
 async fn save_files(
     client_data: web::Data<Arc<Client>>,
     MultipartForm(form): MultipartForm<UploadForm>,
@@ -65,7 +80,7 @@ async fn delete_all_files_2(
 }
 
 
-#[post("/delete-aws")]
+#[post("/delete-file")]
 async fn delete_files(
     client_data: web::Data<Arc<Client>>,
     web::Form(form): web::Form<Delete>

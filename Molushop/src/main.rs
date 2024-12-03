@@ -21,6 +21,7 @@ pub mod services;
 use services::servicesX;
 use routes::routes_x;
 use controllers::aws::s3::aws_s3;
+use controllers::aws::aws;
 use controllers::controllersX;
 use services::aws::s3::{client, startup};
 
@@ -67,11 +68,7 @@ async fn main() -> std::io::Result<()> {
             .service(controllersX::add_variation_value)
             .service(controllersX::add_specs)
             // AWS S3
-            .service(aws_s3::save_files)
-            .service(aws_s3::delete_files)
-            .service(aws_s3::listar_archivos_s3)
-            .service(aws_s3::delete_fail)
-            .service(aws_s3::delete_all_files_2)
+            .service(aws::scope_aws()) /*  /aws/s3/xxx  */
             // Static files
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             
