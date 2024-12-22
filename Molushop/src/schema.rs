@@ -40,7 +40,7 @@ diesel::table! {
         parent -> Nullable<Varchar>,
         depth -> Nullable<Int4>,
         base_specs -> Nullable<Jsonb>,
-        is_parent -> Nullable<Bool>,
+        is_parent -> Bool,
     }
 }
 

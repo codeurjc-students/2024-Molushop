@@ -64,8 +64,8 @@ create table Category(
 	parent varchar(10),
 	depth integer,
     base_specs jsonb,
-	foreign key (parent) references Category(id),
-    is_parent boolean default false
+    is_parent boolean not null default false,
+	foreign key (parent) references Category(id)
 );
 
 --------------FUNCION CALCULAR PROFUNDIDAD----------------

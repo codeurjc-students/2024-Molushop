@@ -1,6 +1,6 @@
 <h1>Formulario de Producto</h1>
     <form 
-        hx-post="/create-product/{{category_id}}"
+        hx-post="{{routes.create_product}}/{{category_id}}"
         hx-traget=".objetivo"
         hx-ext="json-enc-custom">
         <div class="specsContainer" _="on load set @z to 0">
@@ -14,7 +14,7 @@
             <div class="extra"></div>
             <div class="btn-double-container">
                 <button
-                    hx-get="/add-specs"
+                    hx-get="{{routes.add_specs}}"
                     hx-swap="beforebegin"
                     hx-target="closest .btn-double-container"
                     _="on htmx:afterRequest
@@ -53,7 +53,7 @@
         <div class="variations" _="on load set @y to 0">
             
             <button class="btnAddVar" 
-                hx-get="/add-variations" 
+                hx-get="{{routes.add_variation}}" 
                 hx-target="this" 
                 hx-swap="beforebegin" 
                 _="on htmx:afterRequest

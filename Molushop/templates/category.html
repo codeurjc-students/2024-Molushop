@@ -20,9 +20,9 @@
                 <ul class="list">    
                     {% for category in categories %}
                         {% if category.is_parent %}
-                        <li hx-get="/category-children/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+                        <li hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
                         {% else %}
-                        <li hx-get="/next-select/{{category.id}}" hx-target=".select-cat" hx-trigger="click">{{category.name}}</li>
+                        <li hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat" hx-trigger="click">{{category.name}}</li>
                         {% endif %}
                     {% endfor %}
                 </ul>
@@ -30,5 +30,10 @@
             
         </div>
     </div>
+    {% include "extra/little.html" %}
+
+    {% include "extra/little.html" %}
+
+    {% include "extra/little.html" %}
 </body>
 </html>

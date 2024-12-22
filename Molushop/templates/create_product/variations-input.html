@@ -12,7 +12,7 @@
     <div class="var-cont">
         <input id="0" type="text" name="0" required> 
     </div>
-    <button hx-get="/add-variations-attributes" 
+    <button hx-get="{{routes.add_variation_value}}" 
         hx-target="previous .var-cont"
         hx-swap="beforeend"
         _="on htmx:afterRequest

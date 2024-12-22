@@ -1,9 +1,22 @@
-<ul>
-        <li>{{cat.name}}</li>
-        <li hx-get="/reset-category" hx-target=".chain" hx-trigger="click">X</li>
-</ul>
+<div class="top">
+    <ul>
+    {% for elem in padres %}
+        {% if loop.last %}
+            <li>{{elem.name}}</li>
+        {% else %}
+            <li hx-get="{{routes.category_children}}/{{elem.id}}" hx-target=".chain" hx-trigger="click">{{elem.name}}</li>
+        {% endif %}
+    {% endfor %}
+        <li hx-get="{{routes.reset_category}}" hx-target=".chain" hx-trigger="click">X</li>
+    </ul>
+</div>
+<div class="select-cat"></div>
 <ul class="list">    
 {% for category in categories %}
-        <li hx-get="/category-children/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+    {% if category.is_parent %}
+        <li hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+    {% else %}
+        <li hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat" hx-trigger="click">{{category.name}}</li>
+    {% endif %}
 {% endfor %}
 </ul>

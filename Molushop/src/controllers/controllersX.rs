@@ -10,6 +10,8 @@ use serde::Serialize;
 use std::{str::FromStr, sync::Mutex};
 use std::sync::Arc;
 
+//importante importar Template
+use rinja::Template;
 
 use actix_multipart::{
     form::{
@@ -42,16 +44,25 @@ use crate::services::aws::s3::upload::UploadedFile;
 
 use std::any::type_name;
 
+//models
+use crate::models::models_x::Category;
+//use crate::models::htmx::create_product::{List_category_base,Base_category,BaseProducto,VariationsInput,VariationsInputExtra,SpecsInput};
+use crate::models::htmx::create_product::*;
+use crate::models::extra::BaseSpecs;
+
+
 fn print_type_of<T>(_: &T) {
     println!("El tipo de dato es: {}", type_name::<T>());
 }
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
+    /* 
     pub static ref TEMPLATES: Tera = {
         let source = "templates/**/*";
         let tera = Tera::new(&source).unwrap();
         tera
     };
+    */    
 
     //momentaneo
     static ref ID_BASE:Uuid =Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
@@ -84,22 +95,20 @@ async fn prueba_modificar() -> impl Responder {
 
     //HttpResponse::Ok().body(database::total_carrito(&ID_BASE).to_string()+" €")
 }
-
+/*
 #[get("/category-children/{category_id}")]
 async fn category_children(path: web::Path<String>) -> impl Responder {
     let category_id= path.into_inner();
-    //println!("category_id: {}",&category_id);
-    //println!("hola");
-    //println!("category_id: {}",&category_id);
-    
-    let mut context = tera::Context::new();
 
     let categories_result = obtain_categories_children(&category_id);
     let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = obtain_ancestors(&category_id);
     match (categories_result, ancestors_result) {
         (Ok(categories), Ok(ancestors)) => {
-            context.insert("categories", &categories);
-            context.insert("padres", &ancestors);
+
+
+            let list_category_base = List_category_base::new_2(ancestors,categories);
+            let rendered = list_category_base.render().unwrap();
+            HttpResponse::Ok().body(rendered)
         },
         (Err(e), Ok(_)) => {
             println!("Error loading categories: {}", e);
@@ -115,19 +124,16 @@ async fn category_children(path: web::Path<String>) -> impl Responder {
             return HttpResponse::InternalServerError().body("Error loading categories and ancestors");
         }
     }
-    //revisar los mensajes de error
-    let rendered = TEMPLATES.render("create_product/list-category-base2.html", &context).unwrap();
-    HttpResponse::Ok().body(rendered)
 }
-
+*/
+/*
 #[get("/reset-category")]
 async fn reset_category() -> impl Responder {
     let categories = obtain_base_categories();
     match categories{
         Ok(categories) => {
-            let mut context = tera::Context::new();
-            context.insert("categories",&categories);
-            let rendered = TEMPLATES.render("create_product/base-category.html", &context).unwrap();
+            let base_category = Base_category::new(categories); 
+            let rendered = base_category.render().unwrap();
             HttpResponse::Ok().body(rendered)
         },
         Err(e) => {
@@ -136,7 +142,7 @@ async fn reset_category() -> impl Responder {
         }
     }
 }
-
+ 
 #[get("/next-select/{category_id}")]
 async fn next_category(path: web::Path<String>) -> impl Responder {
     let category_id= path.into_inner();
@@ -144,58 +150,34 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
     let specs_result= obtain_base_specs(&category_id);
     match specs_result {
         Ok(specs) => {
-            let mut context = tera::Context::new();
-            context.insert("category_id", &category_id);
-            //obtenemos el primer elemento de la lista
-            
             let first = specs.first().unwrap();
             match(first){
                 Some(spec) => {
-                    //obtener los valores de "specs""
-                    //let value = &spec.get("specs").unwrap();
-                    //println!("{}",value);
-                    //println!("que pasa");
-                    //context.insert("spec", &spec);
-
-                    if let Some(specs_array) = spec.get("specs").and_then(|s| s.as_array()) {
-                        /*let spec_vec: Vec<String> = specs_array.iter()
-                            .filter_map(|s| s.as_str().map(|s| s.to_string()))
-                            .collect();
-                        */
-                        context.insert("specs", &specs_array);
-                    }
-        
-                    let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
-                    return HttpResponse::Ok().body(rendered)
+                    let base_specs = serde_json::from_value(spec.clone()).unwrap();
+                    let base_product = BaseProducto::new_2(base_specs,category_id);       
+                    let render  = base_product.render().unwrap();
+                    
+                    return HttpResponse::Ok().body(render)
                 },
                 None => {
                     println!("Error loading specs");
                     return HttpResponse::InternalServerError().body("Error loading specs");
                 }
             }
-
-            //context.insert("specs", &specs);
-            let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
-            return HttpResponse::Ok().body(rendered)
         },
         Err(e) => {
             println!("Error loading specs: {}", e);
             return HttpResponse::InternalServerError().body("Error loading specs");
         }
     }
-    
-    let mut context = tera::Context::new();
-    //context.insert("category_id", &category_id);
-    let rendered = TEMPLATES.render("create_product/base-producto.html", &context).unwrap();
-    HttpResponse::Ok().body(rendered)
 }
-
+*/
 #[post("/create-product/{category_id}")]
 async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
     let category_id= path.into_inner();
     println!("{:?}",category_id);
     
-    print_type_of(&data);
+    //print_type_of(&data);
     //hacer print del tipo que es data
     let datox = data.into_inner();
     println!("{:?}",datox);
@@ -211,17 +193,20 @@ async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> 
     }
 }
 
-#[get("/add-variations")]
-async fn add_variation() -> impl Responder {
-    let context = tera::Context::new();
-    let rendered = TEMPLATES.render("create_product/variations-input.html", &context).unwrap();
-    HttpResponse::Ok().body(rendered)
-}
+// #[get("/add-variations")]
+// async fn add_variation() -> impl Responder {
+//     //let context = tera::Context::new();
+//     let variations_input = VariationsInput::new();
+//     let rendered = variations_input.render().unwrap();
+//     HttpResponse::Ok().body(rendered)
+// }
 
 #[get("/add-variations-attributes")]
 async fn add_variation_value() -> impl Responder {
-    let context = tera::Context::new();
-    let rendered = TEMPLATES.render("create_product/variations-input-extra.html", &context).unwrap();
+    // let context = tera::Context::new();
+    //let rendered = TEMPLATES.render("create_product/variations-input-extra.html", &context).unwrap();
+    let variations_input_extra = VariationsInputExtra::new();
+    let rendered = variations_input_extra.render().unwrap();
     HttpResponse::Ok()
         .insert_header(("HX-Trigger","update_num"))
         .body(rendered)
@@ -229,8 +214,9 @@ async fn add_variation_value() -> impl Responder {
 
 #[get("/add-specs")]
 async fn add_specs() -> impl Responder {
-    let context = tera::Context::new();
-    let rendered = TEMPLATES.render("create_product/specs-input.html", &context).unwrap();
+    let specs_input = SpecsInput::new();
+    let rendered = specs_input.render().unwrap();
+    
     HttpResponse::Ok().body(rendered)
 }
 
@@ -260,7 +246,7 @@ async fn delete_files(
 ) -> impl Responder {
     println!("Vamos a borrar un archivo!");
     let client_data_x = client_data.get_ref().as_ref();
-    //let uploaded_file=  client_data_x.upload(&form.file, "").await;
+    
     let end =  client_data_x.delete_file(&form.key).await;
     let result = if end {"Archivo borrado!"} else {"Error al borrar el archivo"};
 
@@ -274,7 +260,6 @@ async fn delete_all_files_2(
 ) -> impl Responder {
     println!("Vamos a borrar un archivo!");
     let client_data_x = client_data.get_ref().as_ref();
-    //let uploaded_file=  client_data_x.upload(&form.file, "").await;
     let end =  client_data_x.delete_all_files().await;
     match end {
         Ok(_) => {

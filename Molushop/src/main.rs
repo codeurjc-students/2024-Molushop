@@ -60,15 +60,17 @@ async fn main() -> std::io::Result<()> {
             .service(routes_x::new_created_product)
             .service(controllersX::prueba_insertar)
             .service(controllersX::prueba_modificar)
-            .service(controllersX::reset_category)
-            .service(controllersX::category_children)
-            .service(controllersX::next_category)
-            .service(controllersX::create_product)
-            .service(controllersX::add_variation)
-            .service(controllersX::add_variation_value)
-            .service(controllersX::add_specs)
+            // .service(controllersX::category_children)
+            // .service(controllersX::reset_category)
+            // // .service(controllersX::next_category)
+            // // .service(controllersX::create_product)
+            // // .service(controllersX::add_variation)
+            // // .service(controllersX::add_variation_value)
+            // // .service(controllersX::add_specs)
             // AWS S3
             .service(aws::scope_aws()) /*  /aws/s3/xxx  */
+            //create_product
+            .service(controllers::createProduct::controllers::scope_create_product())
             // Static files
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             

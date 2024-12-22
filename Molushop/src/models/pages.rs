@@ -1,0 +1,25 @@
+use rinja::Template;
+use super::models_x::{Category2,Category};
+use super::htmx::create_product::Routes;
+#[derive(Template,Clone,Debug)]
+#[template(path = "category.html")]
+pub struct CategoryTemplate {
+    categories: Vec<Category2>,
+    routes: &'static Routes,
+}
+
+impl CategoryTemplate {
+    pub fn new_2(
+            categories1: Vec<Category>,
+            routes: &'static Routes,
+        ) -> Self {
+        CategoryTemplate {
+            categories: categories1.iter().map(|c| c.to_category2().unwrap()).collect(),
+            routes
+        }
+    }
+
+    pub fn set_categories_from_category(&mut self, categories: Vec<Category>) {
+        self.categories = categories.iter().map(|c| c.to_category2().unwrap()).collect();        
+    }
+}

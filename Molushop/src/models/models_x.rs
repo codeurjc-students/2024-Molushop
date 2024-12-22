@@ -47,7 +47,7 @@ pub struct Buyer {
 }
 
 #[derive(serde::Serialize)]
-#[derive(Queryable, Debug, Identifiable)]
+#[derive(Queryable, Debug, Identifiable,Clone)]
 #[diesel(table_name = category)]
 #[derive(QueryableByName)]
 pub struct Category {
@@ -56,8 +56,34 @@ pub struct Category {
     pub parent: Option<String>,
     pub depth: Option<i32>,
     pub base_specs: Option<Value>,
-    pub is_parent: Option<bool>,
+    pub is_parent: bool,
 }
+
+impl Category {
+    pub fn to_category2(&self) -> Result<Category2, &'static str> {
+        Ok(Category2 {
+            id: self.id.clone(),
+            name: self.name.clone().ok_or("Missing name")?,
+            parent: self.parent.clone().unwrap_or_default(),
+            depth: self.depth.unwrap_or(0),
+            base_specs: self.base_specs.clone().unwrap_or(Value::Null),
+            is_parent: self.is_parent,
+        })
+    }
+}
+
+
+#[derive(serde::Serialize)]
+#[derive(Clone,Debug)]
+pub struct Category2 {
+    pub id: String,
+    pub name: String,
+    pub parent: String,
+    pub depth: i32,
+    pub base_specs: Value,
+    pub is_parent: bool,
+}
+
 //consulta solo del JsonB
 #[derive(Queryable)]
 #[diesel(table_name = category)]
