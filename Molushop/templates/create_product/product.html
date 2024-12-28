@@ -1,22 +1,22 @@
 <h1>{{product.id}}</h1>
 <h2>{{product.name}}</h2>
-<h2>{{product.variations}}</h2>
+
 <table>
     
     <tbody>
-        {% if flag %}
+        {% if product.has_variations %}
             <tr>
                 <!--Aqui hay que hacer el for-->
-                {% for key in variationsTitles %}
-                <th>{{key}}</th>
+                {% for variation in product.variations %}
+                <th>{{variation.name}}</th>
                 {% endfor %}
                 <th>Sku code</th>
             </tr>
             <!--Variaciones tantas filas como variaciones -->
-            {% for variation in variations %}
+            {% for variation in product.all_variations %}
             <tr>
-                {% for elem in variation %}
-                <td>{{elem}}</td>
+                {% for value in variation %}
+                <td>{{value}}</td>
                 {% endfor %}
                 <td><input></td>
             </tr>

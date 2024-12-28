@@ -1,6 +1,7 @@
 use rinja::Template;
 use super::models_x::{Category2,Category};
 use super::htmx::create_product::Routes;
+use super::get_product::GetProductForm;
 #[derive(Template,Clone,Debug)]
 #[template(path = "category.html")]
 pub struct CategoryTemplate {
@@ -22,4 +23,13 @@ impl CategoryTemplate {
     pub fn set_categories_from_category(&mut self, categories: Vec<Category>) {
         self.categories = categories.iter().map(|c| c.to_category2().unwrap()).collect();        
     }
+}
+
+#[derive(Template,Clone,Debug)]
+#[template(path = "create_product/product.html")]
+pub struct EditProductTemplate {
+    pub product: GetProductForm
+    /* 
+    pub variations_titles: Vec<String>,
+    pub variations: Vec<Vec<String>>,*/
 }

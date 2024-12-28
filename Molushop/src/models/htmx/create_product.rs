@@ -1,6 +1,3 @@
-use std::collections::HashMap;
-use std::hash::Hash;
-
 // todos los modelos de la pagina que se harán en el context de create product se harán aquí
 use rinja::Template;
 use serde::Serialize;
@@ -21,6 +18,7 @@ pub struct Routes{
     pub add_variation_value: &'static str,
     pub add_specs: &'static str,
 }
+
 
 
 
@@ -67,15 +65,17 @@ impl Base_category{
 pub struct BaseProducto{
     specs: Vec<String>,
     category_id: String,
-    routes : &'static Routes
+    routes : &'static Routes,
+    name: String,
 }
 
 impl BaseProducto{
-    pub fn new(specsx: BaseSpecs,id: String, routes: &'static Routes) -> Self {
+    pub fn new(specsx: BaseSpecs,id: String, routes: &'static Routes,name: String) -> Self {
         BaseProducto {
             specs: specsx.specs,   
             category_id: id,
-            routes
+            routes,
+            name
         }
     }
 }

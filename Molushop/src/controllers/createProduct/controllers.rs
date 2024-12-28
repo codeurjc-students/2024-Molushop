@@ -14,7 +14,9 @@ use rinja::Template;
 use uuid::Uuid;
 
 use crate::services::servicesX::*;
-use crate::models::models_x::ProductForm;
+use crate::services;
+use crate::models::models_x::{ProductForm,Category};
+//use crate::models::get_product::ProductForm;
 
 use std::any::type_name;
 
@@ -142,14 +144,17 @@ async fn reset_category() -> impl Responder {
 async fn next_category(path: web::Path<String>) -> impl Responder {
     let category_id= path.into_inner();
     //vamos a obtener el json de la plantilla de la categoría
-    let specs_result= obtain_base_specs(&category_id);
-    match specs_result {
-        Ok(specs) => {
-            let first = specs.first().unwrap();
-            match(first){
-                Some(spec) => {
-                    let base_specs = serde_json::from_value(spec.clone()).unwrap();
-                    let base_product = BaseProducto::new(base_specs,category_id, &ROUTES);       
+    //let specs_result= obtain_base_specs(&category_id);
+    //let nombre_result = services::product::get_name(&category_id);
+    let category_result = services::category::get_category(&category_id);
+    match category_result{
+        Ok(category) => {
+            let specs_option = category.base_specs;
+            let name  = category.name.unwrap_or_default();
+            match specs_option{
+                Some(specs) =>{
+                    let base_specs = serde_json::from_value(specs.clone()).unwrap();
+                    let base_product = BaseProducto::new(base_specs,category_id, &ROUTES,name);       
                     let render  = base_product.render().unwrap();
                     
                     return HttpResponse::Ok().body(render)
@@ -159,10 +164,13 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
                     return HttpResponse::InternalServerError().body("Error loading specs");
                 }
             }
+
+           
+
         },
         Err(e) => {
-            println!("Error loading specs: {}", e);
-            return HttpResponse::InternalServerError().body("Error loading specs");
+            println!("Error loading category: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading category");
         }
     }
 }
@@ -196,7 +204,7 @@ async fn add_variation() -> impl Responder {
     HttpResponse::Ok().body(rendered)
 }
 
-#[get("/add-variation-value")]
+#[get("/add-variation-value")] //ESTO QUE HACE?
 async fn add_variation_value() -> impl Responder {
     // let context = tera::Context::new();
     //let rendered = TEMPLATES.render("create_product/variations-input-extra.html", &context).unwrap();

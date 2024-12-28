@@ -171,7 +171,7 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
         }
     }
 }
-*/
+
 #[post("/create-product/{category_id}")]
 async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
     let category_id= path.into_inner();
@@ -192,6 +192,7 @@ async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> 
         }
     }
 }
+*/
 
 // #[get("/add-variations")]
 // async fn add_variation() -> impl Responder {

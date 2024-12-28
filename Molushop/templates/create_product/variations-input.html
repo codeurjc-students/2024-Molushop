@@ -1,14 +1,22 @@
-
-<div _="on load set @x to 0" class="cont-vars">
+<div _="on load 
+    set padre to the closest .variations
+    set yy to padre's y
+    set @x to (yy-1)
+    set hijo to the first <input/> in me
+    set hijo's name to 'variations['+@x+']'+'[name]'"
+    x=""
+    class="cont-vars">
     <label for="cat">Nombre categoría:</label>
-    <input class="objetivo" type="text" id="cat"  required
-    _="on eventoPrueba or keyup
-        log 'hola'
+    <input class="objetivo" type="text" id="cat" name=""  required 
+    _="
+    on eventoPrueba or keyup
         set valueNow to my value.trim()
         set divAux to the next <div/>
+        set padre to the closest <div/>
+        set numero to padre's @x
         set inputChild to the children of divAux
         for eachChild in inputChild
-            set the name of eachChild to 'variations['+valueNow+']'+'['+(eachChild's id) + ']'">
+            set the name of eachChild to 'variations['+numero+']'+'[values]['+(eachChild's id) +']'+'[value]' ">
     <div class="var-cont">
         <input id="0" type="text" name="0" required> 
     </div>

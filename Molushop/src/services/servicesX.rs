@@ -11,7 +11,8 @@ use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
-use crate::models::models_x::*;
+use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm};
+use crate::models::get_product::{GetProductForm,Variation};
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
@@ -19,6 +20,7 @@ use diesel::{insert_into,update};
 use chrono::NaiveDate;
 use chrono::prelude::*;
 use serde_json::Value;
+use serde_json::json;
 
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();

@@ -11,11 +11,13 @@ use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
+use crate::models::get_product::GetProductForm;
+use crate::schema::products::variations;
 use crate::servicesX::*;
 use serde_json::Value;
 
 use crate::models::models_x::*;
-use crate::models::pages::CategoryTemplate;
+use crate::models::pages::{CategoryTemplate,EditProductTemplate};
 
 use rinja::Template;
 
@@ -91,18 +93,44 @@ async fn categories() -> impl Responder {
 #[get("/products/{product}")]
 async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
     
-    let mut context1 = tera::Context::new();
+    //let mut context1 = tera::Context::new();
     
     let id_product = path.into_inner();
     //let id_product= Uuid::parse_str(&product).unwrap();
     //print!("{}",product);
     //obtener vector de datos de la base de datos
     let product = get_product(&id_product);
+
     let mut keys:Vec<&String> = Vec::new();
     match(product){
         Ok(product) => {
-            context1.insert("product",&product);
-            let cosa = product.variations;
+            //de Products a GetProductForm
+            //let product2 = product.clone();
+            //obtener vector de vectores de productq
+
+            /*
+            let mut lists:Vec<Vec<String>> = Vec::new();
+            let mut all_variations:Vec<Vec<String>> = Vec::new(); 
+            let variations_x = product.variations.clone();
+            match variations_x {
+                Some(json) => {
+                    lists = serde_json::from_value(json).unwrap();
+                    all_variations = combine_tail_recursive(lists);
+
+                } 
+                None =>{}
+            }
+             */
+
+            let product_form = GetProductForm::new_from_product(product);
+            //context1.insert("product",&product);
+            //let cosa = product.variations;
+            let edit_product = EditProductTemplate{
+                product: product_form
+            };
+            let rendered = edit_product.render().unwrap();
+            HttpResponse::Ok().body(rendered)
+            /*
             match cosa {
                 Some(variations) => {
                     let var_aux = variations.as_object().unwrap();
@@ -120,6 +148,10 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
                     context1.insert("variations", &values_new);
                     context1.insert("variationsTitles", &keys);
                     context1.insert("flag", &true);
+
+                    let page_content: String = TEMPLATES.render("create_product/product.html", &context1).unwrap();
+                    //print!("{}",page_content);
+                    HttpResponse::Ok().body(page_content)
                 },
                 None => {
                     println!("No variations");  
@@ -129,7 +161,7 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
                     context1.insert("variationsTitles", &keys);
                     context1.insert("flag", &false);
                 }
-            }
+            }*/
             //context1.insert("variationsTitles", &keys);
             //context1.insert("product",&product);
         },
@@ -138,10 +170,6 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
             return HttpResponse::InternalServerError().body("Error loading product");
         }
     }
-
-    let page_content: String = TEMPLATES.render("create_product/product.html", &context1).unwrap();
-    //print!("{}",page_content);
-    HttpResponse::Ok().body(page_content)
 }
 
 #[get("/imagen-prueba")]
