@@ -1,0 +1,21 @@
+<div class="cont-base">
+    <h2>Lista de elementos</h2>
+    
+    <div class="chain">
+        <div class="top">
+            <h4>Selecciona  una categoría</h4> 
+        </div>
+        <div class="select-cat">
+            <ul class="list">    
+                {% for category in categories %}
+                    {% if category.is_parent %}
+                    <li hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+                    {% else %}
+                    <li hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat" hx-trigger="click">{{category.name}}</li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+        
+    </div>
+</div>

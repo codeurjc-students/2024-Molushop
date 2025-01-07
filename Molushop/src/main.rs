@@ -5,6 +5,7 @@ use uuid::Uuid;
 use serde_json::Value;
 use std::sync::Arc;
 
+mod config; 
 pub mod schema;
 //pub mod servicesX;
 //pub mod routes;
@@ -27,8 +28,6 @@ use services::aws::s3::{client, startup};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    
-
     //let id_base = Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
     //database::list_tareas(); //print de la base de datos
     //let ancestor_str = String::from("ACCESS");
@@ -54,10 +53,12 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move|| {
         App::new()
             .app_data(client_data.clone())
-            .service(routes_x::index2)
-            .service(routes_x::categories)
-            .service(routes_x::imagen_prueba)
-            .service(routes_x::new_created_product)
+            .configure(config::static_config)
+            .configure(routes_x::config)
+            //.service(routes_x::index2)
+            //.service(routes_x::categories)
+            //.service(routes_x::imagen_prueba)
+            //.service(routes_x::new_created_product)
             .service(controllersX::prueba_insertar)
             .service(controllersX::prueba_modificar)
             // .service(controllersX::category_children)
@@ -74,6 +75,7 @@ async fn main() -> std::io::Result<()> {
             // Static files
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             
+            .service(routes_x::example)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

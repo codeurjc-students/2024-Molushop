@@ -11,7 +11,7 @@ use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
-use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm};
+use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1};
 use crate::models::get_product::{GetProductForm,Variation};
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
@@ -164,11 +164,12 @@ pub fn obtain_base_specs(id_category:&String) -> Result<Vec<Option<Value>>,Error
     
 }
 
-pub fn insert_new_product(form:&ProductForm) -> Result<usize, Error> {
+pub fn insert_new_product(form:&ProductForm) -> Result<Uuid, Error> {
     use crate::schema::products::dsl::*;
     let connection = &mut establish_connection();
+    let new_id = Uuid::new_v4();
     let new_product = NewProduct{
-        id: &Uuid::new_v4(),
+        id: &new_id,
         code: &form.code,
         name: &form.name,
         description: &form.description,
@@ -178,7 +179,16 @@ pub fn insert_new_product(form:&ProductForm) -> Result<usize, Error> {
         images: form.images.as_ref(),
     };
     let result = insert_into(products).values(new_product).execute(connection);
-    result
+    match result {
+        Ok(num) => {
+            println!("Data inserted {}",num);
+            Ok(new_id)
+        },
+        Err(e) => {
+            println!("Error inserting data: {}",e);
+            Err(e)
+        }
+    }
 }
 
 pub fn get_product(id_product:&Uuid) -> Result<Products,Error> {
@@ -188,4 +198,41 @@ pub fn get_product(id_product:&Uuid) -> Result<Products,Error> {
     result
 }
 
- 
+use crate::models::product_variation::VariationValue;
+
+ pub fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>) -> Result<usize,Error>{
+    use crate::schema::product_variations::dsl::*;
+    let connection = &mut establish_connection();
+
+    for combination in combinations{
+        let json_attributes:Value = serde_json::to_value(&combination).unwrap();
+        let new_variation = NewProductVariation1{
+            id: &Uuid::new_v4(),
+            product_id: prod_id,
+            attributes: Some(&json_attributes),
+        };
+        let result = insert_into(product_variations).values(new_variation).execute(connection);
+        match result {
+            Ok(num) => {
+                println!("Data inserted {}",num);
+            },
+            Err(e) => {
+                println!("Error inserting data: {}",e);
+                return Err(e);
+            }
+        }
+    }
+    Ok(1)
+ }
+
+ pub fn insert_product_variation(prod_id:&Uuid) -> Result<usize,Error>{
+    use crate::schema::product_variations::dsl::*;
+    let connection = &mut establish_connection();
+    let new_variation = NewProductVariation1{
+        id: &Uuid::new_v4(),
+        product_id: prod_id,
+        attributes: None,
+    };
+    let result = insert_into(product_variations).values(new_variation).execute(connection);
+    result
+ }

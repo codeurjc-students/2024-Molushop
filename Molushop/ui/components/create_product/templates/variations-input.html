@@ -1,0 +1,45 @@
+<div _="on load 
+    set padre to the closest .variations
+    set yy to padre's y
+    set @x to (yy-1)
+    set hijo to the first <input/> in me
+    set hijo's name to 'variations['+@x+']'+'[name]'"
+    x=""
+    class="cont-vars">
+    <label for="cat">Nombre categoría:</label>
+    <input class="objetivo" type="text" id="cat" name=""  required 
+    _="
+    on eventoPrueba or keyup
+        set valueNow to my value.trim()
+        set divAux to the next <div/>
+        set padre to the closest <div/>
+        set numero to padre's @x
+        set inputChild to the children of divAux
+        for eachChild in inputChild
+            set the name of eachChild to 'variations['+numero+']'+'[values]['+(eachChild's id) +']'+'[value]' ">
+    <div class="var-cont">
+        <input id="0" type="text" name="0" required> 
+    </div>
+    <button hx-get="{{routes.add_variation_value}}" 
+        hx-target="previous .var-cont"
+        hx-swap="beforeend"
+        _="on htmx:afterRequest
+            set father to the closest .cont-vars
+            increment father's x
+            log father's x
+            set divChildren to the children of the previous <div/>
+            set lastChild to the last of divChildren
+            set lastChild's id to father's x
+            trigger eventoPrueba on the previous .objetivo">
+            Add more variations</button>
+    <button type="button" 
+        _="on click
+            set father to the closest .cont-vars
+            if father's x > 0
+                decrement father's x
+                log father's x
+                set divChildren to the children of the previous <div/>
+                set lastChild to the last of divChildren
+                remove lastChild"
+            >Delete last variation</button>
+</div>

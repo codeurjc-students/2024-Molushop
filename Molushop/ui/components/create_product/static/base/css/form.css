@@ -1,0 +1,162 @@
+.select-cat h1 {
+color: #2c3e50;
+text-align: center;
+margin-bottom: 2rem;
+font-weight: 300;
+font-size: 2.5rem;
+}
+
+.select-cat form {
+max-width: 800px;
+margin: 0 auto;
+padding: 2rem;
+background: white;
+border-radius: 10px;
+box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Contenedor de especificaciones */
+.select-cat .specsContainer {
+background: #f8f9fa;
+padding: 1.5rem;
+border-radius: 8px;
+margin-bottom: 2rem;
+}
+
+.select-cat .specsContainer h4 {
+color: #3498db;
+margin-bottom: 1.5rem;
+font-size: 1.2rem;
+}
+
+/* Estilos para los campos de entrada */
+.select-cat div:not(.btn-double-container) {
+margin-bottom: 1.5rem;
+}
+
+.select-cat label {
+display: block;
+margin-bottom: 0.5rem;
+color: #34495e;
+font-weight: 500;
+}
+
+.select-cat input[type="text"],
+.select-cat textarea {
+width: 100%;
+padding: 0.8rem;
+border: 1px solid #dce4ec;
+border-radius: 4px;
+font-size: 1rem;
+transition: border-color 0.3s ease;
+}
+
+.select-cat input[type="text"]:focus,
+.select-cat textarea:focus {
+outline: none;
+border-color: #3498db;
+box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.select-cat textarea {
+min-height: 100px;
+resize: vertical;
+}
+
+/* Botones */
+.select-cat button {
+padding: 0.8rem 1.5rem;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-weight: 500;
+transition: all 0.3s ease;
+}
+
+.select-cat button[type="submit"] {
+background: #3498db;
+color: white;
+width: 100%;
+font-size: 1.1rem;
+margin-top: 1rem;
+}
+
+.select-cat button[type="submit"]:hover {
+background: #2980b9;
+}
+
+/* Botones de Add/Delete Specs */
+.select-cat .btn-double-container {
+display: flex;
+gap: 1rem;
+margin-top: 1rem;
+}
+
+.select-cat .btn-double-container button {
+flex: 1;
+background: #ecf0f1;
+color: #2c3e50;
+}
+
+.select-cat .btn-double-container button:hover {
+background: #bdc3c7;
+}
+
+/* Variaciones */
+.select-cat .variations {
+margin: 2rem 0;
+padding: 1.5rem;
+background: #f8f9fa;
+border-radius: 8px;
+}
+
+.select-cat .btnAddVar {
+background: #2ecc71;
+color: white;
+margin-right: 1rem;
+}
+
+.select-cat .btnAddVar:hover {
+background: #27ae60;
+}
+
+.select-cat .btnDelVar {
+background: #e74c3c;
+color: white;
+}
+
+.select-cat .btnDelVar:hover {
+background: #c0392b;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .select-cat form {
+    padding: 1rem;
+}
+
+.select-cat .btn-double-container {
+    flex-direction: column;
+}
+
+.select-cat .variations button {
+    width: 100%;
+    margin: 0.5rem 0;
+}
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+from {
+    opacity: 0;
+    transform: translateY(10px);
+}
+to {
+    opacity: 1;
+    transform: translateY(0);
+}
+}
+
+.select-cat .specsContainer > div:not(.btn-double-container) {
+animation: fadeIn 0.3s ease;
+}

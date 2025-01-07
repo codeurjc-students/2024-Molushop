@@ -1,0 +1,6 @@
+<h4>Selecciona  una categoría</h4> 
+<ul class="list">    
+{% for category in categories %}
+    <li hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+{% endfor %}
+</ul>

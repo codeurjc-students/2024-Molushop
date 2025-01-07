@@ -1,9 +1,9 @@
 use rinja::Template;
 use super::models_x::{Category2,Category};
-use super::htmx::create_product::Routes;
+use super::components::create_product::Routes;
 use super::get_product::GetProductForm;
 #[derive(Template,Clone,Debug)]
-#[template(path = "category.html")]
+#[template(path = "pages/create_product/category.html")]
 pub struct CategoryTemplate {
     categories: Vec<Category2>,
     routes: &'static Routes,
@@ -32,4 +32,15 @@ pub struct EditProductTemplate {
     /* 
     pub variations_titles: Vec<String>,
     pub variations: Vec<Vec<String>>,*/
+}
+
+
+#[derive(Template,Clone,Debug)]
+#[template(path = "components/example/ejemplo.html")]
+pub struct TemplateEjemplo {
+}
+
+#[derive(Template,Clone,Debug)]
+#[template(path = "pages/products_panel/index.html")]
+pub struct ProductsPanel {
 }

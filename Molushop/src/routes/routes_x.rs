@@ -17,7 +17,7 @@ use crate::servicesX::*;
 use serde_json::Value;
 
 use crate::models::models_x::*;
-use crate::models::pages::{CategoryTemplate,EditProductTemplate};
+use crate::models::pages::{CategoryTemplate,EditProductTemplate,TemplateEjemplo,ProductsPanel};
 
 use rinja::Template;
 
@@ -49,6 +49,34 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     //static ref NEXT_SELECT_URL: String = format!("{}/next-select", SCOPE);
 }
 
+pub fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(products_panel);
+    cfg.service(index);
+    cfg.service(categories);
+    cfg.service(new_created_product);
+}
+
+
+
+#[get("/products-panel")]
+async fn products_panel() -> impl Responder {
+    let pp = ProductsPanel{};
+    let render = pp.render().unwrap();
+    
+    //let page_content: String = TEMPLATES.render("products_panel.html", &context1).unwrap();
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(render)
+}
+
+#[get("/example")]
+async fn example() -> impl Responder {
+    let template_ejeplo = TemplateEjemplo{};
+    
+    let page_content: String = template_ejeplo.render().unwrap();
+    //let page_content: String = TEMPLATES.render("example.html", &context1).unwrap();
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(page_content)
+}
 
 #[get("/")]
 async fn index() -> impl Responder {
@@ -104,23 +132,6 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
     let mut keys:Vec<&String> = Vec::new();
     match(product){
         Ok(product) => {
-            //de Products a GetProductForm
-            //let product2 = product.clone();
-            //obtener vector de vectores de productq
-
-            /*
-            let mut lists:Vec<Vec<String>> = Vec::new();
-            let mut all_variations:Vec<Vec<String>> = Vec::new(); 
-            let variations_x = product.variations.clone();
-            match variations_x {
-                Some(json) => {
-                    lists = serde_json::from_value(json).unwrap();
-                    all_variations = combine_tail_recursive(lists);
-
-                } 
-                None =>{}
-            }
-             */
 
             let product_form = GetProductForm::new_from_product(product);
             //context1.insert("product",&product);
@@ -130,40 +141,6 @@ async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
             };
             let rendered = edit_product.render().unwrap();
             HttpResponse::Ok().body(rendered)
-            /*
-            match cosa {
-                Some(variations) => {
-                    let var_aux = variations.as_object().unwrap();
-                    //println!("Content variations: {:?}",content_variations);
-                    keys = var_aux.keys().collect(); 
-                    let content_variations:Vec<Vec<String>> = var_aux.iter().map(|(_,v)| {
-                        let values = v.as_array().unwrap();
-                        let values_str:Vec<String> = values.iter().map(|v| v.as_str().unwrap().to_string()).collect();
-                        values_str
-                    }).collect();
-                    
-                    let values_new = combine_tail_recursive(content_variations);
-                    println!("Hola");
-                    println!("{:?}",values_new);
-                    context1.insert("variations", &values_new);
-                    context1.insert("variationsTitles", &keys);
-                    context1.insert("flag", &true);
-
-                    let page_content: String = TEMPLATES.render("create_product/product.html", &context1).unwrap();
-                    //print!("{}",page_content);
-                    HttpResponse::Ok().body(page_content)
-                },
-                None => {
-                    println!("No variations");  
-                    keys = Vec::new();
-                    let values_new2:Vec<String> = Vec::new();
-                    context1.insert("variations", &values_new2);
-                    context1.insert("variationsTitles", &keys);
-                    context1.insert("flag", &false);
-                }
-            }*/
-            //context1.insert("variationsTitles", &keys);
-            //context1.insert("product",&product);
         },
         Err(e) => {
             println!("Error loading product: {}", e);

@@ -14,13 +14,15 @@ use rinja::Template;
 use uuid::Uuid;
 
 use crate::services::servicesX::*;
+use crate::services::create_product_variations::create_product_variations;
 use crate::services;
 use crate::models::models_x::{ProductForm,Category};
+//use crate::models::product_variation::{VariationValue,Attribute};
 //use crate::models::get_product::ProductForm;
 
 use std::any::type_name;
 
-use crate::models::htmx::create_product::*;
+use crate::models::components::create_product::*;
 
 use actix_multipart::{
     form::{
@@ -185,9 +187,19 @@ async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> 
     let datox = data.into_inner();
     println!("{:?}",datox);
     match insert_new_product(&datox){
-        Ok(_) => {
-            println!("Producto insertado");
-            HttpResponse::Ok().body("Producto creado")
+        Ok(new_id) => {
+            //aqui añadir función para insertar las variaciones
+            println!("Id_del producto: {:?}",&new_id);
+            match create_product_variations(datox,new_id){
+                Ok(_) => {
+                    println!("Variaciones insertadas");
+                    HttpResponse::Ok().body("Producto creado")
+                },
+                Err(e) => {
+                    println!("Error al insertar variaciones: {}", e);
+                    HttpResponse::InternalServerError().body("Error al insertar variaciones")
+                }
+            }
         },
         Err(e) => {
             println!("Error al insertar producto: {}", e);

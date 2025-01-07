@@ -1,0 +1,181 @@
+@use "sass:color";
+
+// Variables
+$primary-color: #3498db;
+$secondary-color: #2c3e50;
+$success-color: #2ecc71;
+$danger-color: #e74c3c;
+$light-bg: #f8f9fa;
+$border-color: #dce4ec;
+$button-bg: #ecf0f1;
+
+// Mixins
+@mixin transition($property: all) {
+    transition: $property 0.3s ease;
+}
+
+@mixin box-shadow($opacity: 0.1) {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, $opacity);
+}
+
+@mixin button-base {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    @include transition;
+}
+
+// Keyframes
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.select-cat {
+    h1 {
+        color: $secondary-color;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-weight: 300;
+        font-size: 2.5rem;
+    }
+
+    form {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 10px;
+        @include box-shadow;
+    }
+
+    .specsContainer {
+        background: $light-bg;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+
+        h4 {
+            color: $primary-color;
+            margin-bottom: 1.5rem;
+            font-size: 1.2rem;
+        }
+
+        > div:not(.btn-double-container) {
+            animation: fadeIn 0.3s ease;
+        }
+    }
+
+    div:not(.btn-double-container) {
+        margin-bottom: 1.5rem;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #34495e;
+        font-weight: 500;
+    }
+
+    input[type="text"],
+    textarea {
+        width: 100%;
+        padding: 0.8rem;
+        border: 1px solid $border-color;
+        border-radius: 4px;
+        font-size: 1rem;
+        @include transition(border-color);
+
+        &:focus {
+            outline: none;
+            border-color: $primary-color;
+            box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
+        }
+    }
+
+    textarea {
+        min-height: 100px;
+        resize: vertical;
+    }
+
+    button {
+        @include button-base;
+
+        &[type="submit"] {
+            background: $primary-color;
+            color: white;
+            width: 100%;
+            font-size: 1.1rem;
+            margin-top: 1rem;
+
+            &:hover {
+                background: color.adjust($primary-color, $lightness: -10%);
+            }
+        }
+    }
+
+    .btn-double-container {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+
+        button {
+            flex: 1;
+            background: $button-bg;
+            color: $secondary-color;
+
+            &:hover {
+                background: color.adjust($button-bg, $lightness: -10%);
+            }
+        }
+    }
+
+    .variations {
+        margin: 2rem 0;
+        padding: 1.5rem;
+        background: $light-bg;
+        border-radius: 8px;
+    }
+
+    .btnAddVar {
+        background: $success-color;
+        color: white;
+        margin-right: 1rem;
+
+        &:hover {
+            background: color.adjust($success-color, $lightness: -10%);
+        }
+    }
+
+    .btnDelVar {
+        background: $danger-color;
+        color: white;
+
+        &:hover {
+            background: color.adjust($danger-color, $lightness: -10%);
+        }
+    }
+
+    @media (max-width: 768px) {
+        form {
+            padding: 1rem;
+        }
+
+        .btn-double-container {
+            flex-direction: column;
+        }
+
+        .variations button {
+            width: 100%;
+            margin: 0.5rem 0;
+        }
+    }
+}

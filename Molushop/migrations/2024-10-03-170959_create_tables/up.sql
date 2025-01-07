@@ -53,9 +53,11 @@ CREATE TABLE Products (
     name VARCHAR(100) not null,
     description TEXT not null,
     brand VARCHAR(100) not null,
+    status SMALLINT DEFAULT 0 CHECK (status BETWEEN 0 AND 2), -- 0: DRAFT, 1: ACTIVE, 2: INACTIVE
     specs JSONB not null, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
     variations JSONB, --> LAS VARIACIONES DEL PRODUCTO 
-    images JSONB --> thumbnail, otras imagenes
+    images JSONB, --> thumbnail, otras imagenes
+    published BOOLEAN not null default false
 );
 
 create table Category(
@@ -158,14 +160,33 @@ CREATE TABLE Product_attributes (
 -- Tabla 'Product_sku' (relacionada con 'Product') Son las variaciones de un product
 
 CREATE TABLE Product_variations (
-    id TEXT PRIMARY KEY,
+    id UUID PRIMARY KEY,
     product_id UUID NOT NULL,
     identifiers JSONB,
     sku TEXT,
     attributes JSONB,
-    stock INT,
+    stock INT NOT NULL DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id),
     images JSONB -- imagenes para la variacion
 );
 
+CREATE TABLE prices (
+    id SERIAL PRIMARY KEY,
+    variation_id UUID NOT NULL,
+    price DECIMAL(10,2),
+    currency CHAR(3),
+    start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id)
+);
 
+-- Tabla de descuentos
+CREATE TABLE discounts (
+    id SERIAL PRIMARY KEY,
+    variation_id UUID NOT NULL,
+    discount_type VARCHAR(15) CHECK (discount_type IN ('percentage', 'fixed_amount')),
+    discount_value DECIMAL(10,2),
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id)
+);

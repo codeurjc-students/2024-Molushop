@@ -70,6 +70,30 @@ diesel::table! {
 }
 
 diesel::table! {
+    discounts (id) {
+        id -> Int4,
+        variation_id -> Uuid,
+        #[max_length = 15]
+        discount_type -> Nullable<Varchar>,
+        discount_value -> Nullable<Numeric>,
+        start_date -> Nullable<Timestamp>,
+        end_date -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
+    prices (id) {
+        id -> Int4,
+        variation_id -> Uuid,
+        price -> Nullable<Numeric>,
+        #[max_length = 3]
+        currency -> Nullable<Bpchar>,
+        start_date -> Nullable<Timestamp>,
+        end_date -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
     product_attributes (id) {
         id -> Uuid,
         #[max_length = 255]
@@ -79,12 +103,12 @@ diesel::table! {
 
 diesel::table! {
     product_variations (id) {
-        id -> Text,
+        id -> Uuid,
         product_id -> Uuid,
         identifiers -> Nullable<Jsonb>,
         sku -> Nullable<Text>,
         attributes -> Nullable<Jsonb>,
-        stock -> Nullable<Int4>,
+        stock -> Int4,
         images -> Nullable<Jsonb>,
     }
 }
@@ -99,9 +123,11 @@ diesel::table! {
         description -> Text,
         #[max_length = 100]
         brand -> Varchar,
+        status -> Nullable<Int2>,
         specs -> Jsonb,
         variations -> Nullable<Jsonb>,
         images -> Nullable<Jsonb>,
+        published -> Bool,
     }
 }
 
@@ -119,6 +145,8 @@ diesel::joinable!(buyer -> base_user (id));
 diesel::joinable!(category_product -> category (category_id));
 diesel::joinable!(category_product -> products (product_id));
 diesel::joinable!(customer_address -> base_user (customer_id));
+diesel::joinable!(discounts -> product_variations (variation_id));
+diesel::joinable!(prices -> product_variations (variation_id));
 diesel::joinable!(product_variations -> products (product_id));
 diesel::joinable!(seller -> base_user (id));
 
@@ -129,6 +157,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     category,
     category_product,
     customer_address,
+    discounts,
+    prices,
     product_attributes,
     product_variations,
     products,

@@ -47,7 +47,7 @@ use std::any::type_name;
 //models
 use crate::models::models_x::Category;
 //use crate::models::htmx::create_product::{List_category_base,Base_category,BaseProducto,VariationsInput,VariationsInputExtra,SpecsInput};
-use crate::models::htmx::create_product::*;
+use crate::models::components::create_product::*;
 use crate::models::extra::BaseSpecs;
 
 

@@ -23,7 +23,7 @@ pub struct Routes{
 
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "create_product/list-category-base.html")]
+#[template(path = "components/create_product/templates/list-category-base.html")]
 pub struct List_category_base{
     padres : Vec<Category2>,
     categories: Vec<Category2>,
@@ -45,7 +45,7 @@ impl List_category_base {
 }
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "create_product/base-category.html")]
+#[template(path = "components/create_product/templates/base-category.html")]
 pub struct Base_category{
     categories: Vec<Category2>,
     routes: &'static Routes,
@@ -61,7 +61,7 @@ impl Base_category{
 }
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "create_product/base-producto.html")]
+#[template(path = "components/create_product/templates/base-producto.html")]
 pub struct BaseProducto{
     specs: Vec<String>,
     category_id: String,
@@ -82,7 +82,7 @@ impl BaseProducto{
 
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "create_product/variations-input.html")]
+#[template(path = "components/create_product/templates/variations-input.html")]
 pub struct VariationsInput{
     routes: &'static Routes,
 }
@@ -95,7 +95,7 @@ impl VariationsInput{
 }
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "create_product/variations-input-extra.html")]
+#[template(path = "components/create_product/templates/variations-input-extra.html")]
 pub struct VariationsInputExtra{
 }
 impl VariationsInputExtra{
@@ -106,7 +106,7 @@ impl VariationsInputExtra{
 }
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "create_product/specs-input.html")]
+#[template(path = "components/create_product/templates/specs-input.html")]
 pub struct SpecsInput{
 }
 impl SpecsInput{

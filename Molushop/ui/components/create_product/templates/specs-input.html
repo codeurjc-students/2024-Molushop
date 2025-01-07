@@ -1,0 +1,8 @@
+<div>
+    <input type="text" required
+        _="on keyup
+            set valueNow to my value.trim()
+            set nextInput to the next <input/>
+            set nextInput's name to 'specs['+valueNow+']'">
+    <input type="text" id="base" name="specs[base]" required>
+</div>

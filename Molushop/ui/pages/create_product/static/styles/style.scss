@@ -1,0 +1,8 @@
+// Definición de variables
+$primary-color: #2bff00; // Verde
+
+// Aplicar el color verde a todos los títulos
+h1, h2, h3, h4, h5, h6 {
+    color: $primary-color;
+}
+

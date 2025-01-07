@@ -125,6 +125,7 @@ pub struct Products {
     pub specs: Value,
     pub variations: Option<Value>,
     pub images: Option<Value>,
+    pub published: bool,
 }
 
 #[derive(Deserialize, Debug)]
@@ -150,6 +151,32 @@ pub struct NewProduct<'a> {
     pub variations:  Option<&'a Value>,
     pub images:Option<&'a Value>,
 }
+
+#[derive(Queryable, Debug, Deserialize,Serialize)]
+#[diesel(table_name = product_variations)]
+pub struct ProductVariation {
+    pub id: String,
+    pub product_id : Uuid,
+    pub identifiers: Option<Value>,
+    pub sku: Option<String>,
+    pub attributes: Option<Value>,
+    pub stock: i32,
+    pub images: Option<Value>,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = product_variations)]
+pub struct NewProductVariation1<'a> {
+    pub id: &'a Uuid,
+    pub product_id : &'a Uuid,
+    //pub identifiers: Option<&'a Value>,
+    //pub sku: Option<&'a str>,
+    pub attributes: Option<&'a Value>,
+    //pub stock: &'a i32,
+    //pub images: Option<&'a Value>,
+}
+
+
 
 #[derive(Queryable, Debug)]
 #[diesel(table_name = product_attributes)]

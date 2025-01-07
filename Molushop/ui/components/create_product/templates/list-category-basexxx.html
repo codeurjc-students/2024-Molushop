@@ -1,0 +1,9 @@
+<ul>
+        <li hx-get="/reset-category" hx-target=".chain" hx-trigger="click">X</li>
+        <li>{{cat.name}}</li>
+</ul>
+<ul class="list">    
+{% for category in categories %}
+        <li hx-get="/category-children/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
+{% endfor %}
+</ul>
