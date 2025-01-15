@@ -178,14 +178,22 @@ pub async fn obtain_base_specs(id_category:&String, pool:&DbPool) -> Result<Vec<
     result
     
 }
-pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm, pool:&DbPool) -> Result<Uuid, Error> {
+pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, Error> {
     let result_new_product = insert_new_product(form,pool).await;
     match result_new_product{
         Ok(id_product) => {
             let result2 = insert_product_seller(&id_seler,&id_product,pool).await;
             match result2{
                 Ok(_) => {
-                    Ok(id_product)
+                    let result3 = insert_product_category(&id_product,&category_id,pool).await;
+                    match result3{
+                        Ok(_) => {
+                            Ok(id_product)
+                        },
+                            Err(e) => {
+                                return Err(e);
+                            }
+                        }
                 },
                 Err(e) => {
                     return Err(e);
@@ -197,6 +205,15 @@ pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm, pool:&
         }
     }
 }
+
+pub async fn insert_product_category(id_product:&Uuid, id_category:&String, pool:&DbPool) -> Result<usize,Error> {
+    use crate::schema::category_product::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = insert_into(category_product).values((category_id.eq(id_category),product_id.eq(id_product))).execute(connection).await;
+    result
+}
+
 
 pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, pool:&DbPool) -> Result<usize,Error> {
     use crate::schema::product_seller::dsl::*;
@@ -224,12 +241,12 @@ pub async fn insert_new_product(form:&ProductForm,pool:&DbPool) -> Result<Uuid, 
     };
     let result = insert_into(products).values(new_product).execute(connection).await;
     match result {
-        Ok(num) => {
-            println!("Data inserted {}",num);
+        Ok(_) => {
+            //println!("Data inserted {}",num);
             Ok(new_id)
         },
         Err(e) => {
-            println!("Error inserting data: {}",e);
+            //println!("Error inserting data: {}",e);
             Err(e)
         }
     }

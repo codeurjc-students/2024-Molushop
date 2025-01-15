@@ -199,7 +199,7 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data
     let datox = data.into_inner();
     println!("{:?}",datox);
     //match insert_new_product(&datox,pool).await{
-    match insert_new_product_complete(id_prueba,&datox,pool).await{
+    match insert_new_product_complete(id_prueba,&datox,&category_id,pool).await{
         Ok(new_id) => {
             //aqui añadir función para insertar las variaciones
             println!("Id_del producto: {:?}",&new_id);
