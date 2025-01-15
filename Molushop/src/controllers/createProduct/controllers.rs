@@ -37,6 +37,14 @@ use serde_json::json;
 use std::time::Instant;
 use std::collections::HashMap;
 
+//use diesel_async::pooled_connection::bb8::Pool;
+use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+use diesel_async::pg::AsyncPgConnection;
+//use bb8::Pool;
+use diesel_async::RunQueryDsl;
+//type DbPool = Pool<AsyncDieselConnectionManager<AsyncPgConnection>>;
+type DbPool = Pool<AsyncPgConnection>;
 
 fn print_type_of<T>(_: &T) {
     println!("El tipo de dato es: {}", type_name::<T>());
@@ -87,13 +95,14 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 
 #[get("/category-children/{category_id}")]
-async fn category_children(path: web::Path<String>) -> impl Responder {
+async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>) -> impl Responder {
+    let pool = pool_data.get_ref();
     //testeo tiempo
     let now = Instant::now();
     //
     let category_id= path.into_inner();
-    let categories_result = obtain_categories_children(&category_id);
-    let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = obtain_ancestors(&category_id);
+    let categories_result = obtain_categories_children(&category_id,pool).await;
+    let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = obtain_ancestors(&category_id,pool).await;
     match (categories_result, ancestors_result) {
         (Ok(categories), Ok(ancestors)) => {
 
@@ -127,8 +136,9 @@ async fn category_children(path: web::Path<String>) -> impl Responder {
 }
 
 #[get("/reset-category")]
-async fn reset_category() -> impl Responder {
-    let categories = obtain_base_categories();
+async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
+    let pool = pool_data.get_ref();
+    let categories = obtain_base_categories(pool).await;
     match categories{
         Ok(categories) => {
             let base_category = Base_category::new(categories,&ROUTES); 
@@ -178,19 +188,22 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
 }
 
 #[post("/create-product/{category_id}")]
-async fn create_product(path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
+async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
+    let id_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
+
     let category_id= path.into_inner();
     println!("{:?}",category_id);
-    
+    let pool = pool_data.get_ref();
     //print_type_of(&data);
     //hacer print del tipo que es data
     let datox = data.into_inner();
     println!("{:?}",datox);
-    match insert_new_product(&datox){
+    //match insert_new_product(&datox,pool).await{
+    match insert_new_product_complete(id_prueba,&datox,pool).await{
         Ok(new_id) => {
             //aqui añadir función para insertar las variaciones
             println!("Id_del producto: {:?}",&new_id);
-            match create_product_variations(datox,new_id){
+            match create_product_variations(datox,new_id,pool).await{
                 Ok(_) => {
                     println!("Variaciones insertadas");
                     HttpResponse::Ok().body("Producto creado")

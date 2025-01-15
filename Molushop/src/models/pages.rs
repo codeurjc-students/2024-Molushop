@@ -2,6 +2,7 @@ use rinja::Template;
 use super::models_x::{Category2,Category};
 use super::components::create_product::Routes;
 use super::get_product::GetProductForm;
+use super::data_transfer_objects::product::Product;
 #[derive(Template,Clone,Debug)]
 #[template(path = "pages/create_product/category.html")]
 pub struct CategoryTemplate {
@@ -41,6 +42,15 @@ pub struct TemplateEjemplo {
 }
 
 #[derive(Template,Clone,Debug)]
+#[template(path = "pages/products_panel_prueba/index.html")]
+pub struct ProductsPanelPrueba {
+
+}
+
+#[derive(Template,Clone,Debug)]
 #[template(path = "pages/products_panel/index.html")]
 pub struct ProductsPanel {
+    pub products: Vec<Product> //igaual que el componente
 }
+
+

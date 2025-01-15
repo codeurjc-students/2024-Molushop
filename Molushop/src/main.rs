@@ -26,24 +26,30 @@ use controllers::aws::aws;
 use controllers::controllersX;
 use services::aws::s3::{client, startup};
 
+use diesel_async::pooled_connection::AsyncDieselConnectionManager;
+//use diesel_async::pooled_connection::bb8::Pool;
+use diesel_async::pooled_connection::deadpool::Pool;
+//use bb8::Pool;
+use diesel_async::AsyncPgConnection;
+use diesel_async::RunQueryDsl;
+
+use dotenvy::dotenv;
+
+use std::any::type_name;
+
+fn print_type_of<T>(_: &T) {
+    println!("{}", type_name::<T>());
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    //let id_base = Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
-    //database::list_tareas(); //print de la base de datos
-    //let ancestor_str = String::from("ACCESS");
-    //services::obtainAncestors(&ancestor_str);
-    /*let lists = vec![
-        vec![1, 2, 3],
-        vec![4, 5],
-        vec![6, 7]
-    ];
-    let result = services::combine_tail_recursive(lists);
-    println!("{:?}",result);*/
+    //hacer el pool de conexiones
+    dotenv().ok();
 
-    /*Probar lo de AWS */
-    //let s3_client = actix_web::web::Data::new(configure_and_return_s3_client().await);
-    //obtener el cliente
-    
+    let config: AsyncDieselConnectionManager<AsyncPgConnection> = AsyncDieselConnectionManager::<AsyncPgConnection>::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set"));
+    let pool:Pool<AsyncPgConnection> = Pool::builder(config).build().unwrap();
+    print_type_of(&pool);
+    let pool_data = web::Data::new(pool);
 
     let client = startup::configure_and_return_s3_client().await;
     let client_data = web::Data::new(Arc::new(client));
@@ -52,6 +58,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move|| {
         App::new()
+            .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)
             .configure(routes_x::config)

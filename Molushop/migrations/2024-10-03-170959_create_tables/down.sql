@@ -11,6 +11,9 @@ DROP TABLE Admins cascade;
 drop table product_attributes cascade; 
 drop table prices cascade;
 drop table discounts cascade;
+drop table product_seller cascade;
+drop table product_base_indentifiers cascade;
+drop table product_variations_identifiers cascade;
 
 DROP TRIGGER IF EXISTS set_depth_before_insert_update ON Category;
 DROP FUNCTION IF EXISTS calculate_depth();

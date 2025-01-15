@@ -53,7 +53,7 @@ CREATE TABLE Products (
     name VARCHAR(100) not null,
     description TEXT not null,
     brand VARCHAR(100) not null,
-    status SMALLINT DEFAULT 0 CHECK (status BETWEEN 0 AND 2), -- 0: DRAFT, 1: ACTIVE, 2: INACTIVE
+    status SMALLINT not null DEFAULT 0 CHECK (status BETWEEN 0 AND 2), -- 0: DRAFT, 1: ACTIVE, 2: INACTIVE
     specs JSONB not null, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
     variations JSONB, --> LAS VARIACIONES DEL PRODUCTO 
     images JSONB, --> thumbnail, otras imagenes
@@ -165,6 +165,7 @@ CREATE TABLE Product_variations (
     identifiers JSONB,
     sku TEXT,
     attributes JSONB,
+    status SMALLINT not null DEFAULT 0 CHECK (status BETWEEN 0 AND 2),
     stock INT NOT NULL DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id),
     images JSONB -- imagenes para la variacion
@@ -189,4 +190,28 @@ CREATE TABLE discounts (
     start_date TIMESTAMP,
     end_date TIMESTAMP,
     FOREIGN KEY (variation_id) REFERENCES product_variations(id)
+);
+
+CREATE TABLE product_seller (
+    product_id UUID NOT NULL,
+    seller_id UUID NOT NULL,
+    PRIMARY KEY (product_id, seller_id),
+    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (seller_id) REFERENCES seller(id)
+);
+
+CREATE TABLE product_base_indentifiers (
+    id SERIAL PRIMARY KEY,
+    product_id UUID NOT NULL,
+    identifier VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    FOREIGN KEY (product_id) REFERENCES products(id)
+);
+
+CREATE TABLE product_variations_identifiers(
+    id SERIAL PRIMARY KEY,
+    product_variation_id UUID NOT NULL,
+    identifier VARCHAR(255) NOT NULL,
+    value VARCHAR(255) NOT NULL,
+    FOREIGN KEY (product_variation_id) REFERENCES product_variations(id)
 );

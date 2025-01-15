@@ -1,0 +1,1 @@
+select * from Product_variations;

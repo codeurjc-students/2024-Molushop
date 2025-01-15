@@ -122,6 +122,7 @@ pub struct Products {
     pub name: String,
     pub description: String,
     pub brand: String,
+    pub status: i16,
     pub specs: Value,
     pub variations: Option<Value>,
     pub images: Option<Value>,

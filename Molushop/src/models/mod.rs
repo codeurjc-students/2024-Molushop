@@ -6,3 +6,4 @@ pub mod get_product;
 pub mod components;
 pub mod product_variation;
 pub mod models_x;
+pub mod data_transfer_objects;

@@ -102,14 +102,44 @@ diesel::table! {
 }
 
 diesel::table! {
+    product_base_indentifiers (id) {
+        id -> Int4,
+        product_id -> Uuid,
+        #[max_length = 255]
+        identifier -> Varchar,
+        #[max_length = 255]
+        value -> Varchar,
+    }
+}
+
+diesel::table! {
+    product_seller (product_id, seller_id) {
+        product_id -> Uuid,
+        seller_id -> Uuid,
+    }
+}
+
+diesel::table! {
     product_variations (id) {
         id -> Uuid,
         product_id -> Uuid,
         identifiers -> Nullable<Jsonb>,
         sku -> Nullable<Text>,
         attributes -> Nullable<Jsonb>,
+        status -> Int2,
         stock -> Int4,
         images -> Nullable<Jsonb>,
+    }
+}
+
+diesel::table! {
+    product_variations_identifiers (id) {
+        id -> Int4,
+        product_variation_id -> Uuid,
+        #[max_length = 255]
+        identifier -> Varchar,
+        #[max_length = 255]
+        value -> Varchar,
     }
 }
 
@@ -123,7 +153,7 @@ diesel::table! {
         description -> Text,
         #[max_length = 100]
         brand -> Varchar,
-        status -> Nullable<Int2>,
+        status -> Int2,
         specs -> Jsonb,
         variations -> Nullable<Jsonb>,
         images -> Nullable<Jsonb>,
@@ -147,7 +177,11 @@ diesel::joinable!(category_product -> products (product_id));
 diesel::joinable!(customer_address -> base_user (customer_id));
 diesel::joinable!(discounts -> product_variations (variation_id));
 diesel::joinable!(prices -> product_variations (variation_id));
+diesel::joinable!(product_base_indentifiers -> products (product_id));
+diesel::joinable!(product_seller -> products (product_id));
+diesel::joinable!(product_seller -> seller (seller_id));
 diesel::joinable!(product_variations -> products (product_id));
+diesel::joinable!(product_variations_identifiers -> product_variations (product_variation_id));
 diesel::joinable!(seller -> base_user (id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -160,7 +194,10 @@ diesel::allow_tables_to_appear_in_same_query!(
     discounts,
     prices,
     product_attributes,
+    product_base_indentifiers,
+    product_seller,
     product_variations,
+    product_variations_identifiers,
     products,
     seller,
 );

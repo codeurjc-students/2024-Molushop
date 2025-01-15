@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Productos con Variaciones</title>
+    <link rel="stylesheet" href="static/pages/products_panel/style.css">
+    <script src="static/pages/products_panel/script.js" defer></script>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Mis Productos</h1>
+        <input type="text" class="search-bar" placeholder="Buscar productos...">
+        <button class="add-product-btn">+ Añadir Producto</button>
+    </div>
+
+    <div class="products-list">
+        <!-- Producto 1 -->
+        <div class="product-card">
+            <div class="product-main">
+                <img src="https://via.placeholder.com/150" alt="Producto" class="product-image">
+                <div class="product-info">
+                    <span class="product-status status-active">Activo</span>
+                    <h3 class="product-title">Camiseta Básica</h3>
+                    <p>SKU: CAM-001</p>
+                    <p>Categoría: Ropa</p>
+                    <div class="product-actions">
+                        <button class="action-btn edit-btn">Editar</button>
+                        <button class="action-btn delete-btn">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="toggle-variations">Mostrar variaciones (3)</button>
+            
+            <div class="variations">
+                <div class="variation-item variation-header">
+                    <div>Color</div>
+                    <div>Talla</div>
+                    <div>Precio</div>
+                    <div>Stock</div>
+                    <div>Estado</div>
+                </div>
+                <div class="variation-item">
+                    <div>Blanco</div>
+                    <div>S</div>
+                    <div>$19.99</div>
+                    <div>10</div>
+                    <div>
+                        <span class="product-status status-active">Activo</span>
+                    </div>
+                </div>
+                <div class="variation-item">
+                    <div>Blanco</div>
+                    <div>M</div>
+                    <div>$19.99</div>
+                    <div>15</div>
+                    <div>
+                        <span class="product-status status-active">Activo</span>
+                    </div>
+                </div>
+                <div class="variation-item">
+                    <div>Negro</div>
+                    <div>L</div>
+                    <div>$21.99</div>
+                    <div>0</div>
+                    <div>
+                        <span class="product-status status-inactive">Sin stock</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Producto 2 -->
+        <div class="product-card">
+            <div class="product-main">
+                <img src="https://via.placeholder.com/150" alt="Producto" class="product-image">
+                <div class="product-info">
+                    <span class="product-status status-active">Activo</span>
+                    <h3 class="product-title">Zapatillas Running</h3>
+                    <p>SKU: ZAP-002</p>
+                    <p>Categoría: Calzado</p>
+                    <div class="product-actions">
+                        <button class="action-btn edit-btn">Editar</button>
+                        <button class="action-btn delete-btn">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="toggle-variations">Mostrar variaciones (4)</button>
+            
+            <div class="variations">
+                <div class="variation-item variation-header">
+                    <div>Color</div>
+                    <div>Talla</div>
+                    <div>Precio</div>
+                    <div>Stock</div>
+                    <div>Estado</div>
+                </div>
+                <div class="variation-item">
+                    <div>Azul</div>
+                    <div>39</div>
+                    <div>$89.99</div>
+                    <div>5</div>
+                    <div>
+                        <span class="product-status status-active">Activo</span>
+                    </div>
+                </div>
+                <div class="variation-item">
+                    <div>Azul</div>
+                    <div>40</div>
+                    <div>$89.99</div>
+                    <div>8</div>
+                    <div>
+                        <span class="product-status status-active">Activo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

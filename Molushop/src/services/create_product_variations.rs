@@ -6,7 +6,11 @@ use uuid::Uuid;
 use crate::services::servicesX::{insert_product_variation,insert_product_variations};
 use diesel::result::Error;
 
-pub fn create_product_variations(product: ProductForm, product_id: Uuid) -> Result<usize,Error> {
+use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pg::AsyncPgConnection;
+type DbPool = Pool<AsyncPgConnection>;
+
+pub async fn create_product_variations(product: ProductForm, product_id: Uuid, pool:&DbPool) -> Result<usize,Error> {
     let variations = product.variations;
     match variations{
         Some(variations) => {
@@ -14,10 +18,10 @@ pub fn create_product_variations(product: ProductForm, product_id: Uuid) -> Resu
             
             let all_combinations = get_all_combinations(&vec_attributes);
             
-            insert_product_variations(&product_id,all_combinations)
+            insert_product_variations(&product_id,all_combinations,pool).await
         },
         None => {
-            insert_product_variation(&product_id)
+            insert_product_variation(&product_id,pool).await
             
         }
     }

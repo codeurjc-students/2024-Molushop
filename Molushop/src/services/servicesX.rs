@@ -3,6 +3,7 @@
 use diesel::dsl::exists;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
+use diesel_async::{RunQueryDsl, AsyncConnection, AsyncPgConnection};
 use diesel::dsl::select;
 use diesel::dsl::sum;
 use diesel::sql_query;
@@ -16,11 +17,15 @@ use crate::models::get_product::{GetProductForm,Variation};
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
-use diesel::{insert_into,update};
+use diesel::{insert_into,update}; 
 use chrono::NaiveDate;
 use chrono::prelude::*;
 use serde_json::Value;
 use serde_json::json;
+
+use diesel_async::pooled_connection::deadpool::Pool;
+//use diesel_async::pg::AsyncPgConnection;
+type DbPool = Pool<AsyncPgConnection>;
 
 pub fn establish_connection() -> PgConnection {
     dotenv().ok();
@@ -91,6 +96,7 @@ pub fn insert_data_test() -> bool {
     }; 
 
     let connection = &mut establish_connection();
+    /* 
     let result= insert_into(base_user).values(newUser).execute(connection);
     match result {
         Ok(num) => {
@@ -102,6 +108,8 @@ pub fn insert_data_test() -> bool {
             false 
         }
     }
+    */
+    true
 
 }
 
@@ -109,7 +117,7 @@ pub fn insert_data_test() -> bool {
 pub fn modify_data_test() -> bool {
     use crate::schema::base_user::dsl::*;
     let connection = &mut establish_connection();
-    let result = update(base_user).set((email.eq("otro@gmail.com"),name.eq("GIGA"),modified.eq(Utc::now().naive_utc()))).execute(connection);
+    /*let result = update(base_user).set((email.eq("otro@gmail.com"),name.eq("GIGA"),modified.eq(Utc::now().naive_utc()))).execute(connection);
     match result {
         Ok(num) => {
             println!("Data modified {}",num);
@@ -119,54 +127,90 @@ pub fn modify_data_test() -> bool {
             println!("Error modifying data");
             false 
         }
-    }
+    }*/
+    true
 }
 
-pub fn obtain_base_categories() -> Result<Vec<Category>,Error> {
+pub async fn obtain_base_categories(pool:&DbPool) -> Result<Vec<Category>,Error> {
+    
     use crate::schema::category::dsl::*;
-    let connection = &mut establish_connection();
-    let results = category.filter(depth.eq(0)).load::<Category>(connection);
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let results = category.filter(depth.eq(0)).load::<Category>(connection).await;
     results
 }
 
-pub fn obtain_categories_children(id_category:&String) -> Result<Vec<Category>,Error> {
+pub async fn obtain_categories_children(id_category:&String, pool: &DbPool) -> Result<Vec<Category>,Error> {
     use crate::schema::category::dsl::*;
-    let connection = &mut establish_connection();
-    let results = category.filter(parent.eq(id_category)).load::<Category>(connection);
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    //let connection = &mut establish_connection();
+    let results = category.filter(parent.eq(id_category)).load::<Category>(connection).await;
     results
 }
 
-pub fn obtain_category(id_category:&String) -> Category {
+pub async fn obtain_category(id_category:&String, pool:&DbPool) -> Category {
     use crate::schema::category::dsl::*;
-    let connection = &mut establish_connection();
-    let result = category.filter(id.eq(id_category)).first::<Category>(connection).expect("Error loading category");
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = category.filter(id.eq(id_category)).first::<Category>(connection).await.expect("Error loading category");
     result
 }
 
-pub fn obtain_ancestors(id_category:&String) -> Result<Vec<Category>,Error> {
+pub async fn obtain_ancestors(id_category:&String, pool: &DbPool) -> Result<Vec<Category>,Error> {
     use crate::models::models_x::Category;
-    let connection = &mut establish_connection();
-
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
     println!("ID: {}",id_category);
     //el placeholder $1 es para evitar sql injection
     let ancestors:Result<Vec<Category>, Error>  = sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, base_specs, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.base_specs, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
-    .bind::<Text,_>(id_category.to_string()).get_results(connection);
+    .bind::<Text,_>(id_category.to_string()).get_results(connection).await;
     
     ancestors
 }
 
-pub fn obtain_base_specs(id_category:&String) -> Result<Vec<Option<Value>>,Error> {
+pub async fn obtain_base_specs(id_category:&String, pool:&DbPool) -> Result<Vec<Option<Value>>,Error> {
    
     use crate::schema::category::dsl::*;
-    let connection = &mut establish_connection();
-    let result = category.filter(id.eq(id_category)).select(base_specs).load::<Option<Value>>(connection);
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = category.filter(id.eq(id_category)).select(base_specs).load::<Option<Value>>(connection).await;
     result
     
 }
+pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm, pool:&DbPool) -> Result<Uuid, Error> {
+    let result_new_product = insert_new_product(form,pool).await;
+    match result_new_product{
+        Ok(id_product) => {
+            let result2 = insert_product_seller(&id_seler,&id_product,pool).await;
+            match result2{
+                Ok(_) => {
+                    Ok(id_product)
+                },
+                Err(e) => {
+                    return Err(e);
+                }
+            }
+        },
+        Err(e) => {
+            return Err(e);
+        }
+    }
+}
 
-pub fn insert_new_product(form:&ProductForm) -> Result<Uuid, Error> {
+pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, pool:&DbPool) -> Result<usize,Error> {
+    use crate::schema::product_seller::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = insert_into(product_seller).values((product_id.eq(id_product),seller_id.eq(id_seler))).execute(connection).await;
+    result
+}
+
+
+pub async fn insert_new_product(form:&ProductForm,pool:&DbPool) -> Result<Uuid, Error> {
     use crate::schema::products::dsl::*;
-    let connection = &mut establish_connection();
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
     let new_id = Uuid::new_v4();
     let new_product = NewProduct{
         id: &new_id,
@@ -178,7 +222,7 @@ pub fn insert_new_product(form:&ProductForm) -> Result<Uuid, Error> {
         variations: form.variations.as_ref(),
         images: form.images.as_ref(),
     };
-    let result = insert_into(products).values(new_product).execute(connection);
+    let result = insert_into(products).values(new_product).execute(connection).await;
     match result {
         Ok(num) => {
             println!("Data inserted {}",num);
@@ -191,19 +235,20 @@ pub fn insert_new_product(form:&ProductForm) -> Result<Uuid, Error> {
     }
 }
 
-pub fn get_product(id_product:&Uuid) -> Result<Products,Error> {
+pub async fn get_product(id_product:&Uuid, pool:&DbPool) -> Result<Products,Error> {
     use crate::schema::products::dsl::*;
-    let connection = &mut establish_connection();
-    let result = products.filter(id.eq(id_product)).first::<Products>(connection);
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = products.filter(id.eq(id_product)).first::<Products>(connection).await;
     result
 }
 
 use crate::models::product_variation::VariationValue;
 
- pub fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>) -> Result<usize,Error>{
+ pub async fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>,pool:&DbPool) -> Result<usize,Error>{
     use crate::schema::product_variations::dsl::*;
-    let connection = &mut establish_connection();
-
+    //let connection = &mut establish_connection();
+    let connection= &mut pool.get().await.unwrap();
     for combination in combinations{
         let json_attributes:Value = serde_json::to_value(&combination).unwrap();
         let new_variation = NewProductVariation1{
@@ -211,7 +256,7 @@ use crate::models::product_variation::VariationValue;
             product_id: prod_id,
             attributes: Some(&json_attributes),
         };
-        let result = insert_into(product_variations).values(new_variation).execute(connection);
+        let result = insert_into(product_variations).values(new_variation).execute(connection).await;
         match result {
             Ok(num) => {
                 println!("Data inserted {}",num);
@@ -225,14 +270,15 @@ use crate::models::product_variation::VariationValue;
     Ok(1)
  }
 
- pub fn insert_product_variation(prod_id:&Uuid) -> Result<usize,Error>{
+ pub async fn insert_product_variation(prod_id:&Uuid, pool:&DbPool) -> Result<usize,Error>{
     use crate::schema::product_variations::dsl::*;
-    let connection = &mut establish_connection();
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
     let new_variation = NewProductVariation1{
         id: &Uuid::new_v4(),
         product_id: prod_id,
         attributes: None,
     };
-    let result = insert_into(product_variations).values(new_variation).execute(connection);
+    let result = insert_into(product_variations).values(new_variation).execute(connection).await;
     result
  }

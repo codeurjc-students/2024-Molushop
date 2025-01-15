@@ -17,11 +17,17 @@ use crate::servicesX::*;
 use serde_json::Value;
 
 use crate::models::models_x::*;
-use crate::models::pages::{CategoryTemplate,EditProductTemplate,TemplateEjemplo,ProductsPanel};
+//use crate::models::pages::{CategoryTemplate,EditProductTemplate,TemplateEjemplo,ProductsPanelPrueba,Product};
+use crate::models::pages::*;
 
 use rinja::Template;
 
 use crate::controllers::createProduct::controllers::ROUTES;
+
+use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pg::AsyncPgConnection;
+type DbPool = Pool<AsyncPgConnection>;
+
 /* 
 use rinja::Template;
 
@@ -48,25 +54,39 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     //static ref CATEGORY_CHILDREN_URL: String = format!("{}/category-children", SCOPE);
     //static ref NEXT_SELECT_URL: String = format!("{}/next-select", SCOPE);
 }
+static PRODUCT_PANEL_PRUEBA : &str = "/products-panel-prueba";
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(products_panel);
+    //cfg.service(products_panel_prueba);
     cfg.service(index);
     cfg.service(categories);
     cfg.service(new_created_product);
+    cfg.route(PRODUCT_PANEL_PRUEBA, web::get().to(products_panel_prueba));
 }
-
-
-
-#[get("/products-panel")]
-async fn products_panel() -> impl Responder {
-    let pp = ProductsPanel{};
+use crate::services::products_panel;
+/* 
+async fn prodct_panel(pool_data: web::Data<DbPool>) -> impl Responder {
+    let pool = pool_data.get_ref();
+    //let context1 = tera::Context::new();
+    //invocar método para gestionar la lógica 
+    let products= products_panel::get_products(pool).await;
+    //let page_content: String = TEMPLATES.render("products_panel.html", &context1).unwrap();
+    let page_content = ProductsPanel{};
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(page_content)
+}                           
+*/
+//#[get("/products-panel-prueba")]
+async fn products_panel_prueba() -> impl Responder {
+    let pp = ProductsPanelPrueba{};
     let render = pp.render().unwrap();
     
     //let page_content: String = TEMPLATES.render("products_panel.html", &context1).unwrap();
     //print!("{}",page_content);
     HttpResponse::Ok().body(render)
 }
+
+
 
 #[get("/example")]
 async fn example() -> impl Responder {
@@ -98,9 +118,10 @@ async fn index2() -> impl Responder {
 }
 
 #[get("/category")]
-async fn categories() -> impl Responder {
+async fn categories(pool_data: web::Data<DbPool>) -> impl Responder {
     //obtener vector de datos de la base de datos
-    let categories = obtain_base_categories();
+    let pool = pool_data.get_ref();
+    let categories = obtain_base_categories(pool).await;
     match(categories){
         Ok(categories) => {
             let category_page  = CategoryTemplate::new_2(
@@ -119,15 +140,15 @@ async fn categories() -> impl Responder {
 
 
 #[get("/products/{product}")]
-async fn new_created_product(path:web::Path<Uuid>) -> impl Responder {
-    
+async fn new_created_product(path:web::Path<Uuid>,pool_data:web::Data<DbPool>) -> impl Responder {
+    let pool= pool_data.get_ref(); 
     //let mut context1 = tera::Context::new();
     
     let id_product = path.into_inner();
     //let id_product= Uuid::parse_str(&product).unwrap();
     //print!("{}",product);
     //obtener vector de datos de la base de datos
-    let product = get_product(&id_product);
+    let product = get_product(&id_product,pool).await;
 
     let mut keys:Vec<&String> = Vec::new();
     match(product){
