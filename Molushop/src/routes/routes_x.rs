@@ -28,6 +28,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
+use std::time::Instant; //para medir el tiempo de ejecución de una función
 /* 
 use rinja::Template;
 
@@ -62,20 +63,36 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(categories);
     cfg.service(new_created_product);
     cfg.route(PRODUCT_PANEL_PRUEBA, web::get().to(products_panel_prueba));
+    cfg.route("/products-panel", web::get().to(products_panel));
+
 }
 use crate::services::products_panel;
-/* 
-async fn prodct_panel(pool_data: web::Data<DbPool>) -> impl Responder {
+
+async fn products_panel(pool_data: web::Data<DbPool>) -> impl Responder {
+    let now = Instant::now();
     let pool = pool_data.get_ref();
-    //let context1 = tera::Context::new();
+    //vamos a poner un id de prueba
+    let user_id = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap(); 
+    println!("HOla");
     //invocar método para gestionar la lógica 
-    let products= products_panel::get_products(pool).await;
-    //let page_content: String = TEMPLATES.render("products_panel.html", &context1).unwrap();
-    let page_content = ProductsPanel{};
-    //print!("{}",page_content);
-    HttpResponse::Ok().body(page_content)
+    let products_result= products_panel::get_products(&user_id,pool).await;
+    match products_result{
+        Ok(products)=>{
+            //ahora vamos a renderizar la página
+    
+            let page_content = ProductsPanel{products}.render().unwrap();
+            let elapsed = now.elapsed();
+            println!("Elapsed: {:.2?}", elapsed);
+            //HttpResponse::Ok().body(page_content)
+            HttpResponse::Ok().body(page_content)
+        },
+        Err(e)=>{
+            println!("Error loading products: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading products");
+        }         
+    }
 }                           
-*/
+
 //#[get("/products-panel-prueba")]
 async fn products_panel_prueba() -> impl Responder {
     let pp = ProductsPanelPrueba{};

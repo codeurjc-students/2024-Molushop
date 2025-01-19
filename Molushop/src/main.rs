@@ -62,20 +62,11 @@ async fn main() -> std::io::Result<()> {
             .app_data(client_data.clone())
             .configure(config::static_config)
             .configure(routes_x::config)
-            //.service(routes_x::index2)
-            //.service(routes_x::categories)
-            //.service(routes_x::imagen_prueba)
-            //.service(routes_x::new_created_product)
+            
             .service(controllersX::prueba_insertar)
             .service(controllersX::prueba_modificar)
-            // .service(controllersX::category_children)
-            // .service(controllersX::reset_category)
-            // // .service(controllersX::next_category)
-            // // .service(controllersX::create_product)
-            // // .service(controllersX::add_variation)
-            // // .service(controllersX::add_variation_value)
-            // // .service(controllersX::add_specs)
-            // AWS S3
+            //test
+            .service(controllers::test::scope())
             .service(aws::scope_aws()) /*  /aws/s3/xxx  */
             //create_product
             .service(controllers::createProduct::controllers::scope_create_product())

@@ -56,18 +56,19 @@ CREATE TABLE Products (
     status SMALLINT not null DEFAULT 0 CHECK (status BETWEEN 0 AND 2), -- 0: DRAFT, 1: ACTIVE, 2: INACTIVE
     specs JSONB not null, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
     variations JSONB, --> LAS VARIACIONES DEL PRODUCTO 
+    variation_titles JSONB, --> titulos de las variaciones
     images JSONB, --> thumbnail, otras imagenes
     published BOOLEAN not null default false
 );
 
 create table Category(
 	id varchar(10) primary key,
-	name text,
+	name text not null,
 	parent varchar(10),
 	depth integer,
     base_specs jsonb,
     is_parent boolean not null default false,
-	foreign key (parent) references Category(id)
+	foreign key (parent) references Category(id) on delete cascade
 );
 
 --------------FUNCION CALCULAR PROFUNDIDAD----------------
@@ -167,7 +168,7 @@ CREATE TABLE Product_variations (
     attributes JSONB,
     status SMALLINT not null DEFAULT 0 CHECK (status BETWEEN 0 AND 2),
     stock INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (product_id) REFERENCES products(id),
+    FOREIGN KEY (product_id) REFERENCES products(id) on delete cascade,
     images JSONB -- imagenes para la variacion
 );
 
@@ -178,7 +179,7 @@ CREATE TABLE prices (
     currency CHAR(3),
     start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (variation_id) REFERENCES product_variations(id)
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
 );
 
 -- Tabla de descuentos
@@ -189,15 +190,15 @@ CREATE TABLE discounts (
     discount_value DECIMAL(10,2),
     start_date TIMESTAMP,
     end_date TIMESTAMP,
-    FOREIGN KEY (variation_id) REFERENCES product_variations(id)
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
 );
 
 CREATE TABLE product_seller (
     product_id UUID NOT NULL,
     seller_id UUID NOT NULL,
     PRIMARY KEY (product_id, seller_id),
-    FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (seller_id) REFERENCES seller(id)
+    FOREIGN KEY (product_id) REFERENCES products(id) on delete cascade,
+    FOREIGN KEY (seller_id) REFERENCES seller(id) on delete cascade
 );
 
 CREATE TABLE product_base_indentifiers (
@@ -205,7 +206,7 @@ CREATE TABLE product_base_indentifiers (
     product_id UUID NOT NULL,
     identifier VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES products(id)
+    FOREIGN KEY (product_id) REFERENCES products(id) on delete cascade
 );
 
 CREATE TABLE product_variations_identifiers(
@@ -213,5 +214,5 @@ CREATE TABLE product_variations_identifiers(
     product_variation_id UUID NOT NULL,
     identifier VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    FOREIGN KEY (product_variation_id) REFERENCES product_variations(id)
+    FOREIGN KEY (product_variation_id) REFERENCES product_variations(id) on delete cascade
 );

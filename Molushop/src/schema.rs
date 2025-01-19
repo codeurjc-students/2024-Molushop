@@ -35,7 +35,7 @@ diesel::table! {
     category (id) {
         #[max_length = 10]
         id -> Varchar,
-        name -> Nullable<Text>,
+        name -> Text,
         #[max_length = 10]
         parent -> Nullable<Varchar>,
         depth -> Nullable<Int4>,
@@ -156,6 +156,7 @@ diesel::table! {
         status -> Int2,
         specs -> Jsonb,
         variations -> Nullable<Jsonb>,
+        variation_titles -> Nullable<Jsonb>,
         images -> Nullable<Jsonb>,
         published -> Bool,
     }

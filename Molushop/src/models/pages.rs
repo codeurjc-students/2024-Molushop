@@ -50,7 +50,7 @@ pub struct ProductsPanelPrueba {
 #[derive(Template,Clone,Debug)]
 #[template(path = "pages/products_panel/index.html")]
 pub struct ProductsPanel {
-    pub products: Vec<Product> //igaual que el componente
+    pub products: Vec<Product> //ProductPanelGroup
 }
 
 

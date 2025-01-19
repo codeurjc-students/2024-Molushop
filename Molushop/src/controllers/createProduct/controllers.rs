@@ -162,7 +162,7 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
     match category_result{
         Ok(category) => {
             let specs_option = category.base_specs;
-            let name  = category.name.unwrap_or_default();
+            let name  = category.name;
             match specs_option{
                 Some(specs) =>{
                     let base_specs = serde_json::from_value(specs.clone()).unwrap();

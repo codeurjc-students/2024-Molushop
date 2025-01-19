@@ -1,12 +1,24 @@
+<!--Hacer variable -->
+{% let variation_titles = product.variations_titles %}
+
+
 <div class="product-card">
     <div class="product-main">
         <!--Aqui ponemos las imagenes que tengamos, si no tiene --->
         <img src="https://via.placeholder.com/150" alt="Producto" class="product-image">
         <div class="product-info">
-            <span class="product-status status-active">Activo</span>
-            <h3 class="product-title">Camiseta Básica</h3>
+            {% if product.status == 0 %}
+                <span class="product-status status-inactive">Draft</span>
+            {% else if product.status ==1 %}
+                <span class="product-status status-active">Activo</span>
+            {% else if product.status ==2 %}
+                <span class="product-status status-inactive">Inactivo</span>
+            {% endif %}
+            <h3 class="product-title">{{product.name}}</h3>
             <!-- <p>SKU: CAM-001</p> -->
-            <p>Categoría: Ropa</p>
+            {% for cat in product.categories %}
+                <p>{{cat}}</p>
+            {% endfor %}
             <div class="product-actions">
                 <button class="action-btn edit-btn">Editar</button>
                 <button class="action-btn delete-btn">Eliminar</button>
@@ -18,38 +30,30 @@
     
     <div class="variations">
         <div class="variation-item variation-header">
-            <div>Color</div>
-            <div>Talla</div>
+            {% for cat_var in variation_titles %}
+                <div>{{cat_var}}</div>
+            {% endfor %}
             <div>Precio</div>
             <div>Stock</div>
             <div>Estado</div>
         </div>
-        <div class="variation-item">
-            <div>Blanco</div>
-            <div>S</div>
-            <div>$19.99</div>
-            <div>10</div>
-            <div>
-                <span class="product-status status-active">Activo</span>
+        {% for variation_elem in product.variations%}
+            <div class="variation-item">
+                {% for var in variation_elem.variation %}
+                    <div>{{var.value}}</div>
+                {% endfor %}
+                <div>$19.99</div>
+                <div>{{variation_elem.stock}}</div>
+                <div>
+                {% if variation_elem.status == 0 %}
+                        <span class="product-status status-inactive">Draft</span>
+                {% else if variation_elem.status ==1 %}
+                        <span class="product-status status-active">Activo</span>
+                {% else if variation_elem.status ==2 %}
+                        <span class="product-status status-inactive">Inactivo</span>
+                {% endif %}
+                </div>
             </div>
-        </div>
-        <div class="variation-item">
-            <div>Blanco</div>
-            <div>M</div>
-            <div>$19.99</div>
-            <div>15</div>
-            <div>
-                <span class="product-status status-active">Activo</span>
-            </div>
-        </div>
-        <div class="variation-item">
-            <div>Negro</div>
-            <div>L</div>
-            <div>$21.99</div>
-            <div>0</div>
-            <div>
-                <span class="product-status status-inactive">Sin stock</span>
-            </div>
-        </div>
+        {% endfor %}
     </div>
 </div>

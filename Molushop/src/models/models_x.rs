@@ -47,12 +47,12 @@ pub struct Buyer {
 }
 
 #[derive(serde::Serialize)]
-#[derive(Queryable, Debug, Identifiable,Clone)]
+#[derive(Queryable, Debug, Identifiable,Clone,Selectable)]
 #[diesel(table_name = category)]
 #[derive(QueryableByName)]
 pub struct Category {
     pub id: String,
-    pub name: Option<String>,
+    pub name: String,
     pub parent: Option<String>,
     pub depth: Option<i32>,
     pub base_specs: Option<Value>,
@@ -63,7 +63,8 @@ impl Category {
     pub fn to_category2(&self) -> Result<Category2, &'static str> {
         Ok(Category2 {
             id: self.id.clone(),
-            name: self.name.clone().ok_or("Missing name")?,
+            //name: self.name.clone().ok_or("Missing name")?,
+            name: self.name.clone(),
             parent: self.parent.clone().unwrap_or_default(),
             depth: self.depth.unwrap_or(0),
             base_specs: self.base_specs.clone().unwrap_or(Value::Null),
@@ -114,7 +115,7 @@ pub struct CustomerAddress {
     pub province: String,
 }
 
-#[derive(Queryable, Debug, Deserialize,Serialize)]
+#[derive(Queryable, Debug, Deserialize,Serialize,Selectable)]
 #[diesel(table_name = products)]
 pub struct Products {
     pub id: Uuid,
@@ -125,8 +126,9 @@ pub struct Products {
     pub status: i16,
     pub specs: Value,
     pub variations: Option<Value>,
+    pub variation_titles: Option<Value>,
     pub images: Option<Value>,
-    pub published: bool,
+    pub published: bool,    
 }
 
 #[derive(Deserialize, Debug)]
@@ -150,17 +152,19 @@ pub struct NewProduct<'a> {
     pub brand: &'a str,
     pub specs: &'a Value,
     pub variations:  Option<&'a Value>,
+    pub variation_titles:  Option<&'a Value>,
     pub images:Option<&'a Value>,
 }
 
-#[derive(Queryable, Debug, Deserialize,Serialize)]
+#[derive(Queryable, Debug, Deserialize,Serialize,Selectable)]
 #[diesel(table_name = product_variations)]
 pub struct ProductVariation {
-    pub id: String,
+    pub id: Uuid,
     pub product_id : Uuid,
     pub identifiers: Option<Value>,
     pub sku: Option<String>,
     pub attributes: Option<Value>,
+    pub status: i16,
     pub stock: i32,
     pub images: Option<Value>,
 }

@@ -12,8 +12,9 @@ use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
-use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1};
+use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation};
 use crate::models::get_product::{GetProductForm,Variation};
+use crate::models::product_variation;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
@@ -22,6 +23,8 @@ use chrono::NaiveDate;
 use chrono::prelude::*;
 use serde_json::Value;
 use serde_json::json;
+
+use serde::{Deserialize, Serialize};
 
 use diesel_async::pooled_connection::deadpool::Pool;
 //use diesel_async::pg::AsyncPgConnection;
@@ -179,6 +182,7 @@ pub async fn obtain_base_specs(id_category:&String, pool:&DbPool) -> Result<Vec<
     
 }
 pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, Error> {
+    /* 
     let result_new_product = insert_new_product(form,pool).await;
     match result_new_product{
         Ok(id_product) => {
@@ -204,6 +208,11 @@ pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm,categor
             return Err(e);
         }
     }
+    */
+    let id_product = insert_new_product(form,pool).await?;
+    insert_product_seller(&id_seler,&id_product,pool).await?;
+    insert_product_category(&id_product,&category_id,pool).await?;
+    Ok(id_product)
 }
 
 pub async fn insert_product_category(id_product:&Uuid, id_category:&String, pool:&DbPool) -> Result<usize,Error> {
@@ -223,12 +232,33 @@ pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, pool:&DbPoo
     result
 }
 
+#[derive(Deserialize, Serialize, Debug)]
+struct FormTitulos {
+    titulos: Vec<String>
+}
 
 pub async fn insert_new_product(form:&ProductForm,pool:&DbPool) -> Result<Uuid, Error> {
     use crate::schema::products::dsl::*;
     //let connection = &mut establish_connection();
     let connection = &mut pool.get().await.unwrap();
     let new_id = Uuid::new_v4();
+    //metodo para obtener los nombres de los titulos de las variaciones
+    //obtenern ese jsson b y obtener los nombres de las keys
+    let titles:Option<Value> = match form.variations.clone(){
+        Some(a)=>{
+            Some(json!({
+                "titulos": a.as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|item| item["name"].as_str().unwrap())
+                    .collect::<Vec<&str>>()
+                }))
+        },
+        None=>None
+
+    };
+    
+
     let new_product = NewProduct{
         id: &new_id,
         code: &form.code,
@@ -237,6 +267,7 @@ pub async fn insert_new_product(form:&ProductForm,pool:&DbPool) -> Result<Uuid, 
         brand: &form.brand,
         specs: &form.specs,
         variations: form.variations.as_ref(),
+        variation_titles: titles.as_ref(), //de momento, cambiar
         images: form.images.as_ref(),
     };
     let result = insert_into(products).values(new_product).execute(connection).await;
@@ -299,3 +330,40 @@ use crate::models::product_variation::VariationValue;
     let result = insert_into(product_variations).values(new_variation).execute(connection).await;
     result
  }
+
+pub async fn get_seller_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Products>,Error>{
+    use crate::schema::product_seller::dsl::*;
+    use crate::schema::products::dsl::*;
+    //use crate::schema::products;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let results = products
+        .inner_join(product_seller.on(id.eq(product_id)))
+        .filter(seller_id.eq(user_id))
+        .select(Products::as_select())
+        .load::<Products>(connection).await;
+    results
+}
+
+pub async fn get_product_categories(id_product:&Uuid,pool:&DbPool) -> Result<Vec<Category>,Error> {
+    use crate::schema::category_product::dsl::*;
+    use crate::schema::category::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let results = category
+        .inner_join(category_product.on(id.eq(category_id)))
+        .filter(product_id.eq(id_product))
+        .select(Category::as_select())
+        .load::<Category>(connection).await;
+    results
+}
+
+pub async fn get_product_variations(id_product:&Uuid,pool:&DbPool) -> Result<Vec<ProductVariation>,Error> {
+    use crate::schema::product_variations::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let results = product_variations
+        .filter(product_id.eq(id_product))
+        .load::<ProductVariation>(connection).await;
+    results
+}
