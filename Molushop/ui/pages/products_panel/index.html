@@ -1,10 +1,20 @@
 {% extends "layouts/layout1.html" %}
 {% block scripts %}
+    {% include "components/product_panel_group/scripts.html"%}
 {% endblock%}
 {% block styles %}
-    <link rel = "stylesheet" href = "static/pages/products_panel/style.css" />
+    {% include "components/product_panel_group/styles.html"%}
 {% endblock %}
 {% block content %}
+    <div class="container">
+        <div class="header">
+            <h1>Mis Productos</h1>
+            <input type="text" class="search-bar" placeholder="Buscar productos...">
+            <a href="/category">
+                <button class="add-product-btn">+ Añadir Producto</button>
+            </a>
+        </div>
     <!--Aqui se incluyen los componentes-->
     {% include "components/product_panel_group/templates/base.html"%}
+    </div>
 {% endblock %}

@@ -2,12 +2,13 @@ use rinja::Template;
 use super::models_x::{Category2,Category};
 use super::components::create_product::Routes;
 use super::get_product::GetProductForm;
-use super::data_transfer_objects::product::Product;
+use super::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
 #[derive(Template,Clone,Debug)]
 #[template(path = "pages/create_product/category.html")]
 pub struct CategoryTemplate {
     categories: Vec<Category2>,
     routes: &'static Routes,
+    page_name: String
 }
 
 impl CategoryTemplate {
@@ -17,7 +18,7 @@ impl CategoryTemplate {
         ) -> Self {
         CategoryTemplate {
             categories: categories1.iter().map(|c| c.to_category2().unwrap()).collect(),
-            routes
+            routes, page_name: "Categorias".to_string()
         }
     }
 
@@ -50,7 +51,10 @@ pub struct ProductsPanelPrueba {
 #[derive(Template,Clone,Debug)]
 #[template(path = "pages/products_panel/index.html")]
 pub struct ProductsPanel {
-    pub products: Vec<Product> //ProductPanelGroup
+    pub products: Vec<Product>, //ProductPanelGroup
+    pub routes: &'static RoutesProductPanelGroup,
+    pub page_name: String,
+
 }
 
 

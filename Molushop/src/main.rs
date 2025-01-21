@@ -25,6 +25,7 @@ use controllers::aws::s3::aws_s3;
 use controllers::aws::aws;
 use controllers::controllersX;
 use services::aws::s3::{client, startup};
+use controllers::components;
 
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 //use diesel_async::pooled_connection::bb8::Pool;
@@ -70,6 +71,7 @@ async fn main() -> std::io::Result<()> {
             .service(aws::scope_aws()) /*  /aws/s3/xxx  */
             //create_product
             .service(controllers::createProduct::controllers::scope_create_product())
+            .service(components::scope::scope_components())
             // Static files
             .service(fs::Files::new("/assets", "assets").show_files_listing())
             

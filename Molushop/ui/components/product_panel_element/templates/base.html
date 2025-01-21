@@ -1,8 +1,7 @@
 <!--Hacer variable -->
 {% let variation_titles = product.variations_titles %}
 
-
-<div class="product-card">
+<div class="c-product-panel-element product-card">
     <div class="product-main">
         <!--Aqui ponemos las imagenes que tengamos, si no tiene --->
         <img src="https://via.placeholder.com/150" alt="Producto" class="product-image">
@@ -21,14 +20,14 @@
             {% endfor %}
             <div class="product-actions">
                 <button class="action-btn edit-btn">Editar</button>
-                <button class="action-btn delete-btn">Eliminar</button>
+                <button class="action-btn delete-btn" hx-delete="{{routes.delete_product}}/{{product.id}}">Eliminar</button>
             </div>
         </div>
     </div>
     
-    <button class="toggle-variations">Mostrar variaciones (3)</button>
+    <button class="toggle-variations">Mostrar variaciones {{product.variations.len()}}</button>
     
-    <div class="variations">
+    <div class="variations hidden">
         <div class="variation-item variation-header">
             {% for cat_var in variation_titles %}
                 <div>{{cat_var}}</div>

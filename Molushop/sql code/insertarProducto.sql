@@ -2,6 +2,12 @@ select * from products;
 select * from product_seller;
 select * from product_variations;
 delete from products;
+--Bici Mountain RX
+insert into product_seller (product_id, seller_id) values ('8bc8d498-cd97-4eb5-9e51-8f0a5125fc2c', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
+--Pala EKC
+insert into product_seller (product_id, seller_id) values ('7f91cd4c-a152-4d53-8176-f092732fedab', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
+--BMX Pro
+insert into product_seller (product_id, seller_id) values ('347d0773-7430-4344-8333-46c6fa4b6fa1', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
 -- el id de la categoría se tiene que insertar con un método
 -- 
 INSERT INTO Products (id, code, name, description, brand, specs, variations, images, published) VALUES ('3d3abb00-aa89-4aca-9532-e2fe574037a6', '1234PX', 'PhoneXD', 'Es un telefono muy pontente', 'Lenovo', '{"os":"Android","screen_size":"50MPX"}', '[{"name":"Color","values":[{"value":"Azul"},{"value":"Verde"},{"value":"Negro"}]},{"name":"Paquete","values":[{"value":"4GB RAM + 128GB ROM"},{"value":"6GB RAM + 512GB ROM"}]}]', null, false);

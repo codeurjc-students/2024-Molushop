@@ -40,6 +40,7 @@ pub async fn get_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Er
             code: product.code,
             variations_titles: variation_titles,
             categories: categories_names,
+            id: product.id
         };
         products_final.push(product_final);
     }

@@ -23,6 +23,7 @@ use crate::models::pages::*;
 use rinja::Template;
 
 use crate::controllers::createProduct::controllers::ROUTES;
+use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
@@ -80,7 +81,11 @@ async fn products_panel(pool_data: web::Data<DbPool>) -> impl Responder {
         Ok(products)=>{
             //ahora vamos a renderizar la página
     
-            let page_content = ProductsPanel{products}.render().unwrap();
+            let page_content = ProductsPanel{
+                products,
+                routes: &ROUTES_PRODUCT_PANEL_GROUP,
+                page_name:"Panel Products".to_string()
+            }.render().unwrap();
             let elapsed = now.elapsed();
             println!("Elapsed: {:.2?}", elapsed);
             //HttpResponse::Ok().body(page_content)

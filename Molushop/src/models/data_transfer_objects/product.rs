@@ -1,6 +1,13 @@
 //aqui estará la los modelos de la página de create produc
 use serde::{Deserialize, Serialize};
 use crate::models::models_x;
+use uuid::Uuid;
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct RoutesProductPanelGroup{
+    pub delete_product: &'static str,
+    //images
+}
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -11,6 +18,7 @@ pub struct Product{
     pub code: String,
     pub variations_titles: Vec<String>,
     pub categories: Vec<String>,
+    pub id:Uuid
     //images
 }
 

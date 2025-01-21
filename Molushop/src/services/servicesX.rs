@@ -367,3 +367,24 @@ pub async fn get_product_variations(id_product:&Uuid,pool:&DbPool) -> Result<Vec
         .load::<ProductVariation>(connection).await;
     results
 }
+
+pub async fn delete_seller_product(prod_id:&Uuid,sell_id:&Uuid,pool:&DbPool) -> Result<usize,Error> {
+    use crate::schema::product_seller::dsl::*;
+    
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let valor= diesel::delete(product_seller
+        .filter(product_id.eq(prod_id).and(seller_id.eq(sell_id)))
+    ).execute(connection).await?;
+    //borrar producto
+
+    //borrar variaciones
+
+    //en este contexto es borrar el producto entero, en otros puede variar 
+    Ok(valor)
+}
+
+pub async fn delete_product_complete(id_producto:&Uuid,pool: &DbPool) -> Result<usize,Error>{
+    //TODO
+    Ok(1)
+}
