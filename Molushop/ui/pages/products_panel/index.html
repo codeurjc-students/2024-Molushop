@@ -4,13 +4,14 @@
 {% endblock%}
 {% block styles %}
     {% include "components/product_panel_group/styles.html"%}
+    {% include "components/warning_modal/styles.html"%}
 {% endblock %}
 {% block content %}
     <div class="container">
         <div class="header">
             <h1>Mis Productos</h1>
             <input type="text" class="search-bar" placeholder="Buscar productos...">
-            <a href="/category">
+            <a href="/products-panel/create">
                 <button class="add-product-btn">+ Añadir Producto</button>
             </a>
         </div>

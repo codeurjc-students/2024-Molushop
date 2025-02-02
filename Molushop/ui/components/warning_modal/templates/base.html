@@ -1,0 +1,18 @@
+<div class="warning-container" _="on closeModal add .closing then wait for animationend then remove me">
+    <div class="modal-underlay" _="on click trigger closeModal"></div>
+    <div class="modal-content">
+        <div>
+            <span class="warning-icon">⚠️</span>
+            <span class="warning-text">{{message}}</span>
+        </div>
+        <div class="button-container">
+            <button class="btn btn-yes"
+                _="on click trigger closeModal"
+                {{method}}="{{endpoint}}"
+                hx-target="{{target}}"
+                hx-swap="{{swap}}"
+            >Sí</button>
+            <button class="btn btn-no" _="on click trigger closeModal">No</button>
+        </div>
+    </div>
+</div>

@@ -345,6 +345,19 @@ pub async fn get_seller_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Prod
     results
 }
 
+pub async fn get_product_seller(user_id:&Uuid,prod_id:&Uuid,pool: &DbPool) -> Result<Products,Error>{
+    use crate::schema::product_seller::dsl::*;
+    use crate::schema::products::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = products
+        .inner_join(product_seller.on(id.eq(product_id)))
+        .filter(seller_id.eq(user_id).and(id.eq(prod_id)))
+        .select(Products::as_select())
+        .first::<Products>(connection).await;
+    result
+}
+
 pub async fn get_product_categories(id_product:&Uuid,pool:&DbPool) -> Result<Vec<Category>,Error> {
     use crate::schema::category_product::dsl::*;
     use crate::schema::category::dsl::*;
@@ -387,4 +400,101 @@ pub async fn delete_seller_product(prod_id:&Uuid,sell_id:&Uuid,pool:&DbPool) -> 
 pub async fn delete_product_complete(id_producto:&Uuid,pool: &DbPool) -> Result<usize,Error>{
     //TODO
     Ok(1)
+}
+
+use crate::controllers::components::edit_product::FormGeneral;
+
+pub async fn edit_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPool) -> Result<usize,Error> {
+    use crate::schema::products::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = update(products.filter(id.eq(id_product)))
+        .set((
+            name.eq(form.name),
+            description.eq(form.description),
+            brand.eq(form.brand),
+        ))
+        .execute(connection).await;
+    result
+}
+
+pub async fn update_image(id_producto:&Uuid,tipo:&String,image_url:&String,pool:&DbPool) -> Result<usize,Error> {
+    //use crate::schema::products::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    //let other_id = "2fcddbef-1c29-4601-8879-8671bc77160b";
+    //let tipo = "principal";
+    //let url = "https://ejemplo.com/principal.jpg";
+
+    let result = sql_query(r#"
+    UPDATE products 
+    SET images = jsonb_set(
+    images,
+    '{images}',
+    (images->'images') || json_build_array(
+        json_build_object(
+            'tipo', $2,
+            'url', $3
+        )
+    )::jsonb
+    )
+    WHERE id = $1
+    "#).bind::<diesel::sql_types::Uuid,_>(id_producto)
+    .bind::<diesel::sql_types::Text,_>(tipo)
+    .bind::<diesel::sql_types::Text,_>(image_url)
+    .execute(connection).await;
+    result
+}
+
+use crate::controllers::components::edit_product::ImageData;
+
+pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], pool: &DbPool) -> Result<usize, Error> {
+    let connection = &mut pool.get().await.unwrap();
+    
+    // Convertir el array de ImageData a un array JSON
+    let images_json: Vec<serde_json::Value> = images
+        .iter()
+        .map(|img| json!({
+            "tipo": img.tipo,
+            "url": img.url
+        }))
+        .collect();
+    
+    let json_array = serde_json::to_string(&images_json).unwrap();
+    
+    let result = sql_query(r#"
+    UPDATE products 
+    SET images = jsonb_set(
+        images,
+        '{images}',
+        (images->'images') || $2::jsonb
+    )
+    WHERE id = $1
+    "#)
+    .bind::<diesel::sql_types::Uuid, _>(id_producto)
+    .bind::<diesel::sql_types::Text, _>(json_array)
+    .execute(connection)
+    .await;
+    
+    result
+}
+
+pub async fn delete_all_images(id_producto: &Uuid, pool: &DbPool) -> Result<usize, Error> {
+    let connection = &mut pool.get().await.unwrap();
+    
+    let result = sql_query(r#"
+    UPDATE products 
+    SET images = jsonb_set(
+        images,
+        '{images}',
+        '[]'::jsonb
+    )
+    WHERE id = $1
+    "#)
+    .bind::<diesel::sql_types::Uuid, _>(id_producto)
+    .execute(connection)
+    .await;
+    
+    result
 }

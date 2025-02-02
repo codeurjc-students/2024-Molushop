@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel de Productos con Variaciones</title>
-    <link rel="stylesheet" href="static/pages/products_panel/style.css">
-    <script src="static/pages/products_panel/script.js" defer></script>
+  <!---  <link rel="stylesheet" href="static/pages/products_panel_prueba/style.css">  -->
+    <link rel="stylesheet" href="static/pages/products_panel_prueba/product-edit.css">
+  <!--  <script src="static/pages/products_panel_prueba/script.js" defer></script> -->
+    <script src="static/pages/products_panel_prueba/product-edit.js" defer></script>
 </head>
 <body>
 <div class="container">
@@ -119,6 +121,151 @@
             </div>
         </div>
     </div>
+
+    <div class="product-edit-container">
+        <!-- Sidebar de navegación -->
+        <nav class="sidebar">
+            <ul class="nav-list">
+                <li class="nav-item active" data-tab="general">GENERAL</li>
+                <li class="nav-item" data-tab="images">IMAGES</li>
+                <li class="nav-item" data-tab="categories">CATEGORIES, TAG & ATTRIBUTES</li>
+                <li class="nav-item" data-tab="prices">PRICES</li>
+                <li class="nav-item" data-tab="shipping">SHIPPING</li>
+                <li class="nav-item" data-tab="stock">STOCK</li>
+                <li class="nav-item" data-tab="advanced">ADVANCED</li>
+            </ul>
+        </nav>
+        
+        <!-- Contenido de las pestañas -->
+        <div class="tab-content">
+            <!-- Pestaña General -->
+            <div class="tab-pane active" id="general">
+                <form class="product-form">
+                    <div class="form-group">
+                        <label for="product-title">Product Title</label>
+                        <select id="product-title" class="form-control">
+                            <option value="no-change">No change</option>
+                        </select>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="slug">SLUG</label>
+                        <div class="input-group">
+                            <select id="slug" class="form-control">
+                                <option value="set-new">Set new</option>
+                            </select>
+                            <input type="text" class="form-control" placeholder="Enter slug">
+                        </div>
+                    </div>
+        
+                    <!-- Resto de campos de General... -->
+                </form>
+            </div>
+        
+            <!-- Pestaña Images -->
+            <div class="tab-pane" id="images">
+                <div class="image-upload-section">
+                    <h3>Product Images</h3>
+                    <div class="dropzone">
+                        <input type="file" multiple accept="image/*">
+                        <p>Drop images here or click to upload</p>
+                    </div>
+                    <div class="image-gallery">
+                        <!-- Preview de imágenes -->
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Pestaña Categories -->
+            <div class="tab-pane" id="categories">
+                <div class="categories-section">
+                    <h3>Categories</h3>
+                    <div class="category-tree">
+                        <!-- Árbol de categorías -->
+                    </div>
+                    <div class="tags-section">
+                        <h3>Tags</h3>
+                        <input type="text" class="form-control" placeholder="Add tags...">
+                        <div class="tags-list">
+                            <!-- Lista de tags -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        
+            <!-- Pestaña Prices -->
+            <div class="tab-pane" id="prices">
+                <form class="prices-form">
+                    <div class="form-group">
+                        <label>Regular Price</label>
+                        <input type="number" class="form-control" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Sale Price</label>
+                        <input type="number" class="form-control" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Tax Status</label>
+                        <select class="form-control">
+                            <option>Taxable</option>
+                            <option>None</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        
+            <!-- Pestaña Shipping -->
+            <div class="tab-pane" id="shipping">
+                <form class="shipping-form">
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" class="form-control" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Dimensions (cm)</label>
+                        <div class="dimensions-group">
+                            <input type="number" placeholder="Length">
+                            <input type="number" placeholder="Width">
+                            <input type="number" placeholder="Height">
+                        </div>
+                    </div>
+                </form>
+            </div>
+        
+            <!-- Pestaña Stock -->
+            <div class="tab-pane" id="stock">
+                <form class="stock-form">
+                    <div class="form-group">
+                        <label>Stock Quantity</label>
+                        <input type="number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Stock Status</label>
+                        <select class="form-control">
+                            <option>In stock</option>
+                            <option>Out of stock</option>
+                            <option>On backorder</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+        
+            <!-- Pestaña Advanced -->
+            <div class="tab-pane" id="advanced">
+                <form class="advanced-form">
+                    <div class="form-group">
+                        <label>Purchase Note</label>
+                        <textarea class="form-control"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Menu Order</label>
+                        <input type="number" class="form-control">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+        
 </div>
 </body>
 </html>

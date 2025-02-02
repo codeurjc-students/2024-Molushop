@@ -57,4 +57,15 @@ pub struct ProductsPanel {
 
 }
 
+use crate::models::components::edit_product::ProductEdit;
+use crate::models::components::edit_product::Routes as Routes_edit_product;
+
+#[derive(Template,Clone,Debug)]
+#[template(path = "pages/products-panel_edit/products-panel_edit.html")]
+pub struct ProductsPanelEdit {
+    pub product: ProductEdit,
+    pub routes_edit_product: &'static Routes_edit_product,
+    pub page_name: String,
+}
+
 

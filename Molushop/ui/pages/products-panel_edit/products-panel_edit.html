@@ -1,0 +1,23 @@
+{% extends "layouts/layout1.html" %}
+{% block scripts %}
+    {% include "components/edit_product/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/edit_product/styles.html"%}
+    {% include "components/warning_modal/styles.html"%}
+    {% include "components/modal-1/styles.html"%}
+    <link rel="stylesheet" href="/static/pages/products-panel_edit/css/styles.css">
+{% endblock %}
+{% block content %}
+    <div class="container">
+        <div class="header">
+            <h1>Mis Productos</h1>
+            <input type="text" class="search-bar" placeholder="Buscar productos...">
+            <a href="/products-panel/create">
+                <button class="add-product-btn">+ Añadir Producto</button>
+            </a>
+        </div>
+    <!--Aqui se incluyen los componentes-->
+    {% include "components/edit_product/templates/edit_product.html"%}
+    </div>
+{% endblock %}

@@ -4,3 +4,4 @@ pub mod category;
 pub mod product;
 pub mod create_product_variations;
 pub mod products_panel;
+pub mod components;

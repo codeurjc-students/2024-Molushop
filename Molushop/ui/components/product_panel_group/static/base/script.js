@@ -9,7 +9,10 @@ function cargarBotones(){
     });
 }
 
+let currentPath;
+
 document.addEventListener('DOMContentLoaded', function() {
     cargarBotones();
+    currentPath = window.location.pathname;
 });
 //content

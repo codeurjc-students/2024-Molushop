@@ -6,6 +6,7 @@ use uuid::Uuid;
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RoutesProductPanelGroup{
     pub delete_product: &'static str,
+    pub delete_product_modal: &'static str,
     //images
 }
 

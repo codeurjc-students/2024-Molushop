@@ -34,6 +34,7 @@ fn configure_static_routes(cfg: &mut web::ServiceConfig, path: &Path) -> std::io
                 if base_path.exists() {
                     let xtra = path.strip_prefix("./ui").unwrap().to_str().unwrap().replace("\\", "/");
                     let route = format!("/static/{}", xtra);
+                    //println!("Configurando ruta estática: {}", route);
                     cfg.service(fs::Files::new(&route, &base_path).show_files_listing());
                 }
             }

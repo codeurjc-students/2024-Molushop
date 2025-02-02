@@ -8,6 +8,9 @@ insert into product_seller (product_id, seller_id) values ('8bc8d498-cd97-4eb5-9
 insert into product_seller (product_id, seller_id) values ('7f91cd4c-a152-4d53-8176-f092732fedab', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
 --BMX Pro
 insert into product_seller (product_id, seller_id) values ('347d0773-7430-4344-8333-46c6fa4b6fa1', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
+--Chaqueta de cuero
+insert into product_seller (product_id, seller_id) values ('9e95b98c-6314-4fdb-a109-2c888a71bf89', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
+
 -- el id de la categoría se tiene que insertar con un método
 -- 
 INSERT INTO Products (id, code, name, description, brand, specs, variations, images, published) VALUES ('3d3abb00-aa89-4aca-9532-e2fe574037a6', '1234PX', 'PhoneXD', 'Es un telefono muy pontente', 'Lenovo', '{"os":"Android","screen_size":"50MPX"}', '[{"name":"Color","values":[{"value":"Azul"},{"value":"Verde"},{"value":"Negro"}]},{"name":"Paquete","values":[{"value":"4GB RAM + 128GB ROM"},{"value":"6GB RAM + 512GB ROM"}]}]', null, false);
@@ -31,3 +34,8 @@ INSERT INTO Products (id, code, name, description, brand, specs, variations, ima
 INSERT INTO Products (id, code, name, description, brand, specs, variations, images, published) VALUES ('64d29964-088f-4774-af6c-39e0e8945757', '1243PX', 'GamePad Elite', 'Control para gaming profesional', 'Microsoft', '{"wireless":"Yes","battery":"40h","customizable":"Yes"}', '[{"name":"Color","values":[{"value":"Negro"},{"value":"Blanco"},{"value":"Rojo"}]},{"name":"Edición","values":[{"value":"Standard"},{"value":"Pro"}]}]', null, true);
 
 INSERT INTO Products (id, code, name, description, brand, specs, variations, images, published) VALUES ('165361cd-fb4a-42bd-b244-d811b6a09dbb', '1244PX', 'RouterPro X', 'Router WiFi 6 de alto rendimiento', 'TP-Link', '{"wifi":"WiFi 6","speed":"AX6000","coverage":"2500sqft"}', '[{"name":"Modelo","values":[{"value":"Basic"},{"value":"Advanced"}]},{"name":"Antenas","values":[{"value":"4"},{"value":"8"}]}]', null, true);
+
+SELECT p.*
+FROM products p
+INNER JOIN product_seller sp ON p.id = sp.product_id
+WHERE sp.seller_id = '2064d62a-4978-4fe7-bef2-7690ff09bdc8' AND p.id = '9e95b98c-6314-4fdb-a109-2c888a71bf89';

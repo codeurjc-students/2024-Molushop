@@ -1,6 +1,4 @@
-<div class="c-product-panel-group products-list" 
-    hx-target="closest .c-product-panel-element" 
-    hx-swap="outerHTML swap:1s">
+<div class="c-product-panel-group products-list">
     {% for product in products %}
         {% include "components/product_panel_element/templates/base.html" %}
     {% endfor %}

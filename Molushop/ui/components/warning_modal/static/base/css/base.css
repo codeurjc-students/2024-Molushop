@@ -1,0 +1,100 @@
+/* Contenedor principal del modal */
+.warning-container {
+	/* Underlay covers entire screen. */
+	position: absolute;
+	background-color:rgba(0,0,0,0.5);
+	z-index:1000;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+	/* Flexbox centers the .modal-content vertically and horizontally */
+	
+	/* Animate when opening */
+	animation-name: fadeIn;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+.warning-container .modal-underlay {
+	/* underlay takes up the entire viewport. This is only
+	required if you want to click to dismiss the popup */
+	position: absolute;
+	z-index: -1;
+	top:0px;
+	bottom:0px;
+	left: 0px;
+	right: 0px;
+}
+
+.warning-icon {
+    color: #856404;
+    font-size: 24px;
+    margin-right: 10px;
+}
+
+.warning-text {
+    color: #856404;
+    font-size: 16px;
+}
+
+.button-container {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.btn {
+    padding: 10px 30px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-yes {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-no {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn:hover {
+    opacity: 0.8;
+}
+
+.warning-container.closing {
+	/* Animate when closing */
+	animation-name: fadeOut;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+.warning-container.closing > .modal-content {
+	/* Animate when closing */
+	animation-name: zoomOut;
+	animation-duration:150ms;
+	animation-timing-function: ease;
+}
+
+@keyframes fadeIn {
+	0% {opacity: 0;}
+	100% {opacity: 1;}
+}
+
+@keyframes fadeOut {
+	0% {opacity: 1;}
+	100% {opacity: 0;}
+}
+
+@keyframes zoomIn {
+	0% {transform: scale(0.9);}
+	100% {transform: scale(1);}
+}
+
+@keyframes zoomOut {
+	0% {transform: scale(1);}
+	100% {transform: scale(0.9);}
+}

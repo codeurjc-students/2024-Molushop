@@ -1,6 +1,6 @@
 #[derive(Debug, serde::Serialize, Clone)]
 pub struct UploadedFile {
-    filename: String,
+    pub filename: String,
     s3_key: String,
     pub s3_url: String,
 }

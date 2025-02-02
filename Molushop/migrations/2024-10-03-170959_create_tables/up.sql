@@ -57,7 +57,7 @@ CREATE TABLE Products (
     specs JSONB not null, -- Especificaciones del producto --> tendran una plantilla dependiendo de la categoria
     variations JSONB, --> LAS VARIACIONES DEL PRODUCTO 
     variation_titles JSONB, --> titulos de las variaciones
-    images JSONB, --> thumbnail, otras imagenes
+    images JSONB DEFAULT '{"images": []}'::jsonb, --> thumbnail, otras imagenes
     published BOOLEAN not null default false
 );
 

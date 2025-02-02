@@ -61,13 +61,44 @@ static PRODUCT_PANEL_PRUEBA : &str = "/products-panel-prueba";
 pub fn config(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
     cfg.service(index);
-    cfg.service(categories);
+    cfg.service(products_panel_create);
     cfg.service(new_created_product);
+    cfg.service(products_panel_edit);
     cfg.route(PRODUCT_PANEL_PRUEBA, web::get().to(products_panel_prueba));
     cfg.route("/products-panel", web::get().to(products_panel));
 
 }
 use crate::services::products_panel;
+use crate::services::components::edit_product;
+use crate::controllers::components::edit_product::ROUTES as ROUTES_EDIT_PRODUCT;
+
+#[get("/products-panel/{id}/edit")]
+async fn products_panel_edit(path:web::Path<Uuid>,pool_data:web::Data<DbPool>) -> impl Responder {
+    let user_id = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap(); 
+    let product_id = path.into_inner();
+    let product_edit_result = edit_product::get_product(&user_id,&product_id,pool_data.get_ref()).await;
+    let product_edit = match product_edit_result{
+        Ok(product_edit) => product_edit,
+        Err(e) => {
+            println!("Error loading product: {}", e);
+            return HttpResponse::InternalServerError().body("Error loading product");
+        }
+    };
+    let template_ejeplo = ProductsPanelEdit{
+        product: product_edit,
+        routes_edit_product: &ROUTES_EDIT_PRODUCT,  
+        page_name:"Edit Product".to_string()
+    };
+    
+    let page_content: String = template_ejeplo.render().unwrap();
+    //let page_content: String = TEMPLATES.render("example.html", &context1).unwrap();
+    //print!("{}",page_content);
+    HttpResponse::Ok().body(page_content)
+}
+
+
+
+
 
 async fn products_panel(pool_data: web::Data<DbPool>) -> impl Responder {
     let now = Instant::now();
@@ -139,8 +170,8 @@ async fn index2() -> impl Responder {
     HttpResponse::Ok().body(page_content)
 }
 
-#[get("/category")]
-async fn categories(pool_data: web::Data<DbPool>) -> impl Responder {
+#[get("/products-panel/create")]
+async fn products_panel_create(pool_data: web::Data<DbPool>) -> impl Responder {
     //obtener vector de datos de la base de datos
     let pool = pool_data.get_ref();
     let categories = obtain_base_categories(pool).await;
