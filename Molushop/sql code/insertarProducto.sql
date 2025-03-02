@@ -39,3 +39,5 @@ SELECT p.*
 FROM products p
 INNER JOIN product_seller sp ON p.id = sp.product_id
 WHERE sp.seller_id = '2064d62a-4978-4fe7-bef2-7690ff09bdc8' AND p.id = '9e95b98c-6314-4fdb-a109-2c888a71bf89';
+
+select * from identifiers_base;
