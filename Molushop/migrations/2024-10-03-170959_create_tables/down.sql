@@ -10,8 +10,12 @@ DROP TABLE Product_variations cascade;
 DROP TABLE Admins cascade;
 drop table product_attributes cascade; 
 drop table prices cascade;
+drop table price_history cascade;
 drop table discounts cascade;
+drop table discount_history cascade;
 drop table product_seller cascade;
+drop table identifiers_base cascade;
+drop table identifiers_var cascade;
 drop table product_base_indentifiers cascade;
 drop table product_variations_identifiers cascade;
 
@@ -20,3 +24,6 @@ DROP FUNCTION IF EXISTS calculate_depth();
 
 DROP FUNCTION IF EXISTS update_is_parent() cascade;
 DROP TRIGGER IF EXISTS update_is_parent_trigger ON Category;
+
+DROP TRIGGER IF EXISTS price_history_trigger ON prices;
+DROP FUNCTION IF EXISTS log_price_changes();

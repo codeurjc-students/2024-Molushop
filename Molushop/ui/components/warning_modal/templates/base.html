@@ -7,10 +7,14 @@
         </div>
         <div class="button-container">
             <button class="btn btn-yes"
-                _="on click trigger closeModal"
+            _="on click trigger closeModal 
+            {{hyperscript_action}}
+            end"
+            {% if htmx_active %}
                 {{method}}="{{endpoint}}"
                 hx-target="{{target}}"
                 hx-swap="{{swap}}"
+            {% endif %}
             >Sí</button>
             <button class="btn btn-no" _="on click trigger closeModal">No</button>
         </div>

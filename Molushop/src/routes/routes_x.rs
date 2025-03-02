@@ -1,5 +1,5 @@
 // paginas de la aplicación
-use actix_web::{get, post, web,delete, App, HttpResponse, HttpServer, Responder, http::StatusCode};
+use actix_web::{get, post, web,delete, App, HttpResponse,HttpRequest, HttpServer, Responder, http::StatusCode};
 use bigdecimal::BigDecimal;
 use lazy_static::lazy_static;
 use tera::Tera;
@@ -11,6 +11,7 @@ use std::{str::FromStr, sync::Mutex};
 //use crate::database::carrito_numero_productos;
 //use crate::database::{self, tiene_productos};
 use uuid::Uuid;
+use crate::models::data_transfer_objects::product::Product;
 use crate::models::get_product::GetProductForm;
 use crate::schema::products::variations;
 use crate::servicesX::*;
@@ -22,7 +23,7 @@ use crate::models::pages::*;
 
 use rinja::Template;
 
-use crate::controllers::createProduct::controllers::ROUTES;
+use crate::controllers::createProduct::create_product_controllers::ROUTES;
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -70,10 +71,12 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 use crate::services::products_panel;
 use crate::services::components::edit_product;
-use crate::controllers::components::edit_product::ROUTES as ROUTES_EDIT_PRODUCT;
+use crate::controllers::components::edit_product_controller::ROUTES as ROUTES_EDIT_PRODUCT;
+use crate::models::components::edit_product::EditProduct;
+use crate::models::components::title::Title;
 
-#[get("/products-panel/{id}/edit")]
-async fn products_panel_edit(path:web::Path<Uuid>,pool_data:web::Data<DbPool>) -> impl Responder {
+#[get("/products-panel/edit/{id}")]
+async fn products_panel_edit(path:web::Path<Uuid>,pool_data:web::Data<DbPool>, req: HttpRequest) -> impl Responder {
     let user_id = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap(); 
     let product_id = path.into_inner();
     let product_edit_result = edit_product::get_product(&user_id,&product_id,pool_data.get_ref()).await;
@@ -84,13 +87,30 @@ async fn products_panel_edit(path:web::Path<Uuid>,pool_data:web::Data<DbPool>) -
             return HttpResponse::InternalServerError().body("Error loading product");
         }
     };
-    let template_ejeplo = ProductsPanelEdit{
-        product: product_edit,
-        routes_edit_product: &ROUTES_EDIT_PRODUCT,  
-        page_name:"Edit Product".to_string()
-    };
+    let page_content:String;
+    let header_htmx = "HX-Request";
+    if let Some(value) = req.headers().get(header_htmx) {
+        println!("HX-Request: {:?}", value);
+        let edit_product = EditProduct{ 
+            product: product_edit,
+            routes_edit_product: &ROUTES_EDIT_PRODUCT,  
+        }.render().unwrap();
+        let title_render = Title{
+            title:"Edit Product".to_string()
+        }.render().unwrap();
+        //ahora juntar los dos
+        let render_final = format!("{}{}",title_render,edit_product);
+        page_content = render_final;
+    }else{
+        println!("No hay header HX-Request");
+        page_content = ProductsPanelEdit{
+            product: product_edit,
+            routes_edit_product: &ROUTES_EDIT_PRODUCT,  
+            page_name:"Edit Product".to_string()
+        }.render().unwrap();
+    }
     
-    let page_content: String = template_ejeplo.render().unwrap();
+    //let page_content: String = template_ejeplo.render().unwrap();
     //let page_content: String = TEMPLATES.render("example.html", &context1).unwrap();
     //print!("{}",page_content);
     HttpResponse::Ok().body(page_content)

@@ -70,13 +70,62 @@ diesel::table! {
 }
 
 diesel::table! {
+    discount_history (id) {
+        id -> Int4,
+        variation_id -> Uuid,
+        discount_type -> Int2,
+        percentage -> Nullable<Numeric>,
+        quantity -> Nullable<Int4>,
+        discount_value -> Numeric,
+        #[max_length = 3]
+        currency -> Bpchar,
+        start_date -> Nullable<Timestamp>,
+        end_date -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+        recorded_at -> Timestamp,
+    }
+}
+
+diesel::table! {
     discounts (id) {
         id -> Int4,
         variation_id -> Uuid,
-        #[max_length = 15]
-        discount_type -> Nullable<Varchar>,
-        discount_value -> Nullable<Numeric>,
+        discount_type -> Int2,
+        percentage -> Nullable<Numeric>,
+        quantity -> Nullable<Int4>,
+        discount_value -> Numeric,
+        #[max_length = 3]
+        currency -> Bpchar,
         start_date -> Nullable<Timestamp>,
+        end_date -> Nullable<Timestamp>,
+        created_at -> Timestamp,
+    }
+}
+
+diesel::table! {
+    identifiers_base (id) {
+        id -> Int4,
+        #[max_length = 255]
+        value -> Varchar,
+    }
+}
+
+diesel::table! {
+    identifiers_var (id) {
+        id -> Int4,
+        #[max_length = 255]
+        value -> Varchar,
+    }
+}
+
+diesel::table! {
+    price_history (id) {
+        id -> Int4,
+        variation_id -> Uuid,
+        price -> Numeric,
+        #[max_length = 3]
+        currency -> Bpchar,
+        start_date -> Timestamp,
         end_date -> Nullable<Timestamp>,
     }
 }
@@ -85,11 +134,10 @@ diesel::table! {
     prices (id) {
         id -> Int4,
         variation_id -> Uuid,
-        price -> Nullable<Numeric>,
+        price -> Numeric,
         #[max_length = 3]
-        currency -> Nullable<Bpchar>,
-        start_date -> Nullable<Timestamp>,
-        end_date -> Nullable<Timestamp>,
+        currency -> Bpchar,
+        start_date -> Timestamp,
     }
 }
 
@@ -176,7 +224,9 @@ diesel::joinable!(buyer -> base_user (id));
 diesel::joinable!(category_product -> category (category_id));
 diesel::joinable!(category_product -> products (product_id));
 diesel::joinable!(customer_address -> base_user (customer_id));
+diesel::joinable!(discount_history -> product_variations (variation_id));
 diesel::joinable!(discounts -> product_variations (variation_id));
+diesel::joinable!(price_history -> product_variations (variation_id));
 diesel::joinable!(prices -> product_variations (variation_id));
 diesel::joinable!(product_base_indentifiers -> products (product_id));
 diesel::joinable!(product_seller -> products (product_id));
@@ -192,7 +242,11 @@ diesel::allow_tables_to_appear_in_same_query!(
     category,
     category_product,
     customer_address,
+    discount_history,
     discounts,
+    identifiers_base,
+    identifiers_var,
+    price_history,
     prices,
     product_attributes,
     product_base_indentifiers,

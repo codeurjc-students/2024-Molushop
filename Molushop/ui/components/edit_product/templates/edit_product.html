@@ -1,8 +1,13 @@
 {% let general = product.general %}
 {% let images = product.images %}
+{% let variations = product.variations %}
 {% let routes = routes_edit_product %}
-
-<div class="product-edit-container">
+<div class="product-edit-container" 
+    _="on load 
+    js(me) 
+        imageManager.init(me);
+        edit_product.init_edit_product(me);
+    end end">
     <!-- Sidebar de navegación -->
     <nav class="sidebar">
         <ul class="nav-list">
@@ -12,6 +17,7 @@
             <li class="nav-item" data-tab="prices">PRICES</li>
             <li class="nav-item" data-tab="shipping">SHIPPING</li>
             <li class="nav-item" data-tab="stock">STOCK</li>
+            <li class="nav-item" data-tab="variations">VARIATIONS</li>
             <li class="nav-item" data-tab="advanced">ADVANCED</li>
         </ul>
     </nav>
@@ -64,18 +70,27 @@
                 <div class="image-upload-section">
                     <h3>Product Images</h3>
                     <div class="dropzone">
-                        <input type="file" 
-                            name="file"
-                            multiple accept="image/*">
-                        <p>Drop images here or click to upload</p>
+                        <input type="file" name="file" multiple accept="image/*">
+                        <div class="dropzone-content">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Drop images here or click to upload</p>
+                        </div>
+                    </div>
+                    <div class="image-gallery new-images">
                     </div>
                     <div class="image-gallery">
-                        <!-- Preview de imágenes -->
                         {% if images.images.len()==0 %}
-                            <p>No hay imagenes</p>
+                            <p class="no-images">No hay imágenes disponibles</p>
                         {% else %}
                             {% for image in images.images %}
-                                <img src="{{image.url}}" alt="Imagen del producto">
+                                <div class="image-container">
+                                    <img src="{{image.url}}" alt="Imagen del producto">
+                                    <div class="image-overlay">
+                                        <button class="delete-btn" type="button">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
                             {% endfor %}
                         {% endif %}
                     </div>
@@ -178,6 +193,43 @@
             </form>
         </div>
     
+        <!-- Pestaña Variations -->
+        <div class="tab-pane" id="variations">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Attributes</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for var in variations.variations %}
+                    <tr id="{{var.id}}">
+                        <td>
+                        {% for attribute in var.attributes%}
+                           <p>{{attribute.name}} :</p>
+                           <p>{{attribute.value}} </p> 
+                        {% endfor %}
+                        </td>
+                        <td>{{var.status}}</td>
+                        <!--Aqui poner el botón editar con un htmx-->
+                        <td>
+                            <button class="btn btn-primary"
+                                _="
+                                    on load js(me)
+                                        edit_product_spawn_var.handleSwap(me,'/components/edit-product-variation/spawn/{{var.id}}');
+                                    end end"
+                                >
+                                Editar Variacion
+                            </button>
+                        </td>
+                    </tr>    
+                {%endfor%}
+                </tbody>
+            </table>
+        </div>
+
         <!-- Pestaña Advanced -->
         <div class="tab-pane" id="advanced">
             <form class="advanced-form" id="advancedForm">

@@ -1,4 +1,4 @@
-                                                                    delete from Category;
+delete from Category;
 
 drop table Category cascade;
 

@@ -7,10 +7,11 @@
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
     <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
     <script src="https://cdn.jsdelivr.net/gh/Emtyloc/json-enc-custom@main/json-enc-custom.js"></script>
+    <script src="https://unpkg.com/htmx-ext-head-support@2.0.1/head-support.js"></script>
     {% block scripts %}{% endblock %}
     {% block styles %}{% endblock %}
 </head>
-<body>
+<body hx-ext="head-support">
     {% block content %}{% endblock %}
 </body>
 </html>

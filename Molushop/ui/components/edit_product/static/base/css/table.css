@@ -1,0 +1,18 @@
+.product-edit-container{
+    table {
+        width: 100%; /* La tabla ocupará todo el ancho disponible */
+        border-collapse: collapse; /* Los bordes de las celdas se juntarán */
+      }
+      
+      th, td {
+        border: 1px solid #ddd; /* Bordes grises para las celdas */
+        padding: 8px; /* Espacio interno para el contenido de las celdas */
+        text-align: left; /* Texto alineado a la izquierda */
+      }
+      
+      th {
+       /* background-color: #f2f2f2;  Fondo gris claro para las celdas de encabezado */
+        font-weight: bold; /* Texto en negrita para las celdas de encabezado */
+      }
+
+}

@@ -5,9 +5,11 @@ use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGr
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/warning_modal/templates/base.html")]
 pub struct WarningModal{
-    pub method: &'static str,
-    pub message: &'static str,
+    pub method: String,
+    pub message: String,
     pub endpoint: String,
     pub target: String,
-    pub swap: &'static str,
+    pub swap: String,
+    pub hyperscript_action:String,
+    pub htmx_active: bool
 }

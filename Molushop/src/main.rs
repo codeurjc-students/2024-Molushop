@@ -18,6 +18,7 @@ pub mod models;
 pub mod  routes;
 pub mod controllers;
 pub mod services;
+pub mod jobs;
 
 use services::servicesX;
 use routes::routes_x;
@@ -38,12 +39,39 @@ use dotenvy::dotenv;
 
 use std::any::type_name;
 
+use actix_jobs::{Job, Scheduler, run_forever};
+
+use jobs::job_config::init_jobs;
+
 fn print_type_of<T>(_: &T) {
     println!("{}", type_name::<T>());
 }
 
+struct MyJob;
+impl Job for MyJob {
+    fn cron(&self) -> &str {
+        "*/2 * * * * * *" // every two seconds
+    }
+
+    fn run(&mut self) {
+        println!("Sending an email to all our clients...");
+    }
+}
+struct MyJob2;
+impl Job for MyJob2 {
+    fn cron(&self) -> &str {
+        "*/5 * * * * * *" // every two seconds
+    }
+
+    fn run(&mut self) {
+        println!("Otro job");
+    }
+}
+
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    //init_jobs();
     //hacer el pool de conexiones
     dotenv().ok();
 
@@ -70,7 +98,7 @@ async fn main() -> std::io::Result<()> {
             .service(controllers::test::scope())
             .service(aws::scope_aws()) /*  /aws/s3/xxx  */
             //create_product
-            .service(controllers::createProduct::controllers::scope_create_product())
+            .service(controllers::createProduct::create_product_controllers::scope_create_product())
             .service(components::scope::scope_components())
             // Static files
             .service(fs::Files::new("/assets", "assets").show_files_listing())

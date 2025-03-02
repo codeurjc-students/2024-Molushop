@@ -25,6 +25,7 @@ pub struct ProductEdit{
     pub id: Uuid,
     pub general: General,
     pub images: Images,
+    pub variations: Variations
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -68,5 +69,23 @@ pub struct Advanced{
     pub purchase_note: String,
 
 }
+/////////VARIATIONS//////////
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Variations{
+    //
+    pub variations: Vec<Variation>,
+}
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Variation{
+    pub id: Uuid,
+    pub attributes: Vec<Attribute>, 
+    pub status: i16
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Attribute{
+    pub name: String,
+    pub value: String
+}
 

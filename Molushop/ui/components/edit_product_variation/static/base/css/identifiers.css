@@ -1,0 +1,19 @@
+.variation-edit-container {
+    .identifier-row {
+        display: flex;
+        gap: 1rem;
+        align-items: flex-end;
+        margin-bottom: 1rem;
+        padding: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .form-group-x {
+        flex: 1;
+    }
+    
+    .remove-identifier {
+        height: 38px;
+    }
+}

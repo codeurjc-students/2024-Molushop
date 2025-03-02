@@ -1,0 +1,35 @@
+{% let name = identifier.name%}
+{% let value = identifier.value%}
+<div class="identifier-row" id="row-{{number}}">
+    <div class="form-group-x">
+        <label>Nombre del Identificador</label>
+        <input type="text" 
+            class="form-control identifier-name" 
+            name="identifiers[{{number}}][name]" 
+            list="identifier-options"
+            value="{{name}}"
+            placeholder="Seleciona o escribe un identificador"> 
+        <datalist id="identifier-options">
+        {% for option in name_options%}
+            <option value="{{option}}">
+        {%endfor%}
+        </datalist>
+    </div>
+    <div class="form-group-x">
+        <label>Valor</label>
+        <input type="text" 
+               class="form-control identifier-value" 
+               name="identifiers[{{number}}][value]" 
+               placeholder="Ingresa el valor..."
+               value="{{value}}">
+    </div>
+    <!--Se elimina tmb en el back?-->
+    <button type="button" class="btn btn-danger remove-identifier" 
+        hx-get="{{routes.warning}}"
+        hx-target="body"
+        hx-swap="beforeend"
+        hx-vals='js:{...edit_variation.setupDeleteIdentifier(event,"{{routes.delete_identifier}}/{{variation_id}}")}'
+    >
+        Eliminar
+    </button>
+</div>

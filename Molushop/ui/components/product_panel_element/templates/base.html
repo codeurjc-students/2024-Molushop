@@ -20,7 +20,13 @@
                 <p>{{cat}}</p>
             {% endfor %}
             <div class="product-actions">
-                <button class="action-btn edit-btn">Editar</button>
+            <!--    <a href="/products-panel/edit/{{product.id}}"><button class="action-btn edit-btn">Editar</button></a> -->
+                <button class="action-btn edit-btn"
+                    hx-get="/products-panel/edit/{{product.id}}"
+                    hx-target="closest .c-product-panel-group"
+                    hx-swap="outerHTML"
+                    hx-push-url="true"
+                >Editar</button>
                 <button class="action-btn delete-btn" 
                     hx-get="{{routes.delete_product_modal}}/{{product.id}}"
                     hx-target="body"
@@ -30,7 +36,9 @@
         </div>
     </div>
     
-    <button class="toggle-variations">Mostrar variaciones {{product.variations.len()}}</button>
+    <button class="toggle-variations"
+        _="on click toggle .hidden on next .variations end"
+        >Mostrar variaciones {{product.variations.len()}}</button>
     
     <div class="variations hidden">
         <div class="variation-item variation-header">

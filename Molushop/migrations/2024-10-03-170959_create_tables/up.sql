@@ -175,9 +175,19 @@ CREATE TABLE Product_variations (
 CREATE TABLE prices (
     id SERIAL PRIMARY KEY,
     variation_id UUID NOT NULL,
-    price DECIMAL(10,2),
-    currency CHAR(3),
-    start_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    price DECIMAL(10,2) NOT NULL CHECK (price >= 0),
+    currency CHAR(3) NOT NULL,
+    start_date TIMESTAMP not null DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade,
+    UNIQUE (variation_id, currency)
+);
+
+CREATE TABLE price_history (
+    id SERIAL PRIMARY KEY,
+    variation_id UUID NOT NULL,
+    price DECIMAL(10,2) not null,
+    currency CHAR(3) not null,
+    start_date TIMESTAMP not null DEFAULT CURRENT_TIMESTAMP,
     end_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
 );
@@ -186,10 +196,29 @@ CREATE TABLE prices (
 CREATE TABLE discounts (
     id SERIAL PRIMARY KEY,
     variation_id UUID NOT NULL,
-    discount_type VARCHAR(15) CHECK (discount_type IN ('percentage', 'fixed_amount')),
-    discount_value DECIMAL(10,2),
+    discount_type SMALLINT not null default 0 CHECK (discount_type BETWEEN 0 AND 2),
+    percentage DECIMAL(5,2),
+    quantity int,
+    discount_value DECIMAL(10,2) not null,
+    currency CHAR(3) not null,
     start_date TIMESTAMP,
     end_date TIMESTAMP,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
+);
+
+CREATE TABLE discount_history (
+    id SERIAL PRIMARY KEY,
+    variation_id UUID NOT NULL,
+    discount_type SMALLINT not null default 0 CHECK (discount_type BETWEEN 0 AND 2),
+    percentage DECIMAL(5,2),
+    quantity int,
+    discount_value DECIMAL(10,2) not null,
+    currency CHAR(3) not null,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    created_at TIMESTAMP NOT NULL,
+    recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de registro en la tabla de historial
     FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
 );
 
@@ -201,12 +230,23 @@ CREATE TABLE product_seller (
     FOREIGN KEY (seller_id) REFERENCES seller(id) on delete cascade
 );
 
+CREATE TABLE identifiers_base(
+    id SERIAL PRIMARY KEY,
+    value VARCHAR(255) unique NOT NULL
+);
+
+CREATE TABLE identifiers_var(
+    id SERIAL PRIMARY KEY,
+    value VARCHAR(255) unique NOT NULL
+);
+
 CREATE TABLE product_base_indentifiers (
     id SERIAL PRIMARY KEY,
     product_id UUID NOT NULL,
     identifier VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    FOREIGN KEY (product_id) REFERENCES products(id) on delete cascade
+    FOREIGN KEY (product_id) REFERENCES products(id) on delete cascade,
+    FOREIGN KEY (identifier) REFERENCES identifiers_base(value) on delete cascade
 );
 
 CREATE TABLE product_variations_identifiers(
@@ -214,5 +254,43 @@ CREATE TABLE product_variations_identifiers(
     product_variation_id UUID NOT NULL,
     identifier VARCHAR(255) NOT NULL,
     value VARCHAR(255) NOT NULL,
-    FOREIGN KEY (product_variation_id) REFERENCES product_variations(id) on delete cascade
+    FOREIGN KEY (product_variation_id) REFERENCES product_variations(id) on delete cascade,
+    FOREIGN KEY (identifier) REFERENCES identifiers_var(value) on delete cascade,
+    UNIQUE (product_variation_id,identifier)
 );
+
+CREATE OR REPLACE FUNCTION log_price_changes()
+RETURNS TRIGGER AS $$
+BEGIN
+ -- Si es una actualización, cerrar el registro anterior en price_history
+ IF TG_OP = 'UPDATE' THEN
+     UPDATE price_history
+     SET end_date = NEW.start_date
+     WHERE variation_id = OLD.variation_id 
+     AND currency = OLD.currency
+     AND end_date IS NULL;
+ END IF;
+
+ -- Insertar el nuevo registro en price_history
+ INSERT INTO price_history (
+     variation_id,
+     price,
+     currency,
+     start_date,
+     end_date
+ ) VALUES (
+     NEW.variation_id,
+     NEW.price,
+     NEW.currency,
+     NEW.start_date,
+     NULL  -- end_date inicialmente es NULL hasta que haya un cambio
+ );
+
+ RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER price_history_trigger
+AFTER INSERT OR UPDATE ON prices
+FOR EACH ROW
+EXECUTE FUNCTION log_price_changes();

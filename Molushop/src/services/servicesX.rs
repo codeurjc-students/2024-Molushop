@@ -12,6 +12,7 @@ use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
+use crate::models;
 use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation};
 use crate::models::get_product::{GetProductForm,Variation};
 use crate::models::product_variation;
@@ -182,33 +183,6 @@ pub async fn obtain_base_specs(id_category:&String, pool:&DbPool) -> Result<Vec<
     
 }
 pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, Error> {
-    /* 
-    let result_new_product = insert_new_product(form,pool).await;
-    match result_new_product{
-        Ok(id_product) => {
-            let result2 = insert_product_seller(&id_seler,&id_product,pool).await;
-            match result2{
-                Ok(_) => {
-                    let result3 = insert_product_category(&id_product,&category_id,pool).await;
-                    match result3{
-                        Ok(_) => {
-                            Ok(id_product)
-                        },
-                            Err(e) => {
-                                return Err(e);
-                            }
-                        }
-                },
-                Err(e) => {
-                    return Err(e);
-                }
-            }
-        },
-        Err(e) => {
-            return Err(e);
-        }
-    }
-    */
     let id_product = insert_new_product(form,pool).await?;
     insert_product_seller(&id_seler,&id_product,pool).await?;
     insert_product_category(&id_product,&category_id,pool).await?;
@@ -293,17 +267,20 @@ pub async fn get_product(id_product:&Uuid, pool:&DbPool) -> Result<Products,Erro
 
 use crate::models::product_variation::VariationValue;
 
- pub async fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>,pool:&DbPool) -> Result<usize,Error>{
+ pub async fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>,pool:&DbPool) -> Result<Vec<Uuid>,Error>{
     use crate::schema::product_variations::dsl::*;
     //let connection = &mut establish_connection();
+    let mut new_ids:Vec<Uuid>= Vec::new();
     let connection= &mut pool.get().await.unwrap();
     for combination in combinations{
+        let new_id = Uuid::new_v4();
         let json_attributes:Value = serde_json::to_value(&combination).unwrap();
         let new_variation = NewProductVariation1{
-            id: &Uuid::new_v4(),
+            id: &new_id,
             product_id: prod_id,
             attributes: Some(&json_attributes),
         };
+        new_ids.push(new_id);
         let result = insert_into(product_variations).values(new_variation).execute(connection).await;
         match result {
             Ok(num) => {
@@ -315,20 +292,28 @@ use crate::models::product_variation::VariationValue;
             }
         }
     }
-    Ok(1)
+    Ok(new_ids)
  }
 
- pub async fn insert_product_variation(prod_id:&Uuid, pool:&DbPool) -> Result<usize,Error>{
+ pub async fn insert_product_variation(prod_id:&Uuid, pool:&DbPool) -> Result<Uuid,Error>{
     use crate::schema::product_variations::dsl::*;
     //let connection = &mut establish_connection();
+    let new_id = Uuid::new_v4();
     let connection = &mut pool.get().await.unwrap();
     let new_variation = NewProductVariation1{
-        id: &Uuid::new_v4(),
+        id: &new_id,
         product_id: prod_id,
         attributes: None,
     };
     let result = insert_into(product_variations).values(new_variation).execute(connection).await;
-    result
+    match result{
+        Ok(_) => {
+            Ok(new_id)
+        },
+        Err(e) => {
+            Err(e)
+        }
+    }
  }
 
 pub async fn get_seller_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Products>,Error>{
@@ -381,6 +366,14 @@ pub async fn get_product_variations(id_product:&Uuid,pool:&DbPool) -> Result<Vec
     results
 }
 
+pub async fn get_product_variation(id_variation:&Uuid,pool:&DbPool) -> Result<ProductVariation,Error> {
+    use crate::schema::product_variations::dsl::*;
+    //let connection = &mut establish_connection();
+    let connection = &mut pool.get().await.unwrap();
+    let result = product_variations.filter(id.eq(id_variation)).first::<ProductVariation>(connection).await;
+    result
+}
+
 pub async fn delete_seller_product(prod_id:&Uuid,sell_id:&Uuid,pool:&DbPool) -> Result<usize,Error> {
     use crate::schema::product_seller::dsl::*;
     
@@ -402,7 +395,7 @@ pub async fn delete_product_complete(id_producto:&Uuid,pool: &DbPool) -> Result<
     Ok(1)
 }
 
-use crate::controllers::components::edit_product::FormGeneral;
+use crate::controllers::components::edit_product_controller::FormGeneral;
 
 pub async fn edit_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPool) -> Result<usize,Error> {
     use crate::schema::products::dsl::*;
@@ -447,7 +440,7 @@ pub async fn update_image(id_producto:&Uuid,tipo:&String,image_url:&String,pool:
     result
 }
 
-use crate::controllers::components::edit_product::ImageData;
+use crate::controllers::components::edit_product_controller::ImageData;
 
 pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut pool.get().await.unwrap();
@@ -497,4 +490,195 @@ pub async fn delete_all_images(id_producto: &Uuid, pool: &DbPool) -> Result<usiz
     .await;
     
     result
+}
+/* 
+pub async fn get_images(id_producto: &Uuid, pool: &DbPool) -> Result<Vec<ImageData>, Error> {
+    let connection = &mut pool.get().await.unwrap();
+    
+    let result = sql_query(r#"
+    SELECT jsonb_array_elements(images->'images') AS image
+    FROM products
+    WHERE id = $1
+    "#)
+    .bind::<diesel::sql_types::Uuid, _>(id_producto)
+    .load::<(serde_json::Value,)>(connection)
+    .await?;
+    
+    let images: Vec<ImageData> = result
+        .iter()
+        .map(|(row,)| {
+            let image = row.as_object().unwrap();
+            ImageData {
+                tipo: image["tipo"].as_str().unwrap().to_string(),
+                url: image["url"].as_str().unwrap().to_string(),
+            }
+        })
+        .collect();
+    
+    Ok(images)
+}
+*/
+use crate::models::models_x::{NewPrice,Price};
+use diesel::upsert::excluded;
+pub async fn insert_prices_variations(
+    variations_ids: &[Uuid],
+    price_insert: &BigDecimal,
+    currency_insert: &str,
+    pool: &DbPool 
+) -> Result<usize, Error> {
+    use crate::schema::prices::dsl::*;
+    //crear los modelos de insercion de precio
+    let connection = &mut pool.get().await.unwrap();
+    let now = Utc::now().naive_utc();
+    let new_prices:Vec<NewPrice> = variations_ids
+        .iter()
+        .map(|id_x| NewPrice{
+            variation_id: id_x,
+            price: price_insert,
+            currency: currency_insert,
+            start_date: &now
+        })
+        .collect();
+
+     insert_into(prices)
+        .values(&new_prices)
+        .on_conflict((variation_id,currency))
+        .do_update()
+        .set((
+            price.eq(excluded(price)),
+            start_date.eq(excluded(start_date))
+        ))
+        .execute(connection)
+        .await
+}
+
+pub async fn get_variation_price(var_id:&Uuid, curr:&String, pool: &DbPool) -> Result<Price,Error>{
+    use crate::schema::prices::dsl::*;
+
+    //obtener el precio actual, con el descuento?
+    //obtener el descuento va aparte
+    let connection = &mut pool.get().await.unwrap();
+    let result = prices
+        .filter(variation_id.eq(var_id))
+        .filter(currency.eq(curr))
+        .first::<Price>(connection)
+        .await;
+    result
+}
+use crate::models::models_x::{IdentifierVariation,NewIdentifierVariation};
+pub async fn get_variation_identifiers(var_id:&Uuid, pool:&DbPool) -> Result<Vec<IdentifierVariation>,Error>{
+    use crate::schema::product_variations_identifiers::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+    let result = product_variations_identifiers
+        .filter(product_variation_id.eq(var_id))
+        .load::<IdentifierVariation>(connection).await;
+    result
+}
+
+use crate::models::components::edit_product_variation_model::Identifier;
+pub async fn set_variation_identifiers_antiguo(
+    vec_identifiers:&[Identifier],
+    var_id:&Uuid,
+    pool: &DbPool
+)-> Result<usize,Error>{
+    //añadir o sobreescribir?
+    let connection = &mut pool.get().await.unwrap();
+    let insert_identifiers:Vec<NewIdentifierVariation> = vec_identifiers
+        .iter()
+        .map(|ident| NewIdentifierVariation{
+            product_variation_id:&var_id,
+            identifier:&ident.name,
+            value:&ident.value
+        })
+        .collect();
+    
+
+    use crate::schema::product_variations_identifiers::dsl::*;
+    insert_into(product_variations_identifiers)
+        .values(&insert_identifiers)
+        .on_conflict((product_variation_id,identifier))
+        .do_update()
+        .set(
+            value.eq(excluded(value))
+        )
+        .execute(connection)
+        .await
+}
+////NUEVO///
+pub async fn set_variation_identifiers(
+    vec_identifiers: &[Identifier],
+    var_id: &Uuid,
+    pool: &DbPool
+) -> Result<usize, Error> {
+    use crate::schema::product_variations_identifiers::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+    
+    // Iniciamos una transacción para garantizar atomicidad
+    connection.build_transaction()
+        .run(|tx| Box::pin(async move {
+            // 1. Primero: Obtener los identificadores actuales para esta variación
+            let current_identifiers = product_variations_identifiers
+                .filter(product_variation_id.eq(var_id))
+                .select(identifier)
+                .load::<String>(tx)
+                .await?;
+            
+            // 2. Obtener los nombres de los nuevos identificadores
+            let new_identifier_names: Vec<String> = vec_identifiers
+                .iter()
+                .map(|x_id| x_id.name.clone())
+                .collect();
+            
+            // 3. Eliminar los identificadores que ya no están en la nueva lista
+            let to_delete: Vec<String> = current_identifiers
+                .into_iter()
+                .filter(|y_id| !new_identifier_names.contains(y_id))
+                .collect();
+            
+            if !to_delete.is_empty() {
+                diesel::delete(product_variations_identifiers)
+                    .filter(product_variation_id.eq(var_id))
+                    .filter(identifier.eq_any(to_delete))
+                    .execute(tx)
+                    .await?;
+            }
+            
+            // 4. Insertar/actualizar los nuevos identificadores
+            let insert_identifiers: Vec<NewIdentifierVariation> = vec_identifiers
+                .iter()
+                .map(|ident| NewIdentifierVariation {
+                    product_variation_id: var_id,
+                    identifier: &ident.name,
+                    value: &ident.value
+                })
+                .collect();
+            
+            let result = insert_into(product_variations_identifiers)
+                .values(&insert_identifiers)
+                .on_conflict((product_variation_id, identifier))
+                .do_update()
+                .set(value.eq(excluded(value)))
+                .execute(tx)
+                .await;
+                
+            result
+        }))
+        .await
+}
+
+pub async fn get_identifier_options_var(pool: &DbPool) -> Result<Vec<String>, Error> {
+    use crate::schema::identifiers_var::dsl::*;
+    
+    let connection = &mut pool.get().await.unwrap();
+    let results = identifiers_var
+        .select(value)
+        .order_by(value.asc())
+        .load::<String>(connection)
+        .await;
+    
+    results
+}
+
+pub async fn delete_variation_identifier(var_id:&Uuid,name:&String,pool:&DbPool)->Result<usize,Error>{
+    Ok(99)
 }

@@ -43,6 +43,10 @@
             <input type="text" id="name" name="name" required>
         </div>
         <div>
+            <label for="price">Precio:</label>
+            <input pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)">
+        </div>
+        <div>
             <label for="brand">Marca:</label>
             <input type="text" id="brand" name="brand" required>
         </div>

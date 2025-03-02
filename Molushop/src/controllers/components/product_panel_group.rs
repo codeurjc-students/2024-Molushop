@@ -77,11 +77,13 @@ async fn delete_product_modal(path: web::Path<Uuid>,pool_data: web::Data<DbPool>
 
     let product_id_str = product_id.to_string();
     let warning_modal = WarningModal{
-        method: "hx-delete",
-        message: "¿Estás seguro de que deseas eliminar este producto?",
+        method: "hx-delete".to_string(),
+        message: "¿Estás seguro de que deseas eliminar este producto?".to_string(),
         endpoint: format!("{}/{}",ROUTES.delete_product,&product_id_str),
         target: format!("#card-{}",product_id_str),
-        swap: "outerHTML swap:1s",
+        swap: "outerHTML swap:1s".to_string(),
+        hyperscript_action:String::new(),
+        htmx_active:true
     };
     let render = warning_modal.render().unwrap();
     HttpResponse::Ok().body(render)
