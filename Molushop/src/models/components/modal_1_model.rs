@@ -7,3 +7,8 @@ use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGr
 pub struct Modal1{
     pub text: String,
 }
+
+#[derive(Serialize,Clone,Debug)]
+pub struct Routes{
+    pub base: &'static str,
+}

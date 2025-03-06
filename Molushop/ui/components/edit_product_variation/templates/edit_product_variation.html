@@ -87,7 +87,8 @@
         <div class="tab-pane" id="identifiers">
             <form class="identifiers-form" id="identifiersForm"
                 hx-post="{{routes.edit_identifiers}}/{{variation.id}}"
-                hx-swap="none"
+                hx-target="body"
+                hx-swap="beforeend"
                 hx-ext="json-enc-custom"
             >
             {% let name_options = identifiers.name_options%}

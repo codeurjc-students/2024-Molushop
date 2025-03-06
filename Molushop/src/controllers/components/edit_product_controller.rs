@@ -62,7 +62,7 @@ pub struct FormGeneral{
     pub brand: String,
 }
 
-use crate::models::components::modal_1::Modal1;
+use crate::models::components::modal_1_model::Modal1;
 use crate::models::components::title::Title;
 
 #[post("/edit-general/{product_id}")]

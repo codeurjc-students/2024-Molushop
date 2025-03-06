@@ -62,7 +62,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 use crate::models::components::edit_product_variation_model::EditProductVariation;
 use crate::services::components::edit_product_variation_service::start;
-use crate::models::components::modal_1::Modal1;
+use crate::models::components::modal_1_model::Modal1;
 
 #[get("/spawn/{id}")]
 async fn spawn(path: web::Path<Uuid>, pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -127,17 +127,28 @@ async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,data
     let form_identifiers = data.into_inner();
     let identifiers = form_identifiers.identifiers;
     let result =set_variation_identifiers(&identifiers, &var_id, pool).await;
+
     match result{
         Ok(numero) =>{
+            //aqui añadir a que 
+            let modal_respuesta = Modal1{
+                text:"Identificadores editados correctamente".to_string()
+            }.render().unwrap();
             println!("Todo correcto");
+            HttpResponse::Ok().body(modal_respuesta)
         },
         Err(e)=>{
             println!("Ha ocurrido un error: {}",e);
+            let modal_respuesta = Modal1{
+                text:"Ha habido un error al editar los identificadores".to_string()
+            }.render().unwrap();
+            println!("Todo incorrecto");
+            HttpResponse::Ok().body(modal_respuesta)
         }
     }
 
     //ahora falta editar en la base de datos
-    HttpResponse::Ok().finish()
+    
 }
 //obtener los parametros 
 #[derive(Serialize, Deserialize, Debug, Clone)]
