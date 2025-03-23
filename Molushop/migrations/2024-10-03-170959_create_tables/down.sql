@@ -27,3 +27,6 @@ DROP TRIGGER IF EXISTS update_is_parent_trigger ON Category;
 
 DROP TRIGGER IF EXISTS price_history_trigger ON prices;
 DROP FUNCTION IF EXISTS log_price_changes();
+
+DROP TRIGGER IF EXISTS discount_history_update_end_date ON discount_history;
+DROP FUNCTION IF EXISTS update_discount_history_end_date();

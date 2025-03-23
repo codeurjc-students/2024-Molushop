@@ -1,15 +1,23 @@
 {% let id = variation.id %}
 {% let general = variation.general %}
 {% let prices = variation.prices %}
+{% let stock = variation.stock %}
 {% let identifiers = variation.identifiers %}
+
 
 {% let routes = routes_edit_product %}
 
-<div class="variation-edit-container" 
-    _="on load 
+<div class="variation-edit-container" id="{{id}}" 
+    _="on load log 'revisar'
     js(me) 
         edit_variation.init_edit_variation(me);
-    end end">
+    end 
+    on variation_update 
+    js(me,event)
+        edit_variation.change_status(me,event);
+    end end"
+    
+    >
     <!-- Sidebar de navegación -->
     <nav class="sidebar">
         <ul class="nav-list">
@@ -27,6 +35,7 @@
             <form hx-post="{{routes.edit_general}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
+                hx-ext="json-enc-custom"
                 class="general-form" id="generalForm">
                 <div class="form-group">
                     <label>Nombre</label>
@@ -37,7 +46,14 @@
                     <div class="attributes-container">
                         {%for attribute in general.attributes%}
                         <div class="attribute-row">
-                            <select name="{{attribute.name}}" class="form-control">
+                            <!-- Campo oculto para enviar el nombre -->
+                            <input type="hidden" 
+                            name="attributes[{{loop.index0}}][name]" 
+                            value="{{attribute.name}}">
+                            
+                            <!-- Texto visible para mostrar el nombre -->
+                            <div class="attribute-label">{{attribute.name}}:</div> 
+                            <select name="attributes[{{loop.index0}}][value]" class="form-control">
                                 <option value="red">{{attribute.value}}</option>
                                 <!-- más opciones -->
                             </select>
@@ -50,24 +66,64 @@
                     <select class="form-control" name="status">
                         <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
                         <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
-                        <option value="3" {% if general.status == 0 %}selected{% endif %}>Draft</option>
+                        <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
                 <!-- resto del formulario -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save General</button>
+                </div>
             </form>
         </div>
 
         <!-- Pestaña Price -->
         <div class="tab-pane" id="price">
-            <form class="price-form" id="priceForm">
+            <form class="price-form" id="priceForm"
+                hx-post="{{routes.edit_price}}/{{variation.id}}" 
+                hx-target="body"
+                hx-swap="beforeend"
+                hx-ext="json-enc-custom"
+                >
                 <div class="form-group">
                     <label>Regular Price</label>
-                    <input type="number" class="form-control" step="0.01" name="regular_price" value="{{prices.actual_price}}">
+                    <input type="number" class="form-control" step="0.01" name="regular" value="{{prices.actual_price}}">
                 </div>
                 <div class="form-group">
+                    <div>
+                        Habilitar oferta para el producto
+                        <input type="checkbox"  
+                        {% if prices.sale_active %}
+                            checked
+                        {%endif%} 
+                        _="on click  
+                            set container to the closest <div.form-group/>
+                            set objective to <input.discount/> in container
+                            set discountActive to the next <input/>
+                            if me.checked
+                                remove @readonly from objective
+                                set discountActive.value to 'true'
+                            else
+                                add @readonly to objective
+                                set discountActive.value to 'false'
+                        end">
+                        <input 
+                        type="hidden" name="discount_active" 
+                        {% if prices.sale_active %}
+                            value="true"
+                        {%else%}
+                            value="false"
+                        {%endif%}
+                        >    
+                    </div>
                     <label>Sale Price</label>
-                    <input type="number" class="form-control" step="0.01" name="sale_price" value="{{prices.sale_price}}">
+                    <input type="hidden" name="option" value="0">
+                    <input 
+                    {% if !prices.sale_active %}
+                        readonly
+                    {%endif%} 
+                    type="number" class="form-control discount" step="0.01" name="discount" value="{{prices.sale_price}}">
                 </div>
+                <!--
                 <div class="form-group">
                     <label>Tax Class</label>
                     <select class="form-control" name="tax_class">
@@ -75,7 +131,7 @@
                         <option value="reduced">Reduced Rate</option>
                         <option value="zero">Zero Rate</option>
                     </select>
-                </div>
+                </div> -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save Pricing</button>
                     <button type="reset" class="btn btn-secondary">Reset</button>
@@ -117,11 +173,17 @@
         </div>
         <!-- Pestaña Inventory -->
         <div class="tab-pane" id="inventory">
-            <form class="inventory-form" id="inventoryForm">
+            <form class="inventory-form" id="inventoryForm"
+                hx-post="{{routes.edit_stock}}/{{variation.id}}" 
+                hx-target="body"
+                hx-swap="beforeend"
+                hx-ext="json-enc-custom"
+            >
                 <div class="form-group">
                     <label>Stock Quantity</label>
-                    <input type="number" class="form-control" name="stock_quantity">
+                    <input type="number" class="form-control" name="stock" value="{{stock.number}}">
                 </div>
+                <!--
                 <div class="form-group">
                     <label>Stock Status</label>
                     <select class="form-control" name="stock_status">
@@ -133,7 +195,8 @@
                 <div class="form-group">
                     <label>Low Stock Threshold</label>
                     <input type="number" class="form-control" name="low_stock_threshold">
-                </div>
+                </div> 
+                -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save Inventory</button>
                     <button type="reset" class="btn btn-secondary">Reset</button>

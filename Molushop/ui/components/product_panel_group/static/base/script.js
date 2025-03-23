@@ -21,7 +21,6 @@ function cargarBotones(){
     });
 }
 
-let currentPath;
 
 /*
 document.addEventListener('DOMContentLoaded', function() {

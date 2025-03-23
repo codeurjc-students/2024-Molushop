@@ -193,6 +193,7 @@ CREATE TABLE price_history (
 );
 
 -- Tabla de descuentos
+--0=price, 1=percentage, 2=how_many_product_for_this_price
 CREATE TABLE discounts (
     id SERIAL PRIMARY KEY,
     variation_id UUID NOT NULL,
@@ -204,7 +205,8 @@ CREATE TABLE discounts (
     start_date TIMESTAMP,
     end_date TIMESTAMP,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
+    FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade,
+    UNIQUE (variation_id, discount_type, currency)
 );
 
 CREATE TABLE discount_history (
@@ -221,6 +223,33 @@ CREATE TABLE discount_history (
     recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- Fecha de registro en la tabla de historial
     FOREIGN KEY (variation_id) REFERENCES product_variations(id) on delete cascade
 );
+
+CREATE OR REPLACE FUNCTION update_discount_history_end_date()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Actualizar solo el registro más reciente del mismo variation_id, discount_type y currency
+    UPDATE discount_history 
+    SET end_date = NEW.start_date
+    WHERE id = (
+        SELECT id 
+        FROM discount_history
+        WHERE variation_id = NEW.variation_id 
+          AND discount_type = NEW.discount_type
+          AND currency = NEW.currency
+          AND end_date IS NULL
+          AND id <> NEW.id  -- No actualizar el registro que acabamos de insertar
+        ORDER BY created_at DESC, id DESC  -- Ordenar por fecha de creación y luego por ID
+        LIMIT 1              -- Solo obtener el más reciente
+    );
+      
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER discount_history_update_end_date
+AFTER INSERT ON discount_history
+FOR EACH ROW
+EXECUTE FUNCTION update_discount_history_end_date();
 
 CREATE TABLE product_seller (
     product_id UUID NOT NULL,

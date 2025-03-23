@@ -21,6 +21,18 @@ const edit_variation = {
             });
         }); 
     },
+    change_status(element,e){
+        let status_name = "";
+        if(e.detail.status==0){
+            status_name="Draft";
+        }else if(e.detail.status==1){
+            status_name="Active";
+        }else if(e.detail.status==2){
+            status_name="Inactive";
+        }
+        let tr_target = document.querySelector("tr#"+CSS.escape(element.id));
+        tr_target.children[1].textContent=status_name;
+    },
     add_identifier(element,endpoint){
         element.addEventListener('click',()=>{
             //verificar todos los identifier-row que hay --> luego alomejor hay que actualizar si se borra uno

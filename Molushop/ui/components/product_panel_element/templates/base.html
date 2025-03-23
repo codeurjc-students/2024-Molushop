@@ -54,7 +54,7 @@
                 {% for var in variation_elem.variation %}
                     <div>{{var.value}}</div>
                 {% endfor %}
-                <div>$19.99</div>
+                <div>{{variation_elem.price}}€</div>
                 <div>{{variation_elem.stock}}</div>
                 <div>
                 {% if variation_elem.status == 0 %}

@@ -12,3 +12,16 @@ pub struct Modal1{
 pub struct Routes{
     pub base: &'static str,
 }
+
+impl Modal1{
+    pub fn new(text: &str)-> Self{
+        Self{
+            text: text.to_string()
+        }
+    }
+    pub fn from_string(text: String)-> Self{
+        Self{
+            text
+        }
+    }
+}

@@ -6,8 +6,9 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::controllers::createProduct::product;
-use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
-use crate::services::servicesX::{get_identifier_options_var,get_product_variation,get_variation_price,get_variation_identifiers};
+//use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
+use crate::models::components::edit_product_variation_model::*;
+use crate::services::servicesX::{get_discount_variation,get_stock_variation,get_identifier_options_var,get_product_variation,get_variation_price,get_variation_identifiers};
 use bigdecimal::BigDecimal;
 
 //hacer un vec de variations
@@ -42,12 +43,25 @@ pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<P
     let currency = String::from("EUR");
 
     let price_base = get_variation_price(&product_var_id,&currency,&pool).await?;
+    let mut sale_price= BigDecimal::from(0);
+    let mut sale_active=false;
+    let discount_result  = get_discount_variation(&product_var_id, &0, &"EUR".to_string(), &pool).await;
+    match discount_result{
+        Ok(disc)=>{
+            sale_price=disc.discount_value;
+            sale_active=true;
+        },
+        Err(e)=>{
+
+        }
+    }
 
     let big_decimal_aux = BigDecimal::from(20);
 
     let prices = Prices{
         actual_price: price_base.price,
-        sale_price: big_decimal_aux
+        sale_active,
+        sale_price
     };
 
     let identifiers_base = get_variation_identifiers(&product_var_id,&pool).await?;
@@ -64,6 +78,11 @@ pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<P
         name_options
     };
 
+    let stock_number = get_stock_variation(&product_var_id, &pool).await?;
+
+    let stock = Stock{
+        number:stock_number
+    };
     /* E
     let images = Images{
         images:
@@ -73,6 +92,7 @@ pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<P
         id: product_var_id.clone(),
         general,
         prices,
+        stock,
         identifiers
     };
 

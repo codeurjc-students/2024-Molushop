@@ -20,6 +20,24 @@ const edit_product_spawn_var = {
             }
         })//swap manual o eliminar 
     },
+    handleSwapClick(element,path){
+        //verificar que el elemento "nombre_conenedor, existe"
+        let product_edit_container = element.closest(".product-edit-container");
+        console.log(product_edit_container);
+        let brotherContainer = product_edit_container.previousElementSibling;
+        console.log(brotherContainer);
+        if(brotherContainer){
+            if(brotherContainer.classList.contains("variation-edit-container")){
+                htmx_ajax_1("GET",path,brotherContainer,"outerHTML");
+            }else{//si no lo tiene
+                htmx_ajax_1("GET",path,product_edit_container,"beforebegin");
+            }
+        }else{
+            //si el hermano no existe (nulo)
+            htmx_ajax_1("GET",path,product_edit_container,"beforebegin");
+        }
+    }
+    ,
     handleSwap2(element,id){
         let elementContainer = element.closest(".product-edit-container");
         let brotherContainer = elementContainer.previousSibiling;

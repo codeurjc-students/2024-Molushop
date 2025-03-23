@@ -3,8 +3,15 @@ const imageManager = {
     fileInput: null, 
     imageGallery: null,
     form: null,
+    contenedor: null,
 
     init(elemento) {
+        console.log("Loding image Manager");
+        if (this.contenedor!=null&&this.contenedor==elemento){
+            return
+        }else{
+            this.contenedor=elemento;
+        }
         this.dropzone = elemento.querySelector('.dropzone');
         this.fileInput = this.dropzone.querySelector('input[type="file"]');
         this.imageGallery = elemento.querySelector(".image-gallery.new-images");
@@ -32,6 +39,24 @@ const imageManager = {
         this.fileInput.addEventListener('change', this.handleFiles.bind(this), false);
     },
 
+    updateImageLocation(element,event){
+        //cambiar de lugar la imagen
+        if(event.detail.id_value==element.id){
+            console.log(event.detail.id_value);
+            //seleccionar la
+            let new_image_container = element.querySelector(".image-gallery.new-images");
+            let new_images = new_image_container.querySelectorAll(".image-container");
+            //mover los elementos de lugar
+            let image_container = element.querySelector(".image-gallery.base-images");
+            if( new_images.length==0){
+                return;
+            }
+            new_images.forEach(image =>{
+                image_container.appendChild(image);
+            });
+        }
+    },
+
     preventDefaults(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -46,6 +71,7 @@ const imageManager = {
     },
 
     handleDrop(e) {
+        console.log("handle_Drop");
         let dt = e.dataTransfer;
         let files = dt.files;
         
@@ -80,15 +106,16 @@ const imageManager = {
             this.imageGallery.innerHTML = '<p class="no-images">No hay imágenes</p>';
             return;
         }
-
+        console.log("Handle");
         validFiles.forEach((file, index) => this.previewFile(file, index));
     },
 
     previewFile(file, index) {
         let reader = new FileReader();
         reader.readAsDataURL(file);
-        
+        console.log("Hola?");
         reader.onloadend = () => {
+            console.log("Imagen load?");
             let imageContainer = document.createElement('div');
             imageContainer.className = 'image-container';
             imageContainer.dataset.fileIndex = index;

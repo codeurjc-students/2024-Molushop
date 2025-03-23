@@ -2,6 +2,8 @@
 use serde::{Deserialize, Serialize};
 use crate::models::models_x;
 use uuid::Uuid;
+use bigdecimal::BigDecimal;
+use crate::services::servicesX::get_variation_price;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RoutesProductPanelGroup{
@@ -27,7 +29,7 @@ pub struct Product{
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductVariation{
-    //pub price: f64,
+    pub price: BigDecimal,
     pub stock: i32,
     pub status: i16,
     pub variation: Vec<Variation>
@@ -35,16 +37,17 @@ pub struct ProductVariation{
 }
 
 impl ProductVariation{
-    pub fn from(otro:&models_x::ProductVariation)->Self{
-        let vars: Vec<Variation> = match &otro.attributes {
+    pub fn from(otro_pv:&models_x::ProductVariation,otro_p:&models_x::Price)->Self{
+        let vars: Vec<Variation> = match &otro_pv.attributes {
             Some(vars_xtra) => serde_json::from_value(vars_xtra.clone()).unwrap(),
             None => Vec::new()
         };
+        
         //let vars:Vec<Variation> =serde_json::from_value(otro.attributes).unwrap(); 
         ProductVariation{
-            //price: 0,
-            stock: otro.stock,
-            status: otro.status,
+            price: otro_p.price.clone(),
+            stock: otro_pv.stock,
+            status: otro_pv.status,
             variation: vars
         }
     }

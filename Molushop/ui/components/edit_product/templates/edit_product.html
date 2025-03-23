@@ -2,21 +2,28 @@
 {% let images = product.images %}
 {% let variations = product.variations %}
 {% let routes = routes_edit_product %}
-<div class="product-edit-container" 
-    _="on load 
-    js(me) 
-        imageManager.init(me);
-        edit_product.init_edit_product(me);
-    end end">
+<div class="product-edit-container" id="{{product.id}}"
+    _="on load
+        js(me) 
+            imageManager.init(me);
+            edit_product.init_edit_product(me);
+        end 
+        on image_update
+        js(me,event)
+            imageManager.updateImageLocation(me,event);
+        end
+    end">
     <!-- Sidebar de navegación -->
     <nav class="sidebar">
         <ul class="nav-list">
             <li class="nav-item active" data-tab="general">GENERAL</li>
             <li class="nav-item" data-tab="images">IMAGES</li>
+            <!--
             <li class="nav-item" data-tab="categories">CATEGORIES, TAG & ATTRIBUTES</li>
             <li class="nav-item" data-tab="prices">PRICES</li>
             <li class="nav-item" data-tab="shipping">SHIPPING</li>
             <li class="nav-item" data-tab="stock">STOCK</li>
+            -->
             <li class="nav-item" data-tab="variations">VARIATIONS</li>
             <li class="nav-item" data-tab="advanced">ADVANCED</li>
         </ul>
@@ -28,21 +35,30 @@
         <!-- Pestaña General -->
         <div class="tab-pane active" id="general">
             <form hx-post="{{routes.edit_general}}/{{product.id}}" 
-                hx-taget = "body"
+                hx-target = "body"
                 hx-swap="beforeend"
                 class="general-form" id="generalForm">
                 <div class="form-group">
                     <label for="product-title">Product Title</label>
-                    <input name="name" type="text" class="form-control" placeholder="{{general.name}}">
+                    <input name="name" type="text" class="form-control" value="{{general.name}}">
                 </div>
                 <div class="form-group">
                     <label for="product-description">Product Description</label>
-                    <input name="description" type="text" class="form-control" placeholder="{{general.description}}">
+                    <input name="description" type="text" class="form-control" value="{{general.description}}">
                 </div>
                 <div class="form-group">
                     <label for="product-brand">Product Brand</label>
-                    <input name="brand" type="text" class="form-control" placeholder="{{general.brand}}">
+                    <input name="brand" type="text" class="form-control" value="{{general.brand}}">
                 </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select class="form-control" name="status">
+                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
+                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
+                        <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
+                    </select>
+                </div>
+                <!--
                 <div class="form-group">
                     <label for="slug">SLUG</label>
                     <div class="input-group">
@@ -52,6 +68,7 @@
                         <input type="text" class="form-control" placeholder="Enter slug">
                     </div>
                 </div>
+                -->
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Save General Info</button>
                     <button type="reset" class="btn btn-secondary">Reset</button>
@@ -78,7 +95,7 @@
                     </div>
                     <div class="image-gallery new-images">
                     </div>
-                    <div class="image-gallery">
+                    <div class="image-gallery base-images">
                         {% if images.images.len()==0 %}
                             <p class="no-images">No hay imágenes disponibles</p>
                         {% else %}
@@ -124,7 +141,7 @@
             </form>
         </div>
     
-        <!-- Pestaña Prices -->
+        <!-- Pestaña Prices 
         <div class="tab-pane" id="prices">
             <form class="prices-form" id="pricesForm">
                 <div class="form-group">
@@ -148,8 +165,8 @@
                 </div>
             </form>
         </div>
-    
-        <!-- Pestaña Shipping -->
+        -->
+        <!-- Pestaña Shipping 
         <div class="tab-pane" id="shipping">
             <form class="prices-form" id="shippingForm">
                 <div class="form-group">
@@ -170,8 +187,8 @@
                 </div>
             </form>
         </div>
-    
-        <!-- Pestaña Stock -->
+        -->
+        <!-- Pestaña Stock 
         <div class="tab-pane" id="stock">
             <form class="stock-form" id="stockForm">
                 <div class="form-group">
@@ -192,7 +209,7 @@
                 </div>
             </form>
         </div>
-    
+        -->
         <!-- Pestaña Variations -->
         <div class="tab-pane" id="variations">
             <table>
@@ -212,13 +229,20 @@
                            <p>{{attribute.value}} </p> 
                         {% endfor %}
                         </td>
-                        <td>{{var.status}}</td>
+                        
+                        {% if var.status == 0 %} 
+                        <td>Draft</td>
+                        {% else if var.status ==1 %}
+                        <td>Active</td>
+                        {% else if var.status ==2 %}
+                        <td>Inactive</td>
+                        {% endif %}
                         <!--Aqui poner el botón editar con un htmx-->
                         <td>
                             <button class="btn btn-primary"
                                 _="
-                                    on load js(me)
-                                        edit_product_spawn_var.handleSwap(me,'/components/edit-product-variation/spawn/{{var.id}}');
+                                    on click js(me)
+                                        edit_product_spawn_var.handleSwapClick(me,'/components/edit-product-variation/spawn/{{var.id}}');
                                     end end"
                                 >
                                 Editar Variacion

@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use rinja::Template;
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
+use serde_json::json;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
 use crate::{controllers::createProduct::product, models::components::warning_modal::WarningModal};
@@ -60,6 +61,7 @@ pub struct FormGeneral{
     pub name: String,
     pub description: String,
     pub brand: String,
+    pub status: i16
 }
 
 use crate::models::components::modal_1_model::Modal1;
@@ -154,7 +156,19 @@ async fn edit_images(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,
             let modal_render = Modal1{
                 text:"Imagen actualizada correctamente!".to_string()
             }.render().unwrap();
-            HttpResponse::Ok().body(modal_render)
+
+            let trigger_value = json!(
+                {
+                    "image_update":{
+                        "target" : ".product-edit-container",
+                        "id_value" : product_id
+                    }
+                }
+            );
+
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger",trigger_value.to_string()))
+                .body(modal_render)
         },
         Err(e) => {
             println!("Error! -> {}",e);

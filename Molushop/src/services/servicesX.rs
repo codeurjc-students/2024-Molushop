@@ -13,7 +13,7 @@ use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
 use crate::models;
-use crate::models::models_x::{Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation};
+use crate::models::models_x::{Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation};
 use crate::models::get_product::{GetProductForm,Variation};
 use crate::models::product_variation;
 use bigdecimal::BigDecimal;
@@ -407,6 +407,7 @@ pub async fn edit_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPool
             name.eq(form.name),
             description.eq(form.description),
             brand.eq(form.brand),
+            status.eq(form.status)
         ))
         .execute(connection).await;
     result
@@ -574,6 +575,22 @@ pub async fn get_variation_identifiers(var_id:&Uuid, pool:&DbPool) -> Result<Vec
         .load::<IdentifierVariation>(connection).await;
     result
 }
+ 
+pub async fn get_variations_with_prices(prod_id:&Uuid,curr:&String,pool: &DbPool) -> Result<Vec<(ProductVariation, Price)>, Error> {
+    use crate::schema::product_variations::dsl as pv;
+    use crate::schema::prices::dsl as p;
+    
+    let connection = &mut pool.get().await.unwrap();
+    
+    let results = pv::product_variations
+        .inner_join(p::prices.on(pv::id.eq(p::variation_id)))
+        .filter(p::currency.eq(curr))
+        .filter(pv::product_id.eq(prod_id))
+        .load::<(ProductVariation, Price)>(connection)
+        .await?;
+    
+    Ok(results)
+}
 
 use crate::models::components::edit_product_variation_model::Identifier;
 pub async fn set_variation_identifiers_antiguo(
@@ -682,3 +699,182 @@ pub async fn get_identifier_options_var(pool: &DbPool) -> Result<Vec<String>, Er
 pub async fn delete_variation_identifier(var_id:&Uuid,name:&String,pool:&DbPool)->Result<usize,Error>{
     Ok(99)
 }
+
+pub async fn update_variation_status(var_id:&Uuid,status_value:&i16,pool:&DbPool)-> Result<usize,Error>{
+    use crate::schema::product_variations::dsl::*;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = update(product_variations)
+        .filter(id.eq(var_id))
+        .set(status.eq(status_value))
+        .execute(connection)
+        .await;
+    result
+    
+}
+use crate::models::components::edit_product_variation_model::PriceData;
+use crate::models::models_x::{NewDiscount,NewDiscountHistory};
+pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: &BigDecimal,currency_insert: &String,pool:&DbPool)-> Result<usize,Error>{
+    use crate::schema::prices;
+    use crate::schema::price_history; //::dsl::nombre
+    use crate::schema::discounts::dsl::*;
+    //use crate::schema::discount_history::dsl::*;
+    use crate::schema::discounts;
+    use crate::schema::discount_history;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    connection.build_transaction()
+        .run(|tx| Box::pin(async move{
+            //Primero actualizar el precio 
+            let now = chrono::Utc::now().naive_utc();
+
+            //si el precio es 
+            let result_price = update(prices::dsl::prices.filter(prices::dsl::variation_id.eq(&var_id).and(prices::dsl::currency.eq(&currency_insert))))
+                .set((
+                    prices::dsl::price.eq(&price_insert),
+                    prices::dsl::start_date.eq(&now)
+                ))
+                .execute(tx).await?;
+
+            let result_price_history= insert_into(price_history::dsl::price_history)
+                .values((price_history::dsl::variation_id.eq(&var_id),price_history::dsl::price.eq(&price_insert),price_history::dsl::currency.eq(&currency_insert)))
+                .execute(tx).await?;
+
+            //Si el discount no está activo
+            if !form.discount_active{
+                //eliminamos el que tiene variation_id discount_type currency 
+                diesel::delete(discounts::dsl::discounts)
+                    .filter(discounts::dsl::variation_id.eq(&var_id))
+                    .filter(discounts::dsl::discount_type.eq(0))
+                    .filter(discounts::dsl::currency.eq(&currency_insert))
+                    .execute(tx)
+                    .await?;
+
+                let alias_d_h = diesel::alias!(discount_history as alias_d_h);
+
+                //actualizar la tabla de historial
+                let id_query = alias_d_h
+                    .select(alias_d_h.field(discount_history::dsl::id))
+                    .filter(alias_d_h.field(discount_history::dsl::variation_id).eq(&var_id))
+                    .filter(alias_d_h.field(discount_history::dsl::discount_type).eq(0))
+                    .filter(alias_d_h.field(discount_history::dsl::currency).eq(&currency_insert))
+                    .filter(alias_d_h.field(discount_history::dsl::end_date).is_null())
+                    .order_by(alias_d_h.field(discount_history::dsl::created_at).desc())
+                    .limit(1)
+                    .for_update()
+                    .skip_locked()
+                    .single_value();
+
+                update(discount_history::dsl::discount_history)
+                    .filter(discount_history::dsl::id.nullable().eq(id_query))
+                    .set(discount_history::dsl::end_date.eq(&now))
+                    .execute(tx)
+                    .await?;
+                
+            }else{
+    
+                //let result
+                let new_discount = NewDiscount{
+                    variation_id:var_id,
+                    discount_type:&0,
+                    percentage: None,
+                    quantity:None,
+                    discount_value:&form.discount,
+                    currency:&currency_insert,
+                    start_date:Some(&now),
+                    end_date:None,
+                };
+                let new_discount_history = NewDiscountHistory{
+                    variation_id:var_id,
+                    discount_type:&0,
+                    percentage: None,
+                    quantity:None,
+                    discount_value:&form.discount,
+                    currency:&currency_insert,
+                    start_date:Some(&now),
+                    end_date:None,
+                    created_at:&now
+                };
+    
+    
+                let result_discount = insert_into(discounts::dsl::discounts)
+                    .values(new_discount)
+                    .on_conflict(( discounts::dsl::variation_id,discounts::dsl::discount_type,discounts::dsl::currency))
+                    .do_update()
+                    .set((
+                        discounts::dsl::percentage.eq(excluded(discounts::dsl::percentage)),
+                        discounts::dsl::quantity.eq(excluded(discounts::dsl::quantity)),
+                        discounts::dsl::discount_value.eq(excluded(discounts::dsl::discount_value)),
+                        discounts::dsl::start_date.eq(excluded(discounts::dsl::start_date)),
+                        discounts::dsl::end_date.eq(excluded(discounts::dsl::end_date)),
+                        discounts::dsl::created_at.eq(excluded(discounts::dsl::created_at))
+                    ))
+                    .execute(tx).await?;
+    
+                let result_discount = insert_into(discount_history::dsl::discount_history)
+                    .values(new_discount_history)
+                    .execute(tx).await?;
+            }
+    
+            Ok(1)
+        })).await
+}
+
+pub async fn update_discount_variation(var_id:&Uuid,status_value:&i16,pool:&DbPool)-> Result<usize,Error>{
+    use crate::schema::product_variations::dsl::*;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = update(product_variations)
+        .filter(id.eq(var_id))
+        .set(status.eq(status_value))
+        .execute(connection)
+        .await;
+    result  
+}
+
+
+
+pub async fn get_discount_variation(var_id:&Uuid,disc_type:&i16,curr:&String,pool:&DbPool)->Result<Discounts,Error>{
+    use crate::schema::discounts::dsl::*;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = discounts
+        .filter(
+            variation_id.eq(var_id).and(
+            discount_type.eq(disc_type)).and(
+            currency.eq(curr))
+        )
+        .first::<Discounts>(connection).await;
+    result
+}
+
+pub async fn get_stock_variation(var_id:&Uuid,pool:&DbPool)->Result<i32,Error>{
+    use crate::schema::product_variations::dsl::*;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = product_variations
+        .filter(id.eq(var_id))
+        .select(stock)
+        .first::<i32>(connection)
+        .await;
+    //obtener solo el stock
+    result
+}
+
+pub async fn set_stock_variation(var_id:&Uuid,new_stock:&i32,pool:&DbPool)->Result<usize,Error>{
+    use crate::schema::product_variations::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = update(product_variations)
+        .filter(id.eq(var_id))
+        .set(stock.eq(new_stock))
+        .execute(connection)
+        .await;
+    result
+}
+

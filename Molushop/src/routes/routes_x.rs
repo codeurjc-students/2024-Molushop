@@ -65,6 +65,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(products_panel_create);
     cfg.service(new_created_product);
     cfg.service(products_panel_edit);
+    cfg.service(login1);
     cfg.route(PRODUCT_PANEL_PRUEBA, web::get().to(products_panel_prueba));
     cfg.route("/products-panel", web::get().to(products_panel));
 
@@ -250,4 +251,10 @@ async fn imagen_prueba() -> impl Responder {
     let page_content: String = TEMPLATES.render("imagen-prueba.html", &context1).unwrap();
     //print!("{}",page_content);
     HttpResponse::Ok().body(page_content)
+}
+
+#[get("/login1")]
+async fn login1() -> HttpResponse{
+    let render_login = Login1{page_name:"Login".to_string()}.render().unwrap();
+    HttpResponse::Ok().body(render_login)
 }

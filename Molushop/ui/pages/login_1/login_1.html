@@ -1,0 +1,11 @@
+{% extends "layouts/layout1.html" %}
+{% block scripts %}
+    {% include "components/login_base/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/login_base/styles.html"%}
+{% endblock %}
+{% block content %}
+    <div>Login 1!!</div>
+    {% include "components/login_base/templates/login_base.html"%}
+{% endblock %}

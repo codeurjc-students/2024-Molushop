@@ -68,4 +68,8 @@ pub struct ProductsPanelEdit {
     pub page_name: String,
 }
 
-
+#[derive(Template,Clone,Debug)]
+#[template(path = "pages/login_1/login_1.html")]
+pub struct Login1 {
+    pub page_name: String
+}
