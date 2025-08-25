@@ -12,7 +12,7 @@ use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
 use serde_json::Value;
-
+use ipnet::IpNet;
 
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(table_name = base_user)]
@@ -22,7 +22,6 @@ pub struct BaseUser {
     pub lastname: String,
     pub email: String,
     pub password: String,
-    pub hash: String,
     pub birthdate: NaiveDate,
     pub created: Option<NaiveDateTime>,
     pub modified: Option<NaiveDateTime>,
@@ -32,12 +31,22 @@ pub struct BaseUser {
 #[diesel(table_name = base_user)]
 pub struct NewBaseUser<'a> {
     pub id:&'a Uuid,
+    pub username:&'a str,
     pub name:&'a str,
     pub lastname:&'a str,
     pub email:&'a str,
     pub password:&'a str,
-    pub hash:&'a str,
     pub birthdate: &'a NaiveDate,
+    //pub created: &'a NaiveDateTime,
+    //pub modified: &'a NaiveDateTime,
+}
+#[derive(Insertable)]
+#[diesel(table_name = base_user)]
+pub struct NewBaseUserSimple<'a> {
+    pub id:&'a Uuid,
+    pub username:&'a str,
+    pub email:&'a str,
+    pub password:&'a str
     //pub created: &'a NaiveDateTime,
     //pub modified: &'a NaiveDateTime,
 }
@@ -303,4 +312,63 @@ pub struct NewDiscountHistory<'a> {
     pub start_date: Option<&'a NaiveDateTime>,
     pub end_date: Option<&'a NaiveDateTime>,
     pub created_at: &'a NaiveDateTime
+}
+
+#[derive(Queryable, Serialize, Deserialize, Debug, Clone)]
+pub struct UserAuth {
+    pub id:Uuid,
+    pub username: String,
+    pub name: Option<String>,
+    pub lastname: Option<String>,
+    pub email: String,
+    pub password: String,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = user_sessions)]
+pub struct NewUserSession<'a> {
+    pub id:&'a Uuid,
+    pub user_id:&'a Uuid,
+    pub jti:&'a str,
+    pub refresh_token_hash: &'a str,
+    pub issued_at: &'a NaiveDateTime,
+    pub expires_at: &'a NaiveDateTime,
+    pub last_used_at: &'a NaiveDateTime,
+    pub is_revoked: &'a bool,
+    pub ip_address: Option<&'a IpNet>,
+    pub user_agent: Option<&'a str>,
+    pub device_info: Option<&'a str>,
+}
+#[derive(Queryable, Debug,Identifiable)]
+#[diesel(table_name = user_sessions)]
+pub struct UserSession {
+    pub id: Uuid,
+    pub user_id: Uuid,
+    pub jti: String,
+    pub refresh_token_hash: String,
+    pub issued_at: NaiveDateTime,
+    pub expires_at: NaiveDateTime,
+    pub last_used_at: NaiveDateTime,
+    pub is_revoked: bool,
+    pub ip_address: Option<ipnet::IpNet>, // Usa ipnet::IpNet
+    pub user_agent: Option<String>,
+    pub device_info: Option<String>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = user_sessions)]
+pub struct NewUserSession2{
+    pub id:Uuid,
+    pub user_id:Uuid,
+    pub jti:String,
+    pub refresh_token_hash: String,
+    pub issued_at: NaiveDateTime,
+    pub expires_at: NaiveDateTime,
+    pub last_used_at: NaiveDateTime,
+    pub is_revoked: bool,
+    pub ip_address: Option<IpNet>,
+    pub user_agent: Option<String>,
+    pub device_info: Option<String>,
 }

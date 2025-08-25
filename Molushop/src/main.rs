@@ -19,6 +19,8 @@ pub mod  routes;
 pub mod controllers;
 pub mod services;
 pub mod jobs;
+pub mod utils;
+pub mod middleware;
 
 use services::servicesX;
 use routes::routes_x;
@@ -42,6 +44,7 @@ use std::any::type_name;
 use actix_jobs::{Job, Scheduler, run_forever};
 
 use jobs::job_config::init_jobs;
+use routes::master;
 
 fn print_type_of<T>(_: &T) {
     println!("{}", type_name::<T>());
@@ -91,6 +94,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(client_data.clone())
             .configure(config::static_config)
             .configure(routes_x::config)
+            .service(master::scope_master::scope_master())
             
             .service(controllersX::prueba_insertar)
             .service(controllersX::prueba_modificar)

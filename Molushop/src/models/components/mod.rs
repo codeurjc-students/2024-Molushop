@@ -7,3 +7,6 @@ pub mod title;
 pub mod edit_product_variation_model;
 pub mod identifier_model;
 pub mod login_base_model;
+pub mod nav1_model;
+pub mod product_card_model;
+pub mod product_card_group_model;

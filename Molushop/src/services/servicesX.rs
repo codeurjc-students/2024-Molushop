@@ -13,9 +13,10 @@ use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
 use crate::models;
-use crate::models::models_x::{Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation};
+use crate::models::models_x::{Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation,UserAuth,NewUserSession};
 use crate::models::get_product::{GetProductForm,Variation};
 use crate::models::product_variation;
+use crate::schema::base_user::password;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
@@ -91,11 +92,11 @@ pub fn insert_data_test() -> bool {
     let other_id= Uuid::new_v4();
     let newUser = NewBaseUser{
         id: &other_id,
+        username:"Moluxo",
         name: "Test",
         lastname: "Test",
         email: "moluxo@hotmail.com",
         password: "tuAbuelaE",
-        hash: "xdd",
         birthdate: &NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
     }; 
 
@@ -875,6 +876,160 @@ pub async fn set_stock_variation(var_id:&Uuid,new_stock:&i32,pool:&DbPool)->Resu
         .set(stock.eq(new_stock))
         .execute(connection)
         .await;
+    result
+}
+
+//Obtener si existe un usuario con correo registrado
+pub async fn check_mail(mail:&String,pool: &DbPool)->Result<bool,Error>{
+    use crate::schema::base_user::dsl::*;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = select(exists(
+        base_user.filter(email.eq(mail))
+    ))
+    .get_result::<bool>(connection)
+    .await;
+
+    result
+}
+pub async fn check_username(user:&String,pool: &DbPool)->Result<bool,Error>{
+    use crate::schema::base_user::dsl::*;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = select(exists(
+        base_user.filter(username.eq(user))
+    ))
+    .get_result::<bool>(connection)
+    .await;
+
+    result
+}
+//obtener el usuario y en este caso, su contraseña hasheada
+//Que devuelva un objeto con lo que se quiera  obtener del usuario
+// Poner la restriccion de que el usuario esté activo
+pub async fn get_user(username_in:&String,pool:&DbPool)->Result<UserAuth,Error>{
+    use crate::schema::base_user::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    let user = base_user
+        .filter(username.eq(username_in))
+        .select((
+            id,
+            username,
+            name,
+            lastname,
+            email,
+            password
+        ))
+        .first::<UserAuth>(connection)
+        .await;
+
+    user
+}
+
+pub async fn get_user_2(user_id:&Uuid,pool:&DbPool)->Result<UserAuth,Error>{
+    use crate::schema::base_user::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    let user = base_user
+        .filter(id.eq(user_id))
+        .select((
+            id,
+            username,
+            name,
+            lastname,
+            email,
+            password
+        ))
+        .first::<UserAuth>(connection)
+        .await;
+
+    user
+}
+
+//pasar modelo base de entrada? --> o un nuevo modelo?
+//Se tiene que hashear la contraseña, además 
+pub async fn new_user_base(username_in:&String,email_in:&String,password_in:&String,pool: &DbPool)->Result<Uuid,Error>{
+    use crate::schema::base_user::dsl::*;
+    use crate::models::models_x::NewBaseUserSimple;
+
+    let connection = &mut pool.get().await.unwrap();
+
+    let new_id = Uuid::new_v4();
+
+    let user = NewBaseUserSimple{
+        id:&new_id,
+        username:&username_in,
+        email:&email_in,
+        password:password_in
+    };
+
+    let result = insert_into(base_user).values(user).execute(connection).await;
+
+    match result{
+        Ok(_)=>{
+            return Ok(new_id)
+        },
+        Err(e)=>{
+            return Err(e)
+        }
+    }
+}
+
+#[derive(Queryable, Debug, Clone)]
+pub struct VariationPriceDetailed {
+    pub variation_id: Uuid,
+    pub price: BigDecimal,
+}
+
+pub async fn get_variations_prices_product(
+    product_id: &Uuid, 
+    pool: &DbPool
+) -> Result<Vec<VariationPriceDetailed>, Error> {
+    use crate::schema::product_variations::dsl as pv;
+    use crate::schema::prices::dsl as p;
+    
+    let connection = &mut pool.get().await.unwrap();
+    
+    let results = pv::product_variations
+        .inner_join(p::prices.on(pv::id.eq(p::variation_id)))
+        .filter(pv::product_id.eq(product_id))
+        .select((
+            pv::id,
+            p::price
+        ))
+        .order_by( p::price.asc())
+        .load::<VariationPriceDetailed>(connection)
+        .await?;
+    
+    Ok(results)
+}
+
+
+pub async fn insert_session_login<'a>(session_data: NewUserSession<'a>, pool:&DbPool) -> Result<usize, Error> {
+    use crate::schema::user_sessions::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = insert_into(user_sessions)
+        .values(session_data)
+        .execute(connection).await;
+    result
+}
+use crate::models::models_x::UserSession;
+pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Error>{
+    use crate::schema::user_sessions::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    //let now = Utc::now().naive_utc();
+
+    let result = user_sessions
+        .filter(jti.eq(jti_x))
+        // .filter(is_revoked.eq(false))
+        // .filter(issued_at.lt(now))
+        // .filter(expires_at.gt(now))
+        .first::<UserSession>(connection).await;
     result
 }
 

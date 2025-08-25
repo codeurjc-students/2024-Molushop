@@ -1,0 +1,16 @@
+<!--Meter Componente nav-->
+<!--Y el login en consecunencia-->
+{% extends "layouts/layout1.html" %}
+{% block scripts %}
+    {% include "components/nav1/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/nav1/styles.html"%}
+    {% include "components/product_card/styles.html"%}
+    {% include "components/product_card_group/styles.html"%}
+{% endblock %}
+{% block content %}
+    {% include "components/nav1/templates/nav1.html"%}
+    {% include "components/product_card/templates/product_card.html"%}
+    {{pcard1|safe}}
+{% endblock %}

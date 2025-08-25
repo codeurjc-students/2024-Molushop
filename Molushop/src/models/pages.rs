@@ -68,8 +68,11 @@ pub struct ProductsPanelEdit {
     pub page_name: String,
 }
 
+
+use crate::models::components::login_base_model;
 #[derive(Template,Clone,Debug)]
 #[template(path = "pages/login_1/login_1.html")]
 pub struct Login1 {
-    pub page_name: String
+    pub page_name: String,
+    pub login_base_data: login_base_model::LoginProductData
 }

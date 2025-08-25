@@ -5,3 +5,6 @@ pub mod product;
 pub mod create_product_variations;
 pub mod products_panel;
 pub mod components;
+pub mod auth;
+pub mod paseto_token_session_service;
+pub mod login_and_register;

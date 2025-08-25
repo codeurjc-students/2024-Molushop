@@ -2,12 +2,15 @@
 -- Tabla 'User'
 CREATE TABLE base_user (
     id UUID PRIMARY KEY,  -- Llave primaria
-    name VARCHAR(255) NOT NULL,  -- Nombre del usuario
-    lastname VARCHAR(255) NOT NULL,  -- Apellido del usuario
+    username VARCHAR(255) NOT NULL UNIQUE,
+    name VARCHAR(255),  -- Nombre del usuario
+    lastname VARCHAR(255),  -- Apellido del usuario
     email VARCHAR(255) NOT NULL UNIQUE,  -- Correo electrónico único
     password VARCHAR(255) NOT NULL,  -- Contraseña
-    hash VARCHAR(255) NOT NULL,  -- Hash de la contraseña u otro uso
-    birthdate DATE NOT NULL,  -- Fecha de nacimiento
+    birthdate DATE,  -- Fecha de nacimiento
+    confirmation_token VARCHAR(255) UNIQUE,
+    token_expiration TIMESTAMP,
+    active BOOLEAN DEFAULT FALSE,
     created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Fecha de creación
     modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP  -- Fecha de modificación
 );
@@ -323,3 +326,66 @@ CREATE TRIGGER price_history_trigger
 AFTER INSERT OR UPDATE ON prices
 FOR EACH ROW
 EXECUTE FUNCTION log_price_changes();
+
+CREATE TABLE user_sessions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES base_user(id) ON DELETE CASCADE,
+    jti VARCHAR(255) UNIQUE NOT NULL, -- JWT ID del token de refresco (o del token de acceso principal si se gestiona su revocación directa)
+    refresh_token_hash VARCHAR(512) NOT NULL, -- Almacena el hash del refresh token, NUNCA el token en texto plano
+    issued_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    last_used_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    is_revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    ip_address INET, -- Tipo de dato INET es más adecuado para direcciones IP
+    user_agent TEXT,
+    device_info TEXT,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+-- Índices para mejorar el rendimiento de las consultas
+CREATE INDEX idx_user_sessions_user_id ON user_sessions (user_id);
+CREATE INDEX idx_user_sessions_jti ON user_sessions (jti);
+CREATE INDEX idx_user_sessions_expires_at ON user_sessions (expires_at);
+CREATE INDEX idx_user_sessions_is_revoked ON user_sessions (is_revoked);
+
+-- Trigger para actualizar automáticamente 'updated_at'
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_user_sessions_updated_at
+BEFORE UPDATE ON user_sessions
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+
+
+CREATE TABLE carts (
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES base_user(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    status SMALLINT not null DEFAULT 1 CHECK (status BETWEEN 0 AND 2) -- 0: DRAFT, 1: ACTIVE, 2: INACTIVE
+);
+
+CREATE TABLE cart_products(
+    id UUID PRIMARY KEY,
+    cart_id UUID REFERENCES carts(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES Products(id) ON DELETE CASCADE,
+    quantity INT not null default 1,
+    price_at_time_of_addition DECIMAL(10,2), 
+    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+create table favorites(
+    id UUID PRIMARY KEY,
+    user_id UUID REFERENCES base_user(id) ON DELETE CASCADE,
+    product_id UUID REFERENCES Products(id) ON DELETE CASCADE,
+    added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+    notes VARCHAR(255) NOT NULL UNIQUE
+)

@@ -252,9 +252,12 @@ async fn imagen_prueba() -> impl Responder {
     //print!("{}",page_content);
     HttpResponse::Ok().body(page_content)
 }
-
+use crate::services::components::login_base_service;
 #[get("/login1")]
 async fn login1() -> HttpResponse{
-    let render_login = Login1{page_name:"Login".to_string()}.render().unwrap();
+    let render_login = Login1{
+        page_name:"Login".to_string(),
+        login_base_data: login_base_service::get_login_base_model_data()
+    }.render().unwrap();
     HttpResponse::Ok().body(render_login)
 }

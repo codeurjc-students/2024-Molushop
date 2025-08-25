@@ -10,16 +10,20 @@ diesel::table! {
     base_user (id) {
         id -> Uuid,
         #[max_length = 255]
-        name -> Varchar,
+        username -> Varchar,
         #[max_length = 255]
-        lastname -> Varchar,
+        name -> Nullable<Varchar>,
+        #[max_length = 255]
+        lastname -> Nullable<Varchar>,
         #[max_length = 255]
         email -> Varchar,
         #[max_length = 255]
         password -> Varchar,
+        birthdate -> Nullable<Date>,
         #[max_length = 255]
-        hash -> Varchar,
-        birthdate -> Date,
+        confirmation_token -> Nullable<Varchar>,
+        token_expiration -> Nullable<Timestamp>,
+        active -> Nullable<Bool>,
         created -> Nullable<Timestamp>,
         modified -> Nullable<Timestamp>,
     }
@@ -219,6 +223,26 @@ diesel::table! {
     }
 }
 
+diesel::table! {
+    user_sessions (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        #[max_length = 255]
+        jti -> Varchar,
+        #[max_length = 512]
+        refresh_token_hash -> Varchar,
+        issued_at -> Timestamptz,
+        expires_at -> Timestamptz,
+        last_used_at -> Timestamptz,
+        is_revoked -> Bool,
+        ip_address -> Nullable<Inet>,
+        user_agent -> Nullable<Text>,
+        device_info -> Nullable<Text>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
 diesel::joinable!(admins -> base_user (id));
 diesel::joinable!(buyer -> base_user (id));
 diesel::joinable!(category_product -> category (category_id));
@@ -234,6 +258,7 @@ diesel::joinable!(product_seller -> seller (seller_id));
 diesel::joinable!(product_variations -> products (product_id));
 diesel::joinable!(product_variations_identifiers -> product_variations (product_variation_id));
 diesel::joinable!(seller -> base_user (id));
+diesel::joinable!(user_sessions -> base_user (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
     admins,
@@ -255,4 +280,5 @@ diesel::allow_tables_to_appear_in_same_query!(
     product_variations_identifiers,
     products,
     seller,
+    user_sessions,
 );

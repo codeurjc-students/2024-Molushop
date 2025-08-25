@@ -1,0 +1,5 @@
+.product-card-multiple{
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}

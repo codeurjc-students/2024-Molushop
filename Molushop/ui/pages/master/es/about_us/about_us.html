@@ -1,0 +1,14 @@
+{% extends "layouts/layout1.html" %}
+{% block scripts %}
+    {% include "components/nav1/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/nav1/styles.html"%}
+    {% include "components/about_us_text/styles.html"%}
+    {% include "components/product_card/styles.html"%}
+{% endblock %}
+{% block content %}
+    {% include "components/nav1/templates/nav1.html"%}
+    {% include "components/about_us_text/templates/about_us_text.html"%}
+    <!--incluir componente de texto genérico?-->
+{% endblock %}

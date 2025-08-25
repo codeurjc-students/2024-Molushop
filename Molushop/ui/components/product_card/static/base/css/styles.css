@@ -1,0 +1,97 @@
+/* Estilos generales para la tarjeta del producto */
+.product-card {
+    border: 1px solid #e0e0e0; /* Borde suave alrededor de la tarjeta */
+    border-radius: 8px; /* Esquinas redondeadas */
+    overflow: hidden; /* Asegura que el contenido no se salga de las esquinas redondeadas */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para un efecto 3D */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave al pasar el ratón */
+    max-width: 300px; /* Ancho máximo de la tarjeta para diseño responsivo */
+    margin: 15px; /* Margen exterior para separar las tarjetas si hay varias */
+    background-color: #fff; /* Fondo blanco */
+    display: flex; /* Usamos flexbox para organizar el contenido */
+    flex-direction: column; /* Apila los elementos verticalmente */
+}
+
+.product-card:hover {
+    transform: translateY(-5px); /* Pequeño levantamiento al pasar el ratón */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); /* Sombra más pronunciada al pasar el ratón */
+}
+
+/* Estilos para el enlace principal de la tarjeta */
+.product-card .link {
+    text-decoration: none; /* Quita el subrayado del enlace */
+    color: inherit; /* Hereda el color del texto de su padre */
+    display: flex; /* Para que la imagen y la info se organicen bien */
+    flex-direction: column;
+    height: 100%; /* Asegura que el enlace ocupe todo el espacio de la tarjeta */
+}
+
+/* Estilos para la imagen del producto */
+.product-card img {
+    width: 100%; /* La imagen ocupa todo el ancho del contenedor */
+    height: 200px; /* Altura fija para las imágenes, puedes ajustarla */
+    object-fit: cover; /* Recorta la imagen para que cubra el área sin distorsionarse */
+    border-bottom: 1px solid #e0e0e0; /* Borde inferior para separar de la info */
+}
+
+/* Estilos para el contenedor de información del producto */
+.product-card .producto-info {
+    padding: 15px; /* Espaciado interno */
+    flex-grow: 1; /* Permite que este contenedor crezca y ocupe el espacio disponible */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Empuja las acciones al final */
+}
+
+/* Estilos para el título del producto */
+.product-card .producto-titulo {
+    font-size: 1.2em; /* Tamaño de fuente del título */
+    margin-top: 0; /* Elimina margen superior por defecto */
+    margin-bottom: 10px; /* Margen inferior para separar del precio */
+    font-weight: 600; /* Texto más negrita */
+}
+
+.product-card .producto-titulo a {
+    text-decoration: none; /* Quita el subrayado del enlace en el título */
+    color: #333; /* Color oscuro para el título */
+    transition: color 0.2s ease; /* Transición suave para el color del título */
+}
+
+.product-card .producto-titulo a:hover {
+    color: #007bff; /* Cambia el color al pasar el ratón */
+}
+
+/* Estilos para el precio del producto */
+.product-card .producto-precio {
+    font-size: 1.1em; /* Tamaño de fuente del precio */
+    color: #28a745; /* Color verde para el precio (común en e-commerce) */
+    font-weight: 700; /* Precio más negrita */
+    margin-bottom: 15px; /* Margen inferior para separar de las acciones */
+}
+
+/* Estilos para el contenedor de acciones (botón) */
+.product-card .producto-acciones {
+    margin-top: auto; /* Empuja las acciones al final del contenedor */
+    text-align: center; /* Centra el botón */
+}
+
+/* Estilos para el botón de añadir al carrito */
+.product-card .boton-agregar-carrito {
+    background-color: #007bff; /* Color azul para el botón */
+    color: #fff; /* Texto blanco */
+    border: none; /* Sin borde */
+    border-radius: 5px; /* Esquinas ligeramente redondeadas */
+    padding: 10px 15px; /* Espaciado interno del botón */
+    font-size: 1em; /* Tamaño de fuente del botón */
+    cursor: pointer; /* Cambia el cursor a una mano al pasar por encima */
+    transition: background-color 0.3s ease; /* Transición suave para el color de fondo */
+    width: 100%; /* Ocupa todo el ancho disponible */
+}
+
+.product-card .boton-agregar-carrito:hover {
+    background-color: #0056b3; /* Color más oscuro al pasar el ratón */
+}
+
+.product-card .boton-agregar-carrito:active {
+    background-color: #004085; /* Color aún más oscuro al hacer click */
+}
