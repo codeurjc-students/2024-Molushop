@@ -94,7 +94,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(client_data.clone())
             .configure(config::static_config)
             .configure(routes_x::config)
-            .service(master::scope_master::scope_master())
+            .service(master::scope_master::scope_master(pool_data.clone()))
             
             .service(controllersX::prueba_insertar)
             .service(controllersX::prueba_modificar)
@@ -105,7 +105,7 @@ async fn main() -> std::io::Result<()> {
             .service(controllers::createProduct::create_product_controllers::scope_create_product())
             .service(components::scope::scope_components())
             // Static files
-            .service(fs::Files::new("/assets", "assets").show_files_listing())
+            //.service(fs::Files::new("/assets", "assets").show_files_listing())
             
             .service(routes_x::example)
     })

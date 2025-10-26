@@ -1,0 +1,38 @@
+body{
+    font-family: 'Roboto', sans-serif;
+}
+.disabled{
+    display:none;
+}
+
+.no-generic-button{
+        background: none; 
+
+        /* Quita el borde por defecto (incluyendo el borde 3D en Windows) */
+        border: none;
+
+        /* Quita la sombra de texto por defecto */
+        text-shadow: none;
+
+        /* Quita el color de texto/fondo por defecto del sistema */
+        color: inherit; 
+
+        /* IMPORTANTE: Remueve los estilos nativos de los botones del sistema operativo */
+        appearance: none;
+        -webkit-appearance: none; /* Para Chrome y Safari */
+        -moz-appearance: none;    /* Para Firefox */
+
+        /* Opcional: Para cambiar el cursor y el efecto al hacer clic */
+        cursor: pointer;
+}
+
+.no-generic-a{
+    display: block;
+    text-decoration: none;
+}
+
+.icn-svg{
+  height:1em;
+  width:1em;
+  fill:currentColor;
+}

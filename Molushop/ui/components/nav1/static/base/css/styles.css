@@ -9,7 +9,7 @@
   align-items: center;
 
   .right-block{
-    width: 7em; /*En responsive ponerlo en auto*/
+    min-width: 7em; /*En responsive ponerlo en auto*/
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -26,7 +26,8 @@
     }
   }
   .user-icon{
-    width: 3em;
+    display:flex;
+    min-width: 3em;
     height: 3em;
   }
 
@@ -50,7 +51,7 @@
         .search-box-container{
           justify-content: space-between;
           border-radius: 10px;
-          background-color: orange;
+          background-color: white;
           height: 1.5em;
           display: flex;
           align-items: center;

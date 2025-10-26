@@ -15,11 +15,16 @@ pub fn static_config(cfg: &mut web::ServiceConfig) {
     let path_components = Path::new("./ui/components");
     let path_pages = Path::new("./ui/pages");
 
+    cfg.service(fs::Files::new("/static/utils", Path::new("./ui/utils")).show_files_listing());
+    cfg.service(fs::Files::new("/static/styles", Path::new("./ui/styles")).show_files_listing());
+    cfg.service(fs::Files::new("/assets", Path::new("./ui/assets")).show_files_listing());
+
     // Configurar rutas estáticas para "components"
     configure_static_routes(cfg,path_components ).expect("Error configurando rutas estáticas para components");
 
     // Configurar rutas estáticas para "pages"
     configure_static_routes_recursive(cfg, path_pages).expect("Error configurando rutas estáticas para pages");
+
 }
 
 fn configure_static_routes(cfg: &mut web::ServiceConfig, path: &Path) -> std::io::Result<()> {

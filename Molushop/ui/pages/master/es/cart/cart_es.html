@@ -1,0 +1,14 @@
+{% extends "layouts/layout1.html" %}
+{% block scripts %}
+    {% include "components/nav1/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/nav1/styles.html"%}
+    {% include "components/product_card/styles.html"%}
+    {% include "components/product_card_group/styles.html"%}
+{% endblock %}
+{% block content %}
+    {% include "components/nav1/templates/nav1.html"%}
+    {% include "components/login_modal/login_modal.html"%}
+    {% include "components/cart_total_v1/cart_total_v1.html"%}
+{% endblock %}

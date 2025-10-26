@@ -11,6 +11,7 @@
                 hx-target-5*="body"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
+                hx-on::after-request="login_base.do_after_login(event)"
             >
                 <!-- <div class="imgcontainer">
                     <img src="img_avatar2.png" alt="Avatar" class="avatar">

@@ -105,6 +105,7 @@ async fn products_panel_edit(path:web::Path<Uuid>,pool_data:web::Data<DbPool>, r
     }else{
         println!("No hay header HX-Request");
         page_content = ProductsPanelEdit{
+            user_logged:false,
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,  
             page_name:"Edit Product".to_string()
@@ -134,6 +135,7 @@ async fn products_panel(pool_data: web::Data<DbPool>) -> impl Responder {
             //ahora vamos a renderizar la página
     
             let page_content = ProductsPanel{
+                user_logged:false,
                 products,
                 routes: &ROUTES_PRODUCT_PANEL_GROUP,
                 page_name:"Panel Products".to_string()
@@ -256,6 +258,7 @@ use crate::services::components::login_base_service;
 #[get("/login1")]
 async fn login1() -> HttpResponse{
     let render_login = Login1{
+        user_logged: false,
         page_name:"Login".to_string(),
         login_base_data: login_base_service::get_login_base_model_data()
     }.render().unwrap();

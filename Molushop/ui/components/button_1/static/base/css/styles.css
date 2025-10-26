@@ -1,0 +1,19 @@
+.button-1{
+    width: 100%;
+    background-color: green;
+    height: 100%;
+    border-radius: 15px;
+    font-size: 1em;
+    padding: 7px 0;
+    color:white;
+    display: block;
+    a{
+        width: 100%;
+        color:white;
+        display: flex;
+        justify-content: center;
+    }
+} 
+.button-1:hover {
+    background-color: #068817; /* Un color de fondo más oscuro al pasar el ratón */
+}

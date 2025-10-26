@@ -7,15 +7,17 @@ use serde::{Serialize,Deserialize};
 #[template(path="components/nav1/templates/nav1.html")]
 pub struct Nav1{
     //pub login_base_data: Nav1Data
+    pub nav1: Nav1Data
 }
 
 #[derive(Debug, Clone)]
 pub struct Nav1Data{
-    pub routes: &'static Routes
+    pub routes: &'static Routes,
+    pub name: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
-    pub home: &'static str
-    
+    pub home: String,
+    pub cart: String
 }

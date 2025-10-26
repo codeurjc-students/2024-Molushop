@@ -350,7 +350,7 @@ CREATE INDEX idx_user_sessions_expires_at ON user_sessions (expires_at);
 CREATE INDEX idx_user_sessions_is_revoked ON user_sessions (is_revoked);
 
 -- Trigger para actualizar automáticamente 'updated_at'
-CREATE OR REPLACE FUNCTION update_timestamp()
+CREATE OR REPLACE FUNCTION update_timestamp()a
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -376,7 +376,7 @@ CREATE TABLE carts (
 CREATE TABLE cart_products(
     id UUID PRIMARY KEY,
     cart_id UUID REFERENCES carts(id) ON DELETE CASCADE,
-    product_id UUID REFERENCES Products(id) ON DELETE CASCADE,
+    product_var_id UUID REFERENCES Product_variations(id) ON DELETE CASCADE,
     quantity INT not null default 1,
     price_at_time_of_addition DECIMAL(10,2), 
     added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
@@ -385,7 +385,7 @@ CREATE TABLE cart_products(
 create table favorites(
     id UUID PRIMARY KEY,
     user_id UUID REFERENCES base_user(id) ON DELETE CASCADE,
-    product_id UUID REFERENCES Products(id) ON DELETE CASCADE,
+    product_var_id UUID REFERENCES Product_variations(id) ON DELETE CASCADE,
     added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     notes VARCHAR(255) NOT NULL UNIQUE
 )

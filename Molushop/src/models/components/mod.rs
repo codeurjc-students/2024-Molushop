@@ -10,3 +10,4 @@ pub mod login_base_model;
 pub mod nav1_model;
 pub mod product_card_model;
 pub mod product_card_group_model;
+pub mod cart_total_v1;

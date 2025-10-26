@@ -2,7 +2,7 @@
 <div class="nav1">
   <div class="container-nav">
     <div class="logo">
-      <a class="active" href="#home">
+      <a class="active" href="{{nav1.routes.home}}">
         <img src="/assets/logos/national-geographic.png" />
       </a>
     </div>
@@ -27,11 +27,12 @@
     </div>
     <div class="right-block">
       <div class="cart">
-        <a class="cart-icon">
+        <a class="cart-icon" href="{{nav1.routes.cart}}">
           <img src="/assets/logos/carrito.png"/>
         </a>
       </div>
-      <div class="user-icon img-container">
+      <div class="user-icon img-container open-login-modal">
+        <p>{{nav1.name}}</p>
         <a>
           <img src="/assets/logos/user.png"/>
         </a>

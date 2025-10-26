@@ -1,0 +1,187 @@
+.cart-total-1{
+    display:flex;
+    justify-content: center;
+    margin-top: 1.5em;
+    .cont-1{
+        padding: 1em;
+        border-radius: 3px;
+    }
+    .color{
+        color:red;
+    }
+    .checkbox1-circle{   
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        
+        border: 1px solid #000000;
+        /* border: 1px solid var(--color-grey-3, "rgba(204,204,204,1)"); */
+        border-radius: 50%;
+    }
+
+    .checkbox-input{
+        position: absolute;
+        opacity: 0;
+        height: 0;
+        width: 0;
+    }
+    .cart-main{
+        
+        border: 2px solid black;
+        display:flex;
+        flex-direction: column;
+        gap:1em;
+        width:600px;
+    }
+    .header-container{
+        display: flex;
+        flex-direction: column;
+        .header-container-bottom{
+            .checkbox-select{
+                .initial-check{
+                    gap:0.5em;
+                    display: flex;
+                    align-items: center;
+                }
+            }
+        }
+    }
+    .cart-body{
+        display: flex;
+        gap:1em;
+    }
+    .cart-side{
+        border: 2px solid black;
+        width:16em;
+        .total-items{
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            .title-resume{
+                margin: 0
+            }
+            .articles-images{
+                display: flex;
+                gap:10px;
+                .image-resume{
+                    width: 3em;
+                    height: 3em;
+                    background-color: green;
+                    border-radius: 5px;
+                }
+            }
+            .data-resume{
+                display: flex;
+                flex-direction: column;
+                gap:0.7em;
+                .iva{
+                    display: flex;
+                    flex-direction: row-reverse;
+                    color:grey
+                }
+            }
+            .space{
+                display: flex;
+                justify-content: space-between;
+            }
+        }
+    }
+
+    .products-container{
+        .card{
+            display: flex;
+            align-items: center;
+            gap: 0.5em;
+            .check-cont{
+
+            }
+            .card-content{
+                width: 100%;
+                display: flex;
+                gap: 0.5em;
+                .left-side{
+                    .image-cont{
+                        border-radius: 10px;
+                        background-color: grey;
+                        height: 7em;
+                        width: 7em;
+                    }
+                }
+                .right-side{
+                    width: 100%;
+                    position: relative;
+                    display: flex;
+                    .element-data{
+                        display: flex;
+                        flex-direction: column;
+                        width: 100%;
+                        gap: 0.5em;
+                        
+                        font-size: 15px;
+                        .title{
+                            width: 25em;
+                            height: 1em;
+                            white-space: nowrap;
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                        }
+                        .variations{
+                            color:rgb(141, 141, 141)
+                        }
+                        .price{
+                            font-weight: bold;
+                            font-size: 1.2em;
+                        }
+                        .shop{
+                            color:rgb(141, 141, 141)
+                        }
+                    }
+                    .quantity-product{
+                        position: absolute;
+                        right: 0;
+                        top:30%;
+                        .quantity-product-cont{
+                            display: flex;
+                            background-color: white;
+                            border: 3px solid rgb(236, 236, 236);
+                            border-radius: 20px;
+                            
+                            .input-no-style{
+                                background: transparent;
+                                border: none;
+                                width: 2em;
+                                text-align: center;
+                            }
+                            .more-less-cont{
+                                padding: 2px 9px;
+                            }
+                            .minus-cont{
+                                width: 100%;
+                            }
+                            .minus{
+                                position:relative;
+                                top: -2px;
+                                
+                            }
+                            .plus{
+                            }
+                        }
+                        
+                    }
+                    .buttons-extra{
+                        position: absolute;
+                        right: 5%;
+                        top:60%;
+                        display: flex;
+                        gap:0.5em;
+                        width: 2.6em;
+                        justify-content: space-between;
+                    }
+                }
+            }
+        }
+    }
+    .checkbox-text{
+        padding-top: 2px;
+    }
+}
