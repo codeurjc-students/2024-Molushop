@@ -19,6 +19,14 @@
     style="margin:0"
     data-user_logged={{user_logged}}
 >
-    {% block content %}{% endblock %}
+    <header class="full-width-header">
+        {% block header %}{% endblock %}
+    </header>
+    <main class="content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="full-width-footer">
+        {% block footer %}{% endblock %}
+    </footer>
 </body>
 </html>

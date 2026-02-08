@@ -7,8 +7,10 @@
     {% include "components/product_card/styles.html"%}
     {% include "components/product_card_group/styles.html"%}
 {% endblock %}
-{% block content %}
+{% block header %}
     {% include "components/nav1/templates/nav1.html"%}
+{% endblock %}
+{% block content %}
     {% include "components/login_modal/login_modal.html"%}
     {% include "components/cart_total_v1/cart_total_v1.html"%}
 {% endblock %}

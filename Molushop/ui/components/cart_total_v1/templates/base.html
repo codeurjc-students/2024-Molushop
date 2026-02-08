@@ -52,7 +52,8 @@
                                     <div class="minus-cont more-less-cont">
                                         <span class="more-less minus">-</span>
                                     </div>
-                                    <input class="input-no-style" value="1">
+                                    <input type="number" min="0" max="99" class="input-no-style" value="1" maxlength="2"
+                                        oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
                                     <div class="plus-cont more-less-cont">
                                         <span class="more-less plus">+</span>
                                     </div>
@@ -66,7 +67,7 @@
                                 </div>
                                 <div class="favorite">
                                     <svg class="icn-svg">
-                                        <use href="/assets/svg/icons/heart.svg" />
+                                        <use href="/assets/svg/icons/full.svg#corazon" />
                                     </svg>
                                 </div>
                             </div>

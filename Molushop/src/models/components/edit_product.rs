@@ -7,7 +7,7 @@ use uuid::Uuid;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/edit_product/templates/edit_product.html")]
 pub struct EditProduct{
-    pub product: ProductEdit,
+    pub product: ProductEdit2,
     pub routes_edit_product: &'static Routes,
 }
 
@@ -25,6 +25,14 @@ pub struct ProductEdit{
     pub id: Uuid,
     pub general: General,
     pub images: Images,
+    pub variations: Variations
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ProductEdit2{
+    pub id: Uuid,
+    pub general: General,
+    pub images: Vec<ImageCategories2>,
     pub variations: Variations
 }
 
@@ -47,6 +55,14 @@ pub struct ImageCategories{
     pub url: String,
     pub tipo: String,
 }
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ImageCategories2{
+    pub image_url: String,
+    pub is_main: bool,
+    pub display_order: i32
+}
+
 
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

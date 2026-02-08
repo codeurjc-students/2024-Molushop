@@ -1,6 +1,8 @@
 <div class="product-card-multiple">
     <!--Hacer un for de una lista de objetos-->
     {% for product in products %}
-        {% include "components/product_card/templates/product_card.html" %}
+        <div class="product-card-container">
+            {% include "components/product_card/templates/product_card.html" %}
+        </div>
     {% endfor %}
 </div>

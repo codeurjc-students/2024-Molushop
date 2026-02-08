@@ -1,7 +1,9 @@
 select * from base_user;
-select * from product;
+select * from products;
 select * from admins;
-
+select * from Product_variations;
+SELECT * FROM Product_variations
+WHERE attributes @> '[{"name": "Color", "value": "Negro"}]';
 
 select * from category;
 delete from category;
@@ -49,3 +51,250 @@ EXECUTE FUNCTION calculate_depth();
 
 DROP TRIGGER IF EXISTS set_depth_before_insert_update ON Category;
 DROP FUNCTION IF EXISTS calculate_depth();
+
+CREATE TABLE images_product(
+    id UUID PRIMARY KEY,
+    product_id UUID NOT NULL,
+    image_url TEXT NOT NULL,
+    is_main BOOLEAN DEFAULT FALSE,
+    display_order INT NOT NULL DEFAULT 1,
+    CONSTRAINT fk_image_product FOREIGN KEY (product_id) REFERENCES Products (id) ON DELETE CASCADE
+);
+
+CREATE TABLE images_product_variations(
+    image_id UUID NOT NULL,
+    variation_id UUID NOT NULL,
+    PRIMARY KEY (variation_id, image_id),
+    CONSTRAINT fk_ipv_image FOREIGN KEY (image_id) REFERENCES images_product (id) ON DELETE CASCADE,
+    CONSTRAINT fk_ipv_variation FOREIGN KEY (variation_id) REFERENCES Product_variations (id) ON DELETE CASCADE
+);
+
+select * from images_product;
+select * from images_product_variations;
+
+select * from prices;
+
+select * from images_product;
+--consulta principal lo malo es que obtiene varias imágenes 
+select p.id,
+    p.name,
+    p.brand,
+    ip.image_url,
+    MIN(pr.price) price,
+    pr.currency,
+    s.store_name,
+    s.id store_id
+from products p
+left join images_product ip on p.id=ip.product_id
+left join product_variations pv on p.id=pv.product_id
+left join prices pr on pv.id=pr.variation_id
+left join product_seller ps on p.id=ps.product_id
+left join seller s on ps.seller_id=s.id
+where p.status = 1
+group by p.id, p.name, p.brand, ip.image_url, pr.currency, s.store_name, s.id
+order by p.name;
+
+select p.id,
+    p.name,
+    p.brand,
+    (SELECT img.image_url 
+     FROM images_product img 
+     WHERE img.product_id = p.id 
+     ORDER BY img.is_main DESC, img.id ASC 
+     LIMIT 1) as image_url,
+    MIN(pr.price) price,
+    pr.currency,
+    s.store_name,
+    s.id store_id
+from products p
+left join product_variations pv on p.id=pv.product_id
+left join prices pr on pv.id=pr.variation_id
+left join product_seller ps on p.id=ps.product_id
+left join seller s on ps.seller_id=s.id
+where p.status = 1
+group by p.id, p.name, p.brand, pr.currency, s.store_name, s.id
+order by p.name;
+
+select * from prices;
+select * from product_seller;
+
+-- Seleccion de productos con imágenes --->
+select p.*,
+    json_agg(json_build_object(
+        'image_url', i.image_url,
+        'is_main', i.is_main,
+        'display_order', i.display_order
+    )) FILTER (WHERE i.id IS NOT NULL) as images_product
+FROM products p
+LEFT JOIN images_product i on p.id = i.product_id
+LEFT JOIN product_seller ps ON p.id = ps.product_id
+WHERE ps.seller_id = '2064d62a-4978-4fe7-bef2-7690ff09bdc8'
+GROUP BY p.id
+
+select * from products;
+-- ver las variaciones 
+
+
+WITH stock_por_atributo AS (
+    -- 1. "Aplanamos" los atributos de todas las variaciones de un producto
+    SELECT 
+        v.product_id,
+        attr->>'name' as attr_name,
+        attr->>'value' as attr_value,
+        SUM(v.stock) as total_stock
+    FROM Product_variations v,
+    LATERAL jsonb_array_elements(v.attributes) AS attr
+    WHERE v.product_id = '3a70c5ad-5e65-45bb-a2e0-e8cda4efcbef' -- Filtrar por el producto deseado
+    GROUP BY v.product_id, attr_name, attr_value
+)
+-- 2. Cruzamos con la definición global de la tabla Products
+SELECT 
+    p.id,
+    p.name,
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'name', v_def->>'name',
+                'values', (
+                    SELECT jsonb_agg(
+                        jsonb_build_object(
+                            'value', val->>'value',
+                            -- Si el stock sumado para este valor es 0, inStock es false
+                            'inStock', COALESCE(s.total_stock, 0) > 0
+                        )
+                    )
+                    FROM jsonb_array_elements(v_def->'values') AS val
+                    LEFT JOIN stock_por_atributo s 
+                        ON s.attr_name = v_def->>'name' 
+                        AND s.attr_value = val->>'value'
+                )
+            )
+        )
+        FROM jsonb_array_elements(p.variations) AS v_def
+    ) AS variations_with_stock_status
+FROM Products p
+WHERE p.id = '3a70c5ad-5e65-45bb-a2e0-e8cda4efcbef';
+
+----- Otro pero ahora con imágenes, faltaría los precios también
+WITH stock_por_atributo AS (
+    -- 1. "Aplanamos" los atributos de todas las variaciones de un producto
+    SELECT 
+        v.product_id,
+        attr->>'name' as attr_name,
+        attr->>'value' as attr_value,
+        SUM(v.stock) as total_stock
+    FROM Product_variations v,
+    LATERAL jsonb_array_elements(v.attributes) AS attr
+    WHERE v.product_id = '3a70c5ad-5e65-45bb-a2e0-e8cda4efcbef' -- Filtrar por el producto deseado
+    GROUP BY v.product_id, attr_name, attr_value
+)
+-- 2. Cruzamos con la definición global de la tabla Products
+SELECT 
+    p.id,
+    p.name,
+    p.brand,
+    (SELECT img.image_url 
+    FROM images_product img 
+    WHERE img.product_id = p.id 
+    ORDER BY img.is_main DESC, img.id ASC 
+    LIMIT 1) as image_url,
+    MIN(pr.price) price,
+    pr.currency,
+    s.store_name,
+    s.id store_id,
+    json_agg(DISTINCT jsonb_build_object(
+        'image_url', i.image_url,
+        'is_main', i.is_main,
+        'display_order', i.display_order
+    )) FILTER (WHERE i.id IS NOT NULL) as images_product,
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'name', v_def->>'name',
+                'values', (
+                    SELECT jsonb_agg(
+                        jsonb_build_object(
+                            'value', val->>'value',
+                            -- Si el stock sumado para este valor es 0, inStock es false
+                            'inStock', COALESCE(s.total_stock, 0) > 0
+                        )
+                    )
+                    FROM jsonb_array_elements(v_def->'values') AS val
+                    LEFT JOIN stock_por_atributo s 
+                        ON s.attr_name = v_def->>'name' 
+                        AND s.attr_value = val->>'value'
+                )
+            )
+        )
+        FROM jsonb_array_elements(p.variations) AS v_def
+    ) AS variations_with_stock_status
+FROM Products p
+LEFT JOIN images_product i on p.id = i.product_id
+left join product_variations pv on p.id=pv.product_id
+left join prices pr on pv.id=pr.variation_id
+left join product_seller ps on p.id=ps.product_id
+left join seller s on ps.seller_id=s.id
+WHERE p.id = '3a70c5ad-5e65-45bb-a2e0-e8cda4efcbef' and p.status = 1
+group by p.id, p.name, p.brand, pr.currency, s.store_name, s.id;
+
+---- Lo mismo que lo de arriba pero más eficiente:
+WITH stock_por_atributo AS (
+    -- 1. "Aplanamos" los atributos de todas las variaciones de un producto
+    SELECT 
+        v.product_id,
+        attr->>'name' as attr_name,
+        attr->>'value' as attr_value,
+        SUM(v.stock) as total_stock
+    FROM Product_variations v,
+    LATERAL jsonb_array_elements(v.attributes) AS attr
+    WHERE v.product_id = '3a70c5ad-5e65-45bb-a2e0-e8cda4efcbef' -- Filtrar por el producto deseado
+    GROUP BY v.product_id, attr_name, attr_value
+)
+-- 2. Cruzamos con la definición global de la tabla Products
+SELECT 
+    p.id,
+    p.name,
+    p.brand,
+    p.description,
+    MIN(pr.price) price,
+    pr.currency,
+    s.store_name,
+    s.id store_id,
+    img_agg.lista_imagenes as images_product,
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'name', v_def->>'name',
+                'values', (
+                    SELECT jsonb_agg(
+                        jsonb_build_object(
+                            'value', val->>'value',
+                            -- Si el stock sumado para este valor es 0, inStock es false
+                            'in_stock', COALESCE(s.total_stock, 0) > 0
+                        )
+                    )
+                    FROM jsonb_array_elements(v_def->'values') AS val
+                    LEFT JOIN stock_por_atributo s 
+                        ON s.attr_name = v_def->>'name' 
+                        AND s.attr_value = val->>'value'
+                )
+            )
+        )
+        FROM jsonb_array_elements(p.variations) AS v_def
+    ) AS variations_with_stock_status
+FROM Products p
+LEFT JOIN LATERAL (
+    SELECT jsonb_agg(jsonb_build_object(
+        'image_url', img.image_url,
+        'is_main', img.is_main,
+        'display_order', img.display_order
+    )) as lista_imagenes
+    FROM images_product img
+    WHERE img.product_id = p.id
+) img_agg ON true
+left join product_variations pv on p.id=pv.product_id
+left join prices pr on pv.id=pr.variation_id
+left join product_seller ps on p.id=ps.product_id
+left join seller s on ps.seller_id=s.id
+WHERE p.id = '3a70c5ad-5e65-45bb-a2e0-e8cda4efcbef' and p.status = 1
+GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;

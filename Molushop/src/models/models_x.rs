@@ -8,6 +8,7 @@ use diesel::prelude::*;
 use chrono::NaiveDate;
 use chrono::NaiveDateTime;
 use diesel::sql_types::Integer;
+use diesel::pg::sql_types::Jsonb;
 use serde::Deserialize;
 use serde::Serialize;
 use uuid::Uuid;
@@ -265,6 +266,25 @@ pub struct IdentifierVariation {
 }
 
 #[derive(Insertable)]
+#[diesel(table_name = images_product)]
+pub struct NewImageProduct<'a> {
+    pub id:&'a Uuid,
+    pub product_id:&'a Uuid,
+    pub image_url:&'a str,
+    pub is_main:&'a bool,
+    pub display_order:&'a i32,
+}
+#[derive(Insertable)]
+#[diesel(table_name = images_product)]
+pub struct NewImageProduct2 {
+    pub id:Uuid,
+    pub product_id:Uuid,
+    pub image_url:String,
+    pub is_main:bool,
+    pub display_order:i32,
+}
+
+#[derive(Insertable)]
 #[diesel(table_name = product_variations_identifiers)]
 pub struct NewIdentifierVariation<'a> {
     pub product_variation_id:&'a Uuid,
@@ -371,4 +391,93 @@ pub struct NewUserSession2{
     pub ip_address: Option<IpNet>,
     pub user_agent: Option<String>,
     pub device_info: Option<String>,
+}
+/* 
+#[derive(Queryable, Debug,QueryableByName)]
+pub struct ProductCard1{
+    pub id:Uuid,
+    pub name :String,
+    pub brand : String,
+    pub image_url : String,
+    pub price : BigDecimal,
+    pub currency : String,
+    pub store_name : String,
+    pub store_id : Uuid
+}
+*/
+use diesel::sql_types::{Uuid as SqlUuid, Text, Nullable, Numeric,SmallInt,Bool,Json};
+use diesel::prelude::QueryableByName;
+
+#[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct ProductCard1 {
+    #[diesel(sql_type = SqlUuid)]
+    pub id: Uuid,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub name: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub brand: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub image_url: Option<String>,
+    #[diesel(sql_type = Nullable<Numeric>)]
+    pub price: Option<BigDecimal>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub currency: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub store_name: Option<String>,
+    #[diesel(sql_type = Nullable<SqlUuid>)]
+    pub store_id: Option<Uuid>,
+}
+#[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct ProductWithImages1{
+    #[diesel(sql_type = SqlUuid)]
+    pub id: Uuid,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub code: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub name: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub description: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub brand: Option<String>,
+    #[diesel(sql_type = Nullable<SmallInt>)]
+    pub status: Option<i16>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub specs: Option<Value>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub variations: Option<Value>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub variation_titles: Option<Value>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub images: Option<Value>,
+    #[diesel(sql_type = Nullable<Bool>)]
+    pub published: Option<bool>,
+    #[diesel(sql_type = Nullable<Json>)]
+    pub images_product: Option<Value>
+}
+
+#[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct ProductForPage1{
+    #[diesel(sql_type = SqlUuid)]
+    pub id: Uuid,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub name: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub brand: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub description: Option<String>,
+    #[diesel(sql_type = Nullable<Numeric>)]
+    pub price: Option<BigDecimal>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub currency: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub store_name: Option<String>,
+    #[diesel(sql_type = Nullable<SqlUuid>)]
+    pub store_id: Option<Uuid>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub images_product: Option<Value>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub variations_with_stock_status: Option<Value>
 }

@@ -16,13 +16,11 @@ use chrono::prelude::*;
 //    next service in chain as parameter.
 // 2. Middleware's call method gets called with normal request.
 #[derive(Clone)]
-pub struct Auth{
-    pool_data: web::Data<DbPool>
-}
+pub struct Auth;
 
-impl Auth{
-    pub fn new(pool_data:web::Data<DbPool>)->Self{
-        Self {pool_data}
+impl Auth {
+    pub fn new() -> Self {
+        Self
     }
 }
 
@@ -43,15 +41,13 @@ where
 
     fn new_transform(&self, service: S) -> Self::Future {
         ready(Ok(AuthMiddleware { 
-            service:Rc::new(service),
-            pool_data:self.pool_data.clone() 
+            service: Rc::new(service),
         }))
     }
 }
 #[derive(Clone)]
 pub struct AuthMiddleware<S> {
     service: Rc<S>,
-    pool_data:web::Data<DbPool>
 }
 
 #[derive(Debug,Clone)]
@@ -72,26 +68,22 @@ where
     forward_ready!(service);
 
     fn call(&self, req: ServiceRequest) -> Self::Future {
-
-        let pool = self.pool_data.get_ref().clone();
+        // Obtener el pool desde app_data
+        let pool = req.app_data::<web::Data<DbPool>>().cloned();
+        
         println!("Hi from start. You requested: {}", req.path());
-
-        //puedo llamar a una función que me haga todo lo que tengo que hacer
-        //let fut = self.service.call(req);
-        //let service = self.service.clone();
         let service = self.service.clone();
 
         Box::pin(async move {
-            let data_send = validate_cookie(&pool,&req).await;
+            if let Some(pool) = pool {
+                let data_send = validate_cookie(pool.get_ref(), &req).await;
 
-            if let Some(data_session) = data_send{
-                
-                req.extensions_mut().insert(data_session);
+                if let Some(data_session) = data_send {
+                    req.extensions_mut().insert(data_session);
+                }
             }
 
-            //let res = fut.await?;
             let res = service.call(req).await?;
-
             println!("Hi from response");
             Ok(res)
         })

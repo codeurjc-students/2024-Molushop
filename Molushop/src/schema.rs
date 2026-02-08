@@ -36,6 +36,27 @@ diesel::table! {
 }
 
 diesel::table! {
+    cart_products (id) {
+        id -> Uuid,
+        cart_id -> Nullable<Uuid>,
+        product_var_id -> Nullable<Uuid>,
+        quantity -> Int4,
+        price_at_time_of_addition -> Nullable<Numeric>,
+        added_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    carts (id) {
+        id -> Uuid,
+        user_id -> Nullable<Uuid>,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+        status -> Int2,
+    }
+}
+
+diesel::table! {
     category (id) {
         #[max_length = 10]
         id -> Varchar,
@@ -107,6 +128,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    favorites (id) {
+        id -> Uuid,
+        user_id -> Nullable<Uuid>,
+        product_var_id -> Nullable<Uuid>,
+        added_at -> Timestamptz,
+        #[max_length = 255]
+        notes -> Varchar,
+    }
+}
+
+diesel::table! {
     identifiers_base (id) {
         id -> Int4,
         #[max_length = 255]
@@ -119,6 +151,23 @@ diesel::table! {
         id -> Int4,
         #[max_length = 255]
         value -> Varchar,
+    }
+}
+
+diesel::table! {
+    images_product (id) {
+        id -> Uuid,
+        product_id -> Uuid,
+        image_url -> Text,
+        is_main -> Nullable<Bool>,
+        display_order -> Int4,
+    }
+}
+
+diesel::table! {
+    images_product_variations (variation_id, image_id) {
+        image_id -> Uuid,
+        variation_id -> Uuid,
     }
 }
 
@@ -172,6 +221,19 @@ diesel::table! {
 }
 
 diesel::table! {
+    product_summary_ratings (product_id) {
+        product_id -> Uuid,
+        star_1_count -> Int4,
+        star_2_count -> Int4,
+        star_3_count -> Int4,
+        star_4_count -> Int4,
+        star_5_count -> Int4,
+        total_reviews -> Int4,
+        average_rating -> Numeric,
+    }
+}
+
+diesel::table! {
     product_variations (id) {
         id -> Uuid,
         product_id -> Uuid,
@@ -215,6 +277,17 @@ diesel::table! {
 }
 
 diesel::table! {
+    ratings (rating_id) {
+        rating_id -> Int4,
+        product_id -> Uuid,
+        user_id -> Uuid,
+        rating_value -> Int2,
+        comment -> Nullable<Text>,
+        created_at -> Nullable<Timestamptz>,
+    }
+}
+
+diesel::table! {
     seller (id) {
         id -> Uuid,
         rating -> Int4,
@@ -245,18 +318,29 @@ diesel::table! {
 
 diesel::joinable!(admins -> base_user (id));
 diesel::joinable!(buyer -> base_user (id));
+diesel::joinable!(cart_products -> carts (cart_id));
+diesel::joinable!(cart_products -> product_variations (product_var_id));
+diesel::joinable!(carts -> base_user (user_id));
 diesel::joinable!(category_product -> category (category_id));
 diesel::joinable!(category_product -> products (product_id));
 diesel::joinable!(customer_address -> base_user (customer_id));
 diesel::joinable!(discount_history -> product_variations (variation_id));
 diesel::joinable!(discounts -> product_variations (variation_id));
+diesel::joinable!(favorites -> base_user (user_id));
+diesel::joinable!(favorites -> product_variations (product_var_id));
+diesel::joinable!(images_product -> products (product_id));
+diesel::joinable!(images_product_variations -> images_product (image_id));
+diesel::joinable!(images_product_variations -> product_variations (variation_id));
 diesel::joinable!(price_history -> product_variations (variation_id));
 diesel::joinable!(prices -> product_variations (variation_id));
 diesel::joinable!(product_base_indentifiers -> products (product_id));
 diesel::joinable!(product_seller -> products (product_id));
 diesel::joinable!(product_seller -> seller (seller_id));
+diesel::joinable!(product_summary_ratings -> products (product_id));
 diesel::joinable!(product_variations -> products (product_id));
 diesel::joinable!(product_variations_identifiers -> product_variations (product_variation_id));
+diesel::joinable!(ratings -> base_user (user_id));
+diesel::joinable!(ratings -> products (product_id));
 diesel::joinable!(seller -> base_user (id));
 diesel::joinable!(user_sessions -> base_user (user_id));
 
@@ -264,21 +348,28 @@ diesel::allow_tables_to_appear_in_same_query!(
     admins,
     base_user,
     buyer,
+    cart_products,
+    carts,
     category,
     category_product,
     customer_address,
     discount_history,
     discounts,
+    favorites,
     identifiers_base,
     identifiers_var,
+    images_product,
+    images_product_variations,
     price_history,
     prices,
     product_attributes,
     product_base_indentifiers,
     product_seller,
+    product_summary_ratings,
     product_variations,
     product_variations_identifiers,
     products,
+    ratings,
     seller,
     user_sessions,
 );

@@ -1,6 +1,32 @@
 body{
     font-family: 'Roboto', sans-serif;
 }
+
+button {
+  font: inherit;       /* Evita que el botón use una fuente distinta al resto del texto */
+  color: inherit;      /* Hereda el color del padre */
+  background: none;    /* Quita el gris por defecto */
+  border: none;        /* Quita el borde 3D antiguo */
+  padding: 0;          /* Quita paddings extraños de navegadores viejos */
+  cursor: pointer;     /* Asegura que siempre aparezca la "mano" */
+}
+
+button:disabled {
+  cursor: not-allowed; /* Feedback visual universal para botones bloqueados */
+}
+
+.content-wrapper{
+    max-width: 1500px; /* Establece tu ancho máximo deseado */
+    margin: 0 auto; /* Centra el contenedor en la pantalla */
+     /* Padding para los márgenes laterales en móvil */
+}
+.full-width-header,
+.full-width-footer {
+    /* Por defecto, ya ocupan el 100% del ancho del body/viewport */
+    width: 100%;
+    /* Puedes añadir aquí estilos de fondo, colores, etc. */
+}
+
 .disabled{
     display:none;
 }

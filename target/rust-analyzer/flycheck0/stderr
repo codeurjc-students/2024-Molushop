@@ -1,0 +1,2 @@
+warning: unused manifest key: dependencies.rinja.feature
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.70s

@@ -350,7 +350,7 @@ CREATE INDEX idx_user_sessions_expires_at ON user_sessions (expires_at);
 CREATE INDEX idx_user_sessions_is_revoked ON user_sessions (is_revoked);
 
 -- Trigger para actualizar automáticamente 'updated_at'
-CREATE OR REPLACE FUNCTION update_timestamp()a
+CREATE OR REPLACE FUNCTION update_timestamp()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -388,4 +388,42 @@ create table favorites(
     product_var_id UUID REFERENCES Product_variations(id) ON DELETE CASCADE,
     added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     notes VARCHAR(255) NOT NULL UNIQUE
-)
+);
+
+CREATE TABLE ratings (
+    rating_id SERIAL PRIMARY KEY,
+    product_id UUID NOT NULL REFERENCES products (id),
+    user_id UUID NOT NULL REFERENCES base_user (id),
+    rating_value SMALLINT NOT NULL,
+    comment TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CHECK (rating_value BETWEEN 1 AND 5)
+);
+
+CREATE TABLE product_summary_ratings (
+    product_id UUID PRIMARY KEY REFERENCES products (id),
+    star_1_count INTEGER NOT NULL DEFAULT 0,
+    star_2_count INTEGER NOT NULL DEFAULT 0,
+    star_3_count INTEGER NOT NULL DEFAULT 0,
+    star_4_count INTEGER NOT NULL DEFAULT 0,
+    star_5_count INTEGER NOT NULL DEFAULT 0,
+    total_reviews INTEGER NOT NULL DEFAULT 0,
+    average_rating NUMERIC(3, 2) NOT NULL DEFAULT 0.00
+);
+
+CREATE TABLE images_product(
+    id UUID PRIMARY KEY,
+    product_id UUID NOT NULL,
+    image_url TEXT NOT NULL,
+    is_main BOOLEAN DEFAULT FALSE,
+    display_order INT NOT NULL DEFAULT 1,
+    CONSTRAINT fk_image_product FOREIGN KEY (product_id) REFERENCES Products (id) ON DELETE CASCADE
+);
+
+CREATE TABLE images_product_variations(
+    image_id UUID NOT NULL,
+    variation_id UUID NOT NULL,
+    PRIMARY KEY (variation_id, image_id),
+    CONSTRAINT fk_ipv_image FOREIGN KEY (image_id) REFERENCES images_product (id) ON DELETE CASCADE,
+    CONSTRAINT fk_ipv_variation FOREIGN KEY (variation_id) REFERENCES Product_variations (id) ON DELETE CASCADE
+);

@@ -96,12 +96,12 @@
                     <div class="image-gallery new-images">
                     </div>
                     <div class="image-gallery base-images">
-                        {% if images.images.len()==0 %}
+                        {% if images.len()==0 %}
                             <p class="no-images">No hay imágenes disponibles</p>
                         {% else %}
-                            {% for image in images.images %}
+                            {% for image in images %}
                                 <div class="image-container">
-                                    <img src="{{image.url}}" alt="Imagen del producto">
+                                    <img src="{{image.image_url}}" alt="Imagen del producto">
                                     <div class="image-overlay">
                                         <button class="delete-btn" type="button">
                                             <i class="fas fa-trash"></i>

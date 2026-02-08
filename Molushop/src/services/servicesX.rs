@@ -1,5 +1,6 @@
 
 
+//use diesel::RunQueryDsl;
 use diesel::dsl::exists;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
@@ -13,7 +14,7 @@ use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
 use crate::models;
-use crate::models::models_x::{Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation,UserAuth,NewUserSession};
+use crate::models::models_x::{ProductForPage1,ProductWithImages1,Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation,UserAuth,NewUserSession,ProductCard1};
 use crate::models::get_product::{GetProductForm,Variation};
 use crate::models::product_variation;
 use crate::schema::base_user::password;
@@ -443,6 +444,7 @@ pub async fn update_image(id_producto:&Uuid,tipo:&String,image_url:&String,pool:
 }
 
 use crate::controllers::components::edit_product_controller::ImageData;
+use crate::controllers::components::edit_product_controller::ImageData2;
 
 pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut pool.get().await.unwrap();
@@ -474,6 +476,24 @@ pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], po
     
     result
 }
+use crate::models::models_x::NewImageProduct;
+use crate::models::models_x::NewImageProduct2;
+pub async fn update_multiple_images_2(image_products:Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
+    let connection = &mut pool.get().await.unwrap();
+    use crate::schema::images_product::dsl::*;
+    let result = insert_into(images_product).values(image_products).execute(connection).await;
+    match result{
+        Ok(num)=>{
+            return Ok(num)
+        },
+        Err(e)=>{
+            return Err(e);
+        }
+    }
+}
+
+
+//pub async fn get_product_cards() -> Rersult<>
 
 pub async fn delete_all_images(id_producto: &Uuid, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut pool.get().await.unwrap();
@@ -1033,3 +1053,116 @@ pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Err
     result
 }
 
+pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
+    let connection = &mut pool.get().await.unwrap();
+    let results = sql_query(r#"
+        select p.id,
+            p.name,
+            p.brand,
+            (SELECT img.image_url 
+            FROM images_product img 
+            WHERE img.product_id = p.id 
+            ORDER BY img.is_main DESC, img.id ASC 
+            LIMIT 1) as image_url,
+            MIN(pr.price) price,
+            pr.currency,
+            s.store_name,
+            s.id store_id
+        from products p
+        left join product_variations pv on p.id=pv.product_id
+        left join prices pr on pv.id=pr.variation_id
+        left join product_seller ps on p.id=ps.product_id
+        left join seller s on ps.seller_id=s.id
+        where p.status = 1
+        group by p.id, p.name, p.brand, pr.currency, s.store_name, s.id
+        order by p.name;
+    "#)
+        .load::<ProductCard1>(connection).await?;
+    Ok(results)
+}
+
+pub async fn get_product_with_images1(user_id: &Uuid, product_id: &Uuid, pool:&DbPool)->Result<ProductWithImages1,Error>{
+    let connection = &mut pool.get().await.unwrap();
+    let results = sql_query(r#"
+        select p.*,
+            json_agg(json_build_object(
+                'image_url', i.image_url,
+                'is_main', i.is_main,
+                'display_order', i.display_order
+            )) FILTER (WHERE i.id IS NOT NULL) as images_product
+        FROM products p
+        LEFT JOIN images_product i on p.id = i.product_id
+        LEFT JOIN product_seller ps on p.id = ps.product_id
+        WHERE p.id = $1
+            AND ps.seller_id = $2
+        GROUP BY p.id
+    "#).bind::<diesel::sql_types::Uuid,_>(product_id)
+        .bind::<diesel::sql_types::Uuid,_>(user_id)
+        .get_result::<ProductWithImages1>(connection).await?;
+    Ok(results)
+}
+
+pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<ProductForPage1,Error>{
+    let connection = &mut pool.get().await.unwrap();
+    let results = sql_query(r#"
+        WITH stock_por_atributo AS (
+            SELECT 
+                v.product_id,
+                attr->>'name' as attr_name,
+                attr->>'value' as attr_value,
+                SUM(v.stock) as total_stock
+            FROM Product_variations v,
+            LATERAL jsonb_array_elements(v.attributes) AS attr
+            WHERE v.product_id = $1
+            GROUP BY v.product_id, attr_name, attr_value
+        )
+        SELECT 
+            p.id,
+            p.name,
+            p.brand,
+            p.description,
+            MIN(pr.price) price,
+            pr.currency,
+            s.store_name,
+            s.id store_id,
+            img_agg.lista_imagenes as images_product,
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'name', v_def->>'name',
+                        'values', (
+                            SELECT jsonb_agg(
+                                jsonb_build_object(
+                                    'value', val->>'value',
+                                    'in_stock', COALESCE(s.total_stock, 0) > 0
+                                )
+                            )
+                            FROM jsonb_array_elements(v_def->'values') AS val
+                            LEFT JOIN stock_por_atributo s 
+                                ON s.attr_name = v_def->>'name' 
+                                AND s.attr_value = val->>'value'
+                        )
+                    )
+                )
+                FROM jsonb_array_elements(p.variations) AS v_def
+            ) AS variations_with_stock_status
+        FROM Products p
+        LEFT JOIN LATERAL (
+            SELECT jsonb_agg(jsonb_build_object(
+                'image_url', img.image_url,
+                'is_main', img.is_main,
+                'display_order', img.display_order
+            )) as lista_imagenes
+            FROM images_product img
+            WHERE img.product_id = p.id
+        ) img_agg ON true
+        left join product_variations pv on p.id=pv.product_id
+        left join prices pr on pv.id=pr.variation_id
+        left join product_seller ps on p.id=ps.product_id
+        left join seller s on ps.seller_id=s.id
+        WHERE p.id = $1 and p.status = 1
+        GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;
+    "#).bind::<diesel::sql_types::Uuid,_>(product_id)
+        .get_result::<ProductForPage1>(connection).await?;
+    Ok(results)
+}

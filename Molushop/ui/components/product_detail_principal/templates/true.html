@@ -1,0 +1,75 @@
+<div class="product-detail-principal">
+    <div class="image-display">
+        <div class="container-image-display">
+            <div class="all-images-container">
+                <div class="all-images">
+                {% for image in product_data.images_product %}
+                    <div class="image-s">
+                        <img class="image-mini" src="{{image.image_url}}" alt="mini">
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+            <div class="main-image-container">
+                {% if product_data.images_product.len() > 0 %}
+                    <img class="image-principal" src="{{product_data.images_product[0].image_url}}" alt="{{product_data.name}}">
+                {% else %}
+                    <img class="image-principal" src="https://tfg-vik.s3.eu-north-1.amazonaws.com/1752443059deadpool-funko.jpg" alt="Nothing">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="product-data">
+        <div class="title">
+            <span>{{product_data.name}}</span>
+        </div>
+        <div class="rating-container">
+            <svg aria-hidden="true" focusable="false" class="rating">
+                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
+                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
+                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
+                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
+                <use href="/assets/svg/icons/stars.svg#stars-half-star" />
+            </svg>
+        </div>
+        <div class="price">
+            <span>{{product_data.price}}</span>
+            <span>{{product_data.currency}}</span>
+        </div>
+        <div class="variations">
+            {% for variation in product_data.variations_with_stock_status %}
+            <div class="variation">
+                <div class="variation-title">
+                    <span>{{variation.name}}: </span>
+                </div>
+                <div class="variation-select" role="radiogroup" aria-label="Selecciona una variante">
+                    {% for element in variation.values %}
+                    <div class="variation-element">
+                        <button class="variation-name-cont" aria-checked="false" role="radio" {% if !element.in_stock %}disabled{% endif %}>
+                            <span>{{element.value}}</span>
+                        </button>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor%}
+        </div>
+        <div class="add-to-cart">
+            <div class="quantity-product">
+                <div class="quantity-product-cont">
+                    <div class="minus-cont more-less-cont">
+                        <span class="more-less minus">-</span>
+                    </div>
+                    <input type="number" min="0" max="99" class="input-no-style" value="1" maxlength="2"
+                        oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
+                    <div class="plus-cont more-less-cont">
+                        <span class="more-less plus">+</span>
+                    </div>
+                </div>
+            </div>
+            <div class="button-container-add">
+                {% include "components/button_1/button_1.html"%}
+            </div>
+        </div>
+    </div>
+</div>

@@ -14,6 +14,7 @@ use rinja::Template;
 use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
 use futures_util::future::join_all;
+use crate::models::models_x::{ProductCard1};
 
 //esta especie de contructor tendrá una lista de uuid que se quieran mostrar 
 pub async fn get_product_card_group_object(ids:Vec<&Uuid>,pool:&DbPool)->Vec<ProductCardData>{
@@ -39,10 +40,37 @@ pub async fn get_product_card_group_object_concurrent(
     join_all(futures).await
 }
 //luego se podrá 
+pub async fn get_product_card_group_object_all(pool:&DbPool) -> Vec<ProductCardData>{
+    let data_result = get_product_cards1(&pool).await;
+    match data_result{
+        Ok(data) => {
+            let product_card_data: Vec<ProductCardData> = data.into_iter().map(ProductCardData::from).collect();
+            return product_card_data
+        },
+        Err(e) => {
+            println!("Error getting the product cards!! --> {}",e);
+            return Vec::new()
+        }
+    }
+}
 
 pub async fn get_product_card_group_render(ids:Vec<&Uuid>,pool:&DbPool)->String{
     
     ProductCardGroup{
         products:get_product_card_group_object_concurrent(ids,pool).await
     }.render().unwrap()
+}
+
+pub async fn get_product_card_group_render_all(pool:&DbPool) -> String{
+    //Siempre para los result hacer un match, nunca usar unwrap() --> mala practica
+    let object_product_card = ProductCardGroup{
+        products: get_product_card_group_object_all(pool).await
+    };
+    match object_product_card.render(){
+        Ok(render) => render,
+        Err(e) => {
+            println!("Error en el renderizado de ProductCardGroup! --> {}",e);
+            return "".to_string()
+        }
+    }
 }

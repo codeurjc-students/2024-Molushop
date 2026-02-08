@@ -78,9 +78,9 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
     // y colocas los componentes que quieras 
     //renderizar la pagina HOME
     
-    let id = Uuid::parse_str("5b45ee44-faf4-4939-baf5-eca379cea1e9").unwrap();
-    let id2 = Uuid::parse_str("69ebb636-70f4-4ebc-973d-411231185365").unwrap();
-    let id3 = Uuid::parse_str("c477ee20-0640-4a97-ba8f-5ad077e17324").unwrap();
+    let id = Uuid::parse_str("6b495c7c-a550-4e78-b961-2169e31a6158").unwrap();
+    let id2 = Uuid::parse_str("1ec06324-aa8d-45d8-acb2-91b7c32b3954").unwrap();
+    let id3 = Uuid::parse_str("45d7a6d2-ecf3-479e-974e-f15bc158810e").unwrap();
     let vector_refs: Vec<&Uuid> = vec![&id, &id2, &id3];
 
     //hacer el render directamente o 
@@ -90,9 +90,11 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
         page_name:"Home".to_string(),
         product:get_product_card_object(&id, &pool).await,
         pcard1:get_product_card_group_render(vector_refs, &pool).await,
+        group_cards2:get_product_card_group_render_all(&pool).await,
         nav1:get_nav1_object(nombre_aux),
         login_base_data:login_base_service::get_login_base_model_data()
     }.render().unwrap();
+    
 
     HttpResponse::Ok().body(home_render)
 

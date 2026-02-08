@@ -4,3 +4,4 @@ pub mod login_base_service;
 pub mod product_card_service;
 pub mod product_card_group_service;
 pub mod nav1_service;
+pub mod product_detail_principal_service;

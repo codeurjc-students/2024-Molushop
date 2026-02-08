@@ -11,6 +11,7 @@ pub struct Home{
     pub page_name:String,
     pub product:ProductCardData,
     pub pcard1:String,
+    pub group_cards2:String,
     pub nav1:Nav1Data,
     pub login_base_data:LoginProductData
 }

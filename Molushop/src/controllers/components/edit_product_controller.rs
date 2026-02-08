@@ -13,7 +13,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 
 use super::scope::SCOPE_COMPONENTS;
-use crate::services::servicesX::{delete_seller_product,edit_product_general,update_image, update_multiple_images,delete_all_images};
+use crate::services::servicesX::{delete_seller_product,edit_product_general,update_image, update_multiple_images_2,delete_all_images};
 type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
@@ -112,6 +112,12 @@ pub struct ImageData {
     pub url: String,
 }
 
+#[derive(Debug)]
+pub struct ImageData2{
+    pub url: String,
+    pub main: bool,
+}
+use crate::models::models_x::NewImageProduct2;
 #[post("/edit-images/{product_id}")]
 async fn edit_images(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,
     MultipartForm(form): MultipartForm<UploadForm>,pool_data: web::Data<DbPool>) -> HttpResponse { 
@@ -119,12 +125,16 @@ async fn edit_images(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,
     let pool = pool_data.get_ref();
     let client_data_x = client_data.get_ref().as_ref();
     let mut vec_images:Vec<ImageData> = Vec::new();
+    let mut vec_images2:Vec<NewImageProduct2> = Vec::new();
 
     for f in form.files {
         let uploaded_file = client_data_x.upload(&f,"").await;
-        vec_images.push(ImageData{
-            tipo: "principal".to_string(),
-            url: uploaded_file.s3_url,
+        vec_images2.push(NewImageProduct2{
+            id: Uuid::new_v4(),
+            product_id: product_id.clone(),
+            image_url: uploaded_file.s3_url.clone(),
+            is_main: false,
+            display_order: 1
         });
         println!("Archivo subido!");
     }
@@ -149,7 +159,7 @@ async fn edit_images(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,
         },
     ];
     */
-    let result_multiple = update_multiple_images(&product_id, &vec_images, pool).await;
+    let result_multiple = update_multiple_images_2(vec_images2, pool).await;
     match result_multiple{
         Ok(_) => {
             println!("Producto editado correctamente");

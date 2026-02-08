@@ -6,7 +6,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra sutil para un efecto 3D */
     transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave al pasar el ratón */
     max-width: 300px; /* Ancho máximo de la tarjeta para diseño responsivo */
-    margin: 15px; /* Margen exterior para separar las tarjetas si hay varias */
+    /*margin: 15px;  Margen exterior para separar las tarjetas si hay varias */
     background-color: #fff; /* Fondo blanco */
     display: flex; /* Usamos flexbox para organizar el contenido */
     flex-direction: column; /* Apila los elementos verticalmente */
@@ -28,8 +28,9 @@
 
 /* Estilos para la imagen del producto */
 .product-card img {
-    width: 100%; /* La imagen ocupa todo el ancho del contenedor */
-    height: 200px; /* Altura fija para las imágenes, puedes ajustarla */
+    min-height: 60%;
+    height: 60%; /* La imagen ocupa todo el ancho del contenedor */
+    /*height: 200px;  Altura fija para las imágenes, puedes ajustarla */
     object-fit: cover; /* Recorta la imagen para que cubra el área sin distorsionarse */
     border-bottom: 1px solid #e0e0e0; /* Borde inferior para separar de la info */
 }

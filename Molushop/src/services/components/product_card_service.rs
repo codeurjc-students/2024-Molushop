@@ -1,6 +1,7 @@
 
 use crate::models::components::product_card_model::*;
 use crate::services::servicesX::*;
+use crate::constants::urls::PRODUCT_URL_PREFIX;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
@@ -57,7 +58,8 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     ProductCardData{
         name:product.name,
         image:img_url,
-        price:precio
+        price:precio,
+        url: format!("{}{}",PRODUCT_URL_PREFIX,product.id)
     }
 }
 pub async fn get_product_card_render(id:&Uuid,pool:&DbPool)->String{
