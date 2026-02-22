@@ -1,4 +1,4 @@
-use rinja::Template;
+use askama::Template;
 use crate::models::{
     data_transfer_objects::product::{Product,RoutesProductPanelGroup},
     models_x::ProductForPage1

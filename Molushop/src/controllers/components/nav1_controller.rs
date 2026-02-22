@@ -7,7 +7,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::models::components::nav1_model::*;
 use super::scope::SCOPE_COMPONENTS;
-use rinja::Template;
+use askama::Template;
 use crate::services::components::nav1_service::*;
 
 static SCOPE: &str = "/nav1";

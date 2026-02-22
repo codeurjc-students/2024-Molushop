@@ -5,7 +5,7 @@ use uuid::Uuid;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
-use rinja::Template;
+use askama::Template;
 
 use crate::models::pages_models::master::es::cart_page_model::*;
 use crate::services::components::{

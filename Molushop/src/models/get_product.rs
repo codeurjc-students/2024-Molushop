@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value; 
 use std::fmt;
-use rinja::filters::HtmlSafe;
+use askama::filters::HtmlSafe;
 use crate::controllers::createProduct::product;
 use crate::servicesX::{combine,combine_tail_recursive};
 

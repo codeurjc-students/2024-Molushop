@@ -1,4 +1,4 @@
-use rinja::Template;
+use askama::Template;
 use super::models_x::{Category2,Category};
 use super::components::create_product::Routes;
 use super::get_product::GetProductForm;

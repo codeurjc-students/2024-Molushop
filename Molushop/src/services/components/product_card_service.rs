@@ -6,7 +6,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 type DbPool = Pool<AsyncPgConnection>;
-use rinja::Template;
+use askama::Template;
 use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
 //le pasamos los parámetros que necesita?

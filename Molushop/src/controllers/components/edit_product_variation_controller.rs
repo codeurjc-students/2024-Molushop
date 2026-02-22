@@ -2,7 +2,7 @@ use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Resp
 use bigdecimal::BigDecimal;
 use diesel::result;
 use lazy_static::lazy_static;
-use rinja::Template;
+use askama::Template;
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;

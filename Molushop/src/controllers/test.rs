@@ -1,6 +1,6 @@
 use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
 use lazy_static::lazy_static;
-use rinja::Template;
+use askama::Template;
 use uuid::Uuid;
 
 use crate::schema::seller;

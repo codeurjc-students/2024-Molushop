@@ -1,4 +1,4 @@
-use rinja::Template;
+use askama::Template;
 use crate::models::components::product_card_model::*;
 
 #[derive(Template,Clone,Debug)]

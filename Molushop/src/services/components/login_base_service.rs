@@ -1,7 +1,7 @@
 use crate::models::components::login_base_model::*;
 use crate::controllers::components::login_base_controller::ROUTES;
 use crate::schema::base_user::password;
-use rinja::Template;
+use askama::Template;
 use crate::utils::validations::*;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;

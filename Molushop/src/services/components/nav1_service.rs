@@ -1,4 +1,4 @@
-use rinja::Template;
+use askama::Template;
 
 use crate::models::components::nav1_model::*;
 use crate::controllers::components::nav1_controller::ROUTES;

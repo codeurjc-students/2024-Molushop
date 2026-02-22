@@ -10,7 +10,7 @@ use crate::services::{
     servicesX::*,
     components::product_card_service::*
 };
-use rinja::Template;
+use askama::Template;
 
 pub async fn get_product_object(product_id:&Uuid,pool:&DbPool) -> ProductDetailPrincipalData{
     //Primero obtener el objeto de la base de datos

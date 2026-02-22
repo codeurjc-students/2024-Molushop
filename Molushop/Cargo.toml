@@ -29,6 +29,7 @@ thiserror = "2.0.12"
 pasetors = "0.7.4"
 futures-util = "0.3.31"
 ipnet = "2.11.0"
+askama = { version = "0.15.4", feature = "serde_json"}
 
 [dependencies.uuid]
 version = "1.10.0"

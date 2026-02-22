@@ -11,7 +11,7 @@ use std::{str::FromStr, sync::Mutex};
 use std::sync::Arc;
 
 //importante importar Template
-use rinja::Template;
+use askama::Template;
 
 use actix_multipart::{
     form::{

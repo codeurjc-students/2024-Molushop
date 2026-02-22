@@ -42,14 +42,26 @@
                 <div class="variation-title">
                     <span>{{variation.name}}: </span>
                 </div>
-                <div class="variation-select" role="radiogroup" aria-label="Selecciona una variante">
-                    {% for element in variation.values %}
+                <div class="variation-select">
+                {% for element in variation.values %}
                     <div class="variation-element">
-                        <button class="variation-name-cont" aria-checked="false" role="radio" {% if !element.in_stock %}disabled{% endif %}>
+                        {# El ID debe ser único, por eso combinamos nombre de variación y valor #}
+                        {% set input_id = "var-" ~ variation.name ~ "-" ~ element.value %}
+                        
+                        <input 
+                            type="radio" 
+                            name="variation-{{variation.name}}" 
+                            id="{{ input_id }}" 
+                            value="{{ element.value }}"
+                            class="variation-input"
+                            {% if !element.in_stock %}disabled{% endif %}
+                        >
+                        
+                        <label for="{{ input_id }}" class="variation-name-cont" {% if !element.in_stock %}disabled{% endif %}>
                             <span>{{element.value}}</span>
-                        </button>
+                        </label>
                     </div>
-                    {% endfor %}
+                {% endfor %}
                 </div>
             </div>
             {% endfor%}

@@ -1,7 +1,7 @@
 use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
 use diesel::result;
 use lazy_static::lazy_static;
-use rinja::Template;
+use askama::Template;
 use uuid::Uuid;
 
 use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};

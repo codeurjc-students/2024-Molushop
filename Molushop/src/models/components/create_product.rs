@@ -1,5 +1,5 @@
 // todos los modelos de la pagina que se harán en el context de create product se harán aquí
-use rinja::Template;
+use askama::Template;
 use serde::Serialize;
 use super::super::models_x::{Category2,Category};
 use super::super::extra::{BaseSpecs};

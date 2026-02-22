@@ -6,7 +6,7 @@ use uuid::Uuid;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
-use rinja::Template;
+use askama::Template;
 use crate::middleware::auth::Auth;
 //scope ??
 //master/es/home

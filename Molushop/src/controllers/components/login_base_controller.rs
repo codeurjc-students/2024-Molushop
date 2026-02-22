@@ -4,7 +4,7 @@ use aws_sdk_s3::primitives::event_stream::Message;
 use bigdecimal::BigDecimal;
 use diesel::result;
 use lazy_static::lazy_static;
-use rinja::Template;
+use askama::Template;
 use uuid::Uuid;
 use ipnet::IpNet;
 use serde::{Deserialize, Serialize};

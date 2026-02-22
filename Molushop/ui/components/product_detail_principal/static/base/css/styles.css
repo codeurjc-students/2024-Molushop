@@ -85,11 +85,11 @@
         .variations{
             display: flex;
             flex-direction: column;
-            gap:0.7em;
+            gap:1em;
             .variation{
                 display: flex;
                 flex-direction: column;
-                gap: 0.5em;
+                gap: 1em;
                 .variation-title{
 
                 }
@@ -97,12 +97,25 @@
                     display: flex;
                     gap:5px;
                     .variation-element{
+                        .variation-input{
+                            /* 1. Lo sacamos del flujo visual */
+                            position: absolute;     
+                            /* 2. Lo hacemos invisible */
+                            opacity: 0;
+                            /* 3. Evitamos que ocupe espacio o interfiera con clics */
+                            width: 0;
+                            height: 0;
+                            pointer-events: none;
+                        }
                         .variation-name-cont{
                             padding: 0.5em 0.7em;
                             border-radius: 1em;
                             border: 3px solid #d8efff;
                         }
                         .variation-name-cont:not([disabled]):hover{
+                            border-color: aquamarine;
+                        }
+                        .variation-input:checked + .variation-name-cont {
                             border-color: aquamarine;
                         }
                         .variation-name-cont[disabled]{

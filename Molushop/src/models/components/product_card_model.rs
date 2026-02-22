@@ -1,4 +1,4 @@
-use rinja::Template;
+use askama::Template;
 
 use serde::{Serialize,Deserialize};
 use uuid::Uuid;

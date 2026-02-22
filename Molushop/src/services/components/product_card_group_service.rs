@@ -10,7 +10,7 @@ use crate::services::{
     servicesX::*,
     components::product_card_service::*
 };
-use rinja::Template;
+use askama::Template;
 use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
 use futures_util::future::join_all;

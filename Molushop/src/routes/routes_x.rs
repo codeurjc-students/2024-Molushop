@@ -21,7 +21,7 @@ use crate::models::models_x::*;
 //use crate::models::pages::{CategoryTemplate,EditProductTemplate,TemplateEjemplo,ProductsPanelPrueba,Product};
 use crate::models::pages::*;
 
-use rinja::Template;
+use askama::Template;
 
 use crate::controllers::createProduct::create_product_controllers::ROUTES;
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
@@ -32,7 +32,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use std::time::Instant; //para medir el tiempo de ejecución de una función
 /* 
-use rinja::Template;
+use askama::Template;
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "category.html")]

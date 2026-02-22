@@ -5,7 +5,7 @@ use uuid::Uuid;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
-use rinja::Template;
+use askama::Template;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);

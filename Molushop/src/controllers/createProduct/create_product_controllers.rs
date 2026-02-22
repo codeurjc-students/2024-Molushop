@@ -9,7 +9,7 @@ use serde::Serialize;
 use std::{str::FromStr, sync::Mutex};
 use std::sync::Arc;
 
-use rinja::Template;
+use askama::Template;
 
 use uuid::Uuid;
 

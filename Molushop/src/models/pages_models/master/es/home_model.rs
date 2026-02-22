@@ -1,5 +1,5 @@
 //vam
-use rinja::Template;
+use askama::Template;
 use crate::models::components::product_card_model::ProductCardData;
 use crate::models::components::nav1_model::*;
 use crate::models::components::login_base_model::LoginProductData;
