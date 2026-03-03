@@ -461,3 +461,91 @@ LEFT JOIN product_seller ps ON p.id = ps.product_id
 LEFT JOIN seller s ON ps.seller_id = s.id
 WHERE p.id = '01ab75de-8d9f-41d6-acb5-0a42d7d5d6bc' AND p.status = 1
 GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;
+--lo mismo pero con
+WITH variacion_prioritaria AS (
+    SELECT v.id, v.attributes, pr.price, pr.currency
+    FROM Product_variations v
+    LEFT JOIN prices pr ON v.id = pr.variation_id
+    WHERE v.product_id = '01ab75de-8d9f-41d6-acb5-0a42d7d5d6bc' AND v.status = 1
+    ORDER BY (v.stock > 0) DESC, v.stock DESC 
+    LIMIT 1
+),
+stock_por_atributo AS (
+    SELECT 
+        v.product_id,
+        attr->>'name' as attr_name,
+        attr->>'value' as attr_value,
+        SUM(v.stock) as total_stock
+    FROM Product_variations v,
+    LATERAL jsonb_array_elements(v.attributes) AS attr
+    WHERE v.product_id = '01ab75de-8d9f-41d6-acb5-0a42d7d5d6bc' AND v.status = 1
+    GROUP BY v.product_id, attr_name, attr_value
+),
+todas_las_combinaciones AS (
+    -- Esta es la tabla de búsqueda para tu JavaScript
+    SELECT jsonb_agg(
+        jsonb_build_object(
+            'attributes', v.attributes,
+            'price', pr.price,
+            'id', v.id,
+            'stock', v.stock
+        )
+        ORDER BY pr.price ASC
+    ) as mapa
+    FROM Product_variations v
+    LEFT JOIN prices pr ON v.id = pr.variation_id
+    WHERE v.product_id = '01ab75de-8d9f-41d6-acb5-0a42d7d5d6bc' AND v.status = 1
+)
+SELECT 
+    p.id,
+    p.name,
+    p.brand,
+    p.description,
+    pr.currency,
+    s.store_name,
+    s.id store_id,
+    img_agg.lista_imagenes as images_product,
+    -- TABLA DE BÚSQUEDA PARA JS
+    (SELECT mapa FROM todas_las_combinaciones) as variant_map,
+    (
+        SELECT jsonb_agg(
+            jsonb_build_object(
+                'name', v_def->>'name',
+                'values', (
+                    SELECT jsonb_agg(
+                        jsonb_build_object(
+                            'value', val->>'value',
+                            'in_stock', COALESCE(sa.total_stock, 0) > 0,
+                            'is_default', EXISTS (
+                                SELECT 1 FROM variacion_prioritaria vp, 
+                                LATERAL jsonb_array_elements(vp.attributes) as def_attr
+                                WHERE def_attr->>'name' = v_def->>'name' 
+                                AND def_attr->>'value' = val->>'value'
+                            )
+                        )
+                    )
+                    FROM jsonb_array_elements(v_def->'values') AS val
+                    LEFT JOIN stock_por_atributo sa 
+                        ON sa.attr_name = v_def->>'name' 
+                        AND sa.attr_value = val->>'value'
+                )
+            )
+        )
+        FROM jsonb_array_elements(p.variations) AS v_def
+    ) AS variations_with_stock_status
+FROM Products p
+LEFT JOIN LATERAL (
+    SELECT jsonb_agg(jsonb_build_object(
+        'image_url', img.image_url,
+        'is_main', img.is_main,
+        'display_order', img.display_order
+    )) as lista_imagenes
+    FROM images_product img
+    WHERE img.product_id = p.id
+) img_agg ON true
+LEFT JOIN Product_variations pv ON p.id = pv.product_id
+LEFT JOIN prices pr ON pv.id = pr.variation_id
+LEFT JOIN product_seller ps ON p.id = ps.product_id
+LEFT JOIN seller s ON ps.seller_id = s.id
+WHERE p.id = '01ab75de-8d9f-41d6-acb5-0a42d7d5d6bc' AND p.status = 1
+GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;

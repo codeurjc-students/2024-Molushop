@@ -19,11 +19,11 @@ pub struct ProductDetailPrincipalData{
     pub name: String,
     pub brand: String,
     pub description: String,
-    pub price: BigDecimal,
     pub currency: String,
     pub store_name: String,
     pub store_id: Uuid,
     pub images_product: Vec<ImageProduct>,
+    pub variant_map: Vec<VariantMapItem>,
     pub variations_with_stock_status: Vec<Variation>
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -39,7 +39,20 @@ pub struct Variation{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VariationValue{
     pub value : String,
-    pub in_stock : bool
+    pub in_stock : bool,
+    pub is_default : bool
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct VariantAttribute {
+    pub name: String,
+    pub value: String,
+}
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct VariantMapItem {
+    pub id: Uuid,
+    pub price: BigDecimal,
+    pub stock: i32,
+    pub attributes: Vec<VariantAttribute>,
 }
 
 // Implementación de Default para ImageProduct
@@ -58,6 +71,7 @@ impl Default for VariationValue {
         Self {
             value: "Talla".to_string(),
             in_stock: false,
+            is_default: false,
         }
     }
 }
@@ -76,42 +90,47 @@ impl Default for Variation {
 impl Default for ProductDetailPrincipalData {
     fn default() -> Self {
         Self {
-            id: Uuid::new_v4(), // Genera un ID aleatorio por defecto
+            id: Uuid::new_v4(),
             name: "Producto genérico".to_string(),
             brand: "Marca blanca".to_string(),
             description: "Sin descripción disponible".to_string(),
-            price: BigDecimal::from(0),
             currency: "EUR".to_string(),
             store_name: "Tienda Principal".to_string(),
-            store_id: Uuid::nil(), // ID vacío (todo ceros)
+            store_id: Uuid::nil(),
             images_product: Vec::new(),
+            variant_map: Vec::new(),
             variations_with_stock_status: Vec::new(),
         }
     }
 }
 
+impl ProductDetailPrincipalData {
+    pub fn variant_map_json(&self) -> String {
+        serde_json::to_string(&self.variant_map).unwrap_or_else(|_| "[]".to_string())
+    }
+}
+
 impl From<ProductForPage1> for ProductDetailPrincipalData {
     fn from(db: ProductForPage1) -> Self {
-        // Obtenemos el default para rellenar los campos que sean None
         let default = ProductDetailPrincipalData::default();
 
         Self {
             id: db.id,
-            // Usamos unwrap_or para manejar los Option<String>
             name: db.name.unwrap_or(default.name),
             brand: db.brand.unwrap_or(default.brand),
             description: db.description.unwrap_or(default.description),
-            price: db.price.unwrap_or(default.price),
             currency: db.currency.unwrap_or(default.currency),
             store_name: db.store_name.unwrap_or(default.store_name),
             store_id: db.store_id.unwrap_or(default.store_id),
 
-            // Mapeo de JSONB (Value) a Vec<ImageProduct>
             images_product: db.images_product
                 .and_then(|v| from_value::<Vec<ImageProduct>>(v).ok())
                 .unwrap_or(default.images_product),
 
-            // Mapeo de JSONB (Value) a Vec<Variation>
+            variant_map: db.variant_map
+                .and_then(|v| from_value::<Vec<VariantMapItem>>(v).ok())
+                .unwrap_or(default.variant_map),
+
             variations_with_stock_status: db.variations_with_stock_status
                 .and_then(|v| from_value::<Vec<Variation>>(v).ok())
                 .unwrap_or(default.variations_with_stock_status),

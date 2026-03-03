@@ -1105,27 +1105,49 @@ pub async fn get_product_with_images1(user_id: &Uuid, product_id: &Uuid, pool:&D
 pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<ProductForPage1,Error>{
     let connection = &mut pool.get().await.unwrap();
     let results = sql_query(r#"
-        WITH stock_por_atributo AS (
-            SELECT 
+        WITH variacion_prioritaria AS (
+            SELECT v.id, v.attributes, pr.price, pr.currency
+            FROM Product_variations v
+            LEFT JOIN prices pr ON v.id = pr.variation_id
+            WHERE v.product_id = $1 AND v.status = 1
+            ORDER BY (v.stock > 0) DESC, v.stock DESC
+            LIMIT 1
+        ),
+        stock_por_atributo AS (
+            SELECT
                 v.product_id,
                 attr->>'name' as attr_name,
                 attr->>'value' as attr_value,
                 SUM(v.stock) as total_stock
             FROM Product_variations v,
             LATERAL jsonb_array_elements(v.attributes) AS attr
-            WHERE v.product_id = $1
+            WHERE v.product_id = $1 AND v.status = 1
             GROUP BY v.product_id, attr_name, attr_value
+        ),
+        todas_las_combinaciones AS (
+            SELECT jsonb_agg(
+                jsonb_build_object(
+                    'attributes', v.attributes,
+                    'price', pr.price,
+                    'id', v.id,
+                    'stock', v.stock
+                )
+                ORDER BY pr.price ASC NULLS LAST
+            ) as mapa
+            FROM Product_variations v
+            LEFT JOIN prices pr ON v.id = pr.variation_id
+            WHERE v.product_id = $1 AND v.status = 1
         )
-        SELECT 
+        SELECT
             p.id,
             p.name,
             p.brand,
             p.description,
-            MIN(pr.price) price,
             pr.currency,
             s.store_name,
             s.id store_id,
             img_agg.lista_imagenes as images_product,
+            (SELECT mapa FROM todas_las_combinaciones) as variant_map,
             (
                 SELECT jsonb_agg(
                     jsonb_build_object(
@@ -1134,13 +1156,19 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
                             SELECT jsonb_agg(
                                 jsonb_build_object(
                                     'value', val->>'value',
-                                    'in_stock', COALESCE(s.total_stock, 0) > 0
+                                    'in_stock', COALESCE(sa.total_stock, 0) > 0,
+                                    'is_default', EXISTS (
+                                        SELECT 1 FROM variacion_prioritaria vp,
+                                        LATERAL jsonb_array_elements(vp.attributes) as def_attr
+                                        WHERE def_attr->>'name' = v_def->>'name'
+                                        AND def_attr->>'value' = val->>'value'
+                                    )
                                 )
                             )
                             FROM jsonb_array_elements(v_def->'values') AS val
-                            LEFT JOIN stock_por_atributo s 
-                                ON s.attr_name = v_def->>'name' 
-                                AND s.attr_value = val->>'value'
+                            LEFT JOIN stock_por_atributo sa
+                                ON sa.attr_name = v_def->>'name'
+                                AND sa.attr_value = val->>'value'
                         )
                     )
                 )
@@ -1156,11 +1184,11 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
             FROM images_product img
             WHERE img.product_id = p.id
         ) img_agg ON true
-        left join product_variations pv on p.id=pv.product_id
-        left join prices pr on pv.id=pr.variation_id
-        left join product_seller ps on p.id=ps.product_id
-        left join seller s on ps.seller_id=s.id
-        WHERE p.id = $1 and p.status = 1
+        LEFT JOIN Product_variations pv ON p.id = pv.product_id
+        LEFT JOIN prices pr ON pv.id = pr.variation_id
+        LEFT JOIN product_seller ps ON p.id = ps.product_id
+        LEFT JOIN seller s ON ps.seller_id = s.id
+        WHERE p.id = $1 AND p.status = 1
         GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;
     "#).bind::<diesel::sql_types::Uuid,_>(product_id)
         .get_result::<ProductForPage1>(connection).await?;

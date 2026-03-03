@@ -468,8 +468,6 @@ pub struct ProductForPage1{
     pub brand: Option<String>,
     #[diesel(sql_type = Nullable<Text>)]
     pub description: Option<String>,
-    #[diesel(sql_type = Nullable<Numeric>)]
-    pub price: Option<BigDecimal>,
     #[diesel(sql_type = Nullable<Text>)]
     pub currency: Option<String>,
     #[diesel(sql_type = Nullable<Text>)]
@@ -478,6 +476,8 @@ pub struct ProductForPage1{
     pub store_id: Option<Uuid>,
     #[diesel(sql_type = Nullable<Jsonb>)]
     pub images_product: Option<Value>,
+    #[diesel(sql_type = Nullable<Jsonb>)]
+    pub variant_map: Option<Value>,
     #[diesel(sql_type = Nullable<Jsonb>)]
     pub variations_with_stock_status: Option<Value>
 }

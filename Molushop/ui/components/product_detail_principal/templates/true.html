@@ -33,7 +33,11 @@
             </svg>
         </div>
         <div class="price">
-            <span>{{product_data.price}}</span>
+            {% if !product_data.variant_map.is_empty() %}
+                <span id="product-price">{{product_data.variant_map[0].price}}</span>
+            {% else %}
+                <span id="product-price">--</span>
+            {% endif %}
             <span>{{product_data.currency}}</span>
         </div>
         <div class="variations">
@@ -45,18 +49,16 @@
                 <div class="variation-select">
                 {% for element in variation.values %}
                     <div class="variation-element">
-                        {# El ID debe ser único, por eso combinamos nombre de variación y valor #}
                         {% set input_id = "var-" ~ variation.name ~ "-" ~ element.value %}
-                        
-                        <input 
-                            type="radio" 
-                            name="variation-{{variation.name}}" 
-                            id="{{ input_id }}" 
+                        <input
+                            type="radio"
+                            name="variation-{{variation.name}}"
+                            id="{{ input_id }}"
                             value="{{ element.value }}"
                             class="variation-input"
+                            {% if element.is_default %}checked{% endif %}
                             {% if !element.in_stock %}disabled{% endif %}
                         >
-                        
                         <label for="{{ input_id }}" class="variation-name-cont" {% if !element.in_stock %}disabled{% endif %}>
                             <span>{{element.value}}</span>
                         </label>
@@ -85,3 +87,6 @@
         </div>
     </div>
 </div>
+<script>
+    const variantMap = {{ product_data.variant_map_json()|safe }};
+</script>
