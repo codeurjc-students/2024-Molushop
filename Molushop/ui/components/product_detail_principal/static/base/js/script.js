@@ -64,60 +64,47 @@ const PRODUCT_DETAIL = {
         return available;
     },
 
-    // Actualiza qué radios están habilitados/deshabilitados según la selección actual.
-    // Muta selectedAttrs inline para que los auto-selects afecten a grupos posteriores.
+    // Selecciona automáticamente los atributos del primer variant que coincida con la variación elegida.
     updateAvailableOptions: function(event) {
         console.log(event);
         let target = event.currentTarget;
         console.log(target);
         let selectedAttrs = this.getSelectedAttrs();
-        let variation = target.name.replace("variation-","");
+        let variation = target.name.replace("variation-", "");
         let variationValue = target.value;
 
-        let availableValues =  this.getVariantsByAttr(variation,variationValue);
-        
-        if(availableValues && availableValues.length>0){
-            //simplimente habilitar los valores de
-            //obtener el primer elemento
-        }
-        //verificar que availableValues 
+        let availableValues = this.getVariantsByAttr(variation, variationValue);
 
-        console.log(availableValues);
-        //let availabeProducts = this.getAvailableValues();
+        let newAttribute = this.findVariantByAttrs(selectedAttrs);
+        console.log(newAttribute);
 
-        this.element.querySelectorAll(".variation").forEach(variation => {
-            let attrName = variation.querySelector(".variation-title span")
-                .textContent.replace(":", "").trim();
-
-            let availableValues = this.getAvailableValues(selectedAttrs, attrName);
-            console.log(availableValues);
-
-            let inputs = [...variation.querySelectorAll(".variation-input")];
-            inputs.forEach(input => {
-                let label = variation.querySelector(`label[for="${input.id}"]`);
-                let isAvailable = availableValues.has(input.value);
-                input.disabled = !isAvailable;
-                label?.toggleAttribute("disabled", !isAvailable);
-                // Si estaba seleccionado y ya no es válido, deseleccionar
-                if (!isAvailable && input.checked) {
-                    input.checked = false;
-                    delete selectedAttrs[attrName];
+        if(newAttribute){
+            this.updatePrice(selectedAttrs);
+        }else if (availableValues && availableValues.length > 0) {
+            let firstVariant = availableValues[0];
+            firstVariant.attributes.forEach(attr => {
+                if (attr.name === variation) return;
+                let input = this.element.querySelector(`input[name="variation-${attr.name}"][value="${attr.value}"]`);
+                if (input) {
+                    input.checked = true;
+                    selectedAttrs[attr.name] = attr.value;
                 }
             });
-
-            // Si el grupo quedó sin selección, auto-seleccionar el primer disponible
-            if (!selectedAttrs[attrName]) {
-                let firstAvailable = inputs.find(i => !i.disabled);
-                if (firstAvailable) {
-                    firstAvailable.checked = true;
-                    selectedAttrs[attrName] = firstAvailable.value;
-                }
-            }
-        });
-
-        this.updatePrice(selectedAttrs);
+            this.updatePrice(selectedAttrs);
+        }
+        
     },
+    findVariantByAttrs: function(attrsJson) {                                                                                                                                                        let attrs = (typeof attrsJson === "string") ? JSON.parse(attrsJson) : attrsJson;
+      let attrNames = Object.keys(attrs);                                                                                                                                                          if (attrNames.length === 0) return null;                                                                                                                                               
 
+      return variantMap.find(variant =>
+          attrNames.length === variant.attributes.length &&
+          attrNames.every(name => {
+              let attr = variant.attributes.find(a => a.name === name);
+              return attr && attr.value === attrs[name];
+          })
+      ) ?? null;
+    },
     // Busca la variante exacta y actualiza el precio en pantalla
     updatePrice: function(selectedAttrs) {
         let attrNames = Object.keys(selectedAttrs);
