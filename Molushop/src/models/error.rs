@@ -8,4 +8,8 @@ pub enum ServiceError {
     InvalidCredentials,
     #[error("User already exists")]
     UserAlreadyExists,
+    #[error("Variation not found")]
+    VariationNotFound,
+    #[error("Not enough stock")]
+    NotEnoughStock,
 }

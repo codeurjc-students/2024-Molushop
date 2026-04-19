@@ -123,13 +123,64 @@ const PRODUCT_DETAIL = {
         }
     },
 
+    addToCart: function() {
+        let selectedAttrs = this.getSelectedAttrs();
+        let variant = this.findVariantByAttrs(selectedAttrs);
+
+        if (!variant) {
+            alert("Selecciona una variación válida");
+            return;
+        }
+
+        let quantityInput = this.element.querySelector(".quantity-product input[type='number']");
+        let quantity = parseInt(quantityInput.value) || 1;
+
+        if (quantity <= 0) {
+            alert("La cantidad debe ser mayor a 0");
+            return;
+        }
+
+        let btn = this.element.querySelector(".add-to-cart-btn");
+        let url = btn.dataset.addUrl;
+
+        fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "HX-Request": "true" },
+            body: JSON.stringify({
+                product_var_id: variant.id,
+                quantity: quantity
+            })
+        })
+        .then(response => {
+            if (response.status === 401) {
+                window.location.href = "/master/es/login";
+                return null;
+            }
+            return response.text();
+        })
+        .then(html => {
+            if (html === null) return;
+            document.body.insertAdjacentHTML('beforeend',html);
+            let modal = document.getElementById('myModal');
+            if (modal && typeof _hyperscript !== 'undefined') {
+                _hyperscript.processNode(modal);
+            }
+        })
+        .catch(err => {
+            console.error("Error al añadir al carrito:", err);
+        });
+    },
+
     init_product_selection: function() {
         this.element.querySelectorAll(".variation-input").forEach(input => {
             input.addEventListener("change", (event) => this.updateAvailableOptions(event));
         });
-        // Estado inicial al cargar la página
-        
-        //this.updateAvailableOptions();
+
+        // Botón añadir al carrito
+        let addBtn = this.element.querySelector(".add-to-cart-btn");
+        if (addBtn) {
+            addBtn.addEventListener("click", () => this.addToCart());
+        }
     }
 };
 

@@ -387,7 +387,8 @@ create table favorites(
     user_id UUID REFERENCES base_user(id) ON DELETE CASCADE,
     product_var_id UUID REFERENCES Product_variations(id) ON DELETE CASCADE,
     added_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
-    notes VARCHAR(255) NOT NULL UNIQUE
+    notes VARCHAR(255),
+    UNIQUE(user_id, product_var_id)
 );
 
 CREATE TABLE ratings (

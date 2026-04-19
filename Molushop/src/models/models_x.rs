@@ -405,6 +405,46 @@ pub struct ProductCard1{
     pub store_id : Uuid
 }
 */
+// ---- Cart models ----
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(table_name = carts)]
+pub struct Cart {
+    pub id: Uuid,
+    pub user_id: Option<Uuid>,
+    pub created_at: NaiveDateTime,
+    pub updated_at: NaiveDateTime,
+    pub status: i16,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = carts)]
+pub struct NewCart<'a> {
+    pub id: &'a Uuid,
+    pub user_id: &'a Uuid,
+    pub status: i16,
+}
+
+#[derive(Queryable, Debug, Identifiable)]
+#[diesel(table_name = cart_products)]
+pub struct CartProduct {
+    pub id: Uuid,
+    pub cart_id: Option<Uuid>,
+    pub product_var_id: Option<Uuid>,
+    pub quantity: i32,
+    pub price_at_time_of_addition: Option<BigDecimal>,
+    pub added_at: NaiveDateTime,
+}
+
+#[derive(Insertable)]
+#[diesel(table_name = cart_products)]
+pub struct NewCartProduct<'a> {
+    pub id: &'a Uuid,
+    pub cart_id: &'a Uuid,
+    pub product_var_id: &'a Uuid,
+    pub quantity: i32,
+    pub price_at_time_of_addition: Option<&'a BigDecimal>,
+}
+
 use diesel::sql_types::{Uuid as SqlUuid, Text, Nullable, Numeric,SmallInt,Bool,Json};
 use diesel::prelude::QueryableByName;
 
