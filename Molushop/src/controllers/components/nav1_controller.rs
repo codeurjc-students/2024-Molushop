@@ -37,12 +37,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 
 #[get("/spawn")]
-async fn spawn()->HttpResponse	{
-    //service que me cargue datos del login
-    //parámetros que desean --> 
-    //crear el service?
-
-    //let render_login = Nav1{name:"NombreEjemplo".to_string()}.render().unwrap();
-    let render_login = get_nav1_render("Ejemplo".to_string());
+async fn spawn(pool_data: web::Data<DbPool>) -> HttpResponse {
+    let render_login = get_nav1_render("Ejemplo".to_string(), None, pool_data.get_ref()).await;
     HttpResponse::Ok().body(render_login)
 }

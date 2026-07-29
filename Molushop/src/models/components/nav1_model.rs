@@ -13,7 +13,8 @@ pub struct Nav1{
 #[derive(Debug, Clone)]
 pub struct Nav1Data{
     pub routes: &'static Routes,
-    pub name: String
+    pub name: String,
+    pub cart_count: i64
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

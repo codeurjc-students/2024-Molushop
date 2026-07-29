@@ -26,7 +26,7 @@ async fn get_about_us(pool_data:web::Data<DbPool>)-> HttpResponse{
     let about_us_render = AboutUs{
         user_logged,
         page_name:"About us".to_string(),
-        nav1:get_nav1_object("hola".to_string())
+        nav1:get_nav1_object("hola".to_string(), None, pool_data.get_ref()).await
     }.render().unwrap();
 
     HttpResponse::Ok().body(about_us_render)

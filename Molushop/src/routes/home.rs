@@ -54,12 +54,14 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
     
     let mut nombre_aux = "".to_string();
     let mut user_logged = false;
+    let mut user_id_opt: Option<Uuid> = None;
 
     if let Some(req_session_data) = opt_session_data{
         let session_data = req_session_data.into_inner();
         //si el usuario está loggeado, obtener los datos del usuario.
         //llamar al servicio para que me obtenga los datos de los favoritos y
-        let user_id = session_data.id; 
+        let user_id = session_data.id;
+        user_id_opt = Some(user_id);
                 //datos del usuario
         match get_user_2(&user_id,&pool).await{
             Ok(user)=>{
@@ -70,7 +72,7 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
                 println!("Ha ocurrido un error con la base de datos!");
             }
         }
-        
+
     }else {
         println!("Usuario sin loggear")
     }
@@ -94,7 +96,7 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
         product:get_product_card_object(&id, &pool).await,
         pcard1:get_product_card_group_render(vector_refs, &pool).await,
         group_cards2:get_product_card_group_render_all(&pool).await,
-        nav1:get_nav1_object(nombre_aux),
+        nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data()
     }.render().unwrap();
     

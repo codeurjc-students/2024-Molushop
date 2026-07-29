@@ -29,6 +29,11 @@
       <div class="cart">
         <a class="cart-icon" href="{{nav1.routes.cart}}">
           <img src="/assets/logos/carrito.png"/>
+          {% if nav1.cart_count > 0 %}
+          <span id="cart-badge" class="cart-badge">{{nav1.cart_count}}</span>
+          {% else %}
+          <span id="cart-badge" class="cart-badge" style="display:none;">0</span>
+          {% endif %}
         </a>
       </div>
       <div class="user-icon img-container open-login-modal">

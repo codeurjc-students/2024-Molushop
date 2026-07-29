@@ -156,14 +156,22 @@ const PRODUCT_DETAIL = {
                 window.location.href = "/master/es/login";
                 return null;
             }
-            return response.text();
+            let cartCount = response.headers.get("X-Cart-Count");
+            return response.text().then(html => ({ html, cartCount }));
         })
-        .then(html => {
-            if (html === null) return;
-            document.body.insertAdjacentHTML('beforeend',html);
+        .then(data => {
+            if (data === null) return;
+            document.body.insertAdjacentHTML('beforeend', data.html);
             let modal = document.getElementById('myModal');
             if (modal && typeof _hyperscript !== 'undefined') {
                 _hyperscript.processNode(modal);
+            }
+            if (data.cartCount) {
+                let badge = document.getElementById('cart-badge');
+                if (badge) {
+                    badge.textContent = data.cartCount;
+                    badge.style.display = 'flex';
+                }
             }
         })
         .catch(err => {

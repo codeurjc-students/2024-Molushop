@@ -40,12 +40,14 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
     let product_id = path.into_inner();
     let mut nombre_aux = "".to_string();
     let mut user_logged = false;
+    let mut user_id_opt: Option<Uuid> = None;
 
     if let Some(req_session_data) = opt_session_data{
         let session_data = req_session_data.into_inner();
         //si el usuario está loggeado, obtener los datos del usuario.
         //llamar al servicio para que me obtenga los datos de los favoritos y
-        let user_id = session_data.id; 
+        let user_id = session_data.id;
+        user_id_opt = Some(user_id);
                 //datos del usuario
         match get_user_2(&user_id,&pool).await{
             Ok(user)=>{
@@ -56,7 +58,7 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
                 println!("Ha ocurrido un error con la base de datos!");
             }
         }
-        
+
     }else {
         println!("Usuario sin loggear")
     }
@@ -73,7 +75,7 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
     let home_render = ProductPage{
         user_logged,    
         page_name:"Product".to_string(),
-        nav1:get_nav1_object(nombre_aux),
+        nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data(),
         product_data: get_product_object(&product_id,&pool).await
     }.render().unwrap();

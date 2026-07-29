@@ -6,6 +6,7 @@ use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
 use crate::schema::{carts, cart_products, product_variations, prices};
+use diesel::OptionalExtension;
 use crate::models::models_x::{NewCart, NewCartProduct, Cart, CartProduct, ProductVariation, Price};
 use crate::models::error::ServiceError;
 
@@ -114,4 +115,35 @@ pub async fn add_to_cart(
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
     Ok("Producto añadido al carrito".to_string())
+}
+
+pub async fn get_cart_item_count(
+    user_id: &Uuid,
+    pool: &DbPool,
+) -> i64 {
+    let mut conn = match pool.get().await {
+        Ok(c) => c,
+        Err(_) => return 0,
+    };
+
+    let cart: Option<Cart> = carts::table
+        .filter(carts::user_id.eq(user_id))
+        .filter(carts::status.eq(1_i16))
+        .first::<Cart>(&mut conn)
+        .await
+        .optional()
+        .unwrap_or(None);
+
+    match cart {
+        Some(c) => {
+            cart_products::table
+                .filter(cart_products::cart_id.eq(&c.id))
+                .select(diesel::dsl::sum(cart_products::quantity))
+                .first::<Option<i64>>(&mut conn)
+                .await
+                .unwrap_or(None)
+                .unwrap_or(0)
+        }
+        None => 0,
+    }
 }

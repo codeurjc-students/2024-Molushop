@@ -11,7 +11,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::modal_1_model::Modal1;
 use crate::models::error::ServiceError;
-use crate::services::components::cart_add_service;
+use crate::services::components::cart_add_service::{self, get_cart_item_count};
 
 static SCOPE: &str = "/cart";
 
@@ -58,8 +58,11 @@ async fn add_to_cart(
 
     match cart_add_service::add_to_cart(&user_id, &form_data.product_var_id, form_data.quantity, pool).await {
         Ok(msg) => {
+            let cart_count = get_cart_item_count(&user_id, pool).await;
             let modal_render = Modal1::new(&msg).render().unwrap();
-            HttpResponse::Ok().body(modal_render)
+            HttpResponse::Ok()
+                .insert_header(("X-Cart-Count", cart_count.to_string()))
+                .body(modal_render)
         }
         Err(ServiceError::VariationNotFound) => {
             let modal_render = Modal1::new("Variación no encontrada").render().unwrap();
