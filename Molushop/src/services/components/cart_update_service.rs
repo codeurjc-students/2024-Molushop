@@ -24,10 +24,8 @@ async fn get_owned_line(
         .await
         .map_err(|_| ServiceError::CartItemNotFound)?;
 
-    let cart_id = cp.cart_id.ok_or(ServiceError::CartItemNotFound)?;
-
     let _cart: Cart = carts::table
-        .filter(carts::id.eq(&cart_id))
+        .filter(carts::id.eq(&cp.cart_id))
         .filter(carts::user_id.eq(user_id))
         .filter(carts::status.eq(1_i16))
         .first::<Cart>(conn)
@@ -62,11 +60,9 @@ pub async fn update_cart_item(
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
     let cp = get_owned_line(user_id, cart_product_id, &mut conn).await?;
-    let cart_id = cp.cart_id.ok_or(ServiceError::CartItemNotFound)?;
-    let var_id = cp.product_var_id.ok_or(ServiceError::VariationNotFound)?;
 
     let variation: ProductVariation = product_variations::table
-        .find(&var_id)
+        .find(&cp.product_var_id)
         .first(&mut conn)
         .await
         .map_err(|_| ServiceError::VariationNotFound)?;
@@ -81,7 +77,7 @@ pub async fn update_cart_item(
         .await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
-    touch_cart(&cart_id, &mut conn).await?;
+    touch_cart(&cp.cart_id, &mut conn).await?;
 
     Ok(())
 }
@@ -95,14 +91,13 @@ pub async fn remove_cart_item(
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
     let cp = get_owned_line(user_id, cart_product_id, &mut conn).await?;
-    let cart_id = cp.cart_id.ok_or(ServiceError::CartItemNotFound)?;
 
     diesel::delete(cart_products::table.find(&cp.id))
         .execute(&mut conn)
         .await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
-    touch_cart(&cart_id, &mut conn).await?;
+    touch_cart(&cp.cart_id, &mut conn).await?;
 
     Ok(())
 }

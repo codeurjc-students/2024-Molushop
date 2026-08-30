@@ -410,7 +410,7 @@ pub struct ProductCard1{
 #[diesel(table_name = carts)]
 pub struct Cart {
     pub id: Uuid,
-    pub user_id: Option<Uuid>,
+    pub user_id: Uuid,
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub status: i16,
@@ -428,8 +428,8 @@ pub struct NewCart<'a> {
 #[diesel(table_name = cart_products)]
 pub struct CartProduct {
     pub id: Uuid,
-    pub cart_id: Option<Uuid>,
-    pub product_var_id: Option<Uuid>,
+    pub cart_id: Uuid,
+    pub product_var_id: Uuid,
     pub quantity: i32,
     pub price_at_time_of_addition: Option<BigDecimal>,
     pub added_at: NaiveDateTime,

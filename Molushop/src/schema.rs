@@ -38,8 +38,8 @@ diesel::table! {
 diesel::table! {
     cart_products (id) {
         id -> Uuid,
-        cart_id -> Nullable<Uuid>,
-        product_var_id -> Nullable<Uuid>,
+        cart_id -> Uuid,
+        product_var_id -> Uuid,
         quantity -> Int4,
         price_at_time_of_addition -> Nullable<Numeric>,
         added_at -> Timestamptz,
@@ -49,7 +49,7 @@ diesel::table! {
 diesel::table! {
     carts (id) {
         id -> Uuid,
-        user_id -> Nullable<Uuid>,
+        user_id -> Uuid,
         created_at -> Timestamptz,
         updated_at -> Timestamptz,
         status -> Int2,
