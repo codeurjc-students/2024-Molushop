@@ -4,6 +4,7 @@ use crate::models::{
     models_x::ProductForPage1
 };
 use serde_json::{Value, from_value};
+use crate::controllers::components::cart_add_controller::ROUTES as CART_ROUTES;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
@@ -107,6 +108,12 @@ impl Default for ProductDetailPrincipalData {
 impl ProductDetailPrincipalData {
     pub fn variant_map_json(&self) -> String {
         serde_json::to_string(&self.variant_map).unwrap_or_else(|_| "[]".to_string())
+    }
+
+    /// URL del endpoint de "añadir al carrito". No es un dato del producto,
+    /// por eso es un método y no un campo: se lee de las rutas del carrito.
+    pub fn cart_add_url(&self) -> &'static str {
+        &CART_ROUTES.add
     }
 }
 
