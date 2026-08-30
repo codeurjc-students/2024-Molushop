@@ -1,4 +1,4 @@
-<div class="cart-total-1">
+<div class="cart-total-1" id="cart-total-1" data-update-url="{{cart_total.routes.update}}" data-remove-url="{{cart_total.routes.remove}}">
     <div class="cart-body">
         <div class="cart-main">
             <div class="header-container cont-1">
@@ -64,7 +64,7 @@
                                     <div class="minus-cont more-less-cont">
                                         <span class="more-less minus">-</span>
                                     </div>
-                                    <input type="number" min="1" max="{{item.stock}}" class="input-no-style quantity-input" value="{{item.quantity}}" maxlength="2"
+                                    <input type="number" min="0" max="{{item.stock}}" class="input-no-style quantity-input" value="{{item.quantity}}" maxlength="2"
                                         oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
                                     <div class="plus-cont more-less-cont">
                                         <span class="more-less plus">+</span>

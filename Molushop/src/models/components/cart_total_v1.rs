@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::models::models_x::CartItem1;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
+use crate::controllers::components::cart_add_controller::ROUTES;
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/cart_total_v1/cart_total_v1.html")]
@@ -12,8 +13,25 @@ pub struct CartTotalV1{
     pub cart_total: CartTotalData
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+/// Sólo el cuerpo del componente, sin los <link>/<script> del wrapper.
+/// Es lo que se devuelve en los refrescos parciales: si se reinyectase el
+/// wrapper, el script.js se volvería a cargar en cada actualización.
+#[derive(Template,Clone,Debug)]
+#[template(path = "components/cart_total_v1/templates/base.html")]
+pub struct CartTotalV1Body{
+    pub cart_total: CartTotalData
+}
+
+#[derive(Serialize, Debug, Clone)]
+pub struct CartRoutes{
+    pub add: String,
+    pub update: String,
+    pub remove: String
+}
+
+#[derive(Serialize, Debug, Clone)]
 pub struct CartTotalData{
+    pub routes: &'static CartRoutes,
     pub items: Vec<CartItemData>,
     /// Suma de los subtotales de todas las líneas
     pub total: BigDecimal,
@@ -46,6 +64,7 @@ pub struct CartItemData{
 impl Default for CartTotalData {
     fn default() -> Self {
         Self {
+            routes: &ROUTES,
             items: Vec::new(),
             total: BigDecimal::from(0),
             discount: BigDecimal::from(0),
@@ -72,7 +91,7 @@ impl CartTotalData {
         let discount = BigDecimal::from(0);
         let final_total = total.clone() - discount.clone();
 
-        Self { items, total, discount, final_total, total_units, currency }
+        Self { routes: &ROUTES, items, total, discount, final_total, total_units, currency }
     }
 
     pub fn is_empty(&self) -> bool {

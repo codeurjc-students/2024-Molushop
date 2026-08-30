@@ -12,4 +12,6 @@ pub enum ServiceError {
     VariationNotFound,
     #[error("Not enough stock")]
     NotEnoughStock,
+    #[error("Cart item not found")]
+    CartItemNotFound,
 }

@@ -7,7 +7,7 @@ use uuid::Uuid;
 use askama::Template;
 
 use crate::models::models_x::CartItem1;
-use crate::models::components::cart_total_v1::{CartTotalV1, CartTotalData, CartItemData};
+use crate::models::components::cart_total_v1::{CartTotalV1, CartTotalV1Body, CartTotalData, CartItemData};
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -92,6 +92,15 @@ pub async fn get_cart_total_object(user_id: Option<&Uuid>, pool: &DbPool) -> Car
 pub async fn get_cart_total_render(user_id: Option<&Uuid>, pool: &DbPool) -> String {
     let objeto = get_cart_total_object(user_id, pool).await;
     CartTotalV1 {
+        cart_total: objeto
+    }.render().unwrap()
+}
+
+/// Render del cuerpo del componente, para los refrescos parciales tras
+/// modificar o eliminar una línea.
+pub async fn get_cart_total_body_render(user_id: Option<&Uuid>, pool: &DbPool) -> String {
+    let objeto = get_cart_total_object(user_id, pool).await;
+    CartTotalV1Body {
         cart_total: objeto
     }.render().unwrap()
 }
