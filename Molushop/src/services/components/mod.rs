@@ -6,3 +6,4 @@ pub mod product_card_group_service;
 pub mod nav1_service;
 pub mod product_detail_principal_service;
 pub mod cart_add_service;
+pub mod cart_get_service;

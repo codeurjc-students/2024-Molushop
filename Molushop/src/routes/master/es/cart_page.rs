@@ -11,7 +11,8 @@ use crate::models::pages_models::master::es::cart_page_model::*;
 use crate::services::components::{
     product_card_service::*,
     product_card_group_service::*,
-    nav1_service::*
+    nav1_service::*,
+    cart_get_service::*
 };
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
@@ -57,20 +58,14 @@ async fn get_cart(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
     //let user_data = "cosas";
 
     
-    let id = Uuid::parse_str("5b45ee44-faf4-4939-baf5-eca379cea1e9").unwrap();
-    let id2 = Uuid::parse_str("69ebb636-70f4-4ebc-973d-411231185365").unwrap();
-    let id3 = Uuid::parse_str("c477ee20-0640-4a97-ba8f-5ad077e17324").unwrap();
-    let vector_refs: Vec<&Uuid> = vec![&id, &id2, &id3];
-
-    //hacer el render directamente o 
-
-    let home_render = CartPage{
+    let cart_render = CartPage{
         user_logged,
-        page_name:"Home".to_string(),
+        page_name:"Cesta".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-        login_base_data:login_base_service::get_login_base_model_data()
+        login_base_data:login_base_service::get_login_base_model_data(),
+        cart_total:get_cart_total_object(user_id_opt.as_ref(), pool).await
     }.render().unwrap();
 
-    HttpResponse::Ok().body(home_render)
+    HttpResponse::Ok().body(cart_render)
 
-}   
+}

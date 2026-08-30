@@ -88,6 +88,12 @@
     }
 
     .products-container{
+        .empty-cart{
+            display: flex;
+            justify-content: center;
+            padding: 2em 0;
+            color: grey;
+        }
         .card{
             display: flex;
             align-items: center;

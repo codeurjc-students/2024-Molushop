@@ -12,47 +12,59 @@
                                 <span class="checkbox1-circle">
                                 </span>
                             </span>
-                            <input id="id1" class="checkbox-input" type="checkbox">
+                            <input id="id1" class="checkbox-input select-all-input" type="checkbox">
                             <span class="checkbox-text">Seleccionar todos los articulos</span>
                         </label>
                     </div>
                 </div>
             </div>
             <div class="products-container cont-1">
-                <div class="card">
+                {% if cart_total.items.is_empty() %}
+                <div class="empty-cart">
+                    <span>Tu cesta está vacía</span>
+                </div>
+                {% else %}
+                {% for item in cart_total.items %}
+                <div class="card" data-line-id="{{item.id}}" data-var-id="{{item.product_var_id}}" data-stock="{{item.stock}}">
                     <div class="check-cont">
                         <label>
                             <span class="checkbox1">
                                 <span class="checkbox1-circle">
                                 </span>
                             </span>
-                            <input class="checkbox-input">
+                            <input class="checkbox-input line-check" type="checkbox">
                         </label>
                     </div>
                     <div class="card-content">
                         <div class="left-side">
-                            <div class="image-cont"></div>
+                            <a href="{{item.url}}">
+                                <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                            </a>
                         </div>
                         <div class="right-side">
                             <div class="element-data">
                                 <div class="title">
-                                    <a>Camiseta UFC Super pro, talla grande europea cosa mas texto aleluya dfdffdgfdggfdgfdgfd</a>
+                                    <a href="{{item.url}}">{{item.name}}</a>
                                 </div>
-                                <div class="variations">XL / Tipo1</div>
+                                {% if !item.variation_label.is_empty() %}
+                                <div class="variations">{{item.variation_label}}</div>
+                                {% endif %}
                                 <div class="Price">
-                                    <span>29.99</span>
-                                    <span class="currency">€</span>
+                                    <span class="line-price">{{item.price}}</span>
+                                    <span class="currency">{{item.currency}}</span>
                                 </div>
+                                {% if !item.store_name.is_empty() %}
                                 <div class="shop">
-                                    <span>Shop xD</span>
+                                    <span>{{item.store_name}}</span>
                                 </div>
+                                {% endif %}
                             </div>
                             <div class="quantity-product">
                                 <div class="quantity-product-cont">
                                     <div class="minus-cont more-less-cont">
                                         <span class="more-less minus">-</span>
                                     </div>
-                                    <input type="number" min="0" max="99" class="input-no-style" value="1" maxlength="2"
+                                    <input type="number" min="1" max="{{item.stock}}" class="input-no-style quantity-input" value="{{item.quantity}}" maxlength="2"
                                         oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
                                     <div class="plus-cont more-less-cont">
                                         <span class="more-less plus">+</span>
@@ -74,6 +86,8 @@
                         </div>
                     </div>
                 </div>
+                {% endfor %}
+                {% endif %}
 
             </div>
         </div>
@@ -81,24 +95,24 @@
             <div class="total-items">
                 <h2 class="title-resume">Resumen</h2>
                 <div class="articles-images">
-                    <div class="image-resume">
+                    {% for item in cart_total.items %}
+                    <div class="image-resume" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;">
                     </div>
-                    <div class="image-resume">
-                    </div>
+                    {% endfor %}
                 </div>
                 <div class="data-resume">
                     <div class="space total">
-                        <span>Total de articulos</span>
+                        <span>Total de articulos ({{cart_total.total_units}})</span>
                         <div class="money">
-                            <span>44.69</span>
-                            <span>€</span>
+                            <span>{{cart_total.total}}</span>
+                            <span>{{cart_total.currency}}</span>
                         </div>
                     </div>
                     <div class="space discounts">
                         <span>Descuento de articulos</span>
                         <div class="money">
-                            <span>- 10</span>
-                            <span>€</span>
+                            <span>- {{cart_total.discount}}</span>
+                            <span>{{cart_total.currency}}</span>
                         </div>
                     </div>
                     <div class="space shipment">
@@ -108,8 +122,8 @@
                     <div class="space final-total">
                         <span>Estimación total</span>
                         <div class="money">
-                            <span>34.69</span>
-                            <span>€</span>
+                            <span>{{cart_total.final_total}}</span>
+                            <span>{{cart_total.currency}}</span>
                         </div>
                     </div>
                     <div class="iva">

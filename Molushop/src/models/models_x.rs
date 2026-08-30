@@ -521,3 +521,32 @@ pub struct ProductForPage1{
     #[diesel(sql_type = Nullable<Jsonb>)]
     pub variations_with_stock_status: Option<Value>
 }
+
+#[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
+#[diesel(check_for_backend(diesel::pg::Pg))]
+pub struct CartItem1{
+    #[diesel(sql_type = SqlUuid)]
+    pub id: Uuid,
+    #[diesel(sql_type = SqlUuid)]
+    pub product_var_id: Uuid,
+    #[diesel(sql_type = SqlUuid)]
+    pub product_id: Uuid,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub name: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub variation_label: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub image_url: Option<String>,
+    #[diesel(sql_type = Nullable<Numeric>)]
+    pub price: Option<BigDecimal>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub currency: Option<String>,
+    #[diesel(sql_type = Nullable<Text>)]
+    pub store_name: Option<String>,
+    #[diesel(sql_type = Integer)]
+    pub quantity: i32,
+    #[diesel(sql_type = Integer)]
+    pub stock: i32,
+    #[diesel(sql_type = Nullable<Numeric>)]
+    pub subtotal: Option<BigDecimal>
+}
