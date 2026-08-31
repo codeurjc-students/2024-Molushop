@@ -2,6 +2,7 @@ pub mod routes_x;
 pub mod master;
 pub mod home;
 pub mod product;
+pub mod cart;
 
 use actix_web::web;
 use crate::middleware::auth::Auth;
@@ -10,4 +11,5 @@ use crate::middleware::auth::Auth;
 pub fn config_routes(cfg: &mut web::ServiceConfig) {
     home::config(cfg);
     product::config(cfg);
+    cart::config(cfg);
 }

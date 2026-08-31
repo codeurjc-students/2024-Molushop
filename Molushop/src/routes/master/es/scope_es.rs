@@ -25,6 +25,5 @@ pub fn scope_es(pool:web::Data<DbPool>) -> Scope<impl ServiceFactory<ServiceRequ
         .wrap(Auth::new())
         .configure(home_page::config)
         .configure(about_us::config)
-        .configure(cart_page::config)
         .configure(product_page::config)
 }

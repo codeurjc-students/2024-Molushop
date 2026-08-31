@@ -14,20 +14,22 @@ use crate::services::components::{
     nav1_service::*,
     cart_get_service::*
 };
-use crate::middleware::auth::SessionData;
+use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
 use crate::services::servicesX::{check_session,get_user_2};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
     cfg
-        .service(get_cart)
+        .route(
+            "/cart",
+            web::get().to(get_cart).wrap(Auth::new())
+        )
         ;
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
 
-#[get("/cart")]
 async fn get_cart(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     
