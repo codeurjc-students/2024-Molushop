@@ -24,6 +24,7 @@ const PRODUCT_DETAIL = {
         });
 
         this.init_product_selection();
+        this.init_quantity();
     },
 
     // Devuelve { attrName: value } de los radios actualmente marcados
@@ -177,6 +178,32 @@ const PRODUCT_DETAIL = {
         .catch(err => {
             console.error("Error al añadir al carrito:", err);
         });
+    },
+
+    // +/- del selector de cantidad. Sólo tocan el input: la petición al
+    // carrito la sigue lanzando el botón "Añadir al carrito".
+    stepQuantity: function(delta) {
+        let input = this.element.querySelector(".quantity-product input[type='number']");
+        if (input == null) { return; }
+
+        // Los límites se leen del propio input para que manden los atributos
+        // min/max de la plantilla y no queden duplicados aquí.
+        let min = parseInt(input.min);
+        let max = parseInt(input.max);
+        let quantity = (parseInt(input.value) || 0) + delta;
+
+        if (!isNaN(min) && quantity < min) { quantity = min; }
+        if (!isNaN(max) && quantity > max) { quantity = max; }
+
+        input.value = quantity;
+    },
+
+    init_quantity: function() {
+        let minus = this.element.querySelector(".quantity-product .minus-cont");
+        let plus = this.element.querySelector(".quantity-product .plus-cont");
+
+        if (minus) { minus.addEventListener("click", () => this.stepQuantity(-1)); }
+        if (plus) { plus.addEventListener("click", () => this.stepQuantity(1)); }
     },
 
     init_product_selection: function() {
