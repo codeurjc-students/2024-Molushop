@@ -150,53 +150,94 @@
         }
         .add-to-cart{
             display: flex;
-            gap: 0.5em;
-            align-items: center;
-            .quantity-product{
-                .quantity-product-cont{
-                    display: flex;
-                    background-color: white;
-                    border: 3px solid rgb(236, 236, 236);
-                    border-radius: 20px;
+            flex-direction: column;
+            .add-cart-cont1{
+                display: flex;
+                flex-direction: row;
+                gap:0.5em;
+                .quantity-product{
+                    .quantity-product-cont{
+                        display: flex;
+                        background-color: white;
+                        border: 3px solid rgb(236, 236, 236);
+                        border-radius: 20px;
 
-                    input[type="number"]::-webkit-outer-spin-button,
-                    input[type="number"]::-webkit-inner-spin-button {
-                        -webkit-appearance: none;
-                        margin: 0;
-                    }
-                    /* Para Firefox */
-                    input[type="number"] {
-                        -moz-appearance: textfield;
-                    }
+                        input[type="number"]::-webkit-outer-spin-button,
+                        input[type="number"]::-webkit-inner-spin-button {
+                            -webkit-appearance: none;
+                            margin: 0;
+                        }
+                        /* Para Firefox */
+                        input[type="number"] {
+                            -moz-appearance: textfield;
+                        }
 
-                    .input-no-style{
-                        background: transparent;
-                        border: none;
-                        width: 2em;
-                        text-align: center;
+                        .input-no-style{
+                            background: transparent;
+                            border: none;
+                            width: 2em;
+                            text-align: center;
+                        }
+                        .more-less-cont{
+                            padding: 2px 9px;
+                            user-select: none;
+                        }
+                        .minus-cont{
+                            width: 100%;
+                        }
+                        .minus{
+                            position:relative;
+                            top: -2px;
+                            
+                        }
+                        .plus{
+                        }
                     }
-                    .more-less-cont{
-                        padding: 2px 9px;
-                    }
-                    .minus-cont{
-                        width: 100%;
-                    }
-                    .minus{
-                        position:relative;
-                        top: -2px;
-                        
-                    }
-                    .plus{
-                    }
+                    
                 }
-                
-            }
-            .button-container-add{
-                width: 10em;
-                height: 2em;
+                .button-container-add{
+                    /* min-width en vez de width fija: el texto del botón no cabe
+                    siempre en 10em y antes se desbordaba de la caja. */
+                    min-width: 10em;
+                    height: 2em;
 
-                .button-1{
-                    border-radius: 20px;
+                    .button-1{
+                        border-radius: 20px;
+                    }
+
+                    /* Botón real de "Añadir al carrito". No hereda de button_1:
+                    ese componente no expone ninguna regla .button-1-a y su CSS
+                    ni siquiera se carga en esta página. */
+                    .add-to-cart-btn{
+                        width: 100%;
+                        height: 100%;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+
+                        background-color: green;
+                        color: white;
+                        border: none;
+                        border-radius: 20px;
+
+                        font-size: 1em;
+                        font-family: inherit;
+                        white-space: nowrap;
+                        padding: 0 1em;
+                        cursor: pointer;
+                        transition: background-color 0.15s ease-in-out;
+                    }
+                    .add-to-cart-btn:hover{
+                        background-color: #068817;
+                    }
+                    .add-to-cart-btn:active{
+                        transform: scale(0.97);
+                    }
+                    /* Es un <button> de verdad, así que se navega con teclado. */
+                    .add-to-cart-btn:focus-visible{
+                        outline: 3px solid rgb(212, 57, 18);
+                        outline-offset: 2px;
+                    }
                 }
             }
         }

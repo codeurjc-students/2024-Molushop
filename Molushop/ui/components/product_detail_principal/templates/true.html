@@ -69,22 +69,25 @@
             {% endfor%}
         </div>
         <div class="add-to-cart">
-            <div class="quantity-product">
-                <div class="quantity-product-cont">
-                    <div class="minus-cont more-less-cont">
-                        <span class="more-less minus">-</span>
-                    </div>
-                    <input type="number" min="0" max="99" class="input-no-style" value="1" maxlength="2"
-                        oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
-                    <div class="plus-cont more-less-cont">
-                        <span class="more-less plus">+</span>
+            <h3>Añadir al carrito</h3> <!--TODO: poner esto como i18n en el futuro-->
+            <div class="add-cart-cont1">
+                <div class="quantity-product">
+                    <div class="quantity-product-cont">
+                        <div class="minus-cont more-less-cont">
+                            <span class="more-less minus">-</span>
+                        </div>
+                        <input type="number" min="1" max="99" class="input-no-style" value="1" maxlength="2"
+                            oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
+                        <div class="plus-cont more-less-cont">
+                            <span class="more-less plus">+</span>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="button-container-add">
-                <button type="button" class="add-to-cart-btn button-1-a" data-add-url="{{product_data.cart_add_url()}}">
-                    <span>Añadir al carrito</span>
-                </button>
+                <div class="button-container-add">
+                    <button type="button" class="add-to-cart-btn" data-add-url="{{product_data.cart_add_url()}}">
+                        <span>Añadir al carrito</span>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
