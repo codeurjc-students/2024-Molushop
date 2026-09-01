@@ -172,6 +172,56 @@ diesel::table! {
 }
 
 diesel::table! {
+    order_items (id) {
+        id -> Uuid,
+        order_id -> Uuid,
+        product_var_id -> Uuid,
+        #[max_length = 100]
+        product_name -> Varchar,
+        #[max_length = 255]
+        variation_label -> Nullable<Varchar>,
+        sku -> Nullable<Text>,
+        image_url -> Nullable<Text>,
+        #[max_length = 255]
+        store_name -> Nullable<Varchar>,
+        unit_price -> Numeric,
+        #[max_length = 3]
+        currency -> Bpchar,
+        quantity -> Int4,
+        line_total -> Numeric,
+    }
+}
+
+diesel::table! {
+    orders (id) {
+        id -> Uuid,
+        order_number -> Int8,
+        user_id -> Uuid,
+        cart_id -> Nullable<Uuid>,
+        status -> Int2,
+        #[max_length = 3]
+        currency -> Bpchar,
+        subtotal -> Numeric,
+        discount_total -> Numeric,
+        shipping_total -> Numeric,
+        total_amount -> Numeric,
+        shipping_address_id -> Nullable<Uuid>,
+        #[max_length = 255]
+        ship_street1 -> Varchar,
+        #[max_length = 255]
+        ship_street2 -> Nullable<Varchar>,
+        #[max_length = 20]
+        ship_postal_code -> Varchar,
+        #[max_length = 255]
+        ship_city -> Varchar,
+        #[max_length = 255]
+        ship_province -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
     price_history (id) {
         id -> Int4,
         variation_id -> Uuid,
@@ -331,6 +381,11 @@ diesel::joinable!(favorites -> product_variations (product_var_id));
 diesel::joinable!(images_product -> products (product_id));
 diesel::joinable!(images_product_variations -> images_product (image_id));
 diesel::joinable!(images_product_variations -> product_variations (variation_id));
+diesel::joinable!(order_items -> orders (order_id));
+diesel::joinable!(order_items -> product_variations (product_var_id));
+diesel::joinable!(orders -> base_user (user_id));
+diesel::joinable!(orders -> carts (cart_id));
+diesel::joinable!(orders -> customer_address (shipping_address_id));
 diesel::joinable!(price_history -> product_variations (variation_id));
 diesel::joinable!(prices -> product_variations (variation_id));
 diesel::joinable!(product_base_indentifiers -> products (product_id));
@@ -360,6 +415,8 @@ diesel::allow_tables_to_appear_in_same_query!(
     identifiers_var,
     images_product,
     images_product_variations,
+    order_items,
+    orders,
     price_history,
     prices,
     product_attributes,

@@ -16,8 +16,8 @@ button:disabled {
 }
 
 .content-wrapper{
-    max-width: 1500px; /* Establece tu ancho máximo deseado */
-    margin: 0 auto; /* Centra el contenedor en la pantalla */
+    /* max-width: 1500px;  Establece tu ancho máximo deseado */
+    /*margin: 0 auto; /* Centra el contenedor en la pantalla */
      /* Padding para los márgenes laterales en móvil */
 }
 .full-width-header,
