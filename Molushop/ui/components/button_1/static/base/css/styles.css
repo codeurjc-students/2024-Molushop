@@ -19,3 +19,14 @@
 .button-1:hover {
     background-color: #068817; /* Un color de fondo más oscuro al pasar el ratón */
 }
+
+/* Estado apagado. En un <a> no existe `disabled`, así que se marca con la clase:
+   el color lo pone el contenedor y el pointer-events corta el clic. */
+.button-1.is-disabled,
+.button-1.is-disabled:hover {
+    background-color: #9e9e9e;
+    cursor: not-allowed;
+}
+.button-1 .button-1-a.is-disabled {
+    pointer-events: none;
+}

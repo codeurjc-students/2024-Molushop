@@ -1,0 +1,139 @@
+.checkout-1{
+    display: flex;
+    justify-content: center;
+    margin-top: 1.5em;
+    .cont-1{
+        padding: 1em;
+        border-radius: 3px;
+        border: 2px solid black;
+    }
+    .checkout-empty{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1em;
+        padding: 2em;
+    }
+    .checkout-body{
+        display: flex;
+        gap: 1em;
+        align-items: flex-start;
+    }
+    .checkout-main{
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        width: 600px;
+        .header-container{
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            h1{
+                margin: 0;
+            }
+        }
+    }
+    .back-to-cart{
+        text-decoration: underline;
+    }
+    .section-title{
+        margin: 0;
+        font-size: 1.1em;
+    }
+    .address-form{
+        display: flex;
+        flex-direction: column;
+        gap: 0.75em;
+        .field{
+            display: flex;
+            flex-direction: column;
+            gap: 0.25em;
+            width: 100%;
+        }
+        .field-row{
+            display: flex;
+            gap: 0.75em;
+        }
+        .field-label{
+            font-size: 0.9em;
+        }
+        .optional{
+            color: #777777;
+        }
+        input{
+            padding: 0.5em;
+            border: 1px solid #000000;
+            border-radius: 3px;
+            font-size: 1em;
+        }
+    }
+    .lines{
+        display: flex;
+        flex-direction: column;
+        gap: 0.75em;
+        .line{
+            display: flex;
+            gap: 0.75em;
+            align-items: center;
+        }
+        .image-cont{
+            width: 70px;
+            height: 70px;
+            border-radius: 3px;
+            flex-shrink: 0;
+        }
+        .line-data{
+            display: flex;
+            flex-direction: column;
+            gap: 0.15em;
+            flex-grow: 1;
+        }
+        .variations,
+        .shop,
+        .quantity{
+            font-size: 0.9em;
+            color: #555555;
+        }
+        .line-money{
+            display: flex;
+            gap: 0.25em;
+            white-space: nowrap;
+        }
+    }
+    .checkout-side{
+        width: 16em;
+        .title-resume{
+            margin: 0 0 1em 0;
+        }
+        .data-resume{
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }
+        .space{
+            display: flex;
+            justify-content: space-between;
+        }
+        .money{
+            display: flex;
+            gap: 0.25em;
+        }
+        .iva{
+            font-size: 0.9em;
+            color: #555555;
+        }
+    }
+    .confirm-button{
+        margin-top: 0.5em;
+        background-color: green;
+        border: none;
+        border-radius: 15px;
+        color: white;
+        font-size: 1em;
+        padding: 0.7em 0.5em;
+        cursor: pointer;
+    }
+    .confirm-button:hover{
+        background-color: #068817;
+    }
+}

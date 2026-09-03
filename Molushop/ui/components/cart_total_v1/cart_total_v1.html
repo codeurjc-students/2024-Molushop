@@ -1,3 +1,7 @@
 {% include "components/cart_total_v1/styles.html"%}
+{# button_1 ya no pinta markup: sólo trae su <link>/<script>. El botón lo pinta
+   la macro desde templates/base.html. Va en el wrapper, no en el cuerpo, para
+   que los refrescos parciales no lo reinyecten en cada actualización. #}
+{% include "components/button_1/button_1.html"%}
 {% include "components/cart_total_v1/templates/base.html"%}
 {% include "components/cart_total_v1/scripts.html"%}

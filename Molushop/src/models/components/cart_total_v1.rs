@@ -26,7 +26,10 @@ pub struct CartTotalV1Body{
 pub struct CartRoutes{
     pub add: String,
     pub update: String,
-    pub remove: String
+    pub remove: String,
+    /// Página de checkout. No es un endpoint del componente, pero se expone aquí
+    /// porque el botón "Continuar" del resumen es quien lleva a ella.
+    pub checkout: String
 }
 
 #[derive(Serialize, Debug, Clone)]

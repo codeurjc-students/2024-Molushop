@@ -1,0 +1,108 @@
+<div class="checkout-1" id="checkout-1">
+    {% if checkout.is_empty() %}
+    <div class="checkout-empty">
+        <span>No hay artículos que comprar.</span>
+        <a href="{{checkout.routes.cart}}" class="no-generic-a back-to-cart">Volver a la cesta</a>
+    </div>
+    {% else %}
+    {# Un solo POST lleva la dirección y la confirmación: así no quedan filas
+       huérfanas en customer_address si el usuario se arrepiente. El endpoint
+       todavía no existe, lo registra la parte 3. #}
+    <form class="checkout-body" method="post" action="{{checkout.routes.confirm}}">
+        <input type="hidden" name="lines" value="{{checkout.line_ids}}">
+
+        <div class="checkout-main cont-1">
+            <div class="header-container">
+                <h1>Finalizar compra</h1>
+                <a href="{{checkout.routes.cart}}" class="no-generic-a back-to-cart">Volver a la cesta</a>
+            </div>
+
+            <h2 class="section-title">Dirección de envío</h2>
+            <div class="address-form">
+                <label class="field">
+                    <span class="field-label">Dirección</span>
+                    <input type="text" name="street1" maxlength="255" required value="{{checkout.address.street1}}">
+                </label>
+                <label class="field">
+                    <span class="field-label">Dirección 2 <span class="optional">(opcional)</span></span>
+                    <input type="text" name="street2" maxlength="255" value="{{checkout.address.street2}}">
+                </label>
+                <div class="field-row">
+                    <label class="field">
+                        <span class="field-label">Código postal</span>
+                        <input type="text" name="postal_code" maxlength="20" required value="{{checkout.address.postal_code}}">
+                    </label>
+                    <label class="field">
+                        <span class="field-label">Ciudad</span>
+                        <input type="text" name="city" maxlength="255" required value="{{checkout.address.city}}">
+                    </label>
+                </div>
+                <label class="field">
+                    <span class="field-label">Provincia</span>
+                    <input type="text" name="province" maxlength="255" required value="{{checkout.address.province}}">
+                </label>
+            </div>
+
+            <h2 class="section-title">Artículos</h2>
+            <div class="lines">
+                {% for item in checkout.cart_total.items %}
+                <div class="line">
+                    <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                    <div class="line-data">
+                        <div class="title">
+                            <a href="{{item.url}}">{{item.name}}</a>
+                        </div>
+                        {% if !item.variation_label.is_empty() %}
+                        <div class="variations">{{item.variation_label}}</div>
+                        {% endif %}
+                        {% if !item.store_name.is_empty() %}
+                        <div class="shop">{{item.store_name}}</div>
+                        {% endif %}
+                        <div class="quantity">x{{item.quantity}}</div>
+                    </div>
+                    <div class="line-money">
+                        <span>{{item.subtotal}}</span>
+                        <span>{{item.currency}}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="checkout-side cont-1">
+            <h2 class="title-resume">Resumen</h2>
+            <div class="data-resume">
+                <div class="space total">
+                    <span>Total de articulos ({{checkout.cart_total.total_units}})</span>
+                    <div class="money">
+                        <span>{{checkout.cart_total.total}}</span>
+                        <span>{{checkout.cart_total.currency}}</span>
+                    </div>
+                </div>
+                <div class="space discounts">
+                    <span>Descuento de articulos</span>
+                    <div class="money">
+                        <span>- {{checkout.cart_total.discount}}</span>
+                        <span>{{checkout.cart_total.currency}}</span>
+                    </div>
+                </div>
+                <div class="space shipment">
+                    <span>Envío</span>
+                    <span>Gratis</span>
+                </div>
+                <div class="space final-total">
+                    <span>Estimación total</span>
+                    <div class="money">
+                        <span>{{checkout.cart_total.final_total}}</span>
+                        <span>{{checkout.cart_total.currency}}</span>
+                    </div>
+                </div>
+                <div class="iva">
+                    IVA incluido
+                </div>
+                <button type="submit" class="confirm-button">Confirmar pedido</button>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>

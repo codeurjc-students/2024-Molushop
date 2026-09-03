@@ -19,6 +19,13 @@
         border-radius: 50%;
     }
 
+    /* El input va DESPUÉS del círculo en el markup, así que no vale un
+       combinador de hermanos: hace falta :has() sobre la etiqueta. */
+    label:has(.checkbox-input:checked) .checkbox1-circle{
+        background-color: #000000;
+        box-shadow: inset 0 0 0 3px #ffffff;
+    }
+
     .checkbox-input{
         position: absolute;
         opacity: 0;

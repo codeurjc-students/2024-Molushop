@@ -12,6 +12,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::modal_1_model::Modal1;
 use crate::models::components::cart_total_v1::CartRoutes;
+use crate::constants::urls::CHECKOUT_URL;
 use super::scope::SCOPE_COMPONENTS;
 use crate::models::error::ServiceError;
 use crate::services::components::cart_add_service::{self, get_cart_item_count};
@@ -25,7 +26,8 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     pub static ref ROUTES: CartRoutes = CartRoutes{
         add: format!("{}{}/add", SCOPE_COMPONENTS, SCOPE),
         update: format!("{}{}/update", SCOPE_COMPONENTS, SCOPE),
-        remove: format!("{}{}/remove", SCOPE_COMPONENTS, SCOPE)
+        remove: format!("{}{}/remove", SCOPE_COMPONENTS, SCOPE),
+        checkout: CHECKOUT_URL.to_string()
     };
 
 }

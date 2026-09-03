@@ -1,7 +1,14 @@
+{# Este fichero ya no pinta nada por sí solo: sólo define la macro.
+   Quien lo use debe importarlo y llamarla:
+     {% import "components/button_1/templates/base.html" as btn %}
+     {% call btn::button_1(url, "Continuar") %}
+   Los <link>/<script> del componente los pone el wrapper button_1.html. #}
+{% macro button_1(url, text) %}
 <div class="button-1">
-    <a href="https://www.google.com/" class="no-generic-a button-1-a">
+    <a href="{{url}}" class="no-generic-a button-1-a">
         <span>
-            Continuar
+            {{text}}
         </span>
     </a>
 </div>
+{% endmacro %}

@@ -6,6 +6,12 @@ const CART_TOTAL_V1 = {
     pending: false,
     debounce: null,
 
+    // Ids de línea DESmarcados. Se guarda lo desmarcado y no lo marcado para que
+    // una línea nueva entre seleccionada sin que haya que tocar nada.
+    // Vive sólo en el navegador: el servidor recibe la lista de ids en el
+    // ?lines= del checkout y recalcula los totales por su cuenta.
+    unselected: new Set(),
+
     root: function() {
         return document.getElementById("cart-total-1");
     },
@@ -37,18 +43,142 @@ const CART_TOTAL_V1 = {
             this.debounce = setTimeout(() => this.applyQuantity(card), 500);
         });
 
-        // "Seleccionar todos": de momento sólo estado visual, la selección
-        // todavía no significa nada en el servidor.
         document.addEventListener("change", (event) => {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
-            if (!event.target.classList.contains("select-all-input")) { return; }
 
-            let checked = event.target.checked;
-            root.querySelectorAll(".line-check").forEach(check => {
-                check.checked = checked;
-            });
+            let all = event.target.classList.contains("select-all-input");
+            let line = event.target.classList.contains("line-check");
+            if (!all && !line) { return; }
+
+            if (all) {
+                let checked = event.target.checked;
+                root.querySelectorAll(".card").forEach(card => {
+                    let check = card.querySelector(".line-check");
+                    if (check != null) { check.checked = checked; }
+                    this.mark(card.dataset.lineId, checked);
+                });
+            } else {
+                let card = event.target.closest(".card");
+                if (card != null) { this.mark(card.dataset.lineId, event.target.checked); }
+            }
+
+            this.refreshSelection();
         });
+
+        this.refreshSelection();
+    },
+
+    // Apunta (o desapunta) una línea como desmarcada
+    mark: function(lineId, checked) {
+        if (!lineId) { return; }
+        if (checked) { this.unselected.delete(lineId); }
+        else { this.unselected.add(lineId); }
+    },
+
+    // Devuelve los ids de las líneas marcadas, en el orden en que se ven
+    selectedIds: function() {
+        let root = this.root();
+        if (root == null) { return []; }
+
+        return Array.from(root.querySelectorAll(".card"))
+            .map(card => card.dataset.lineId)
+            .filter(id => id && !this.unselected.has(id));
+    },
+
+    // Vuelve a poner los checkboxes como los dejó el usuario. Hay que llamarla
+    // después de cada refresco parcial: send() reemplaza #cart-total-1 entero
+    // con el HTML del servidor, que los devuelve todos marcados.
+    applySelection: function() {
+        let root = this.root();
+        if (root == null) { return; }
+
+        let ids = new Set();
+        root.querySelectorAll(".card").forEach(card => {
+            let id = card.dataset.lineId;
+            if (!id) { return; }
+            ids.add(id);
+
+            let check = card.querySelector(".line-check");
+            if (check != null) { check.checked = !this.unselected.has(id); }
+        });
+
+        // Una línea borrada no tiene por qué seguir ocupando sitio en el Set
+        this.unselected.forEach(id => {
+            if (!ids.has(id)) { this.unselected.delete(id); }
+        });
+
+        let all = root.querySelector(".select-all-input");
+        if (all != null) {
+            all.checked = ids.size > 0 && this.unselected.size === 0;
+        }
+    },
+
+    // Reaplica la selección, repinta el resumen y sincroniza el botón
+    refreshSelection: function() {
+        this.applySelection();
+        this.updateSummary();
+        this.updateContinue();
+    },
+
+    // Recalcula unidades y totales con lo marcado. Es cosmético: los totales
+    // que valen son los que recalcula el servidor en el checkout.
+    updateSummary: function() {
+        let root = this.root();
+        if (root == null) { return; }
+
+        let units = 0;
+        // En céntimos, para no arrastrar los errores del coma flotante
+        let cents = 0;
+
+        root.querySelectorAll(".card").forEach(card => {
+            let id = card.dataset.lineId;
+            if (!id || this.unselected.has(id)) { return; }
+
+            let input = card.querySelector(".quantity-input");
+            let quantity = parseInt(input != null ? input.value : "0") || 0;
+            let price = parseFloat(card.dataset.price) || 0;
+
+            units += quantity;
+            cents += Math.round(price * 100) * quantity;
+        });
+
+        let resume = root.querySelector(".data-resume");
+        let discount = parseFloat(resume != null ? resume.dataset.discount : "0") || 0;
+        let total = cents / 100;
+
+        this.setText(root, ".summary-units", units);
+        this.setText(root, ".summary-total", total.toFixed(2));
+        this.setText(root, ".summary-final-total", (total - discount).toFixed(2));
+    },
+
+    setText: function(root, selector, value) {
+        let node = root.querySelector(selector);
+        if (node != null) { node.textContent = value; }
+    },
+
+    // El enlace arrastra sólo lo marcado. Con todo marcado va a /checkout a
+    // secas, que es lo mismo que hace el enlace cuando no hay JS.
+    updateContinue: function() {
+        let root = this.root();
+        if (root == null) { return; }
+
+        let link = root.querySelector(".button-continue .button-1-a");
+        let button = root.querySelector(".button-continue .button-1");
+        if (link == null) { return; }
+
+        let base = root.dataset.checkoutUrl || "/checkout";
+        let ids = this.selectedIds();
+        let total = root.querySelectorAll(".card").length;
+
+        link.href = (ids.length === total) ? base : `${base}?lines=${ids.join(",")}`;
+
+        // Sin líneas no hay nada que comprar. No se usa `disabled`, que en un <a>
+        // no existe; se marca con la clase y se corta el clic.
+        let off = ids.length === 0;
+        link.classList.toggle("is-disabled", off);
+        if (button != null) { button.classList.toggle("is-disabled", off); }
+        if (off) { link.removeAttribute("href"); }
     },
 
     // Suma delta a la cantidad de la línea y la envía
@@ -117,6 +247,9 @@ const CART_TOTAL_V1 = {
                 if (data.ok) {
                     this.root().outerHTML = data.html;
                     this.updateBadge(data.cartCount);
+                    // El HTML nuevo viene con todo marcado: hay que devolverle
+                    // al usuario la selección que tenía
+                    this.refreshSelection();
                 } else {
                     // El cuerpo del error es un modal ya renderizado
                     this.showModal(data.html);

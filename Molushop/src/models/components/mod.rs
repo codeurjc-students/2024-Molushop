@@ -12,3 +12,4 @@ pub mod product_card_model;
 pub mod product_card_group_model;
 pub mod cart_total_v1;
 pub mod product_detail_principal_model;
+pub mod checkout_v1;
