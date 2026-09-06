@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::models::models_x::CartItem1;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
+use crate::constants::money::{DEFAULT_CURRENCY, symbol_of};
 use crate::controllers::components::cart_add_controller::ROUTES;
 
 #[derive(Template,Clone,Debug)]
@@ -44,6 +45,8 @@ pub struct CartTotalData{
     pub final_total: BigDecimal,
     /// Nº de unidades (no de líneas)
     pub total_units: i32,
+    /// Código ISO tal cual está en `prices.currency` ("EUR"), NO el símbolo.
+    /// Para pintarlo usa `currency_symbol()`.
     pub currency: String
 }
 
@@ -58,6 +61,7 @@ pub struct CartItemData{
     pub url: String,
     pub price: BigDecimal,
     pub subtotal: BigDecimal,
+    /// Código ISO ("EUR"), no el símbolo. Ver `currency_symbol()`.
     pub currency: String,
     pub store_name: String,
     pub quantity: i32,
@@ -73,7 +77,7 @@ impl Default for CartTotalData {
             discount: BigDecimal::from(0),
             final_total: BigDecimal::from(0),
             total_units: 0,
-            currency: "€".to_string()
+            currency: DEFAULT_CURRENCY.to_string()
         }
     }
 }
@@ -100,16 +104,28 @@ impl CartTotalData {
     pub fn is_empty(&self) -> bool {
         self.items.is_empty()
     }
+
+    /// Símbolo para pintar en la plantilla. Se expone como método y no como
+    /// campo por lo mismo que las URLs del carrito: el dato que se guarda es el
+    /// código ISO, y el símbolo sólo existe al renderizar.
+    pub fn currency_symbol(&self) -> String {
+        symbol_of(&self.currency)
+    }
 }
 
-/// Traduce el código ISO de la moneda a su símbolo. Si no lo conoce, devuelve el código.
-fn currency_symbol(code: Option<String>) -> String {
+impl CartItemData {
+    /// Símbolo de la moneda de la línea. Ver `CartTotalData::currency_symbol`.
+    pub fn currency_symbol(&self) -> String {
+        symbol_of(&self.currency)
+    }
+}
+
+/// Normaliza lo que venga de la BD a un código ISO. Un precio sin moneda cae al
+/// de por defecto; la conversión a símbolo NO se hace aquí (ver `currency_symbol`).
+fn currency_code(code: Option<String>) -> String {
     match code.as_deref().map(|c| c.trim()) {
-        Some("EUR") => "€".to_string(),
-        Some("USD") => "$".to_string(),
-        Some("GBP") => "£".to_string(),
-        Some(other) if !other.is_empty() => other.to_string(),
-        _ => "€".to_string()
+        Some(c) if !c.is_empty() => c.to_uppercase(),
+        _ => DEFAULT_CURRENCY.to_string()
     }
 }
 
@@ -129,7 +145,7 @@ impl From<CartItem1> for CartItemData {
             url: format!("{}{}", PRODUCT_URL_PREFIX, db.product_id),
             price,
             subtotal,
-            currency: currency_symbol(db.currency),
+            currency: currency_code(db.currency),
             store_name: db.store_name.unwrap_or_default(),
             quantity: db.quantity,
             stock: db.stock

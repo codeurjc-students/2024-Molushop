@@ -53,7 +53,7 @@
                                 {% endif %}
                                 <div class="Price">
                                     <span class="line-price">{{item.price}}</span>
-                                    <span class="currency">{{item.currency}}</span>
+                                    <span class="currency">{{item.currency_symbol()}}</span>
                                 </div>
                                 {% if !item.store_name.is_empty() %}
                                 <div class="shop">
@@ -108,14 +108,14 @@
                         <span>Total de articulos (<span class="summary-units">{{cart_total.total_units}}</span>)</span>
                         <div class="money">
                             <span class="summary-total">{{cart_total.total}}</span>
-                            <span>{{cart_total.currency}}</span>
+                            <span>{{cart_total.currency_symbol()}}</span>
                         </div>
                     </div>
                     <div class="space discounts">
                         <span>Descuento de articulos</span>
                         <div class="money">
                             <span>- {{cart_total.discount}}</span>
-                            <span>{{cart_total.currency}}</span>
+                            <span>{{cart_total.currency_symbol()}}</span>
                         </div>
                     </div>
                     <div class="space shipment">
@@ -126,7 +126,7 @@
                         <span>Estimación total</span>
                         <div class="money">
                             <span class="summary-final-total">{{cart_total.final_total}}</span>
-                            <span>{{cart_total.currency}}</span>
+                            <span>{{cart_total.currency_symbol()}}</span>
                         </div>
                     </div>
                     <div class="iva">

@@ -95,6 +95,9 @@
     }
 
     .products-container{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
         .empty-cart{
             display: flex;
             justify-content: center;

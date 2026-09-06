@@ -38,7 +38,7 @@
             {% else %}
                 <span id="product-price">--</span>
             {% endif %}
-            <span>{{product_data.currency}}</span>
+            <span>{{product_data.currency_symbol()}}</span>
         </div>
         <div class="variations">
             {% for variation in product_data.variations_with_stock_status %}

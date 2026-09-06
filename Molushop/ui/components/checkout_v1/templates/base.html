@@ -62,7 +62,7 @@
                     </div>
                     <div class="line-money">
                         <span>{{item.subtotal}}</span>
-                        <span>{{item.currency}}</span>
+                        <span>{{item.currency_symbol()}}</span>
                     </div>
                 </div>
                 {% endfor %}
@@ -76,14 +76,14 @@
                     <span>Total de articulos ({{checkout.cart_total.total_units}})</span>
                     <div class="money">
                         <span>{{checkout.cart_total.total}}</span>
-                        <span>{{checkout.cart_total.currency}}</span>
+                        <span>{{checkout.cart_total.currency_symbol()}}</span>
                     </div>
                 </div>
                 <div class="space discounts">
                     <span>Descuento de articulos</span>
                     <div class="money">
                         <span>- {{checkout.cart_total.discount}}</span>
-                        <span>{{checkout.cart_total.currency}}</span>
+                        <span>{{checkout.cart_total.currency_symbol()}}</span>
                     </div>
                 </div>
                 <div class="space shipment">
@@ -94,7 +94,7 @@
                     <span>Estimación total</span>
                     <div class="money">
                         <span>{{checkout.cart_total.final_total}}</span>
-                        <span>{{checkout.cart_total.currency}}</span>
+                        <span>{{checkout.cart_total.currency_symbol()}}</span>
                     </div>
                 </div>
                 <div class="iva">
