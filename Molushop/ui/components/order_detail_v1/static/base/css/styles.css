@@ -1,0 +1,114 @@
+.order-detail-1{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
+    max-width: 1100px;
+    margin: 0 auto;
+
+    .cont-1{
+        background-color: white;
+        border-radius: 15px;
+        padding: 1em;
+    }
+    .order-missing{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        align-items: flex-start;
+    }
+    .order-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1em;
+
+        h1{
+            margin: 0;
+            font-size: 1.4em;
+        }
+        .order-number{
+            color: #555555;
+        }
+        .order-status{
+            background-color: #e6f4ea;
+            color: #0b6b20;
+            border-radius: 15px;
+            padding: 0.4em 0.9em;
+        }
+    }
+    .order-body{
+        display: flex;
+        gap: 1em;
+        align-items: flex-start;
+
+        .order-main{
+            flex: 1 1 auto;
+        }
+        .order-side{
+            flex: 0 0 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }
+    }
+    .section-title{
+        font-size: 1.1em;
+        margin: 0.5em 0;
+    }
+    .lines{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8em;
+    }
+    .line{
+        display: flex;
+        gap: 0.8em;
+        align-items: center;
+
+        .image-cont{
+            width: 70px;
+            height: 70px;
+            border-radius: 10px;
+            flex: 0 0 auto;
+        }
+        .line-data{
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+        }
+        .variations, .shop, .quantity{
+            font-size: 0.9em;
+            color: #555555;
+        }
+        .line-money{
+            display: flex;
+            gap: 0.25em;
+        }
+    }
+    .address{
+        color: #333333;
+        line-height: 1.4em;
+    }
+    .data-resume{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+
+        .space{
+            display: flex;
+            justify-content: space-between;
+        }
+        .money{
+            display: flex;
+            gap: 0.25em;
+        }
+        .final-total{
+            font-weight: bold;
+        }
+    }
+    .back-to-cart{
+        margin-top: 0.5em;
+    }
+}

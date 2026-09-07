@@ -1,0 +1,85 @@
+<div class="order-detail-1" id="order-detail-1">
+    {% if !order.found %}
+    <div class="order-missing">
+        <span>No hemos encontrado ese pedido.</span>
+        <a href="{{order.cart_url}}" class="no-generic-a">Ir a la cesta</a>
+    </div>
+    {% else %}
+    <div class="order-header cont-1">
+        <div class="order-ok">
+            <h1>¡Pedido confirmado!</h1>
+            <span class="order-number">Pedido nº {{order.order_number}}</span>
+        </div>
+        <span class="order-status">{{order.status_label()}}</span>
+    </div>
+
+    <div class="order-body">
+        <div class="order-main cont-1">
+            <h2 class="section-title">Artículos ({{order.total_units()}})</h2>
+            <div class="lines">
+                {% for item in order.items %}
+                <div class="line">
+                    <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                    <div class="line-data">
+                        <div class="title">{{item.product_name}}</div>
+                        {% if !item.variation_label.is_empty() %}
+                        <div class="variations">{{item.variation_label}}</div>
+                        {% endif %}
+                        {% if !item.store_name.is_empty() %}
+                        <div class="shop">{{item.store_name}}</div>
+                        {% endif %}
+                        <div class="quantity">x{{item.quantity}}</div>
+                    </div>
+                    <div class="line-money">
+                        <span>{{item.line_total}}</span>
+                        <span>{{order.currency_symbol()}}</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <h2 class="section-title">Dirección de envío</h2>
+            <div class="address">
+                <div>{{order.ship_street1}}</div>
+                {% if !order.ship_street2.is_empty() %}
+                <div>{{order.ship_street2}}</div>
+                {% endif %}
+                <div>{{order.ship_postal_code}} {{order.ship_city}}</div>
+                <div>{{order.ship_province}}</div>
+            </div>
+        </div>
+
+        <div class="order-side cont-1">
+            <h2 class="title-resume">Resumen</h2>
+            <div class="data-resume">
+                <div class="space">
+                    <span>Artículos</span>
+                    <div class="money">
+                        <span>{{order.subtotal}}</span>
+                        <span>{{order.currency_symbol()}}</span>
+                    </div>
+                </div>
+                <div class="space">
+                    <span>Descuento</span>
+                    <div class="money">
+                        <span>- {{order.discount_total}}</span>
+                        <span>{{order.currency_symbol()}}</span>
+                    </div>
+                </div>
+                <div class="space">
+                    <span>Envío</span>
+                    <span>Gratis</span>
+                </div>
+                <div class="space final-total">
+                    <span>Total</span>
+                    <div class="money">
+                        <span>{{order.total_amount}}</span>
+                        <span>{{order.currency_symbol()}}</span>
+                    </div>
+                </div>
+            </div>
+            <a href="{{order.cart_url}}" class="no-generic-a back-to-cart">Volver a la cesta</a>
+        </div>
+    </div>
+    {% endif %}
+</div>

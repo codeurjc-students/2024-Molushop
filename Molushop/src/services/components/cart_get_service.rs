@@ -13,8 +13,21 @@ type DbPool = Pool<AsyncPgConnection>;
 
 /// Devuelve las líneas del carrito ACTIVO (status = 1) del usuario, ya resueltas
 /// con nombre, variación, imagen, precio actual, tienda y stock disponible.
+///
+/// Pide su propia conexión al pool. **Dentro de una transacción hay que usar
+/// `get_cart_items_conn`**: si no, la lectura caería fuera de ella y no tendría
+/// sus garantías.
 pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartItem1>, Error> {
     let connection = &mut pool.get().await.unwrap();
+    get_cart_items_conn(user_id, connection).await
+}
+
+/// La consulta de verdad, sobre una conexión que pone quien llama. El checkout
+/// la usa dentro de su transacción para releer las líneas antes de cobrarlas.
+pub async fn get_cart_items_conn(
+    user_id: &Uuid,
+    connection: &mut AsyncPgConnection
+) -> Result<Vec<CartItem1>, Error> {
     let results = sql_query(r#"
         SELECT
             cp.id,
@@ -25,6 +38,7 @@ pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartIte
                 SELECT string_agg(attr->>'value', ' / ')
                 FROM jsonb_array_elements(pv.attributes) AS attr
             ) AS variation_label,
+            pv.sku,
             COALESCE(
                 (SELECT img.image_url
                  FROM images_product_variations ipv

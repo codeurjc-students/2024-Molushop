@@ -7,7 +7,8 @@ use uuid::Uuid;
 use crate::schema::customer_address;
 use crate::models::models_x::CustomerAddress;
 use crate::models::components::cart_total_v1::{CartTotalData, CartItemData};
-use crate::models::components::checkout_v1::{CheckoutData, AddressData, ROUTES};
+use crate::models::components::checkout_v1::{CheckoutData, AddressData};
+use crate::controllers::components::checkout_controller::ROUTES;
 use crate::services::components::cart_get_service::get_cart_items;
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -15,7 +16,11 @@ type DbPool = Pool<AsyncPgConnection>;
 /// Traduce el `?lines=id1,id2` a un conjunto de UUIDs. Lo que no sea un UUID se
 /// descarta sin más: el filtrado posterior es contra las líneas del usuario, así
 /// que un id inventado o de otra persona simplemente no casa con nada.
-fn parse_line_ids(lines: Option<&str>) -> Option<Vec<Uuid>> {
+///
+/// Es `pub(crate)` porque el servicio de confirmación tiene que filtrar
+/// EXACTAMENTE igual: es la pieza de la que depende que un id ajeno no se cuele,
+/// así que se comparte en vez de duplicarse.
+pub(crate) fn parse_line_ids(lines: Option<&str>) -> Option<Vec<Uuid>> {
     let raw = lines?.trim();
     if raw.is_empty() { return None; }
 
@@ -96,6 +101,8 @@ pub async fn get_checkout_object(
         routes: &ROUTES,
         cart_total: CartTotalData::from_items(items),
         address: get_first_address(uid, pool).await,
-        line_ids
+        line_ids,
+        // El GET nunca trae error: sólo lo rellena el POST fallido al repintar
+        error: None
     }
 }

@@ -10,6 +10,7 @@ use askama::Template;
 use crate::models::pages_models::checkout_page_model::*;
 use crate::services::components::nav1_service::*;
 use crate::services::components::checkout_get_service::get_checkout_object;
+use crate::models::components::checkout_v1::CheckoutData;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
 use crate::services::servicesX::get_user_2;
@@ -39,37 +40,40 @@ async fn get_checkout(
 ) -> HttpResponse {
     let pool = pool_data.get_ref();
 
-    let mut nombre_aux = "".to_string();
-    let mut user_logged = false;
-    let mut user_id_opt: Option<Uuid> = None;
-
-    if let Some(req_session_data) = opt_session_data {
-        let session_data = req_session_data.into_inner();
-        let user_id = session_data.id;
-        user_id_opt = Some(user_id);
-
-        match get_user_2(&user_id, &pool).await {
-            Ok(user) => {
-                nombre_aux = user.username;
-                user_logged = true;
-            }
-            Err(e) => {
-                println!("Ha ocurrido un error con la base de datos!");
-            }
-        }
-    } else {
-        println!("Usuario sin loggear")
-    }
+    let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
 
     let lines = query.into_inner().lines;
+    let checkout = get_checkout_object(user_id_opt.as_ref(), lines.as_deref(), pool).await;
 
-    let checkout_render = CheckoutPage{
+    HttpResponse::Ok().body(render_checkout_page(user_id_opt.as_ref(), checkout, pool).await)
+}
+
+/// Pinta la página entera alrededor de un `CheckoutData` ya construido.
+///
+/// Es `pub` porque la usan dos sitios: este GET y el POST de confirmación
+/// cuando falla, que repinta esta misma página con el error y la dirección que
+/// el usuario acababa de teclear en vez de redirigir y perderla. Sin este
+/// helper, el controlador tendría que duplicar el montaje del nav y el modal.
+pub async fn render_checkout_page(
+    user_id: Option<&Uuid>,
+    checkout: CheckoutData,
+    pool: &DbPool
+) -> String {
+    let mut nombre_aux = "".to_string();
+    let mut user_logged = false;
+
+    if let Some(user_id) = user_id {
+        if let Ok(user) = get_user_2(user_id, pool).await {
+            nombre_aux = user.username;
+            user_logged = true;
+        }
+    }
+
+    CheckoutPage{
         user_logged,
         page_name:"Finalizar compra".to_string(),
-        nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
+        nav1:get_nav1_object(nombre_aux, user_id, pool).await,
         login_base_data:login_base_service::get_login_base_model_data(),
-        checkout:get_checkout_object(user_id_opt.as_ref(), lines.as_deref(), pool).await
-    }.render().unwrap();
-
-    HttpResponse::Ok().body(checkout_render)
+        checkout
+    }.render().unwrap()
 }

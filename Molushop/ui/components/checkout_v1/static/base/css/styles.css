@@ -136,4 +136,17 @@
     .confirm-button:hover{
         background-color: #068817;
     }
+    .checkout-error{
+        background-color: #fdecea;
+        border: 1px solid #f5c2c0;
+        border-radius: 10px;
+        color: #8a1c13;
+        padding: 0.8em 1em;
+        margin-bottom: 1em;
+    }
+    .line-failed{
+        border: 1px solid #f5c2c0;
+        border-radius: 10px;
+        background-color: #fdecea;
+    }
 }

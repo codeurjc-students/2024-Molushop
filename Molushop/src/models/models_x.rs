@@ -127,6 +127,21 @@ pub struct CustomerAddress {
     pub province: String,
 }
 
+/// La dirección se inserta en el mismo POST que confirma el pedido, para que no
+/// queden filas huérfanas si el pedido se cae. Ver la migración
+/// 2026-09-01-192454_orders: `orders` guarda además una COPIA de estos campos.
+#[derive(Insertable)]
+#[diesel(table_name = customer_address)]
+pub struct NewCustomerAddress<'a> {
+    pub id: &'a Uuid,
+    pub customer_id: &'a Uuid,
+    pub street1: &'a str,
+    pub street2: Option<&'a str>,
+    pub postal_code: &'a str,
+    pub city: &'a str,
+    pub province: &'a str,
+}
+
 #[derive(Queryable, Debug, Deserialize,Serialize,Selectable)]
 #[diesel(table_name = products)]
 pub struct Products {
@@ -617,6 +632,10 @@ pub struct CartItem1{
     pub name: Option<String>,
     #[diesel(sql_type = Nullable<Text>)]
     pub variation_label: Option<String>,
+    /// Referencia de la variación. El carrito no la pinta; está aquí porque el
+    /// snapshot de `order_items` la guarda.
+    #[diesel(sql_type = Nullable<Text>)]
+    pub sku: Option<String>,
     #[diesel(sql_type = Nullable<Text>)]
     pub image_url: Option<String>,
     #[diesel(sql_type = Nullable<Numeric>)]

@@ -6,8 +6,12 @@
     </div>
     {% else %}
     {# Un solo POST lleva la dirección y la confirmación: así no quedan filas
-       huérfanas en customer_address si el usuario se arrepiente. El endpoint
-       todavía no existe, lo registra la parte 3. #}
+       huérfanas en customer_address si el usuario se arrepiente. #}
+    {% if let Some(error) = checkout.error %}
+    {# El POST fallido repinta esta misma página en vez de redirigir: así no se
+       pierde la dirección recién tecleada, que es lo que más duele reescribir. #}
+    <div class="checkout-error" role="alert">{{error.message}}</div>
+    {% endif %}
     <form class="checkout-body" method="post" action="{{checkout.routes.confirm}}">
         <input type="hidden" name="lines" value="{{checkout.line_ids}}">
 
@@ -46,7 +50,7 @@
             <h2 class="section-title">Artículos</h2>
             <div class="lines">
                 {% for item in checkout.cart_total.items %}
-                <div class="line">
+                <div class="line{% if checkout.line_failed(item.id) %} line-failed{% endif %}">
                     <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
                     <div class="line-data">
                         <div class="title">
