@@ -62,10 +62,14 @@ pub async fn confirm_order(
         // El filtrado es el mismo que hace el GET del checkout. Como se aplica
         // sobre líneas que YA son del usuario, un id ajeno o inventado
         // simplemente no casa con nada.
-        let rows: Vec<CartItem1> = match parse_line_ids(Some(&form.lines)) {
-            Some(wanted) => rows.into_iter().filter(|r| wanted.contains(&r.id)).collect(),
-            None => rows
-        };
+        //
+        // La diferencia con el GET: aquí el hidden lo escribe SIEMPRE el
+        // servidor con la lista explícita, así que un `lines` vacío no es "todo
+        // el carrito", es una anomalía y se rechaza. Que hoy sea inalcanzable
+        // depende del `is_empty()` de la plantilla, y esa invariante no puede
+        // vivir en el HTML cuando lo que hay detrás mueve stock y dinero.
+        let wanted = parse_line_ids(Some(&form.lines)).ok_or(ServiceError::EmptyCart)?;
+        let rows: Vec<CartItem1> = rows.into_iter().filter(|r| wanted.contains(&r.id)).collect();
 
         if rows.is_empty() {
             return Err(ServiceError::EmptyCart);
