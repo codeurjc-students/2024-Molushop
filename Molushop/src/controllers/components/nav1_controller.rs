@@ -7,6 +7,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::models::components::nav1_model::*;
 use super::scope::SCOPE_COMPONENTS;
+use super::login_base_controller;
 use askama::Template;
 use crate::services::components::nav1_service::*;
 use crate::constants::urls::ORDERS_URL;
@@ -20,7 +21,8 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
         home: "/home".to_string(),
         cart: "/cart".to_string(),
-        orders: ORDERS_URL.to_string()
+        orders: ORDERS_URL.to_string(),
+        logout: login_base_controller::ROUTES.logout.to_string()
         //login: Box::leak(format!("{}{}/login",SCOPE_COMPONENTS, SCOPE1).into_boxed_str())
     };
 

@@ -18,8 +18,9 @@ pub struct LoginProductData{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
     pub create_user: &'static str,
-    pub login: &'static str
-    
+    pub login: &'static str,
+    pub logout: &'static str
+
 }
 
 ///json

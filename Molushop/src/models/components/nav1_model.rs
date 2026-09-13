@@ -24,5 +24,6 @@ pub struct Nav1Data{
 pub struct Routes{
     pub home: String,
     pub cart: String,
-    pub orders: String
+    pub orders: String,
+    pub logout: String
 }

@@ -52,7 +52,10 @@ pub struct AuthMiddleware<S> {
 
 #[derive(Debug,Clone)]
 pub struct SessionData{
-    pub id : Uuid
+    pub id : Uuid,
+    /// Identificador de ESTA sesión en `user_sessions`. Lo necesita el logout para revocar
+    /// solo la sesión del navegador que lo pide y no las demás del usuario.
+    pub jti : String
 }
 
 impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
@@ -119,7 +122,7 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
                                 //ver si aquí ponemos que se revoque el token
                             }else{
                                 //user_id=us.user_id.to_string();
-                                return Some(SessionData{id:us.user_id.clone()})
+                                return Some(SessionData{id:us.user_id.clone(), jti:jti.clone()})
                             }
                         },
                         Err(e)=>{

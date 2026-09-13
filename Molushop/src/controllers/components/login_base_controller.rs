@@ -18,8 +18,11 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use super::scope::SCOPE_COMPONENTS;
-use crate::services::servicesX::{new_user_base,get_user,insert_session_login};
+use crate::services::servicesX::{new_user_base,get_user,insert_session_login,revoke_session};
 use crate::models::components::login_base_model::*;
+use crate::middleware::auth::{Auth, SessionData};
+use crate::constants::urls::HOME_URL;
+use actix_web::HttpMessage;
 use std::collections::HashMap;
 use chrono::{Utc, NaiveDateTime, Duration};
 use std::time::Duration as DurationTime;
@@ -28,12 +31,13 @@ pub static SCOPE1: &str = "/login-base-login";
 pub static SCOPE2: &str = "/login-base-register";
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
-    
+
     pub static ref ROUTES: Routes = Routes{
         //delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
         //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
         create_user: Box::leak(format!("{}{}/create-user",SCOPE_COMPONENTS, SCOPE2).into_boxed_str()),
-        login: Box::leak(format!("{}{}/login",SCOPE_COMPONENTS, SCOPE1).into_boxed_str())
+        login: Box::leak(format!("{}{}/login",SCOPE_COMPONENTS, SCOPE1).into_boxed_str()),
+        logout: Box::leak(format!("{}{}/logout",SCOPE_COMPONENTS, SCOPE1).into_boxed_str())
     };
 
 }
@@ -56,7 +60,13 @@ fn config1(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
     cfg
         .service(login)
-        .service(spawn);
+        .service(spawn)
+        // Auth solo en el logout: el login, por definición, llega sin sesión.
+        .service(
+            web::resource("/logout")
+                .wrap(Auth::new())
+                .route(web::post().to(logout))
+        );
 }
 pub fn scope2() -> Scope {
     web::scope(SCOPE2)
@@ -66,6 +76,34 @@ fn config2(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
     cfg
         .service(create_user);
+}
+
+/// Cierra la sesión del navegador que lo pide: revoca su fila en `user_sessions` y borra la
+/// cookie. Sin sesión válida (sin cookie, caducada o ya revocada) no hay nada que revocar y
+/// solo se borra la cookie: para el usuario el resultado es el mismo.
+///
+/// Si falla la revocación NO se borra la cookie: el token seguiría siendo válido en BD, así
+/// que decir "sesión cerrada" sería mentira. Se avisa y el usuario puede reintentar.
+async fn logout(req: HttpRequest, pool_data: web::Data<DbPool>) -> HttpResponse {
+    let session = req.extensions().get::<SessionData>().cloned();
+
+    if let Some(session) = session {
+        if let Err(e) = revoke_session(&session.jti, &session.id, pool_data.get_ref()).await {
+            println!("Error al revocar la sesión: {}", e);
+            let modal_render = Modal1::new("No se ha podido cerrar la sesión").render().unwrap();
+            return HttpResponse::InternalServerError().body(modal_render)
+        }
+    }
+
+    let mut cookie = Cookie::new("sesion_token", "");
+    cookie.set_path("/");
+    cookie.make_removal();
+
+    // HX-Redirect y no recargar: en /orders o /checkout la página sin sesión quedaría a medias.
+    HttpResponse::Ok()
+        .cookie(cookie)
+        .insert_header(("HX-Redirect", HOME_URL))
+        .finish()
 }
 
 

@@ -1053,6 +1053,17 @@ pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Err
     result
 }
 
+/// Revoca la sesión `jti_x`. Se filtra también por usuario para que nunca pueda revocarse
+/// una sesión ajena, aunque el `jti` llegue de otro sitio que no sea el middleware.
+pub async fn revoke_session(jti_x:&String, user_id_x:&Uuid, pool:&DbPool)-> Result<usize,Error>{
+    use crate::schema::user_sessions::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    update(user_sessions.filter(jti.eq(jti_x)).filter(user_id.eq(user_id_x)))
+        .set(is_revoked.eq(true))
+        .execute(connection).await
+}
+
 pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
     let connection = &mut pool.get().await.unwrap();
     let results = sql_query(r#"
