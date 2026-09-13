@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -7,6 +9,7 @@ use uuid::Uuid;
 use crate::schema::{orders, order_items};
 use crate::models::models_x::{Order, OrderItem};
 use crate::models::components::order_detail_v1::OrderData;
+use crate::models::components::order_list_v1::OrderListData;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -57,4 +60,77 @@ pub async fn get_order_object(
     };
 
     OrderData::from_db(order, items)
+}
+
+/// "Mis pedidos": todos los del usuario, del más reciente al más antiguo.
+///
+/// Son DOS consultas, no una por pedido: las líneas de todos se traen de golpe
+/// con un `order_id = ANY(...)` y se reparten aquí. Con la ficha individual daba
+/// igual, pero aquí el nº de pedidos crece con el tiempo y un N+1 crecería con él.
+///
+/// Sin sesión devuelve la lista vacía, no un error: la página enseña el mismo
+/// aviso que a un usuario que todavía no ha comprado nada.
+pub async fn get_orders_list_object(
+    user_id: Option<&Uuid>,
+    pool: &DbPool
+) -> OrderListData {
+    let uid = match user_id {
+        Some(u) => u,
+        None => return OrderListData::default(),
+    };
+
+    let connection = &mut match pool.get().await {
+        Ok(c) => c,
+        Err(e) => {
+            println!("Error obteniendo conexión para la lista de pedidos: {:?}", e);
+            return OrderListData::default();
+        }
+    };
+
+    let orders_db: Vec<Order> = match orders::table
+        .filter(orders::user_id.eq(uid))
+        .order(orders::created_at.desc())
+        .load::<Order>(connection)
+        .await
+    {
+        Ok(o) => o,
+        Err(e) => {
+            println!("Error obteniendo los pedidos del usuario: {:?}", e);
+            return OrderListData::default();
+        }
+    };
+
+    if orders_db.is_empty() {
+        return OrderListData::default();
+    }
+
+    let ids: Vec<Uuid> = orders_db.iter().map(|o| o.id).collect();
+
+    let items_db: Vec<OrderItem> = match order_items::table
+        .filter(order_items::order_id.eq_any(&ids))
+        .load::<OrderItem>(connection)
+        .await
+    {
+        Ok(i) => i,
+        Err(e) => {
+            println!("Error obteniendo las líneas de los pedidos: {:?}", e);
+            Vec::new()
+        }
+    };
+
+    // Se agrupan por pedido conservando el orden en que los devolvió la BD, que
+    // es el mismo criterio (ninguno) que usa la ficha individual.
+    let mut by_order: HashMap<Uuid, Vec<OrderItem>> = HashMap::new();
+    for item in items_db {
+        by_order.entry(item.order_id).or_default().push(item);
+    }
+
+    let rows: Vec<(Order, Vec<OrderItem>)> = orders_db.into_iter()
+        .map(|o| {
+            let items = by_order.remove(&o.id).unwrap_or_default();
+            (o, items)
+        })
+        .collect();
+
+    OrderListData::from_db(rows)
 }

@@ -1,0 +1,57 @@
+<div class="order-list-1" id="order-list-1">
+    <div class="list-header">
+        <h1>Mis pedidos</h1>
+        {% if !order_list.orders.is_empty() %}
+        <span class="list-count">{{order_list.orders.len()}} pedido{% if order_list.orders.len() != 1 %}s{% endif %}</span>
+        {% endif %}
+    </div>
+
+    {% if order_list.orders.is_empty() %}
+    <div class="list-empty cont-1">
+        <span>Todavía no has hecho ningún pedido.</span>
+        <a href="{{order_list.home_url}}" class="no-generic-a">Seguir comprando</a>
+    </div>
+    {% else %}
+    <div class="orders">
+        {% for order in order_list.orders %}
+        <a href="{{order.detail_url()}}" class="no-generic-a order-card cont-1">
+            <div class="card-header">
+                <div class="card-id">
+                    <span class="order-number">Pedido nº {{order.order_number}}</span>
+                    <span class="order-date">{{order.date_label()}}</span>
+                </div>
+                <span class="order-status">{{order.status_label()}}</span>
+            </div>
+
+            <div class="lines">
+                {% for item in order.items %}
+                <div class="line">
+                    <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                    <div class="line-data">
+                        <div class="title">{{item.product_name}}</div>
+                        {% if !item.variation_label.is_empty() %}
+                        <div class="variations">{{item.variation_label}}</div>
+                        {% endif %}
+                        <div class="quantity">x{{item.quantity}}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="card-footer">
+                <span class="units">{{order.total_units()}} artículo{% if order.total_units() != 1 %}s{% endif %}</span>
+                <div class="card-total">
+                    <span>Total</span>
+                    <div class="money">
+                        <span>{{order.total_amount}}</span>
+                        <span>{{order.currency_symbol()}}</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <a href="{{order_list.home_url}}" class="no-generic-a keep-shopping">Seguir comprando</a>
+    {% endif %}
+</div>

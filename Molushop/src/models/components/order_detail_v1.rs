@@ -7,6 +7,17 @@ use crate::constants::money::{DEFAULT_CURRENCY, symbol_of};
 use crate::constants::urls::CART_URL;
 use crate::models::models_x::{Order, OrderItem};
 
+/// Etiqueta de `orders.status`. Vive suelta y no como método porque la usan la
+/// ficha del pedido y la lista de "mis pedidos": si cada una tuviera su `match`,
+/// añadir un estado nuevo arreglaría una y dejaría la otra mintiendo en silencio.
+pub fn status_label(status: i16) -> &'static str {
+    match status {
+        1 => "Confirmado",
+        2 => "Cancelado",
+        _ => "Pendiente"
+    }
+}
+
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_detail_v1/order_detail_v1.html")]
 pub struct OrderDetailV1{
@@ -81,11 +92,7 @@ impl OrderData {
     }
 
     pub fn status_label(&self) -> &'static str {
-        match self.status {
-            1 => "Confirmado",
-            2 => "Cancelado",
-            _ => "Pendiente"
-        }
+        status_label(self.status)
     }
 
     /// Nº de unidades, no de líneas.
