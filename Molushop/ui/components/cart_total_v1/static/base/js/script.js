@@ -231,7 +231,8 @@ const CART_TOTAL_V1 = {
         fetch(url, options)
             .then(response => {
                 if (response.status === 401) {
-                    window.location.href = "/master/es/login";
+                    // Lo recoge el login_modal y abre el login
+                    document.dispatchEvent(new CustomEvent("auth-required"));
                     return null;
                 }
                 let cartCount = response.headers.get("X-Cart-Count");

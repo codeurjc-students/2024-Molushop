@@ -7,6 +7,20 @@ dialog.login_modal{
     padding: 0;
 }
 
+/* Aviso de sesión terminada. Sin "display": si lo tuviera, le ganaría al atributo hidden. */
+.login_modal-notice{
+    box-sizing: border-box;
+    max-width: 350px;
+    margin: 0 auto 0.5em auto;
+    padding: 10px 14px;
+    border: 2px solid #f0c36d;
+    border-radius: 10px;
+    background: #fff4d6;
+    color: #5c4300;
+    font-family: Arial, sans-serif;
+    text-align: center;
+}
+
 /* Bordered form */
 .login-base{
     font-family: Arial, sans-serif;

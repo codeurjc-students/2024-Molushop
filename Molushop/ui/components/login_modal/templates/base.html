@@ -1,4 +1,6 @@
 
 <dialog class="login_modal">
+    <!-- Solo se enseña si un 401 llega a una página que se pintó con sesión (login_modal.js) -->
+    <p class="login_modal-notice" role="alert" hidden>Tu sesión ha terminado. Identifícate para continuar.</p>
     {% include "components/login_base/templates/login_base.html"%}
 </dialog>
