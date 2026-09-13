@@ -36,11 +36,21 @@
           {% endif %}
         </a>
       </div>
-      <div class="user-icon img-container open-login-modal">
-        <p>{{nav1.name}}</p>
-        <a>
-          <img src="/assets/logos/user.png"/>
-        </a>
+      <div class="profile">
+        <button type="button" class="user-icon" aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu">
+          <p>{{nav1.name}}</p>
+          <img src="/assets/logos/user.png" alt="Perfil"/>
+        </button>
+        <div id="profile-menu" class="profile-menu" hidden>
+          {% if nav1.logged %}
+          <ul class="profile-menu-list">
+            <li><a href="{{nav1.routes.orders}}">Mis Pedidos</a></li>
+          </ul>
+          {% else %}
+          <button type="button" class="profile-menu-login open-login-modal">Identifícate</button>
+          <button type="button" class="profile-menu-register open-register-modal">Registrarse</button>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>

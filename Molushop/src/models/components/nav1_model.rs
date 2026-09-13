@@ -14,11 +14,15 @@ pub struct Nav1{
 pub struct Nav1Data{
     pub routes: &'static Routes,
     pub name: String,
-    pub cart_count: i64
+    pub cart_count: i64,
+    /// Si hay sesión. El menú de perfil enseña "Identifícate" o las entradas de la cuenta
+    /// según esto, en vez de deducirlo de que `name` venga vacío.
+    pub logged: bool
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
     pub home: String,
-    pub cart: String
+    pub cart: String,
+    pub orders: String
 }
