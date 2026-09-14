@@ -1,14 +1,26 @@
 <div class="order-detail-1" id="order-detail-1">
     {% if !order.found %}
+    {% if !order.logged %}
+    <!-- data-login-required: login_modal.js abre el login solo al entrar -->
+    <div class="order-missing" data-login-required>
+        <span>Identifícate para ver tus pedidos.</span>
+        <button type="button" class="open-login-modal login-required-btn">Identifícate</button>
+    </div>
+    {% else %}
     <div class="order-missing">
         <span>No hemos encontrado ese pedido.</span>
         <a href="{{order.cart_url}}" class="no-generic-a">Ir a la cesta</a>
     </div>
+    {% endif %}
     {% else %}
     <div class="order-header cont-1">
         <div class="order-ok">
+            {% if order.is_new %}
             <h1>¡Pedido confirmado!</h1>
             <span class="order-number">Pedido nº {{order.order_number}}</span>
+            {% else %}
+            <h1>Pedido nº {{order.order_number}}</h1>
+            {% endif %}
         </div>
         <span class="order-status">{{order.status_label()}}</span>
     </div>

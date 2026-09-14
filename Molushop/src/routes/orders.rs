@@ -13,6 +13,13 @@ use crate::services::components::order_get_service::{get_order_object, get_order
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
 use crate::services::servicesX::get_user_2;
+use serde::Deserialize;
+
+/// Query de la ficha. `nuevo=1` lo pone la redirección del checkout al confirmar.
+#[derive(Deserialize)]
+pub struct OrderDetailQuery {
+    nuevo: Option<String>,
+}
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
@@ -65,6 +72,7 @@ async fn get_orders(
 
 async fn get_order(
     path: web::Path<Uuid>,
+    query: web::Query<OrderDetailQuery>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
     opt_session_data: Option<web::ReqData<SessionData>>
@@ -84,12 +92,17 @@ async fn get_order(
         }
     }
 
+    let mut order = get_order_object(user_id_opt.as_ref(), &order_id, pool).await;
+    // Solo un pedido encontrado puede ser "nuevo": con ?nuevo=1 en la URL de un pedido
+    // ajeno o inexistente, la ficha sigue diciendo que no existe.
+    order.is_new = order.found && query.nuevo.as_deref() == Some("1");
+
     let order_render = OrderPage{
         user_logged,
         page_name:"Pedido".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data(),
-        order:get_order_object(user_id_opt.as_ref(), &order_id, pool).await
+        order
     }.render().unwrap();
 
     HttpResponse::Ok().body(order_render)

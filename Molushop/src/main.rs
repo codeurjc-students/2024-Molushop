@@ -91,6 +91,26 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move|| {
         App::new()
+            // Los estáticos salen de actix-files solo con ETag/Last-Modified. Sin Cache-Control
+            // el navegador reutiliza a ciegas su copia vieja y un cambio de JS/CSS "no hace nada"
+            // hasta un Ctrl+Shift+R. Con no-cache pregunta siempre, y el ETag lo resuelve en 304.
+            .wrap_fn(|req, srv| {
+                use actix_web::dev::Service;
+                let is_static = ["/static/", "/assets/", "/css/"]
+                    .iter()
+                    .any(|prefix| req.path().starts_with(prefix));
+                let fut = srv.call(req);
+                async move {
+                    let mut res = fut.await?;
+                    if is_static {
+                        res.headers_mut().insert(
+                            actix_web::http::header::CACHE_CONTROL,
+                            actix_web::http::header::HeaderValue::from_static("no-cache"),
+                        );
+                    }
+                    Ok(res)
+                }
+            })
             .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)

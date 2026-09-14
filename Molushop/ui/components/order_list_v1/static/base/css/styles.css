@@ -31,6 +31,13 @@
         gap: 0.5em;
         align-items: flex-start;
     }
+    .login-required-btn{
+        padding: 0.5em 1.2em;
+        border-radius: 999px;
+        background-color: #191919;
+        color: white;
+        font-weight: bold;
+    }
     .orders{
         display: flex;
         flex-direction: column;

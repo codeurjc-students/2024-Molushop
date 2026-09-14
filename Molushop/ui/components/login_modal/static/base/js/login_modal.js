@@ -31,6 +31,12 @@ let login_modal = {
             login_modal.open("login", session_ended);
         });
 
+        // Páginas que no tienen sentido sin sesión (p. ej. /orders) marcan un elemento con
+        // data-login-required, y el login se abre solo al entrar.
+        if(document.body.dataset.user_logged !== "true" && document.querySelector("[data-login-required]")){
+            login_modal.open("login");
+        }
+
         login_modal.element.addEventListener("click",(event)=>{
             if(event.target===login_modal.element){
                 login_modal.element.close();
@@ -42,6 +48,8 @@ let login_modal = {
         // identifica no se llega aquí: login_base.do_after_login recarga antes.
         // "close" salta con cualquier forma de cerrar: click fuera, Escape o close().
         login_modal.element.addEventListener("close",()=>{
+            // Quien tuviera algo esperando a este login (p. ej. un "Añadir al carrito") lo descarta
+            document.dispatchEvent(new CustomEvent("auth-cancelled"));
             if(login_modal.session_ended){
                 location.reload();
             }

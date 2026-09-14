@@ -6,7 +6,13 @@
         {% endif %}
     </div>
 
-    {% if order_list.orders.is_empty() %}
+    {% if !order_list.logged %}
+    <!-- data-login-required: login_modal.js abre el login solo al entrar -->
+    <div class="list-empty cont-1" data-login-required>
+        <span>Identifícate para ver tus pedidos.</span>
+        <button type="button" class="open-login-modal login-required-btn">Identifícate</button>
+    </div>
+    {% else if order_list.orders.is_empty() %}
     <div class="list-empty cont-1">
         <span>Todavía no has hecho ningún pedido.</span>
         <a href="{{order_list.home_url}}" class="no-generic-a">Seguir comprando</a>

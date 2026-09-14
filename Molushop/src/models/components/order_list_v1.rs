@@ -75,12 +75,13 @@ impl OrderSummaryData {
     }
 }
 
-/// La lista entera. Sin bandera `found`: un usuario sin pedidos y un visitante
-/// sin sesión llegan los dos con `orders` vacío y ven el mismo aviso, igual que
-/// hace la ficha con su `found = false`.
+/// La lista entera. Un visitante sin sesión y un usuario sin pedidos llegan los
+/// dos con `orders` vacío; `logged` los separa: al primero se le pide que se
+/// identifique (y se abre el login), al segundo se le dice que no ha comprado nada.
 #[derive(Debug, Clone)]
 pub struct OrderListData{
     pub orders: Vec<OrderSummaryData>,
+    pub logged: bool,
     pub home_url: &'static str
 }
 
@@ -88,17 +89,24 @@ impl Default for OrderListData {
     fn default() -> Self {
         Self {
             orders: Vec::new(),
+            logged: false,
             home_url: HOME_URL
         }
     }
 }
 
 impl OrderListData {
+    /// Con sesión y sin pedidos: "todavía no has hecho ningún pedido".
+    pub fn empty_logged() -> Self {
+        Self { logged: true, ..Default::default() }
+    }
+
     pub fn from_db(rows: Vec<(Order, Vec<OrderItem>)>) -> Self {
         Self {
             orders: rows.into_iter()
                 .map(|(o, items)| OrderSummaryData::from_db(o, items))
                 .collect(),
+            logged: true,
             ..Default::default()
         }
     }

@@ -25,6 +25,9 @@ const PRODUCT_DETAIL = {
 
         this.init_product_selection();
         this.init_quantity();
+
+        document.addEventListener("auth-cancelled", () => this.clearPendingAdd());
+        this.resumePendingAdd();
     },
 
     // Devuelve { attrName: value } de los radios actualmente marcados
@@ -154,6 +157,9 @@ const PRODUCT_DETAIL = {
         })
         .then(response => {
             if (response.status === 401) {
+                // Se guarda lo que quería añadir para reintentarlo cuando vuelva
+                // identificado (el login recarga la página y se perdería).
+                this.savePendingAdd(variant.id, quantity);
                 // Lo recoge el login_modal y abre el login
                 document.dispatchEvent(new CustomEvent("auth-required"));
                 return null;
@@ -179,6 +185,59 @@ const PRODUCT_DETAIL = {
         .catch(err => {
             console.error("Error al añadir al carrito:", err);
         });
+    },
+
+    // --- Añadido pendiente tras el login ---
+    // Si "Añadir al carrito" recibe un 401 se guarda aquí qué quería añadir. El login
+    // recarga la página y, al volver identificado, se reintenta solo. Se descarta si
+    // cierra el login sin identificarse (auth-cancelled), si ha pasado demasiado tiempo
+    // o si al volver está en otra ficha.
+    PENDING_ADD_KEY: "pending_cart_add",
+    PENDING_ADD_MAX_AGE_MS: 10 * 60 * 1000,
+
+    savePendingAdd: function(productVarId, quantity) {
+        try {
+            sessionStorage.setItem(this.PENDING_ADD_KEY, JSON.stringify({
+                path: location.pathname,
+                product_var_id: productVarId,
+                quantity: quantity,
+                saved_at: Date.now()
+            }));
+        } catch (e) {
+            // Sin sessionStorage (modo privado estricto): no hay reintento, como antes
+        }
+    },
+
+    clearPendingAdd: function() {
+        try { sessionStorage.removeItem(this.PENDING_ADD_KEY); } catch (e) {}
+    },
+
+    resumePendingAdd: function() {
+        if (document.body.dataset.user_logged !== "true") { return; }
+
+        let pending = null;
+        try { pending = JSON.parse(sessionStorage.getItem(this.PENDING_ADD_KEY)); } catch (e) {}
+        if (pending == null) { return; }
+        // Se borra ANTES de reintentar: si el reintento falla no debe repetirse en cada recarga
+        this.clearPendingAdd();
+
+        if (pending.path !== location.pathname) { return; }
+        if (Date.now() - pending.saved_at > this.PENDING_ADD_MAX_AGE_MS) { return; }
+
+        let variant = variantMap.find(v => v.id === pending.product_var_id);
+        if (!variant) { return; }
+
+        // Se deja la ficha como estaba al pulsar, para que lo que se añade sea lo que se ve
+        variant.attributes.forEach(attr => {
+            let input = this.element.querySelector(`input[name="variation-${attr.name}"][value="${attr.value}"]`);
+            if (input) { input.checked = true; }
+        });
+        this.updatePrice(this.getSelectedAttrs());
+        let quantityInput = this.element.querySelector(".quantity-product input[type='number']");
+        if (quantityInput) { quantityInput.value = pending.quantity; }
+
+        // El mismo camino que el botón: si ya no hay stock, sale el modal de error del servidor
+        this.addToCart();
     },
 
     // +/- del selector de cantidad. Sólo tocan el input: la petición al

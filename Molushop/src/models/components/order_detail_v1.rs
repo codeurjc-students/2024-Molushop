@@ -44,6 +44,12 @@ pub struct OrderData{
     /// False cuando el pedido no existe o no es de quien lo pide. La plantilla
     /// enseña entonces un aviso en vez de la ficha.
     pub found: bool,
+    /// Si quien pide la ficha tiene sesión. Con `found = false` separa "identifícate"
+    /// (sin sesión: se abre el login) de "ese pedido no existe o no es tuyo".
+    pub logged: bool,
+    /// True solo al llegar desde la confirmación del checkout (`?nuevo=1`): es lo único
+    /// que decide si la cabecera dice "¡Pedido confirmado!". Lo rellena la ruta.
+    pub is_new: bool,
     pub id: Uuid,
     pub order_number: i64,
     pub status: i16,
@@ -65,6 +71,8 @@ impl Default for OrderData {
     fn default() -> Self {
         Self {
             found: false,
+            logged: false,
+            is_new: false,
             id: Uuid::nil(),
             order_number: 0,
             status: 0,
@@ -85,6 +93,11 @@ impl Default for OrderData {
 }
 
 impl OrderData {
+    /// Con sesión, pero el pedido no existe o no es suyo.
+    pub fn not_found_logged() -> Self {
+        Self { logged: true, ..Default::default() }
+    }
+
     /// Símbolo para pintar. El campo guarda el código ISO, igual que en el
     /// carrito y que en la BD.
     pub fn currency_symbol(&self) -> String {
@@ -105,6 +118,8 @@ impl OrderData {
 
         Self {
             found: true,
+            logged: true,
+            is_new: false,
             id: order.id,
             order_number: order.order_number,
             status: order.status,

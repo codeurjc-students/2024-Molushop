@@ -18,7 +18,7 @@ type DbPool = Pool<AsyncPgConnection>;
 ///
 /// Si no existe o no es suyo se devuelve un `OrderData` con `found = false`, no
 /// un error: la página enseña un aviso, igual que hace el carrito cuando está
-/// vacío.
+/// vacío. Sin sesión va además con `logged = false` y la página pide identificarse.
 pub async fn get_order_object(
     user_id: Option<&Uuid>,
     order_id: &Uuid,
@@ -33,7 +33,7 @@ pub async fn get_order_object(
         Ok(c) => c,
         Err(e) => {
             println!("Error obteniendo conexión para el pedido: {:?}", e);
-            return OrderData::default();
+            return OrderData::not_found_logged();
         }
     };
 
@@ -44,7 +44,7 @@ pub async fn get_order_object(
         .await
     {
         Ok(o) => o,
-        Err(_) => return OrderData::default(),
+        Err(_) => return OrderData::not_found_logged(),
     };
 
     let items: Vec<OrderItem> = match order_items::table
@@ -68,8 +68,8 @@ pub async fn get_order_object(
 /// con un `order_id = ANY(...)` y se reparten aquí. Con la ficha individual daba
 /// igual, pero aquí el nº de pedidos crece con el tiempo y un N+1 crecería con él.
 ///
-/// Sin sesión devuelve la lista vacía, no un error: la página enseña el mismo
-/// aviso que a un usuario que todavía no ha comprado nada.
+/// Sin sesión devuelve la lista vacía con `logged = false`, no un error: la
+/// página pide identificarse y abre el login.
 pub async fn get_orders_list_object(
     user_id: Option<&Uuid>,
     pool: &DbPool
@@ -83,7 +83,7 @@ pub async fn get_orders_list_object(
         Ok(c) => c,
         Err(e) => {
             println!("Error obteniendo conexión para la lista de pedidos: {:?}", e);
-            return OrderListData::default();
+            return OrderListData::empty_logged();
         }
     };
 
@@ -96,12 +96,12 @@ pub async fn get_orders_list_object(
         Ok(o) => o,
         Err(e) => {
             println!("Error obteniendo los pedidos del usuario: {:?}", e);
-            return OrderListData::default();
+            return OrderListData::empty_logged();
         }
     };
 
     if orders_db.is_empty() {
-        return OrderListData::default();
+        return OrderListData::empty_logged();
     }
 
     let ids: Vec<Uuid> = orders_db.iter().map(|o| o.id).collect();

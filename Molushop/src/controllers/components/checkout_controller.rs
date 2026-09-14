@@ -78,7 +78,9 @@ async fn confirm(
 
     match confirm_order(&user_id, &form, pool).await {
         Ok(order) => HttpResponse::SeeOther()
-            .insert_header(("Location", format!("{}{}", ORDER_URL_PREFIX, order.id)))
+            // ?nuevo=1: la ficha solo dice "¡Pedido confirmado!" al llegar desde aquí
+            // (lo lee get_order en routes/orders.rs)
+            .insert_header(("Location", format!("{}{}?nuevo=1", ORDER_URL_PREFIX, order.id)))
             .finish(),
 
         Err(ServiceError::NotEnoughStockLine { line_id, product_name, available }) => {
