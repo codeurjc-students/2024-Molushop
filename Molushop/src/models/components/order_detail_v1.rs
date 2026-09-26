@@ -1,10 +1,12 @@
+use std::collections::HashMap;
+
 use askama::Template;
 use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
 use crate::constants::money::{DEFAULT_CURRENCY, symbol_of};
-use crate::constants::urls::CART_URL;
+use crate::constants::urls::{CART_URL, PRODUCT_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
 
 /// Etiqueta de `orders.status`. Vive suelta y no como método porque la usan la
@@ -36,7 +38,11 @@ pub struct OrderLineData{
     pub store_name: String,
     pub unit_price: BigDecimal,
     pub quantity: i32,
-    pub line_total: BigDecimal
+    pub line_total: BigDecimal,
+    /// Ficha del producto, para enlazar el título. Vacío = sin enlace: la lista
+    /// de "mis pedidos" no lo rellena porque allí la tarjeta entera ya es un
+    /// enlace al pedido, y un `<a>` dentro de otro no es HTML válido.
+    pub product_url: String
 }
 
 #[derive(Serialize, Debug, Clone)]
@@ -113,7 +119,9 @@ impl OrderData {
         self.items.iter().map(|it| it.quantity).sum()
     }
 
-    pub fn from_db(order: Order, items: Vec<OrderItem>) -> Self {
+    /// `product_ids` traduce `product_var_id` -> `product_id`: la línea guarda
+    /// la variación comprada, pero la ficha es del producto.
+    pub fn from_db(order: Order, items: Vec<OrderItem>, product_ids: &HashMap<Uuid, Uuid>) -> Self {
         let default = OrderData::default();
 
         Self {
@@ -133,7 +141,14 @@ impl OrderData {
             ship_postal_code: order.ship_postal_code,
             ship_city: order.ship_city,
             ship_province: order.ship_province,
-            items: items.into_iter().map(OrderLineData::from).collect(),
+            items: items.into_iter()
+                .map(|it| {
+                    let product_url = product_ids.get(&it.product_var_id)
+                        .map(|pid| format!("{}{}", PRODUCT_URL_PREFIX, pid))
+                        .unwrap_or_default();
+                    OrderLineData { product_url, ..OrderLineData::from(it) }
+                })
+                .collect(),
             cart_url: default.cart_url
         }
     }
@@ -149,7 +164,8 @@ impl From<OrderItem> for OrderLineData {
             store_name: db.store_name.unwrap_or_default(),
             unit_price: db.unit_price,
             quantity: db.quantity,
-            line_total: db.line_total
+            line_total: db.line_total,
+            product_url: String::new()
         }
     }
 }

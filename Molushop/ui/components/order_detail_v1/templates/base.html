@@ -33,7 +33,15 @@
                 <div class="line">
                     <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
                     <div class="line-data">
-                        <div class="title">{{item.product_name}}</div>
+                        <!-- El nombre es el del pedido (snapshot), aunque el
+                             producto se haya renombrado después. -->
+                        <div class="title">
+                            {% if item.product_url.is_empty() %}
+                            {{item.product_name}}
+                            {% else %}
+                            <a href="{{item.product_url}}" class="no-generic-a product-link">{{item.product_name}}</a>
+                            {% endif %}
+                        </div>
                         {% if !item.variation_label.is_empty() %}
                         <div class="variations">{{item.variation_label}}</div>
                         {% endif %}

@@ -6,7 +6,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 
-use crate::schema::{orders, order_items};
+use crate::schema::{orders, order_items, product_variations};
 use crate::models::models_x::{Order, OrderItem};
 use crate::models::components::order_detail_v1::OrderData;
 use crate::models::components::order_list_v1::OrderListData;
@@ -59,7 +59,24 @@ pub async fn get_order_object(
         }
     };
 
-    OrderData::from_db(order, items)
+    // El producto de cada variación, para enlazar las líneas a su ficha. La
+    // variación siempre existe (la FK de order_items es ON DELETE RESTRICT); si
+    // la consulta falla, las líneas salen igual, solo que sin enlace.
+    let var_ids: Vec<Uuid> = items.iter().map(|it| it.product_var_id).collect();
+    let product_ids: HashMap<Uuid, Uuid> = match product_variations::table
+        .filter(product_variations::id.eq_any(&var_ids))
+        .select((product_variations::id, product_variations::product_id))
+        .load::<(Uuid, Uuid)>(connection)
+        .await
+    {
+        Ok(rows) => rows.into_iter().collect(),
+        Err(e) => {
+            println!("Error obteniendo los productos de las líneas del pedido: {:?}", e);
+            HashMap::new()
+        }
+    };
+
+    OrderData::from_db(order, items, &product_ids)
 }
 
 /// "Mis pedidos": todos los del usuario, del más reciente al más antiguo.
