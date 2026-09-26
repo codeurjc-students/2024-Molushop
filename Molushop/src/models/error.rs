@@ -16,6 +16,18 @@ pub enum ServiceError {
     #[error("Cart item not found")]
     CartItemNotFound,
 
+    // --- Opiniones ---
+    /// La estrella no está entre 1 y 5. La plantilla solo pinta cinco radios,
+    /// así que esto solo salta con una petición hecha a mano.
+    #[error("Invalid rating")]
+    InvalidRating,
+    /// El comentario pasa del tope que también impone el CHECK de la tabla.
+    #[error("Comment too long")]
+    CommentTooLong,
+    /// Opinar sobre un producto que no existe: lo canta la FK de `ratings`.
+    #[error("Product not found")]
+    ProductNotFound,
+
     // --- Checkout ---
     /// No queda ninguna línea que comprar: el carrito está vacío o el `lines`
     /// del formulario no casa con nada del usuario.

@@ -6,6 +6,55 @@
         {% endif %}
     </div>
 
+    {% if reviews.logged %}
+    <!-- Éxito: el servidor devuelve la sección entera y sustituye a esta.
+         400/500: sólo el hueco de errores, para no borrar lo escrito
+         (extensión response-targets, que ya carga layout1.html). -->
+    <form class="review-form cont-1"
+        hx-post="{{reviews.routes.save}}"
+        hx-target="#product-reviews-1"
+        hx-swap="outerHTML"
+        hx-ext="response-targets"
+        hx-target-400="#review-form-error"
+        hx-target-500="#review-form-error">
+        <span class="form-title">Deja tu opinión</span>
+        <input type="hidden" name="product_id" value="{{reviews.product_id}}">
+
+        <!-- Del 5 al 1 a propósito: el CSS les da la vuelta con row-reverse
+             para que "~" pinte la marcada y las de menos puntuación. -->
+        <fieldset class="star-input">
+            <legend>Tu puntuación</legend>
+            <input type="radio" id="review-star-5" name="rating_value" value="5" required>
+            <label for="review-star-5"><span class="sr-only">5 estrellas</span></label>
+            <input type="radio" id="review-star-4" name="rating_value" value="4">
+            <label for="review-star-4"><span class="sr-only">4 estrellas</span></label>
+            <input type="radio" id="review-star-3" name="rating_value" value="3">
+            <label for="review-star-3"><span class="sr-only">3 estrellas</span></label>
+            <input type="radio" id="review-star-2" name="rating_value" value="2">
+            <label for="review-star-2"><span class="sr-only">2 estrellas</span></label>
+            <input type="radio" id="review-star-1" name="rating_value" value="1">
+            <label for="review-star-1"><span class="sr-only">1 estrella</span></label>
+        </fieldset>
+
+        <label class="sr-only" for="review-comment">Comentario</label>
+        <textarea class="review-textarea" id="review-comment" name="comment" rows="4"
+            maxlength="{{reviews.max_comment_len()}}"
+            placeholder="Cuéntanos qué te ha parecido (opcional)"></textarea>
+
+        <div class="form-error" id="review-form-error"></div>
+
+        <button type="submit" class="publish-review">Publicar opinión</button>
+    </form>
+    {% else %}
+    <!-- Sin .open-login-modal: ese enganche se hace una vez al cargar y este
+         botón puede llegar después, dentro del "ver más". Lo recoge script.js
+         por delegación y lanza auth-required. -->
+    <div class="review-login cont-1">
+        <span>Identifícate para dejar tu opinión.</span>
+        <button type="button" class="review-login-btn">Identificarme</button>
+    </div>
+    {% endif %}
+
     {% if reviews.is_empty() %}
     <div class="reviews-empty cont-1">
         <span>Este producto todavía no tiene opiniones.</span>

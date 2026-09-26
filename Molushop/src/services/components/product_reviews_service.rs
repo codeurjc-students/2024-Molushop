@@ -8,8 +8,9 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use uuid::Uuid;
 
 use crate::models::components::product_reviews_v1::{
-    ProductReviewsData, ProductReviewsV1Body, ReviewData, PAGE_SIZE,
+    ProductReviewsData, ProductReviewsV1Body, ReviewData, MAX_COMMENT_LEN, PAGE_SIZE,
 };
+use crate::models::error::ServiceError;
 use crate::models::models_x::RatingSummaryRow;
 use crate::schema::{base_user, ratings};
 
@@ -27,6 +28,7 @@ type DbPool = Pool<AsyncPgConnection>;
 pub async fn get_product_reviews_object(
     product_id: &Uuid,
     page: i64,
+    logged: bool,
     pool: &DbPool,
 ) -> ProductReviewsData {
     // La página llega de la URL, así que puede venir con cualquier cosa.
@@ -36,7 +38,7 @@ pub async fn get_product_reviews_object(
         Ok(c) => c,
         Err(e) => {
             println!("Error obteniendo conexión para las opiniones: {:?}", e);
-            return ProductReviewsData::empty(*product_id);
+            return ProductReviewsData::empty(*product_id, logged);
         }
     };
 
@@ -64,13 +66,13 @@ pub async fn get_product_reviews_object(
         Ok(s) => s,
         Err(e) => {
             println!("Error obteniendo el resumen de opiniones: {:?}", e);
-            return ProductReviewsData::empty(*product_id);
+            return ProductReviewsData::empty(*product_id, logged);
         }
     };
 
     // Sin opiniones no hace falta la segunda consulta.
     if summary.total == 0 {
-        return ProductReviewsData::empty(*product_id);
+        return ProductReviewsData::empty(*product_id, logged);
     }
 
     // El "ver más" repinta la sección entera, así que se piden TODAS las
@@ -96,7 +98,7 @@ pub async fn get_product_reviews_object(
         Ok(r) => r,
         Err(e) => {
             println!("Error obteniendo las opiniones del producto: {:?}", e);
-            return ProductReviewsData::empty(*product_id);
+            return ProductReviewsData::empty(*product_id, logged);
         }
     };
 
@@ -111,11 +113,86 @@ pub async fn get_product_reviews_object(
         })
         .collect();
 
-    ProductReviewsData::from_db(*product_id, summary, items, page)
+    ProductReviewsData::from_db(*product_id, summary, items, page, logged)
 }
 
-/// Render del cuerpo de la sección, que es lo que devuelve el "ver más".
-pub async fn get_product_reviews_body_render(product_id: &Uuid, page: i64, pool: &DbPool) -> String {
-    let objeto = get_product_reviews_object(product_id, page, pool).await;
+/// Render del cuerpo de la sección: lo que devuelven el "ver más" y el POST de
+/// una opinión nueva.
+pub async fn get_product_reviews_body_render(
+    product_id: &Uuid,
+    page: i64,
+    logged: bool,
+    pool: &DbPool,
+) -> String {
+    let objeto = get_product_reviews_object(product_id, page, logged, pool).await;
     ProductReviewsV1Body { reviews: objeto }.render().unwrap()
+}
+
+/// Guarda la opinión del usuario sobre un producto.
+///
+/// Es un UPSERT, no un INSERT: la decisión es "una opinión por usuario y
+/// producto, editable", y el `uq_rating_user_product` de la tabla la impone. Sin
+/// el ON CONFLICT, volver a opinar reventaría contra el UNIQUE en vez de
+/// corregir lo que ya se dijo. El `updated_at` lo pone el trigger, que solo
+/// salta en el UPDATE: una opinión nueva conserva `created_at = updated_at`.
+pub async fn save_review(
+    user_id: &Uuid,
+    product_id: &Uuid,
+    rating_value: i16,
+    comment: Option<String>,
+    pool: &DbPool,
+) -> Result<(), ServiceError> {
+    if !(1..=5).contains(&rating_value) {
+        return Err(ServiceError::InvalidRating);
+    }
+
+    // Un comentario en blanco es "no he escrito nada", no una cadena vacía: la
+    // tabla rechaza el texto vacío y la plantilla se salta el párrafo si es NULL.
+    let comment = comment
+        .map(|c| c.trim().to_string())
+        .filter(|c| !c.is_empty());
+
+    // Se cuenta en caracteres, no en bytes, igual que el char_length del CHECK.
+    if let Some(text) = &comment {
+        if text.chars().count() > MAX_COMMENT_LEN {
+            return Err(ServiceError::CommentTooLong);
+        }
+    }
+
+    let connection = &mut pool
+        .get()
+        .await
+        .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+
+    let result = diesel::insert_into(ratings::table)
+        .values((
+            ratings::id.eq(Uuid::new_v4()),
+            ratings::product_id.eq(product_id),
+            ratings::user_id.eq(user_id),
+            ratings::rating_value.eq(rating_value),
+            ratings::comment.eq(&comment),
+        ))
+        .on_conflict((ratings::product_id, ratings::user_id))
+        .do_update()
+        .set((
+            ratings::rating_value.eq(rating_value),
+            ratings::comment.eq(&comment),
+        ))
+        .execute(connection)
+        .await;
+
+    match result {
+        Ok(_) => Ok(()),
+        // Opinar sobre un producto que no existe. No se comprueba antes a
+        // propósito: la FK ya lo sabe y así no hay una consulta de más en el
+        // caso normal, que es que el producto exista.
+        Err(diesel::result::Error::DatabaseError(
+            diesel::result::DatabaseErrorKind::ForeignKeyViolation,
+            _,
+        )) => Err(ServiceError::ProductNotFound),
+        Err(e) => {
+            println!("Error guardando la opinión: {:?}", e);
+            Err(ServiceError::InternalServerError(e.to_string()))
+        }
+    }
 }

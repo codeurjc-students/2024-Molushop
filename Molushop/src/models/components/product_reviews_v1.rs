@@ -6,6 +6,11 @@ use uuid::Uuid;
 use crate::controllers::components::product_reviews_controller::ROUTES;
 use crate::models::models_x::RatingSummaryRow;
 
+/// Tope del comentario. El mismo número que el CHECK de la tabla: la
+/// validación del servidor y la de la BD tienen que decir lo mismo, y el
+/// `maxlength` del textarea lo repite para que ni se llegue a enviar.
+pub const MAX_COMMENT_LEN: usize = 2000;
+
 /// Cuántas opiniones entran de una tacada. El "ver más" pide la página
 /// siguiente y el servicio devuelve TODAS las anteriores más esa: la sección se
 /// repinta entera, así que la lista tiene que venir completa.
@@ -31,6 +36,7 @@ pub struct ProductReviewsV1Body {
 #[derive(Serialize, Debug, Clone)]
 pub struct ProductReviewsRoutes {
     pub list: String,
+    pub save: String,
 }
 
 /// Una opinión tal como se pinta. `author` es el `username`, que es lo único
@@ -102,13 +108,17 @@ pub struct ProductReviewsData {
     /// Contadores de 1 a 5 estrellas, en ese orden.
     pub counts: [i64; 5],
     pub page: i64,
+    /// Con sesión sale el formulario; sin ella, el botón que abre el login.
+    /// Un visitante y un usuario identificado ven la MISMA lista: leer
+    /// opiniones no pide sesión.
+    pub logged: bool,
 }
 
 impl ProductReviewsData {
     /// Producto sin opiniones — y también lo que se devuelve si la consulta
     /// falla: la ficha enseña "todavía no hay opiniones" en vez de romperse,
     /// igual que el carrito cuando no puede leer sus líneas.
-    pub fn empty(product_id: Uuid) -> Self {
+    pub fn empty(product_id: Uuid, logged: bool) -> Self {
         Self {
             routes: &ROUTES,
             product_id,
@@ -117,10 +127,17 @@ impl ProductReviewsData {
             average: 0.0,
             counts: [0; 5],
             page: 1,
+            logged,
         }
     }
 
-    pub fn from_db(product_id: Uuid, summary: RatingSummaryRow, items: Vec<ReviewData>, page: i64) -> Self {
+    pub fn from_db(
+        product_id: Uuid,
+        summary: RatingSummaryRow,
+        items: Vec<ReviewData>,
+        page: i64,
+        logged: bool,
+    ) -> Self {
         Self {
             routes: &ROUTES,
             product_id,
@@ -129,7 +146,13 @@ impl ProductReviewsData {
             average: summary.average,
             counts: [summary.star_1, summary.star_2, summary.star_3, summary.star_4, summary.star_5],
             page,
+            logged,
         }
+    }
+
+    /// Tope del comentario para el `maxlength` del textarea.
+    pub fn max_comment_len(&self) -> usize {
+        MAX_COMMENT_LEN
     }
 
     pub fn is_empty(&self) -> bool {

@@ -103,6 +103,126 @@
         }
     }
 
+    /* --- Formulario --- */
+    .review-form{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8em;
+
+        .form-title{
+            font-weight: bold;
+        }
+    }
+    .review-login{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        align-items: flex-start;
+    }
+    .review-login-btn{
+        padding: 0.5em 1.2em;
+        border-radius: 999px;
+        background-color: #191919;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* Las estrellas están en el HTML del 5 al 1 y aquí se les da la vuelta:
+       con ellas en ese orden, "~" alcanza a las de MENOR puntuación, que son
+       las que hay que pintar junto con la marcada. */
+    .star-input{
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 0.15em;
+        border: none;
+        margin: 0;
+        padding: 0;
+
+        legend{
+            /* El título va arriba y a la izquierda, no dentro del borde:
+               el fieldset está solo por agrupar los radios. */
+            float: left;
+            width: 100%;
+            padding: 0;
+            margin-bottom: 0.3em;
+            color: #555555;
+        }
+        input{
+            /* Fuera de la vista pero NO display:none: así siguen recibiendo el
+               foco y se pueden marcar con el teclado. */
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        label{
+            cursor: pointer;
+            font-size: 1.8em;
+            line-height: 1;
+            color: #dddddd;
+            transition: color 0.1s;
+
+            &::before{
+                content: "\2605"; /* ★ */
+            }
+        }
+        input:checked ~ label,
+        label:hover,
+        label:hover ~ label{
+            color: #D3A81E;
+        }
+        input:focus-visible + label{
+            outline: 2px solid #191919;
+            outline-offset: 2px;
+        }
+    }
+
+    .sr-only{
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    .review-textarea{
+        width: 100%;
+        box-sizing: border-box;
+        resize: vertical;
+        padding: 0.7em;
+        border: 1px solid #dddddd;
+        border-radius: 10px;
+        font: inherit;
+
+        &:focus{
+            outline: none;
+            border-color: #191919;
+        }
+    }
+
+    /* Vacío no ocupa nada: solo aparece cuando el servidor mete un aviso. */
+    .form-error{
+        color: #b00020;
+
+        &:empty{
+            display: none;
+        }
+    }
+
+    .publish-review{
+        align-self: flex-start;
+        padding: 0.6em 1.4em;
+        border-radius: 999px;
+        border: none;
+        background-color: #191919;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
     .reviews{
         display: flex;
         flex-direction: column;
