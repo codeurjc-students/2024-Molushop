@@ -1139,7 +1139,11 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
             SELECT jsonb_agg(
                 jsonb_build_object(
                     'attributes', v.attributes,
-                    'price', pr.price,
+                    -- Como texto, no como número: serde_json lee los números
+                    -- JSON como f64 y 150.99 llegaba a BigDecimal como
+                    -- 150.990000000000009094947017729282379150390625.
+                    -- Como cadena, BigDecimal la lee exacta.
+                    'price', pr.price::text,
                     'id', v.id,
                     'stock', v.stock
                 )
