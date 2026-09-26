@@ -37,6 +37,7 @@ pub struct ProductReviewsV1Body {
 pub struct ProductReviewsRoutes {
     pub list: String,
     pub save: String,
+    pub delete: String,
 }
 
 /// Una opinión tal como se pinta. `author` es el `username`, que es lo único
@@ -115,6 +116,10 @@ pub struct ProductReviewsData {
     /// entonces sale el formulario. Con sesión y sin compra, el aviso de que
     /// opinar es para quien lo ha comprado.
     pub can_review: bool,
+    /// La opinión que ya dejó el usuario, si la hay: precarga el formulario y
+    /// saca el botón de borrar. Puede existir aunque `can_review` sea falso (el
+    /// pedido se canceló después): entonces ya no se edita, pero sí se borra.
+    pub my_review: Option<ReviewData>,
 }
 
 impl ProductReviewsData {
@@ -132,6 +137,7 @@ impl ProductReviewsData {
             page: 1,
             logged,
             can_review,
+            my_review: None,
         }
     }
 
@@ -142,6 +148,7 @@ impl ProductReviewsData {
         page: i64,
         logged: bool,
         can_review: bool,
+        my_review: Option<ReviewData>,
     ) -> Self {
         Self {
             routes: &ROUTES,
@@ -153,12 +160,39 @@ impl ProductReviewsData {
             page,
             logged,
             can_review,
+            my_review,
         }
     }
 
     /// Tope del comentario para el `maxlength` del textarea.
     pub fn max_comment_len(&self) -> usize {
         MAX_COMMENT_LEN
+    }
+
+    pub fn has_my_review(&self) -> bool {
+        self.my_review.is_some()
+    }
+
+    /// Estrella que sale marcada en el formulario; 0 = ninguna (primera vez).
+    pub fn my_rating(&self) -> i16 {
+        self.my_review.as_ref().map(|r| r.rating_value).unwrap_or(0)
+    }
+
+    /// Texto que precarga el textarea; vacío si no hay opinión o no tenía comentario.
+    pub fn my_comment(&self) -> &str {
+        self.my_review.as_ref().map(|r| r.comment_text()).unwrap_or("")
+    }
+
+    /// Para la etiqueta "Tu opinión" de la lista. Por id y no por autor: el
+    /// `username` es lo que se enseña, no lo que identifica.
+    pub fn is_mine(&self, review_id: &Uuid) -> bool {
+        self.my_review.as_ref().map(|r| &r.id == review_id).unwrap_or(false)
+    }
+
+    /// El borrado va por producto, no por id de la opinión: con el `user_id` de
+    /// la sesión ya queda determinada, y así no hay id ajeno que se pueda probar.
+    pub fn delete_url(&self) -> String {
+        format!("{}/{}", self.routes.delete, self.product_id)
     }
 
     pub fn is_empty(&self) -> bool {

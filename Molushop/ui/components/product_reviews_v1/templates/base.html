@@ -19,37 +19,48 @@
         hx-target-400="#review-form-error"
         hx-target-403="#review-form-error"
         hx-target-500="#review-form-error">
-        <span class="form-title">Deja tu opinión</span>
+        <span class="form-title">{% if reviews.has_my_review() %}Edita tu opinión{% else %}Deja tu opinión{% endif %}</span>
         <input type="hidden" name="product_id" value="{{reviews.product_id}}">
 
         <!-- Del 5 al 1 a propósito: el CSS les da la vuelta con row-reverse
              para que "~" pinte la marcada y las de menos puntuación. -->
         <fieldset class="star-input">
             <legend>Tu puntuación</legend>
-            <input type="radio" id="review-star-5" name="rating_value" value="5" required>
+            <input type="radio" id="review-star-5" name="rating_value" value="5" required{% if reviews.my_rating() == 5 %} checked{% endif %}>
             <label for="review-star-5"><span class="sr-only">5 estrellas</span></label>
-            <input type="radio" id="review-star-4" name="rating_value" value="4">
+            <input type="radio" id="review-star-4" name="rating_value" value="4"{% if reviews.my_rating() == 4 %} checked{% endif %}>
             <label for="review-star-4"><span class="sr-only">4 estrellas</span></label>
-            <input type="radio" id="review-star-3" name="rating_value" value="3">
+            <input type="radio" id="review-star-3" name="rating_value" value="3"{% if reviews.my_rating() == 3 %} checked{% endif %}>
             <label for="review-star-3"><span class="sr-only">3 estrellas</span></label>
-            <input type="radio" id="review-star-2" name="rating_value" value="2">
+            <input type="radio" id="review-star-2" name="rating_value" value="2"{% if reviews.my_rating() == 2 %} checked{% endif %}>
             <label for="review-star-2"><span class="sr-only">2 estrellas</span></label>
-            <input type="radio" id="review-star-1" name="rating_value" value="1">
+            <input type="radio" id="review-star-1" name="rating_value" value="1"{% if reviews.my_rating() == 1 %} checked{% endif %}>
             <label for="review-star-1"><span class="sr-only">1 estrella</span></label>
         </fieldset>
 
         <label class="sr-only" for="review-comment">Comentario</label>
         <textarea class="review-textarea" id="review-comment" name="comment" rows="4"
             maxlength="{{reviews.max_comment_len()}}"
-            placeholder="Cuéntanos qué te ha parecido (opcional)"></textarea>
+            placeholder="Cuéntanos qué te ha parecido (opcional)">{{reviews.my_comment()}}</textarea>
 
         <div class="form-error" id="review-form-error"></div>
 
-        <button type="submit" class="publish-review">Publicar opinión</button>
+        <div class="form-actions">
+            <button type="submit" class="publish-review">{% if reviews.has_my_review() %}Guardar cambios{% else %}Publicar opinión{% endif %}</button>
+            {% if reviews.has_my_review() %}
+            {% include "components/product_reviews_v1/templates/delete_button.html" %}
+            {% endif %}
+        </div>
     </form>
     {% else if reviews.logged %}
     <div class="review-login cont-1">
         <span>Solo pueden opinar quienes han comprado este producto.</span>
+        {% if reviews.has_my_review() %}
+        <!-- Opinó cuando tenía el pedido y luego se canceló: ya no la edita,
+             pero lo que escribió es suyo y puede quitarlo. -->
+        <div class="form-error" id="review-form-error"></div>
+        {% include "components/product_reviews_v1/templates/delete_button.html" %}
+        {% endif %}
     </div>
     {% else %}
     <!-- Sin .open-login-modal: ese enganche se hace una vez al cargar y este
@@ -96,7 +107,7 @@
             <div class="review-header">
                 <div class="avatar">{{review.initial()}}</div>
                 <div class="review-who">
-                    <span class="author">{{review.author}}</span>
+                    <span class="author">{{review.author}}{% if reviews.is_mine(review.id) %} <span class="mine-tag">Tu opinión</span>{% endif %}</span>
                     <span class="review-date">{{review.date_label()}}</span>
                 </div>
                 <svg aria-hidden="true" focusable="false" class="rating">

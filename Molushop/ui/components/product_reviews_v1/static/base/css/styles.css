@@ -212,6 +212,32 @@
         }
     }
 
+    .form-actions{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.8em;
+    }
+    /* Secundario a propósito: publicar es la acción normal, borrar la rara. */
+    .delete-review{
+        padding: 0.6em 1.4em;
+        border-radius: 999px;
+        border: 1px solid #b00020;
+        background-color: transparent;
+        color: #b00020;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    .mine-tag{
+        margin-left: 0.4em;
+        padding: 0.1em 0.6em;
+        border-radius: 999px;
+        background-color: #f1ead2;
+        color: #6b5410;
+        font-size: 0.8em;
+        font-weight: normal;
+    }
+
     .publish-review{
         align-self: flex-start;
         padding: 0.6em 1.4em;

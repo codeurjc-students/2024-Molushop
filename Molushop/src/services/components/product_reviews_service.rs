@@ -94,7 +94,7 @@ pub async fn get_product_reviews_object(
     // más grande, no una consulta más cara: el orden sale tal cual del índice
     // idx_ratings_product_created (product_id, created_at DESC) y por eso no se
     // añade ningún criterio de desempate, que obligaría a ordenar de verdad.
-    let rows: Vec<(Uuid, String, i16, Option<String>, NaiveDateTime)> = match ratings::table
+    let rows: Vec<ReviewRow> = match ratings::table
         .inner_join(base_user::table)
         .filter(ratings::product_id.eq(product_id))
         .select((
@@ -116,18 +116,50 @@ pub async fn get_product_reviews_object(
         }
     };
 
-    let items: Vec<ReviewData> = rows
-        .into_iter()
-        .map(|(id, author, rating_value, comment, created_at)| ReviewData {
-            id,
-            author,
-            rating_value,
-            comment,
-            created_at,
-        })
-        .collect();
+    let items: Vec<ReviewData> = rows.into_iter().map(review_from_row).collect();
 
-    ProductReviewsData::from_db(*product_id, summary, items, page, logged, can_review)
+    // La propia se busca aparte y no entre `items`: puede estar en una página
+    // que todavía no se ha pedido, y el formulario la necesita igual. Si falla,
+    // el formulario sale en blanco y el UPSERT la corregiría de todas formas.
+    let my_review = match user_id {
+        Some(uid) => match ratings::table
+            .inner_join(base_user::table)
+            .filter(ratings::product_id.eq(product_id))
+            .filter(ratings::user_id.eq(uid))
+            .select((
+                ratings::id,
+                base_user::username,
+                ratings::rating_value,
+                ratings::comment,
+                ratings::created_at,
+            ))
+            .first::<ReviewRow>(connection)
+            .await
+            .optional()
+        {
+            Ok(row) => row.map(review_from_row),
+            Err(e) => {
+                println!("Error obteniendo la opinión del usuario: {:?}", e);
+                None
+            }
+        },
+        None => None,
+    };
+
+    ProductReviewsData::from_db(*product_id, summary, items, page, logged, can_review, my_review)
+}
+
+/// Lo que devuelven las dos consultas de opiniones (la lista y la propia).
+type ReviewRow = (Uuid, String, i16, Option<String>, NaiveDateTime);
+
+fn review_from_row((id, author, rating_value, comment, created_at): ReviewRow) -> ReviewData {
+    ReviewData {
+        id,
+        author,
+        rating_value,
+        comment,
+        created_at,
+    }
 }
 
 /// Render del cuerpo de la sección: lo que devuelven el "ver más" y el POST de
@@ -241,4 +273,34 @@ pub async fn save_review(
             Err(ServiceError::InternalServerError(e.to_string()))
         }
     }
+}
+
+/// Borra la opinión del usuario sobre un producto. Borrado duro: no hay columna
+/// de estado ni moderación.
+///
+/// El `user_id` va en el propio WHERE, y es eso lo que impide borrar la de
+/// otro: no hay un id de opinión que se pueda cambiar a mano. Mismo truco que
+/// `get_order_object`.
+///
+/// No borrar nada (ya estaba borrada: doble clic, otra pestaña) no es un error;
+/// el resultado que el usuario quería ya se cumple.
+pub async fn delete_review(
+    user_id: &Uuid,
+    product_id: &Uuid,
+    pool: &DbPool,
+) -> Result<(), ServiceError> {
+    let connection = &mut pool
+        .get()
+        .await
+        .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+
+    diesel::delete(
+        ratings::table
+            .filter(ratings::product_id.eq(product_id))
+            .filter(ratings::user_id.eq(user_id)),
+    )
+    .execute(connection)
+    .await?;
+
+    Ok(())
 }

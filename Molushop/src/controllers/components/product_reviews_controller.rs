@@ -1,5 +1,5 @@
 use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
-use actix_web::{get, post, web, HttpMessage, HttpRequest, HttpResponse, Scope};
+use actix_web::{delete, get, post, web, HttpMessage, HttpRequest, HttpResponse, Scope};
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -13,7 +13,7 @@ use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::product_reviews_v1::{ProductReviewsRoutes, MAX_COMMENT_LEN};
 use crate::models::error::ServiceError;
 use crate::services::components::product_reviews_service::{
-    get_product_reviews_body_render, save_review,
+    delete_review, get_product_reviews_body_render, save_review,
 };
 
 pub static SCOPE: &str = "/product-reviews";
@@ -22,6 +22,7 @@ lazy_static! {
     pub static ref ROUTES: ProductReviewsRoutes = ProductReviewsRoutes {
         list: format!("{}{}/list", SCOPE_COMPONENTS, SCOPE),
         save: format!("{}{}/save", SCOPE_COMPONENTS, SCOPE),
+        delete: format!("{}{}/delete", SCOPE_COMPONENTS, SCOPE),
     };
 }
 
@@ -44,6 +45,7 @@ pub fn scope() -> Scope<
 fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(list_reviews);
     cfg.service(save_product_review);
+    cfg.service(delete_product_review);
 }
 
 fn session_user_id(req: &HttpRequest) -> Option<Uuid> {
@@ -145,6 +147,43 @@ async fn save_product_review(
             println!("Error al guardar la opinión: {}", e);
             HttpResponse::InternalServerError()
                 .body(form_error("No se ha podido guardar tu opinión. Inténtalo otra vez."))
+        }
+    }
+}
+
+/// Borra la opinión del usuario y devuelve la sección repintada, ya sin ella y
+/// con la media recalculada. Va por producto: la opinión la determina el
+/// `user_id` de la sesión, así que no hay id ajeno que probar.
+///
+/// No pide haber comprado: el contenido es suyo, y tiene que poder quitarlo
+/// aunque el pedido se cancelase después de opinar.
+#[delete("/delete/{product_id}")]
+async fn delete_product_review(
+    path: web::Path<Uuid>,
+    pool_data: web::Data<DbPool>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let user_id = match session_user_id(&req) {
+        Some(id) => id,
+        None => {
+            return HttpResponse::Unauthorized()
+                .insert_header(("HX-Trigger", "auth-required"))
+                .body("No autenticado");
+        }
+    };
+
+    let product_id = path.into_inner();
+    let pool = pool_data.get_ref();
+
+    match delete_review(&user_id, &product_id, pool).await {
+        Ok(()) => {
+            let body = get_product_reviews_body_render(&product_id, 1, Some(&user_id), pool).await;
+            HttpResponse::Ok().body(body)
+        }
+        Err(e) => {
+            println!("Error al borrar la opinión: {}", e);
+            HttpResponse::InternalServerError()
+                .body(form_error("No se ha podido borrar tu opinión. Inténtalo otra vez."))
         }
     }
 }
