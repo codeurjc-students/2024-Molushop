@@ -77,8 +77,8 @@ async fn list_reviews(
 ) -> HttpResponse {
     let product_id = path.into_inner();
     let page = query.page.unwrap_or(1);
-    let logged = session_user_id(&req).is_some();
-    let body = get_product_reviews_body_render(&product_id, page, logged, pool_data.get_ref()).await;
+    let user_id = session_user_id(&req);
+    let body = get_product_reviews_body_render(&product_id, page, user_id.as_ref(), pool_data.get_ref()).await;
 
     HttpResponse::Ok().body(body)
 }
@@ -124,7 +124,7 @@ async fn save_product_review(
         Ok(()) => {
             // Vuelve a la primera página: la opinión recién escrita es la más
             // reciente, así que sale arriba del todo.
-            let body = get_product_reviews_body_render(&form.product_id, 1, true, pool).await;
+            let body = get_product_reviews_body_render(&form.product_id, 1, Some(&user_id), pool).await;
             HttpResponse::Ok().body(body)
         }
         Err(ServiceError::InvalidRating) => {
@@ -137,6 +137,10 @@ async fn save_product_review(
         Err(ServiceError::ProductNotFound) => {
             HttpResponse::BadRequest().body(form_error("Este producto ya no está disponible."))
         }
+        // 403 y no 401: la sesión es buena, lo que falta es la compra. Con un
+        // 401 se abriría el login, que no arregla nada.
+        Err(ServiceError::NotPurchased) => HttpResponse::Forbidden()
+            .body(form_error("Solo pueden opinar quienes han comprado este producto.")),
         Err(e) => {
             println!("Error al guardar la opinión: {}", e);
             HttpResponse::InternalServerError()

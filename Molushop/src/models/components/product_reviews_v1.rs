@@ -108,17 +108,20 @@ pub struct ProductReviewsData {
     /// Contadores de 1 a 5 estrellas, en ese orden.
     pub counts: [i64; 5],
     pub page: i64,
-    /// Con sesión sale el formulario; sin ella, el botón que abre el login.
-    /// Un visitante y un usuario identificado ven la MISMA lista: leer
-    /// opiniones no pide sesión.
+    /// Sin sesión sale el botón que abre el login. Un visitante y un usuario
+    /// identificado ven la MISMA lista: leer opiniones no pide sesión.
     pub logged: bool,
+    /// Con sesión y con un pedido no cancelado que lleve el producto: sólo
+    /// entonces sale el formulario. Con sesión y sin compra, el aviso de que
+    /// opinar es para quien lo ha comprado.
+    pub can_review: bool,
 }
 
 impl ProductReviewsData {
     /// Producto sin opiniones — y también lo que se devuelve si la consulta
     /// falla: la ficha enseña "todavía no hay opiniones" en vez de romperse,
     /// igual que el carrito cuando no puede leer sus líneas.
-    pub fn empty(product_id: Uuid, logged: bool) -> Self {
+    pub fn empty(product_id: Uuid, logged: bool, can_review: bool) -> Self {
         Self {
             routes: &ROUTES,
             product_id,
@@ -128,6 +131,7 @@ impl ProductReviewsData {
             counts: [0; 5],
             page: 1,
             logged,
+            can_review,
         }
     }
 
@@ -137,6 +141,7 @@ impl ProductReviewsData {
         items: Vec<ReviewData>,
         page: i64,
         logged: bool,
+        can_review: bool,
     ) -> Self {
         Self {
             routes: &ROUTES,
@@ -147,6 +152,7 @@ impl ProductReviewsData {
             counts: [summary.star_1, summary.star_2, summary.star_3, summary.star_4, summary.star_5],
             page,
             logged,
+            can_review,
         }
     }
 

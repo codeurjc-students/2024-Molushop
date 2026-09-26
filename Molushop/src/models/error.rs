@@ -27,6 +27,10 @@ pub enum ServiceError {
     /// Opinar sobre un producto que no existe: lo canta la FK de `ratings`.
     #[error("Product not found")]
     ProductNotFound,
+    /// Opinar sin haber comprado el producto. La plantilla ya no pinta el
+    /// formulario en ese caso; esto es lo que lo impide de verdad.
+    #[error("Product not purchased")]
+    NotPurchased,
 
     // --- Checkout ---
     /// No queda ninguna línea que comprar: el carrito está vacío o el `lines`

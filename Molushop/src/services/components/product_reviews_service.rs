@@ -12,7 +12,7 @@ use crate::models::components::product_reviews_v1::{
 };
 use crate::models::error::ServiceError;
 use crate::models::models_x::RatingSummaryRow;
-use crate::schema::{base_user, ratings};
+use crate::schema::{base_user, order_items, orders, product_variations, ratings};
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -28,18 +28,32 @@ type DbPool = Pool<AsyncPgConnection>;
 pub async fn get_product_reviews_object(
     product_id: &Uuid,
     page: i64,
-    logged: bool,
+    user_id: Option<&Uuid>,
     pool: &DbPool,
 ) -> ProductReviewsData {
     // La página llega de la URL, así que puede venir con cualquier cosa.
     let page = page.max(1);
+    let logged = user_id.is_some();
 
     let connection = &mut match pool.get().await {
         Ok(c) => c,
         Err(e) => {
             println!("Error obteniendo conexión para las opiniones: {:?}", e);
-            return ProductReviewsData::empty(*product_id, logged);
+            return ProductReviewsData::empty(*product_id, logged, false);
         }
+    };
+
+    // Si la comprobación falla, no se enseña el formulario: el POST lo iba a
+    // rechazar igual, y es mejor no ofrecer algo que no va a funcionar.
+    let can_review = match user_id {
+        Some(uid) => match has_purchased(uid, product_id, connection).await {
+            Ok(b) => b,
+            Err(e) => {
+                println!("Error comprobando la compra para opinar: {:?}", e);
+                false
+            }
+        },
+        None => false,
     };
 
     // COUNT ... FILTER hace el reparto de estrellas en una pasada. AVG devuelve
@@ -66,13 +80,13 @@ pub async fn get_product_reviews_object(
         Ok(s) => s,
         Err(e) => {
             println!("Error obteniendo el resumen de opiniones: {:?}", e);
-            return ProductReviewsData::empty(*product_id, logged);
+            return ProductReviewsData::empty(*product_id, logged, can_review);
         }
     };
 
     // Sin opiniones no hace falta la segunda consulta.
     if summary.total == 0 {
-        return ProductReviewsData::empty(*product_id, logged);
+        return ProductReviewsData::empty(*product_id, logged, can_review);
     }
 
     // El "ver más" repinta la sección entera, así que se piden TODAS las
@@ -98,7 +112,7 @@ pub async fn get_product_reviews_object(
         Ok(r) => r,
         Err(e) => {
             println!("Error obteniendo las opiniones del producto: {:?}", e);
-            return ProductReviewsData::empty(*product_id, logged);
+            return ProductReviewsData::empty(*product_id, logged, can_review);
         }
     };
 
@@ -113,7 +127,7 @@ pub async fn get_product_reviews_object(
         })
         .collect();
 
-    ProductReviewsData::from_db(*product_id, summary, items, page, logged)
+    ProductReviewsData::from_db(*product_id, summary, items, page, logged, can_review)
 }
 
 /// Render del cuerpo de la sección: lo que devuelven el "ver más" y el POST de
@@ -121,11 +135,37 @@ pub async fn get_product_reviews_object(
 pub async fn get_product_reviews_body_render(
     product_id: &Uuid,
     page: i64,
-    logged: bool,
+    user_id: Option<&Uuid>,
     pool: &DbPool,
 ) -> String {
-    let objeto = get_product_reviews_object(product_id, page, logged, pool).await;
+    let objeto = get_product_reviews_object(product_id, page, user_id, pool).await;
     ProductReviewsV1Body { reviews: objeto }.render().unwrap()
+}
+
+/// `orders.status` = 2 es CANCELLED (ver la migración de `orders`).
+const ORDER_STATUS_CANCELLED: i16 = 2;
+
+/// ¿Tiene el usuario algún pedido NO cancelado con alguna variación de este
+/// producto? Es la regla para poder opinar. La opinión es por producto y el
+/// pedido va por variación, de ahí el paso por `product_variations`.
+///
+/// Cuenta también los pedidos pendientes. Exigir que esté entregado queda para
+/// cuando `orders` tenga ese estado.
+async fn has_purchased(
+    user_id: &Uuid,
+    product_id: &Uuid,
+    connection: &mut AsyncPgConnection,
+) -> QueryResult<bool> {
+    diesel::select(diesel::dsl::exists(
+        order_items::table
+            .inner_join(orders::table)
+            .inner_join(product_variations::table)
+            .filter(orders::user_id.eq(user_id))
+            .filter(orders::status.ne(ORDER_STATUS_CANCELLED))
+            .filter(product_variations::product_id.eq(product_id)),
+    ))
+    .get_result::<bool>(connection)
+    .await
 }
 
 /// Guarda la opinión del usuario sobre un producto.
@@ -163,6 +203,12 @@ pub async fn save_review(
         .get()
         .await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+
+    // Que no salga el formulario no basta: el POST se puede hacer a mano.
+    // Esto también cubre un producto inexistente, que nadie puede haber comprado.
+    if !has_purchased(user_id, product_id, connection).await? {
+        return Err(ServiceError::NotPurchased);
+    }
 
     let result = diesel::insert_into(ratings::table)
         .values((

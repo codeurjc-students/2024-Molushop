@@ -73,7 +73,7 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
         login_base_data:login_base_service::get_login_base_model_data(),
         product_data: get_product_object(&product_id,&pool).await,
         // Primera página de opiniones; el "ver más" pide las siguientes por HTMX.
-        reviews: get_product_reviews_object(&product_id, 1, user_logged, &pool).await
+        reviews: get_product_reviews_object(&product_id, 1, user_id_opt.as_ref(), &pool).await
     }.render().unwrap();
 
     HttpResponse::Ok().body(home_render)

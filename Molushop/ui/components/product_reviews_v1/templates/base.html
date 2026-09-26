@@ -6,16 +6,18 @@
         {% endif %}
     </div>
 
-    {% if reviews.logged %}
+    {% if reviews.can_review %}
     <!-- Éxito: el servidor devuelve la sección entera y sustituye a esta.
-         400/500: sólo el hueco de errores, para no borrar lo escrito
-         (extensión response-targets, que ya carga layout1.html). -->
+         400/403/500: sólo el hueco de errores, para no borrar lo escrito
+         (extensión response-targets, que ya carga layout1.html). El 403 es
+         la compra cancelada entre pintar la ficha y publicar. -->
     <form class="review-form cont-1"
         hx-post="{{reviews.routes.save}}"
         hx-target="#product-reviews-1"
         hx-swap="outerHTML"
         hx-ext="response-targets"
         hx-target-400="#review-form-error"
+        hx-target-403="#review-form-error"
         hx-target-500="#review-form-error">
         <span class="form-title">Deja tu opinión</span>
         <input type="hidden" name="product_id" value="{{reviews.product_id}}">
@@ -45,6 +47,10 @@
 
         <button type="submit" class="publish-review">Publicar opinión</button>
     </form>
+    {% else if reviews.logged %}
+    <div class="review-login cont-1">
+        <span>Solo pueden opinar quienes han comprado este producto.</span>
+    </div>
     {% else %}
     <!-- Sin .open-login-modal: ese enganche se hace una vez al cargar y este
          botón puede llegar después, dentro del "ver más". Lo recoge script.js
