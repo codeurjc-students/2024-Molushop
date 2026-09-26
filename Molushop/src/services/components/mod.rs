@@ -11,3 +11,4 @@ pub mod cart_update_service;
 pub mod checkout_get_service;
 pub mod checkout_confirm_service;
 pub mod order_get_service;
+pub mod product_reviews_service;

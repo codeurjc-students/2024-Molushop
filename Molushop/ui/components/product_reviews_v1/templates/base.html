@@ -1,0 +1,71 @@
+<div class="product-reviews-1" id="product-reviews-1">
+    <div class="reviews-header">
+        <h2>Opiniones</h2>
+        {% if !reviews.is_empty() %}
+        <span class="reviews-count">{{reviews.total}} {% if reviews.total == 1 %}opinión{% else %}opiniones{% endif %}</span>
+        {% endif %}
+    </div>
+
+    {% if reviews.is_empty() %}
+    <div class="reviews-empty cont-1">
+        <span>Este producto todavía no tiene opiniones.</span>
+    </div>
+    {% else %}
+    <div class="reviews-summary cont-1">
+        <div class="summary-average">
+            <span class="average-number">{{reviews.average_label()}}</span>
+            <svg aria-hidden="true" focusable="false" class="rating">
+                {% for star in reviews.stars() %}
+                <use href="/assets/svg/icons/stars.svg#stars-{{star}}-star" />
+                {% endfor %}
+            </svg>
+            <span class="average-total">sobre {{reviews.total}} {% if reviews.total == 1 %}opinión{% else %}opiniones{% endif %}</span>
+        </div>
+
+        <div class="summary-bars">
+            {% for bar in reviews.bars() %}
+            <div class="bar-row">
+                <span class="bar-star">{{bar.star}}</span>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width:{{bar.percent}}%"></div>
+                </div>
+                <span class="bar-count">{{bar.count}}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="reviews">
+        {% for review in reviews.items %}
+        <article class="review cont-1">
+            <div class="review-header">
+                <div class="avatar">{{review.initial()}}</div>
+                <div class="review-who">
+                    <span class="author">{{review.author}}</span>
+                    <span class="review-date">{{review.date_label()}}</span>
+                </div>
+                <svg aria-hidden="true" focusable="false" class="rating">
+                    {% for star in review.stars() %}
+                    <use href="/assets/svg/icons/stars.svg#stars-{{star}}-star" />
+                    {% endfor %}
+                </svg>
+            </div>
+            {% if review.has_comment() %}
+            <p class="review-comment">{{review.comment_text()}}</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if reviews.has_more() %}
+    <!-- Repinta la sección entera con una página más: el fragmento que devuelve
+         el controlador es este mismo div, sin el <link> del wrapper. -->
+    <button type="button" class="more-reviews"
+        hx-get="{{reviews.next_page_url()}}"
+        hx-target="#product-reviews-1"
+        hx-swap="outerHTML">
+        Ver más opiniones ({{reviews.shown()}} de {{reviews.total}})
+    </button>
+    {% endif %}
+    {% endif %}
+</div>

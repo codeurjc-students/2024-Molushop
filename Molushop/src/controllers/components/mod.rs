@@ -7,3 +7,4 @@ pub mod login_base_controller;
 pub mod nav1_controller;
 pub mod cart_add_controller;
 pub mod checkout_controller;
+pub mod product_reviews_controller;

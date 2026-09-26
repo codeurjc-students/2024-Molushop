@@ -15,3 +15,4 @@ pub mod product_detail_principal_model;
 pub mod checkout_v1;
 pub mod order_detail_v1;
 pub mod order_list_v1;
+pub mod product_reviews_v1;

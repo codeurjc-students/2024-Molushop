@@ -3,6 +3,7 @@ use crate::models::components::product_card_model::ProductCardData;
 use crate::models::components::nav1_model::*;
 use crate::models::components::login_base_model::LoginProductData;
 use crate::models::components::product_detail_principal_model::ProductDetailPrincipalData;
+use crate::models::components::product_reviews_v1::ProductReviewsData;
 
 
 #[derive(Template,Clone,Debug)]
@@ -12,5 +13,6 @@ pub struct ProductPage{
     pub page_name:String,
     pub nav1:Nav1Data,
     pub login_base_data:LoginProductData,
-    pub product_data: ProductDetailPrincipalData
+    pub product_data: ProductDetailPrincipalData,
+    pub reviews: ProductReviewsData
 }

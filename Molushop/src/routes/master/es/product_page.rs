@@ -12,7 +12,8 @@ use crate::services::components::{
     product_card_service::*,
     product_card_group_service::*,
     nav1_service::*,
-    product_detail_principal_service::get_product_object
+    product_detail_principal_service::get_product_object,
+    product_reviews_service::get_product_reviews_object
 };
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
@@ -70,7 +71,9 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
         page_name:"Product".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data(),
-        product_data: get_product_object(&product_id,&pool).await
+        product_data: get_product_object(&product_id,&pool).await,
+        // Primera página de opiniones; el "ver más" pide las siguientes por HTMX.
+        reviews: get_product_reviews_object(&product_id, 1, &pool).await
     }.render().unwrap();
 
     HttpResponse::Ok().body(home_render)
