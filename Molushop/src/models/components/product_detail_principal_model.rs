@@ -53,7 +53,10 @@ pub struct VariantAttribute {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VariantMapItem {
     pub id: Uuid,
-    pub price: BigDecimal,
+    /// `None` = la variación no tiene fila en `prices`. Es un `Option` para que
+    /// UNA variación sin precio no tumbe el mapa entero: sin él, `from_value`
+    /// fallaba para toda la lista y la ficha se quedaba sin variaciones.
+    pub price: Option<BigDecimal>,
     pub stock: i32,
     pub attributes: Vec<VariantAttribute>,
 }
@@ -108,6 +111,13 @@ impl Default for ProductDetailPrincipalData {
 }
 
 impl ProductDetailPrincipalData {
+    /// Precio de la variación que sale seleccionada al entrar (la primera del
+    /// mapa, que viene ordenado por precio con los NULL al final). `None` si no
+    /// hay variaciones o ni esa tiene precio.
+    pub fn initial_price(&self) -> Option<&BigDecimal> {
+        self.variant_map.first().and_then(|v| v.price.as_ref())
+    }
+
     pub fn variant_map_json(&self) -> String {
         serde_json::to_string(&self.variant_map).unwrap_or_else(|_| "[]".to_string())
     }
@@ -138,17 +148,28 @@ impl From<ProductForPage1> for ProductDetailPrincipalData {
             store_name: db.store_name.unwrap_or(default.store_name),
             store_id: db.store_id.unwrap_or(default.store_id),
 
-            images_product: db.images_product
-                .and_then(|v| from_value::<Vec<ImageProduct>>(v).ok())
+            images_product: parse_json(db.images_product, "images_product", &db.id)
                 .unwrap_or(default.images_product),
 
-            variant_map: db.variant_map
-                .and_then(|v| from_value::<Vec<VariantMapItem>>(v).ok())
+            variant_map: parse_json(db.variant_map, "variant_map", &db.id)
                 .unwrap_or(default.variant_map),
 
-            variations_with_stock_status: db.variations_with_stock_status
-                .and_then(|v| from_value::<Vec<Variation>>(v).ok())
+            variations_with_stock_status: parse_json(db.variations_with_stock_status, "variations_with_stock_status", &db.id)
                 .unwrap_or(default.variations_with_stock_status),
+        }
+    }
+}
+
+/// Lee uno de los JSON que monta la consulta de la ficha. Si no encaja se usa
+/// el valor por defecto, como antes, pero ahora queda en el log: con el `.ok()`
+/// a secas, una variación sin precio dejaba la ficha sin variaciones y nadie se
+/// enteraba de por qué.
+fn parse_json<T: serde::de::DeserializeOwned>(value: Option<Value>, field: &str, product_id: &Uuid) -> Option<T> {
+    match from_value::<T>(value?) {
+        Ok(parsed) => Some(parsed),
+        Err(e) => {
+            println!("Ficha {}: no se pudo leer `{}`: {}", product_id, field, e);
+            None
         }
     }
 }

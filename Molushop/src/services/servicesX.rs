@@ -5,6 +5,9 @@ use diesel::dsl::exists;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel_async::{RunQueryDsl, AsyncConnection, AsyncPgConnection};
+use diesel_async::scoped_futures::ScopedFutureExt;
+use crate::models::error::ServiceError;
+use crate::services::create_product_variations::create_product_variations;
 use diesel::dsl::select;
 use diesel::dsl::sum;
 use diesel::sql_query;
@@ -184,28 +187,35 @@ pub async fn obtain_base_specs(id_category:&String, pool:&DbPool) -> Result<Vec<
     result
     
 }
-pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, Error> {
-    let id_product = insert_new_product(form,pool).await?;
-    insert_product_seller(&id_seler,&id_product,pool).await?;
-    insert_product_category(&id_product,&category_id,pool).await?;
-    Ok(id_product)
+/// Crea el producto ENTERO en una sola transacción: el producto, su vendedor, su
+/// categoría, las variaciones y sus precios. Si falla cualquier paso no queda
+/// nada escrito.
+///
+/// Antes eran cinco escrituras sueltas, cada una con su conexión: un fallo a
+/// mitad dejaba productos sin categoría o, peor, variaciones sin fila en
+/// `prices`, que dejaban la ficha sin selector de variaciones.
+pub async fn insert_new_product_complete(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, ServiceError> {
+    let mut conn = pool.get().await
+        .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+
+    conn.transaction::<Uuid, ServiceError, _>(|conn| async move {
+        let id_product = insert_new_product(form, conn).await?;
+        insert_product_seller(&id_seler, &id_product, conn).await?;
+        insert_product_category(&id_product, category_id, conn).await?;
+        create_product_variations(form, id_product, conn).await?;
+        Ok(id_product)
+    }.scope_boxed()).await
 }
 
-pub async fn insert_product_category(id_product:&Uuid, id_category:&String, pool:&DbPool) -> Result<usize,Error> {
+pub async fn insert_product_category(id_product:&Uuid, id_category:&String, connection:&mut AsyncPgConnection) -> Result<usize,Error> {
     use crate::schema::category_product::dsl::*;
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
-    let result = insert_into(category_product).values((category_id.eq(id_category),product_id.eq(id_product))).execute(connection).await;
-    result
+    insert_into(category_product).values((category_id.eq(id_category),product_id.eq(id_product))).execute(connection).await
 }
 
 
-pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, pool:&DbPool) -> Result<usize,Error> {
+pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, connection:&mut AsyncPgConnection) -> Result<usize,Error> {
     use crate::schema::product_seller::dsl::*;
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
-    let result = insert_into(product_seller).values((product_id.eq(id_product),seller_id.eq(id_seler))).execute(connection).await;
-    result
+    insert_into(product_seller).values((product_id.eq(id_product),seller_id.eq(id_seler))).execute(connection).await
 }
 
 #[derive(Deserialize, Serialize, Debug)]
@@ -213,10 +223,8 @@ struct FormTitulos {
     titulos: Vec<String>
 }
 
-pub async fn insert_new_product(form:&ProductForm,pool:&DbPool) -> Result<Uuid, Error> {
+pub async fn insert_new_product(form:&ProductForm,connection:&mut AsyncPgConnection) -> Result<Uuid, Error> {
     use crate::schema::products::dsl::*;
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
     let new_id = Uuid::new_v4();
     //metodo para obtener los nombres de los titulos de las variaciones
     //obtenern ese jsson b y obtener los nombres de las keys
@@ -269,11 +277,9 @@ pub async fn get_product(id_product:&Uuid, pool:&DbPool) -> Result<Products,Erro
 
 use crate::models::product_variation::VariationValue;
 
- pub async fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>,pool:&DbPool) -> Result<Vec<Uuid>,Error>{
+ pub async fn insert_product_variations(prod_id:&Uuid,combinations: Vec<Vec<VariationValue>>,connection:&mut AsyncPgConnection) -> Result<Vec<Uuid>,Error>{
     use crate::schema::product_variations::dsl::*;
-    //let connection = &mut establish_connection();
     let mut new_ids:Vec<Uuid>= Vec::new();
-    let connection= &mut pool.get().await.unwrap();
     for combination in combinations{
         let new_id = Uuid::new_v4();
         let json_attributes:Value = serde_json::to_value(&combination).unwrap();
@@ -297,11 +303,9 @@ use crate::models::product_variation::VariationValue;
     Ok(new_ids)
  }
 
- pub async fn insert_product_variation(prod_id:&Uuid, pool:&DbPool) -> Result<Uuid,Error>{
+ pub async fn insert_product_variation(prod_id:&Uuid, connection:&mut AsyncPgConnection) -> Result<Uuid,Error>{
     use crate::schema::product_variations::dsl::*;
-    //let connection = &mut establish_connection();
     let new_id = Uuid::new_v4();
-    let connection = &mut pool.get().await.unwrap();
     let new_variation = NewProductVariation1{
         id: &new_id,
         product_id: prod_id,
@@ -546,11 +550,10 @@ pub async fn insert_prices_variations(
     variations_ids: &[Uuid],
     price_insert: &BigDecimal,
     currency_insert: &str,
-    pool: &DbPool 
+    connection: &mut AsyncPgConnection
 ) -> Result<usize, Error> {
     use crate::schema::prices::dsl::*;
     //crear los modelos de insercion de precio
-    let connection = &mut pool.get().await.unwrap();
     let now = Utc::now().naive_utc();
     let new_prices:Vec<NewPrice> = variations_ids
         .iter()

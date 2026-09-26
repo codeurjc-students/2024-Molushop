@@ -122,8 +122,13 @@ const PRODUCT_DETAIL = {
         );
 
         let priceEl = document.getElementById("product-price");
+        let currencyEl = document.getElementById("product-currency");
         if (priceEl && match) {
-            priceEl.textContent = match.price;
+            // price llega null si la variación no tiene fila en prices: se
+            // enseña como no disponible en vez de "null €".
+            let hasPrice = match.price != null;
+            priceEl.textContent = hasPrice ? match.price : "No disponible";
+            if (currencyEl) { currencyEl.hidden = !hasPrice; }
         }
     },
 
@@ -133,6 +138,12 @@ const PRODUCT_DETAIL = {
 
         if (!variant) {
             alert("Selecciona una variación válida");
+            return;
+        }
+        // El servidor la rechazaría igual ("No price found"); así el aviso se
+        // entiende y no se hace la petición.
+        if (variant.price == null) {
+            alert("Esta variación no está disponible ahora mismo");
             return;
         }
 

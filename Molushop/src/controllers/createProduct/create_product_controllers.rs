@@ -14,7 +14,7 @@ use askama::Template;
 use uuid::Uuid;
 
 use crate::services::servicesX::*;
-use crate::services::create_product_variations::create_product_variations;
+
 use crate::services;
 use crate::models::models_x::{ProductForm,Category};
 //use crate::models::product_variation::{VariationValue,Attribute};
@@ -199,24 +199,16 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data
     let datox = data.into_inner();
     println!("{:?}",datox);
     //match insert_new_product(&datox,pool).await{
+    // Producto, vendedor, categoría, variaciones y precios van en UNA
+    // transacción: o se crea todo o no se crea nada.
     match insert_new_product_complete(id_prueba,&datox,&category_id,pool).await{
         Ok(new_id) => {
-            //aqui añadir función para insertar las variaciones
-            println!("Id_del producto: {:?}",&new_id);
-            match create_product_variations(datox,new_id,pool).await{
-                Ok(_) => {
-                    println!("Variaciones insertadas");
-                    HttpResponse::Ok().body("Producto creado")
-                },
-                Err(e) => {
-                    println!("Error al insertar variaciones: {}", e);
-                    HttpResponse::InternalServerError().body("Error al insertar variaciones")
-                }
-            }
+            println!("Producto creado con sus variaciones: {:?}",&new_id);
+            HttpResponse::Ok().body("Producto creado")
         },
         Err(e) => {
-            println!("Error al insertar producto: {}", e);
-            return HttpResponse::InternalServerError().body("Error al insertar producto");
+            println!("Error al crear el producto (no se ha guardado nada): {}", e);
+            HttpResponse::InternalServerError().body("Error al crear el producto")
         }
     }
 }

@@ -33,12 +33,16 @@
             </svg>
         </div>
         <div class="price">
-            {% if !product_data.variant_map.is_empty() %}
-                <span id="product-price">{{product_data.variant_map[0].price}}</span>
-            {% else %}
-                <span id="product-price">--</span>
-            {% endif %}
-            <span>{{product_data.currency_symbol()}}</span>
+            <!-- Sin precio no se pinta "€": el script lo esconde y lo vuelve a
+                 enseñar al cambiar de variación (id product-currency). -->
+            {% match product_data.initial_price() %}
+            {% when Some with (price) %}
+                <span id="product-price">{{price}}</span>
+                <span id="product-currency">{{product_data.currency_symbol()}}</span>
+            {% when None %}
+                <span id="product-price">No disponible</span>
+                <span id="product-currency" hidden>{{product_data.currency_symbol()}}</span>
+            {% endmatch %}
         </div>
         <div class="variations">
             {% for variation in product_data.variations_with_stock_status %}
