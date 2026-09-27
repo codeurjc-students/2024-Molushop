@@ -1,3 +1,10 @@
+SELECT p.id, p.name, count(*) AS variaciones_sin_precio
+  FROM product_variations v
+  JOIN products p ON p.id = v.product_id
+  LEFT JOIN prices pr ON pr.variation_id = v.id
+  WHERE pr.id IS NULL
+  GROUP BY p.id, p.name;
+
 select * from product_variations join prices on 
 
 SELECT pv.*, p.price, p.currency, p.start_date

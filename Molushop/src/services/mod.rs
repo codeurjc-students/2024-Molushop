@@ -8,3 +8,4 @@ pub mod components;
 pub mod auth;
 pub mod paseto_token_session_service;
 pub mod login_and_register;
+pub mod panel_role_service;
