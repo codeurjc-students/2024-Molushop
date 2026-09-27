@@ -5,6 +5,7 @@ pub mod product;
 pub mod cart;
 pub mod checkout;
 pub mod orders;
+pub mod panel;
 
 use actix_web::web;
 use crate::middleware::auth::Auth;
@@ -16,4 +17,5 @@ pub fn config_routes(cfg: &mut web::ServiceConfig) {
     cart::config(cfg);
     checkout::config(cfg);
     orders::config(cfg);
+    panel::config(cfg);
 }

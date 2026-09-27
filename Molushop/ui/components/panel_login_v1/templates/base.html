@@ -1,0 +1,28 @@
+<div class="panel-login-1"
+    data-login_url="{{panel_login.login_url}}"
+    data-next="{{panel_login.next}}"
+>
+    <div class="cont-1">
+        <h1>Panel de Molushop</h1>
+
+        {% if panel_login.logged_without_access %}
+        <p class="login-notice">
+            Tu usuario no tiene acceso al panel. Entra con una cuenta de vendedor o de administrador.
+        </p>
+        {% endif %}
+
+        <form class="login-form">
+            <label for="panel-login-username">Usuario</label>
+            <input id="panel-login-username" type="text" name="username" required autocomplete="username">
+
+            <label for="panel-login-pass">Contraseña</label>
+            <input id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
+
+            <p class="login-error" hidden></p>
+
+            <button type="submit">Entrar</button>
+        </form>
+
+        <a class="back-link" href="/cart">Volver a la tienda</a>
+    </div>
+</div>

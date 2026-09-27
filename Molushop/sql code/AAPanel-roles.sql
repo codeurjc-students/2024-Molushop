@@ -15,12 +15,12 @@ ORDER BY es_admin DESC, tienda NULLS LAST, bu.username;
 
 -- 2. Hacer admin a un usuario (cambiar el username)
 INSERT INTO admins (id)
-SELECT id FROM base_user WHERE username = 'Moluxo'
+SELECT id FROM base_user WHERE username = 'Mox'
 ON CONFLICT (id) DO NOTHING;
 
 -- 3. Dar tienda (vendedor) a un usuario (cambiar username y nombre de la tienda)
 INSERT INTO seller (id, rating, store_name)
-SELECT id, 0, 'Nombre de la tienda' FROM base_user WHERE username = 'CAMBIAR'
+SELECT id, 0, 'Moluxo Store' FROM base_user WHERE username = 'Mox'
 ON CONFLICT (id) DO NOTHING;
 
 -- 4. Quitar roles (surte efecto en la siguiente petición: el rol no va en el token)
