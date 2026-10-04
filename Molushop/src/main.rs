@@ -25,9 +25,6 @@ pub mod constants;
 
 use services::servicesX;
 use routes::routes_x;
-use controllers::aws::s3::aws_s3;
-use controllers::aws::aws;
-use controllers::controllersX;
 use services::aws::s3::{client, startup};
 use controllers::components;
 
@@ -118,17 +115,11 @@ async fn main() -> std::io::Result<()> {
             //.service(master::scope_master::scope_master(pool_data.clone()))
             .configure(routes::config_routes)
             
-            .service(controllersX::prueba_insertar)
-            .service(controllersX::prueba_modificar)
-            //test
-            .service(controllers::test::scope())
-            .service(aws::scope_aws()) /*  /aws/s3/xxx  */
             //create_product
 .service(components::scope::scope_components())
             // Static files
             //.service(fs::Files::new("/assets", "assets").show_files_listing())
             
-            .service(routes_x::example)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
