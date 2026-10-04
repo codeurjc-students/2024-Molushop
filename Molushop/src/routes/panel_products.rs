@@ -64,7 +64,7 @@ async fn products_create(
     pool_data: web::Data<DbPool>,
 ) -> HttpResponse {
     // Admin sin tienda: no hay a nombre de quién crear.
-    if panel_user.seller_id.is_none() {
+    if panel_user.seller_id().is_none() {
         return html(StatusCode::FORBIDDEN, SIN_TIENDA.to_string());
     }
     match obtain_base_categories(pool_data.get_ref()).await {

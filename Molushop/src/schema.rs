@@ -331,6 +331,16 @@ diesel::table! {
         rating -> Int4,
         #[max_length = 255]
         store_name -> Varchar,
+        status -> Int2,
+        created_at -> Timestamptz,
+    }
+}
+
+diesel::table! {
+    store_members (store_id, user_id) {
+        store_id -> Uuid,
+        user_id -> Uuid,
+        created_at -> Timestamptz,
     }
 }
 
@@ -383,7 +393,8 @@ diesel::joinable!(product_variations -> products (product_id));
 diesel::joinable!(product_variations_identifiers -> product_variations (product_variation_id));
 diesel::joinable!(ratings -> base_user (user_id));
 diesel::joinable!(ratings -> products (product_id));
-diesel::joinable!(seller -> base_user (id));
+diesel::joinable!(store_members -> base_user (user_id));
+diesel::joinable!(store_members -> seller (store_id));
 diesel::joinable!(user_sessions -> base_user (user_id));
 
 diesel::allow_tables_to_appear_in_same_query!(
@@ -414,5 +425,6 @@ diesel::allow_tables_to_appear_in_same_query!(
     products,
     ratings,
     seller,
+    store_members,
     user_sessions,
 );

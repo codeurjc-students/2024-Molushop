@@ -195,7 +195,7 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
 #[post("/create-product/{category_id}")]
 async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,panel_user: web::ReqData<PanelUser>,data: web::Json<ProductForm>) -> impl Responder {
     // El producto se crea a nombre de la tienda de quien está en el panel.
-    let Some(seller_id) = panel_user.seller_id else {
+    let Some(seller_id) = panel_user.seller_id() else {
         return HttpResponse::Forbidden().body(SIN_TIENDA);
     };
 

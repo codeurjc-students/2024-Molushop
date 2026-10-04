@@ -49,14 +49,18 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
     }
      
     let product_id = path.into_inner();
-    // El vendedor borra solo su fila; el admin quita el producto a quien lo tenga.
-    let owner = match (panel_user.is_admin, panel_user.seller_id.as_ref()) {
-        (true, _) => None,
-        (false, Some(seller_id)) => Some(seller_id),
-        (false, None) => return HttpResponse::NotFound().finish(),
+    // El vendedor lo quita solo de sus tiendas; el admin, de quien lo tenga.
+    let owner = if panel_user.is_admin {
+        None
+    } else {
+        let store_ids = panel_user.manageable_store_ids();
+        if store_ids.is_empty() {
+            return HttpResponse::NotFound().finish();
+        }
+        Some(store_ids)
     };
     // Lógica para borrar el producto
-    let result = delete_seller_product(&product_id,owner, pool_data.get_ref()).await;
+    let result = delete_seller_product(&product_id,owner.as_deref(), pool_data.get_ref()).await;
     match result{
         Ok(_) => {
             HttpResponse::Ok().finish()

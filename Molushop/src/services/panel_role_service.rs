@@ -4,35 +4,68 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 
-use crate::schema::{admins, base_user, product_seller, product_variations, products, seller};
+use crate::schema::{admins, base_user, product_seller, product_variations, products, seller, store_members};
 
 type DbPool = Pool<AsyncPgConnection>;
+
+// Valores de `seller.status` (CHECK 0-3 en la migración `stores_multi`).
+pub const STORE_PENDING: i16 = 0;
+pub const STORE_ACTIVE: i16 = 1;
+pub const STORE_INACTIVE: i16 = 2;
+pub const STORE_REJECTED: i16 = 3;
+
+/// Una tienda de la que el usuario es miembro. La tabla se llama `seller`, pero
+/// una fila es una tienda: su `id` es el `seller_id` de `product_seller`.
+#[derive(Debug, Clone)]
+pub struct PanelStore {
+    pub id: Uuid,
+    pub store_name: String,
+    pub status: i16,
+}
+
+impl PanelStore {
+    /// Activa o inactiva: el vendedor gestiona sus productos (la inactiva no se
+    /// ve en la tienda pública, pero se puede preparar). Pendiente o rechazada: no.
+    pub fn is_manageable(&self) -> bool {
+        self.status == STORE_ACTIVE || self.status == STORE_INACTIVE
+    }
+}
 
 /// Quién está usando el panel y qué puede hacer en él.
 ///
 /// Los roles no son una columna: ser admin es tener fila en `admins` y ser
-/// vendedor es tener fila en `seller` (las dos con PK = `base_user.id`). Un
-/// usuario puede ser las dos cosas a la vez: el admin crea productos a nombre
-/// de su propia tienda.
+/// vendedor es ser miembro de alguna tienda (`store_members`). Un usuario puede
+/// ser las dos cosas a la vez y gestionar varias tiendas.
 #[derive(Debug, Clone)]
 pub struct PanelUser {
     pub user_id: Uuid,
     /// Para enseñarlo en la barra del panel.
     pub username: String,
     pub is_admin: bool,
-    /// `Some` si el usuario tiene tienda. Es el `seller_id` de `product_seller`,
-    /// que coincide con el id del usuario.
-    pub seller_id: Option<Uuid>,
+    /// Tiendas de las que es miembro, en cualquier estado, por nombre.
+    pub stores: Vec<PanelStore>,
 }
 
 impl PanelUser {
-    /// Entra al panel quien sea admin o vendedor. Un comprador sin más no.
+    /// Entra al panel quien sea admin o miembro de alguna tienda (aunque esté
+    /// pendiente: tiene que poder ver el aviso). Un comprador sin más no.
     pub fn has_panel_access(&self) -> bool {
-        self.is_admin || self.seller_id.is_some()
+        self.is_admin || !self.stores.is_empty()
+    }
+
+    /// Ids de las tiendas cuyos productos puede gestionar.
+    pub fn manageable_store_ids(&self) -> Vec<Uuid> {
+        self.stores.iter().filter(|s| s.is_manageable()).map(|s| s.id).collect()
+    }
+
+    /// TRANSITORIO: la primera tienda gestionable, para las rutas que aún no
+    /// llevan la tienda en la URL. Desaparece con `/panel/stores/{store_id}/...`.
+    pub fn seller_id(&self) -> Option<Uuid> {
+        self.stores.iter().find(|s| s.is_manageable()).map(|s| s.id)
     }
 }
 
-/// Lee los roles de un usuario en una sola consulta.
+/// Lee los roles de un usuario: una consulta para el admin y otra para sus tiendas.
 ///
 /// Se llama en cada petición del panel (no se guarda en el token), así que
 /// quitarle a alguien la fila de `admins` o `seller` surte efecto al momento.
@@ -45,27 +78,38 @@ pub async fn get_panel_user(user_id: &Uuid, pool: &DbPool) -> Result<PanelUser, 
         .await
         .map_err(|e| format!("Error obteniendo conexión para los roles: {:?}", e))?;
 
-    let (username, admin_id, seller_id): (String, Option<Uuid>, Option<Uuid>) = base_user::table
+    let (username, admin_id): (String, Option<Uuid>) = base_user::table
         .left_join(admins::table)
-        .left_join(seller::table)
         .filter(base_user::id.eq(user_id))
-        .select((base_user::username, admins::id.nullable(), seller::id.nullable()))
+        .select((base_user::username, admins::id.nullable()))
         .first(connection)
         .await
         .map_err(|e| format!("Error leyendo los roles del usuario {}: {:?}", user_id, e))?;
+
+    let stores = store_members::table
+        .inner_join(seller::table)
+        .filter(store_members::user_id.eq(user_id))
+        .select((seller::id, seller::store_name, seller::status))
+        .order_by(seller::store_name)
+        .load::<(Uuid, String, i16)>(connection)
+        .await
+        .map_err(|e| format!("Error leyendo las tiendas del usuario {}: {:?}", user_id, e))?
+        .into_iter()
+        .map(|(id, store_name, status)| PanelStore { id, store_name, status })
+        .collect();
 
     Ok(PanelUser {
         user_id: *user_id,
         username,
         is_admin: admin_id.is_some(),
-        seller_id,
+        stores,
     })
 }
 
 /// ¿Puede este usuario del panel tocar el producto?
 ///
-/// Admin: cualquier producto que exista. Vendedor: solo los que tiene en
-/// `product_seller` a su nombre. `Ok(false)` también si el producto no existe:
+/// Admin: cualquier producto que exista. Vendedor: solo los que están en
+/// `product_seller` a nombre de una de sus tiendas gestionables. `Ok(false)` también si el producto no existe:
 /// el handler responde 404 en los dos casos para no revelar productos ajenos.
 pub async fn can_edit_product(
     panel_user: &PanelUser,
@@ -84,13 +128,14 @@ pub async fn can_edit_product(
         .get_result::<bool>(connection)
         .await
     } else {
-        let Some(seller_id) = panel_user.seller_id else {
+        let store_ids = panel_user.manageable_store_ids();
+        if store_ids.is_empty() {
             return Ok(false);
-        };
+        }
         diesel::select(diesel::dsl::exists(
             product_seller::table
                 .filter(product_seller::product_id.eq(product_id))
-                .filter(product_seller::seller_id.eq(seller_id)),
+                .filter(product_seller::seller_id.eq_any(store_ids)),
         ))
         .get_result::<bool>(connection)
         .await

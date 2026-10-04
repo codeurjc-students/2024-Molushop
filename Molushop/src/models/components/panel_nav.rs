@@ -22,7 +22,7 @@ impl PanelNav {
         PanelNav {
             username: panel_user.username.clone(),
             is_admin: panel_user.is_admin,
-            has_store: panel_user.seller_id.is_some(),
+            has_store: panel_user.seller_id().is_some(),
             active,
             logout_url: LOGIN_ROUTES.logout,
         }

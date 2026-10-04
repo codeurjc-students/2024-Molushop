@@ -337,9 +337,9 @@ pub async fn get_seller_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Prod
 }
 
 /// Productos del panel con el nombre de su tienda. `None` = todas las tiendas
-/// (admin); `Some(seller)` = solo las de ese vendedor. Los productos sin fila en
+/// (admin); `Some(tiendas)` = solo las de esas tiendas. Los productos sin fila en
 /// `product_seller` (los "borrados") no salen.
-pub async fn get_panel_products(seller_filter:Option<&Uuid>,pool: &DbPool) -> Result<Vec<(Products,String)>,Error>{
+pub async fn get_panel_products(seller_filter:Option<&[Uuid]>,pool: &DbPool) -> Result<Vec<(Products,String)>,Error>{
     use crate::schema::{product_seller,products,seller};
     let connection = &mut pool.get().await.unwrap();
     let mut query = products::table
@@ -347,8 +347,8 @@ pub async fn get_panel_products(seller_filter:Option<&Uuid>,pool: &DbPool) -> Re
         .select((Products::as_select(), seller::store_name))
         .order_by((seller::store_name, products::name))
         .into_boxed();
-    if let Some(seller_id) = seller_filter {
-        query = query.filter(product_seller::seller_id.eq(*seller_id));
+    if let Some(store_ids) = seller_filter {
+        query = query.filter(product_seller::seller_id.eq_any(store_ids));
     }
     query.load::<(Products,String)>(connection).await
 }
@@ -384,15 +384,16 @@ pub async fn get_product_variation(id_variation:&Uuid,pool:&DbPool) -> Result<Pr
     result
 }
 
-/// `sell_id` = `None` quita el producto a todas las tiendas (solo el admin).
-pub async fn delete_seller_product(prod_id:&Uuid,sell_id:Option<&Uuid>,pool:&DbPool) -> Result<usize,Error> {
+/// `sell_ids` = `None` quita el producto a todas las tiendas (solo el admin);
+/// `Some(tiendas)` solo a esas.
+pub async fn delete_seller_product(prod_id:&Uuid,sell_ids:Option<&[Uuid]>,pool:&DbPool) -> Result<usize,Error> {
     use crate::schema::product_seller::dsl::*;
 
     //let connection = &mut establish_connection();
     let connection = &mut pool.get().await.unwrap();
-    let valor= match sell_id {
-        Some(sell_id) => diesel::delete(product_seller
-            .filter(product_id.eq(prod_id).and(seller_id.eq(sell_id)))
+    let valor= match sell_ids {
+        Some(sell_ids) => diesel::delete(product_seller
+            .filter(product_id.eq(prod_id).and(seller_id.eq_any(sell_ids)))
         ).execute(connection).await?,
         None => diesel::delete(product_seller
             .filter(product_id.eq(prod_id))

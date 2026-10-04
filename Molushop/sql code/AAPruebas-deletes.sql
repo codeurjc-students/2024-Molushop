@@ -44,3 +44,5 @@ select * from prices;
 
   -- Cuando termines las pruebas:
   DROP TABLE IF EXISTS prices_backup_prueba;
+
+  select * from prices_backup_prueba;

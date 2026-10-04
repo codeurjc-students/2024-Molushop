@@ -26,12 +26,13 @@ pub async fn get_products(panel_user:&PanelUser,pool: &DbPool) -> Result<Vec<Pro
     let seller_filter = if panel_user.is_admin {
         None
     } else {
-        match panel_user.seller_id {
-            Some(seller_id) => Some(seller_id),
-            None => return Ok(Vec::new()),
+        let store_ids = panel_user.manageable_store_ids();
+        if store_ids.is_empty() {
+            return Ok(Vec::new());
         }
+        Some(store_ids)
     };
-    let products = get_panel_products(seller_filter.as_ref(), pool).await?;
+    let products = get_panel_products(seller_filter.as_deref(), pool).await?;
     let mut products_final:Vec<Product> = Vec::new();
 
     for (product, store_name) in products{
