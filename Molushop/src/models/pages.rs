@@ -1,4 +1,5 @@
 use askama::Template;
+use uuid::Uuid;
 use super::models_x::{Category2,Category};
 use super::components::create_product::Routes;
 use super::components::panel_nav::PanelNav;
@@ -11,6 +12,8 @@ pub struct CategoryTemplate {
     routes: &'static Routes,
     page_name: String,
     panel_nav: PanelNav,
+    /// Tienda a cuyo nombre se crea: la página la manda en la cabecera `X-Store-Id`.
+    store_id: Uuid,
 }
 
 impl CategoryTemplate {
@@ -18,12 +21,14 @@ impl CategoryTemplate {
             categories1: Vec<Category>,
             routes: &'static Routes,
             panel_nav: PanelNav,
+            store_id: Uuid,
         ) -> Self {
         CategoryTemplate {
             user_logged: false,
             categories: categories1.iter().map(|c| c.to_category2().unwrap()).collect(),
             routes, page_name: "Categorias".to_string(),
             panel_nav,
+            store_id,
         }
     }
 
@@ -39,8 +44,9 @@ pub struct ProductsPanel {
     pub products: Vec<Product>, //ProductPanelGroup
     pub routes: &'static RoutesProductPanelGroup,
     pub page_name: String,
-    /// Admin: ve todas las tiendas (título distinto y tienda en cada tarjeta).
-    pub all_stores: bool,
+    /// La tienda de la URL.
+    pub store_id: Uuid,
+    pub store_name: String,
     pub panel_nav: PanelNav,
 }
 
@@ -55,4 +61,5 @@ pub struct ProductsPanelEdit {
     pub routes_edit_product: &'static Routes_edit_product,
     pub page_name: String,
     pub panel_nav: PanelNav,
+    pub store_id: Uuid,
 }

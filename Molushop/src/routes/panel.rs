@@ -13,7 +13,7 @@ use crate::models::components::panel_login_v1::PanelLoginData;
 use crate::models::pages_models::panel_login_page_model::PanelLoginPage;
 use crate::models::pages_models::panel_home_page_model::{AdminHomePage, PanelHomePage};
 use crate::models::components::panel_nav::PanelNav;
-use crate::services::panel_role_service::{get_panel_user, PanelUser};
+use crate::services::panel_role_service::{get_all_stores, get_panel_user, PanelUser};
 use crate::routes::panel_products;
 use crate::controllers::components::scope::scope_panel_components;
 use crate::controllers::createProduct::create_product_controllers::scope_create_product;
@@ -99,11 +99,20 @@ async fn panel_login(
         .body(page)
 }
 
+/// Las tiendas del usuario. Quien solo gestiona una (y no es admin) va directo
+/// a sus productos: la lista de una sola tienda no le aporta nada.
 async fn panel_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
+    if !panel_user.is_admin && panel_user.stores.len() == 1 && panel_user.stores[0].is_manageable() {
+        return HttpResponse::Found()
+            .insert_header((header::LOCATION, format!("/panel/stores/{}/products", panel_user.stores[0].id)))
+            .finish();
+    }
+
     let page = PanelHomePage {
         user_logged: true,
         page_name: "Panel".to_string(),
         panel_nav: PanelNav::new(&panel_user, "home"),
+        stores: panel_user.stores.clone(),
     }.render().unwrap();
 
     HttpResponse::Ok()
@@ -111,11 +120,22 @@ async fn panel_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
         .body(page)
 }
 
-async fn admin_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
+async fn admin_home(panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
+    let stores = match get_all_stores(pool_data.get_ref()).await {
+        Ok(stores) => stores,
+        Err(e) => {
+            println!("Admin: {}", e);
+            return HttpResponse::InternalServerError()
+                .content_type("text/html; charset=utf-8")
+                .body("Error cargando las tiendas");
+        }
+    };
+
     let page = AdminHomePage {
         user_logged: true,
         page_name: "Panel - Administración".to_string(),
         panel_nav: PanelNav::new(&panel_user, "admin"),
+        stores,
     }.render().unwrap();
 
     HttpResponse::Ok()

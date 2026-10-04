@@ -1,4 +1,4 @@
-use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
+use actix_web::{get, post, web,delete,Scope, App, HttpRequest, HttpResponse, HttpServer, Responder, http::StatusCode};
 use aws_config::imds::client;
 use bigdecimal::BigDecimal;
 use lazy_static::lazy_static;
@@ -14,7 +14,7 @@ use askama::Template;
 use uuid::Uuid;
 
 use crate::services::servicesX::*;
-use crate::services::panel_role_service::PanelUser;
+use crate::services::panel_role_service::{resolve_store, PanelUser};
 
 use crate::services;
 use crate::models::models_x::{ProductForm,Category};
@@ -54,8 +54,10 @@ fn print_type_of<T>(_: &T) {
 static SCOPE: &str = "/create-product";
 /// Se registra dentro del scope `/panel` (`routes/panel.rs`); `ROUTES` lleva la URL completa.
 static SCOPE_FULL: &str = "/panel/create-product";
-/// Aviso para el admin que entra a crear sin tener fila en `seller`.
-pub static SIN_TIENDA: &str = "Para crear productos necesitas una tienda. Crea tu tienda primero.";
+/// Cabecera con la tienda a cuyo nombre se crea el producto.
+pub static STORE_HEADER: &str = "X-Store-Id";
+/// La cabecera falta, no es un UUID o es de una tienda que el usuario no gestiona.
+static SIN_TIENDA: &str = "No se puede crear el producto: tienda no válida.";
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
   
@@ -193,10 +195,23 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
 }
 
 #[post("/create-product/{category_id}")]
-async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,panel_user: web::ReqData<PanelUser>,data: web::Json<ProductForm>) -> impl Responder {
-    // El producto se crea a nombre de la tienda de quien está en el panel.
-    let Some(seller_id) = panel_user.seller_id() else {
-        return HttpResponse::Forbidden().body(SIN_TIENDA);
+async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,panel_user: web::ReqData<PanelUser>,req: HttpRequest,data: web::Json<ProductForm>) -> impl Responder {
+    // El producto se crea a nombre de la tienda desde cuya página se manda el
+    // formulario (`hx-headers` en `pages/create_product/category.html`). La
+    // cabecera la pone el cliente, así que se comprueba como la tienda de una URL.
+    let store_id = req.headers().get(STORE_HEADER)
+        .and_then(|v| v.to_str().ok())
+        .and_then(|v| Uuid::parse_str(v).ok());
+    let seller_id = match store_id {
+        Some(store_id) => match resolve_store(&panel_user, &store_id, pool_data.get_ref()).await {
+            Ok(Some(store)) => store.id,
+            Ok(None) => return HttpResponse::Forbidden().body(SIN_TIENDA),
+            Err(e) => {
+                println!("Panel: {}", e);
+                return HttpResponse::InternalServerError().body("Error al crear el producto");
+            }
+        },
+        None => return HttpResponse::Forbidden().body(SIN_TIENDA),
     };
 
     let category_id= path.into_inner();

@@ -29,6 +29,16 @@ impl PanelStore {
     pub fn is_manageable(&self) -> bool {
         self.status == STORE_ACTIVE || self.status == STORE_INACTIVE
     }
+
+    pub fn status_label(&self) -> &'static str {
+        match self.status {
+            STORE_PENDING => "Pendiente de aprobación",
+            STORE_ACTIVE => "Activa",
+            STORE_INACTIVE => "Inactiva",
+            STORE_REJECTED => "Rechazada",
+            _ => "Desconocido",
+        }
+    }
 }
 
 /// Quién está usando el panel y qué puede hacer en él.
@@ -57,12 +67,85 @@ impl PanelUser {
     pub fn manageable_store_ids(&self) -> Vec<Uuid> {
         self.stores.iter().filter(|s| s.is_manageable()).map(|s| s.id).collect()
     }
+}
 
-    /// TRANSITORIO: la primera tienda gestionable, para las rutas que aún no
-    /// llevan la tienda en la URL. Desaparece con `/panel/stores/{store_id}/...`.
-    pub fn seller_id(&self) -> Option<Uuid> {
-        self.stores.iter().find(|s| s.is_manageable()).map(|s| s.id)
+/// La tienda de `/panel/stores/{store_id}/...`, si este usuario puede entrar.
+///
+/// Miembro: solo si la tienda es gestionable (pendiente o rechazada -> `None`).
+/// Admin: cualquier tienda que exista, en cualquier estado. `Ok(None)` también
+/// si la tienda no existe: el handler responde 404 en todos los casos.
+pub async fn resolve_store(
+    panel_user: &PanelUser,
+    store_id: &Uuid,
+    pool: &DbPool,
+) -> Result<Option<PanelStore>, String> {
+    if let Some(store) = panel_user.stores.iter().find(|s| s.id == *store_id) {
+        if store.is_manageable() || panel_user.is_admin {
+            return Ok(Some(store.clone()));
+        }
+        return Ok(None);
     }
+    if !panel_user.is_admin {
+        return Ok(None);
+    }
+
+    let connection = &mut pool
+        .get()
+        .await
+        .map_err(|e| format!("Error obteniendo conexión para la tienda: {:?}", e))?;
+
+    seller::table
+        .filter(seller::id.eq(store_id))
+        .select((seller::id, seller::store_name, seller::status))
+        .first::<(Uuid, String, i16)>(connection)
+        .await
+        .optional()
+        .map(|row| row.map(|(id, store_name, status)| PanelStore { id, store_name, status }))
+        .map_err(|e| format!("Error leyendo la tienda {}: {:?}", store_id, e))
+}
+
+/// Todas las tiendas, por nombre. Solo para el admin.
+pub async fn get_all_stores(pool: &DbPool) -> Result<Vec<PanelStore>, String> {
+    let connection = &mut pool
+        .get()
+        .await
+        .map_err(|e| format!("Error obteniendo conexión para las tiendas: {:?}", e))?;
+
+    seller::table
+        .select((seller::id, seller::store_name, seller::status))
+        .order_by(seller::store_name)
+        .load::<(Uuid, String, i16)>(connection)
+        .await
+        .map(|rows| {
+            rows.into_iter()
+                .map(|(id, store_name, status)| PanelStore { id, store_name, status })
+                .collect()
+        })
+        .map_err(|e| format!("Error leyendo las tiendas: {:?}", e))
+}
+
+/// ¿Está el producto a nombre de esta tienda? Para las páginas con la tienda en
+/// la URL: un producto de otra tienda es 404 aunque el usuario también la gestione.
+pub async fn product_in_store(
+    product_id: &Uuid,
+    store_id: &Uuid,
+    pool: &DbPool,
+) -> Result<bool, String> {
+    let connection = &mut pool
+        .get()
+        .await
+        .map_err(|e| format!("Error obteniendo conexión para la propiedad: {:?}", e))?;
+
+    diesel::select(diesel::dsl::exists(
+        product_seller::table
+            .filter(product_seller::product_id.eq(product_id))
+            .filter(product_seller::seller_id.eq(store_id)),
+    ))
+    .get_result::<bool>(connection)
+    .await
+    .map_err(|e| {
+        format!("Error comprobando el producto {} en la tienda {}: {:?}", product_id, store_id, e)
+    })
 }
 
 /// Lee los roles de un usuario: una consulta para el admin y otra para sus tiendas.

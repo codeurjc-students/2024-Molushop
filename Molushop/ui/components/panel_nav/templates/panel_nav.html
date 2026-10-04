@@ -1,10 +1,11 @@
 <nav class="panel-nav" aria-label="Panel">
     <a class="panel-nav-brand" href="/panel">Panel</a>
     <ul class="panel-nav-links">
-        <li><a href="/panel" {% if panel_nav.active == "home" %}class="active" aria-current="page"{% endif %}>Inicio</a></li>
-        <li><a href="/panel/products" {% if panel_nav.active == "products" %}class="active" aria-current="page"{% endif %}>Productos</a></li>
-        {% if panel_nav.has_store %}
-        <li><a href="/panel/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
+        <li><a href="/panel" {% if panel_nav.active == "home" %}class="active" aria-current="page"{% endif %}>Mis tiendas</a></li>
+        {% if let Some(store) = panel_nav.store %}
+        <li class="panel-nav-store">{{store.name}}</li>
+        <li><a href="/panel/stores/{{store.id}}/products" {% if panel_nav.active == "products" %}class="active" aria-current="page"{% endif %}>Productos</a></li>
+        <li><a href="/panel/stores/{{store.id}}/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
         {% endif %}
         {% if panel_nav.is_admin %}
         <li><a href="/admin" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>

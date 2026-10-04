@@ -2,6 +2,19 @@
 {% block content %}
     <div class="panel-home">
         <h1>Administración</h1>
-        <p>Todavía no hay secciones exclusivas del administrador.</p>
+        <h2>Todas las tiendas</h2>
+        {% if stores.is_empty() %}
+        <p class="panel-home-note">Todavía no hay ninguna tienda.</p>
+        {% else %}
+        <div class="panel-home-cards">
+            {% for store in stores %}
+            <a class="panel-home-card" href="/panel/stores/{{store.id}}/products">
+                <h2>{{store.store_name}}</h2>
+                <p><span class="panel-store-status panel-store-status-{{store.status}}">{{store.status_label()}}</span></p>
+                <p>Ver y editar sus productos.</p>
+            </a>
+            {% endfor %}
+        </div>
+        {% endif %}
     </div>
 {% endblock %}

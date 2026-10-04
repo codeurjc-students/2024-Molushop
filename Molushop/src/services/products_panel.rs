@@ -9,7 +9,7 @@ use crate::models::data_transfer_objects::product::Product;
 use crate::models::models_x::{ProductVariation,Category,Price};
 use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
-use crate::services::panel_role_service::PanelUser;
+use uuid::Uuid;
 use crate::services::servicesX::{
     get_panel_products,
     get_product_categories,
@@ -18,24 +18,14 @@ use crate::services::servicesX::{
 };
 type DbPool = Pool<AsyncPgConnection>;
 
-/// Productos del listado del panel: el admin ve los de todas las tiendas (con
-/// el nombre de la tienda), el vendedor solo los suyos. Sin tienda y sin admin
-/// -> lista vacía.
-pub async fn get_products(panel_user:&PanelUser,pool: &DbPool) -> Result<Vec<Product>,Error>{
+/// Productos de una tienda para su listado del panel. Quien llama ya ha
+/// comprobado que el usuario puede entrar en esa tienda.
+pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{
 
-    let seller_filter = if panel_user.is_admin {
-        None
-    } else {
-        let store_ids = panel_user.manageable_store_ids();
-        if store_ids.is_empty() {
-            return Ok(Vec::new());
-        }
-        Some(store_ids)
-    };
-    let products = get_panel_products(seller_filter.as_deref(), pool).await?;
+    let products = get_panel_products(Some(std::slice::from_ref(store_id)), pool).await?;
     let mut products_final:Vec<Product> = Vec::new();
 
-    for (product, store_name) in products{
+    for (product, _store_name) in products{
         let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
         let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
         let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
@@ -60,7 +50,8 @@ pub async fn get_products(panel_user:&PanelUser,pool: &DbPool) -> Result<Vec<Pro
             variations_titles: variation_titles,
             categories: categories_names,
             id: product.id,
-            store_name: if panel_user.is_admin { Some(store_name) } else { None },
+            store_name: None,
+            store_id: *store_id,
         };
         products_final.push(product_final);
     }

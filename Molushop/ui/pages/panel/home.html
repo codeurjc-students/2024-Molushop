@@ -1,31 +1,27 @@
 {% extends "layouts/panel.html" %}
 {% block content %}
     <div class="panel-home">
-        <h1>Panel</h1>
+        <h1>Mis tiendas</h1>
+        {% if stores.is_empty() %}
+        <p class="panel-home-note">No gestionas ninguna tienda.</p>
+        {% else %}
         <div class="panel-home-cards">
-            <a class="panel-home-card" href="/panel/products">
-                <h2>Productos</h2>
-                {% if panel_nav.is_admin %}
-                <p>Ver y editar los productos de todas las tiendas.</p>
+            {% for store in stores %}
+                {% if store.is_manageable() || panel_nav.is_admin %}
+                <a class="panel-home-card" href="/panel/stores/{{store.id}}/products">
+                    <h2>{{store.store_name}}</h2>
+                    <p><span class="panel-store-status panel-store-status-{{store.status}}">{{store.status_label()}}</span></p>
+                    <p>Ver y editar sus productos.</p>
+                </a>
                 {% else %}
-                <p>Ver y editar los productos de tu tienda.</p>
+                <div class="panel-home-card panel-home-card-disabled">
+                    <h2>{{store.store_name}}</h2>
+                    <p><span class="panel-store-status panel-store-status-{{store.status}}">{{store.status_label()}}</span></p>
+                    <p>No puedes gestionar sus productos hasta que un administrador la apruebe.</p>
+                </div>
                 {% endif %}
-            </a>
-            {% if panel_nav.has_store %}
-            <a class="panel-home-card" href="/panel/products/create">
-                <h2>Añadir producto</h2>
-                <p>Crear un producto nuevo en tu tienda.</p>
-            </a>
-            {% endif %}
-            {% if panel_nav.is_admin %}
-            <a class="panel-home-card" href="/admin">
-                <h2>Administración</h2>
-                <p>Lo exclusivo del administrador.</p>
-            </a>
-            {% endif %}
+            {% endfor %}
         </div>
-        {% if !panel_nav.has_store %}
-        <p class="panel-home-note">No tienes tienda: puedes gestionar los productos existentes, pero no crear nuevos.</p>
         {% endif %}
     </div>
 {% endblock %}

@@ -9,5 +9,9 @@
 {% endblock %}
 
 {% block content %}
-    {% include "components/create_product/templates/base.html" %}
+    {# htmx hereda `hx-headers`: todas las peticiones del alta, incluido el POST del
+       formulario que se carga después, llevan la tienda de esta página. #}
+    <div hx-headers='{"X-Store-Id": "{{store_id}}"}'>
+        {% include "components/create_product/templates/base.html" %}
+    </div>
 {% endblock %}

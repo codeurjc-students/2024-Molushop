@@ -22,8 +22,10 @@ pub struct Product{
     pub variations_titles: Vec<String>,
     pub categories: Vec<String>,
     pub id:Uuid,
-    /// Solo se rellena en el listado del admin, que ve productos de todas las tiendas.
+    /// Solo se rellena en listados que mezclan tiendas (hoy ninguno).
     pub store_name: Option<String>,
+    /// Tienda desde la que se lista: va en la URL de "Editar".
+    pub store_id: Uuid,
     //images
 }
 

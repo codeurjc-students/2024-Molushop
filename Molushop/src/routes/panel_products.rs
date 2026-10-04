@@ -1,6 +1,7 @@
-//! Páginas de productos del panel: `/panel/products`, `/panel/products/create`
-//! y `/panel/products/edit/{id}`. Se registran dentro del scope `/panel`, así
-//! que `PanelGuard` ya ha comprobado el rol y dejado un `PanelUser`.
+//! Páginas de productos del panel, siempre dentro de una tienda:
+//! `/panel/stores/{store_id}/products`, `.../create` y `.../edit/{id}`. Se
+//! registran dentro del scope `/panel`, así que `PanelGuard` ya ha comprobado el
+//! rol y dejado un `PanelUser`; aquí se comprueba la tienda de la URL.
 
 use actix_web::{http::StatusCode, web, HttpRequest, HttpResponse};
 use askama::Template;
@@ -12,21 +13,21 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::controllers::components::edit_product_controller::ROUTES as ROUTES_EDIT_PRODUCT;
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
-use crate::controllers::createProduct::create_product_controllers::{ROUTES as ROUTES_CREATE_PRODUCT, SIN_TIENDA};
+use crate::controllers::createProduct::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
 use crate::models::components::edit_product::EditProduct;
 use crate::models::components::panel_nav::PanelNav;
 use crate::models::components::title::Title;
 use crate::models::pages::{CategoryTemplate, ProductsPanel, ProductsPanelEdit};
 use crate::services::components::edit_product;
-use crate::services::panel_role_service::{can_edit_product, PanelUser};
+use crate::services::panel_role_service::{product_in_store, resolve_store, PanelStore, PanelUser};
 use crate::services::products_panel;
 use crate::services::servicesX::obtain_base_categories;
 
 /// Rutas relativas al scope `/panel`.
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.route("/products", web::get().to(products_list))
-        .route("/products/create", web::get().to(products_create))
-        .route("/products/edit/{id}", web::get().to(products_edit));
+    cfg.route("/stores/{store_id}/products", web::get().to(products_list))
+        .route("/stores/{store_id}/products/create", web::get().to(products_create))
+        .route("/stores/{store_id}/products/edit/{id}", web::get().to(products_edit));
 }
 
 fn html(status: StatusCode, body: String) -> HttpResponse {
@@ -35,41 +36,73 @@ fn html(status: StatusCode, body: String) -> HttpResponse {
         .body(body)
 }
 
+/// La tienda de la URL o la respuesta de error. 404 tanto si no existe como si
+/// el usuario no puede entrar (ajena, pendiente o rechazada): no se revela cuál.
+async fn store_or_response(
+    panel_user: &PanelUser,
+    store_id: &Uuid,
+    pool: &DbPool,
+) -> Result<PanelStore, HttpResponse> {
+    match resolve_store(panel_user, store_id, pool).await {
+        Ok(Some(store)) => Ok(store),
+        Ok(None) => Err(html(StatusCode::NOT_FOUND, "Tienda no encontrada".to_string())),
+        Err(e) => {
+            println!("Panel: {}", e);
+            Err(html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando la tienda".to_string()))
+        }
+    }
+}
+
 async fn products_list(
+    path: web::Path<Uuid>,
     panel_user: web::ReqData<PanelUser>,
     pool_data: web::Data<DbPool>,
 ) -> HttpResponse {
-    let panel_user = panel_user.into_inner();
-    match products_panel::get_products(&panel_user, pool_data.get_ref()).await {
+    let pool = pool_data.get_ref();
+    let store = match store_or_response(&panel_user, &path, pool).await {
+        Ok(store) => store,
+        Err(resp) => return resp,
+    };
+
+    match products_panel::get_products(&store.id, pool).await {
         Ok(products) => {
             let page = ProductsPanel {
                 user_logged: false,
                 products,
                 routes: &ROUTES_PRODUCT_PANEL_GROUP,
-                page_name: "Panel Products".to_string(),
-                all_stores: panel_user.is_admin,
-                panel_nav: PanelNav::new(&panel_user, "products"),
+                page_name: format!("Productos - {}", store.store_name),
+                store_id: store.id,
+                store_name: store.store_name.clone(),
+                panel_nav: PanelNav::new(&panel_user, "products").with_store(&store),
             }.render().unwrap();
             html(StatusCode::OK, page)
         }
         Err(e) => {
-            println!("Panel: error cargando productos de {}: {}", panel_user.user_id, e);
+            println!("Panel: error cargando productos de la tienda {}: {}", store.id, e);
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando los productos".to_string())
         }
     }
 }
 
 async fn products_create(
+    path: web::Path<Uuid>,
     panel_user: web::ReqData<PanelUser>,
     pool_data: web::Data<DbPool>,
 ) -> HttpResponse {
-    // Admin sin tienda: no hay a nombre de quién crear.
-    if panel_user.seller_id().is_none() {
-        return html(StatusCode::FORBIDDEN, SIN_TIENDA.to_string());
-    }
-    match obtain_base_categories(pool_data.get_ref()).await {
+    let pool = pool_data.get_ref();
+    let store = match store_or_response(&panel_user, &path, pool).await {
+        Ok(store) => store,
+        Err(resp) => return resp,
+    };
+
+    match obtain_base_categories(pool).await {
         Ok(categories) => {
-            let page = CategoryTemplate::new_2(categories, &ROUTES_CREATE_PRODUCT, PanelNav::new(&panel_user, "create")).render().unwrap();
+            let page = CategoryTemplate::new_2(
+                categories,
+                &ROUTES_CREATE_PRODUCT,
+                PanelNav::new(&panel_user, "create").with_store(&store),
+                store.id,
+            ).render().unwrap();
             html(StatusCode::OK, page)
         }
         Err(e) => {
@@ -82,15 +115,19 @@ async fn products_create(
 /// 404 tanto si el producto no existe como si es de otra tienda: así no se
 /// revela qué productos existen.
 async fn products_edit(
-    path: web::Path<Uuid>,
+    path: web::Path<(Uuid, Uuid)>,
     panel_user: web::ReqData<PanelUser>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
 ) -> HttpResponse {
-    let product_id = path.into_inner();
+    let (store_id, product_id) = path.into_inner();
     let pool = pool_data.get_ref();
+    let store = match store_or_response(&panel_user, &store_id, pool).await {
+        Ok(store) => store,
+        Err(resp) => return resp,
+    };
 
-    match can_edit_product(&panel_user, &product_id, pool).await {
+    match product_in_store(&product_id, &store.id, pool).await {
         Ok(true) => {}
         Ok(false) => return html(StatusCode::NOT_FOUND, "Producto no encontrado".to_string()),
         Err(e) => {
@@ -121,7 +158,8 @@ async fn products_edit(
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,
             page_name: "Edit Product".to_string(),
-            panel_nav: PanelNav::new(&panel_user, "products"),
+            panel_nav: PanelNav::new(&panel_user, "products").with_store(&store),
+            store_id: store.id,
         }.render().unwrap()
     };
     html(StatusCode::OK, page)

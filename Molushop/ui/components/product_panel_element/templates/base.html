@@ -24,7 +24,7 @@
             {% endfor %}
             <div class="product-actions">
                 <button class="action-btn edit-btn"
-                    hx-get="/panel/products/edit/{{product.id}}"
+                    hx-get="/panel/stores/{{product.store_id}}/products/edit/{{product.id}}"
                     hx-target="closest .c-product-panel-group"
                     hx-swap="outerHTML"
                     hx-push-url="true"
