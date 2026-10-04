@@ -124,6 +124,15 @@ pub async fn list_stores(pool: &DbPool) -> Result<Vec<AdminStore>, AdminStoreErr
         .collect())
 }
 
+/// El nombre sin espacios a los lados, o `None` si queda vacío o no cabe.
+pub fn clean_store_name(store_name: &str) -> Option<String> {
+    let store_name = store_name.trim();
+    if store_name.is_empty() || store_name.chars().count() > STORE_NAME_MAX {
+        return None;
+    }
+    Some(store_name.to_string())
+}
+
 async fn find_user_id(username: &str, conn: &mut AsyncPgConnection) -> Result<Uuid, AdminStoreError> {
     base_user::table
         .filter(base_user::username.eq(username))
@@ -142,10 +151,7 @@ pub async fn create_store(
     username: Option<&str>,
     pool: &DbPool,
 ) -> Result<Uuid, AdminStoreError> {
-    let store_name = store_name.trim().to_string();
-    if store_name.is_empty() || store_name.chars().count() > STORE_NAME_MAX {
-        return Err(AdminStoreError::InvalidName);
-    }
+    let store_name = clean_store_name(store_name).ok_or(AdminStoreError::InvalidName)?;
     let username = username.map(|u| u.trim().to_string()).filter(|u| !u.is_empty());
 
     let conn = &mut connection(pool).await?;

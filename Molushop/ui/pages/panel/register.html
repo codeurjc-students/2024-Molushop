@@ -1,0 +1,48 @@
+{% extends "layouts/layout1.html" %}
+{% block content %}
+    {# Mismo aspecto que /panel/login: se reutilizan sus estilos, no su script. #}
+    {% include "components/panel_login_v1/styles.html"%}
+    <div class="panel-login-1">
+        <div class="cont-1">
+            <h1>Solicitar una tienda</h1>
+
+            <p class="login-notice">
+                Tu tienda quedará pendiente hasta que un administrador la apruebe. Mientras tanto no podrás publicar productos.
+            </p>
+
+            {% if let Some(msg) = error %}
+            <p class="login-error" role="alert">{{msg}}</p>
+            {% endif %}
+
+            <form class="login-form" method="post" action="/panel/register">
+                {% if let Some(name) = logged_username %}
+                <p>Sesión iniciada como <strong>{{name}}</strong>. La tienda se asociará a tu cuenta.</p>
+                {% else %}
+                <label for="panel-register-username">Usuario</label>
+                <input id="panel-register-username" type="text" name="username" value="{{username}}" required autocomplete="username">
+
+                <label for="panel-register-email">Correo electrónico</label>
+                <input id="panel-register-email" type="email" name="email" value="{{email}}" required autocomplete="email">
+
+                <label for="panel-register-pass">Contraseña</label>
+                <input id="panel-register-pass" type="password" name="pass" required autocomplete="new-password" aria-describedby="panel-register-pass-hint">
+                <small id="panel-register-pass-hint">Al menos 8 caracteres, con mayúscula, minúscula, número y un carácter especial.</small>
+
+                <label for="panel-register-pass2">Repite la contraseña</label>
+                <input id="panel-register-pass2" type="password" name="pass2" required autocomplete="new-password">
+                {% endif %}
+
+                <label for="panel-register-store">Nombre de la tienda</label>
+                <input id="panel-register-store" type="text" name="store_name" value="{{store_name}}" maxlength="255" required>
+
+                <button type="submit">Solicitar tienda</button>
+            </form>
+
+            {% if logged_username.is_some() %}
+            <a class="back-link" href="/panel">Volver al panel</a>
+            {% else %}
+            <a class="back-link" href="/panel/login">Ya tengo cuenta: entrar</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

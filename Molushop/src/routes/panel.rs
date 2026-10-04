@@ -15,6 +15,7 @@ use crate::models::pages_models::panel_home_page_model::PanelHomePage;
 use crate::models::components::panel_nav::PanelNav;
 use crate::services::panel_role_service::{get_panel_user, PanelUser};
 use crate::routes::panel_products;
+use crate::routes::panel_register;
 use crate::routes::admin_stores::{self, ADMIN_STORES};
 use crate::controllers::components::scope::scope_panel_components;
 use crate::controllers::createProduct::create_product_controllers::scope_create_product;
@@ -29,6 +30,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         // ANTES que el scope `/panel` y fuera de él: si no, el scope lo captura
         // y el guardia no deja llegar al login a quien no tiene sesión.
         .route(PANEL_LOGIN, web::get().to(panel_login).wrap(Auth::new()))
+        .configure(panel_register::config)
         .service(
             web::scope("/panel")
                 .wrap(PanelGuard::panel())
@@ -50,6 +52,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 #[derive(Deserialize)]
 pub struct PanelLoginQuery {
     next: Option<String>,
+    /// Viene de `/panel/register` tras crear la cuenta: se enseña el aviso.
+    registered: Option<String>,
 }
 
 /// Solo se vuelve a rutas del panel. Sin esto, `?next=https://otra-web` (o
@@ -71,7 +75,9 @@ async fn panel_login(
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>
 ) -> HttpResponse {
-    let next = safe_next(query.into_inner().next);
+    let query = query.into_inner();
+    let registered = query.registered.is_some();
+    let next = safe_next(query.next);
     let mut logged_without_access = false;
 
     if let Some(session) = opt_session_data {
@@ -93,6 +99,7 @@ async fn panel_login(
             login_url: LOGIN_ROUTES.login.to_string(),
             next,
             logged_without_access,
+            registered,
         },
     }.render().unwrap();
 

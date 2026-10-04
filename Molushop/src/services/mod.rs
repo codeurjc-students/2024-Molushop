@@ -10,3 +10,4 @@ pub mod paseto_token_session_service;
 pub mod login_and_register;
 pub mod panel_role_service;
 pub mod admin_stores_service;
+pub mod store_request_service;

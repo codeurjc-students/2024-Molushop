@@ -11,4 +11,6 @@ pub struct PanelLoginData {
     pub next: String,
     /// Hay sesión pero el usuario no es ni admin ni vendedor.
     pub logged_without_access: bool,
+    /// Acaba de registrarse como vendedor: aviso de "cuenta creada, entra".
+    pub registered: bool,
 }
