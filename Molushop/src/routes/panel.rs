@@ -12,6 +12,9 @@ use crate::middleware::panel_guard::{PanelGuard, PANEL_LOGIN};
 use crate::models::components::panel_login_v1::PanelLoginData;
 use crate::models::pages_models::panel_login_page_model::PanelLoginPage;
 use crate::services::panel_role_service::{get_panel_user, PanelUser};
+use crate::routes::panel_products;
+use crate::controllers::components::scope::scope_panel_components;
+use crate::controllers::createProduct::create_product_controllers::scope_create_product;
 
 /// `/panel`: vendedores y admin (el vendedor ve lo suyo, el admin todo).
 /// `/admin`: solo lo exclusivo del admin.
@@ -28,7 +31,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 .wrap(PanelGuard::panel())
                 .wrap(Auth::new())
                 .route("", web::get().to(panel_home))
-        )
+                .configure(panel_products::config)
+                .service(scope_panel_components())
+                .service(scope_create_product())
+)
         .service(
             web::scope("/admin")
                 .wrap(PanelGuard::admin())

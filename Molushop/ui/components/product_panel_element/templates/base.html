@@ -15,14 +15,16 @@
                 <span class="product-status status-inactive">Inactivo</span>
             {% endif %}
             <h3 class="product-title">{{product.name}}</h3>
+            {% if let Some(store) = product.store_name %}
+                <p class="product-store">Tienda: {{store}}</p>
+            {% endif %}
             <!-- <p>SKU: CAM-001</p> -->
             {% for cat in product.categories %}
                 <p>{{cat}}</p>
             {% endfor %}
             <div class="product-actions">
-            <!--    <a href="/products-panel/edit/{{product.id}}"><button class="action-btn edit-btn">Editar</button></a> -->
                 <button class="action-btn edit-btn"
-                    hx-get="/products-panel/edit/{{product.id}}"
+                    hx-get="/panel/products/edit/{{product.id}}"
                     hx-target="closest .c-product-panel-group"
                     hx-swap="outerHTML"
                     hx-push-url="true"

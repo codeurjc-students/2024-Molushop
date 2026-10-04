@@ -336,17 +336,21 @@ pub async fn get_seller_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Prod
     results
 }
 
-pub async fn get_product_seller(user_id:&Uuid,prod_id:&Uuid,pool: &DbPool) -> Result<Products,Error>{
-    use crate::schema::product_seller::dsl::*;
-    use crate::schema::products::dsl::*;
-    //let connection = &mut establish_connection();
+/// Productos del panel con el nombre de su tienda. `None` = todas las tiendas
+/// (admin); `Some(seller)` = solo las de ese vendedor. Los productos sin fila en
+/// `product_seller` (los "borrados") no salen.
+pub async fn get_panel_products(seller_filter:Option<&Uuid>,pool: &DbPool) -> Result<Vec<(Products,String)>,Error>{
+    use crate::schema::{product_seller,products,seller};
     let connection = &mut pool.get().await.unwrap();
-    let result = products
-        .inner_join(product_seller.on(id.eq(product_id)))
-        .filter(seller_id.eq(user_id).and(id.eq(prod_id)))
-        .select(Products::as_select())
-        .first::<Products>(connection).await;
-    result
+    let mut query = products::table
+        .inner_join(product_seller::table.inner_join(seller::table))
+        .select((Products::as_select(), seller::store_name))
+        .order_by((seller::store_name, products::name))
+        .into_boxed();
+    if let Some(seller_id) = seller_filter {
+        query = query.filter(product_seller::seller_id.eq(*seller_id));
+    }
+    query.load::<(Products,String)>(connection).await
 }
 
 pub async fn get_product_categories(id_product:&Uuid,pool:&DbPool) -> Result<Vec<Category>,Error> {
@@ -1095,7 +1099,9 @@ pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
     Ok(results)
 }
 
-pub async fn get_product_with_images1(user_id: &Uuid, product_id: &Uuid, pool:&DbPool)->Result<ProductWithImages1,Error>{
+/// No filtra por vendedor: quien llame tiene que haber comprobado antes la
+/// propiedad (`panel_role_service::can_edit_product`).
+pub async fn get_product_with_images1(product_id: &Uuid, pool:&DbPool)->Result<ProductWithImages1,Error>{
     let connection = &mut pool.get().await.unwrap();
     let results = sql_query(r#"
         select p.*,
@@ -1106,12 +1112,9 @@ pub async fn get_product_with_images1(user_id: &Uuid, product_id: &Uuid, pool:&D
             )) FILTER (WHERE i.id IS NOT NULL) as images_product
         FROM products p
         LEFT JOIN images_product i on p.id = i.product_id
-        LEFT JOIN product_seller ps on p.id = ps.product_id
         WHERE p.id = $1
-            AND ps.seller_id = $2
         GROUP BY p.id
     "#).bind::<diesel::sql_types::Uuid,_>(product_id)
-        .bind::<diesel::sql_types::Uuid,_>(user_id)
         .get_result::<ProductWithImages1>(connection).await?;
     Ok(results)
 }

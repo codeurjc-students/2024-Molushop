@@ -7,15 +7,15 @@ use crate::models::data_transfer_objects::product::Product;
 use crate::models::models_x::{ProductVariation,Category};
 use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
-use crate::services::servicesX::{get_product_seller,get_product_variations,get_product_with_images1};
+use crate::services::servicesX::{get_product_variations,get_product_with_images1};
 type DbPool = Pool<AsyncPgConnection>;
 use uuid::Uuid;
 use crate::models::components::edit_product::{ProductEdit,ProductEdit2,ImageCategories2,General,Images,Prices,Variations,Variation,Attribute};
 use crate::models::data_transfer_objects::images;
 //primero para la visualización de los productos tenemos que obtener el producto
-pub async fn get_product(user_id:&Uuid,product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,Error>{
-    let product = get_product_seller(&user_id,&product_id, &pool).await?;
-    let product2 = get_product_with_images1(&user_id,&product_id, &pool).await?;
+/// No comprueba propiedad: el handler llama antes a `can_edit_product`.
+pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,Error>{
+    let product2 = get_product_with_images1(&product_id, &pool).await?;
     let product_variations_start = get_product_variations(&product_id,&pool).await?;
     
     //obtener las variaciones correctamente

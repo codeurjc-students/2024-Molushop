@@ -27,3 +27,13 @@ ON CONFLICT (id) DO NOTHING;
 -- DELETE FROM admins WHERE id = (SELECT id FROM base_user WHERE username = 'CAMBIAR');
 -- OJO: borrar de `seller` borra en cascada su product_seller (sus productos se quedan sin dueño).
 -- DELETE FROM seller WHERE id = (SELECT id FROM base_user WHERE username = 'CAMBIAR');
+
+
+--password copy -- only test
+UPDATE base_user
+  SET password = (SELECT password FROM base_user WHERE username = 'Mox')
+  WHERE username = 'Moluxo';
+
+
+DELETE FROM admins WHERE id = (SELECT id FROM base_user WHERE username = 'Mox');   -- pasa a vendedor sin admin
+  INSERT INTO admins (id) SELECT id FROM base_user WHERE username = 'Mox';           -- vuelve a ser admin

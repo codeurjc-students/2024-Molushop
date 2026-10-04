@@ -10,7 +10,9 @@ use crate::models::components::warning_modal::WarningModal;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 
-use super::scope::SCOPE_COMPONENTS;
+use super::scope::SCOPE_PANEL_COMPONENTS;
+use super::panel_access::product_access;
+use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{delete_seller_product};
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -19,8 +21,8 @@ static DELETE_PRODUCT : &str = "/delete-product";
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     
     pub static ref ROUTES: Routes = Routes{
-        delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
+        delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -41,7 +43,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 
 #[delete("/delete-product/{id}")]
-async fn delete_product(path: web::Path<Uuid>,pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,pool_data: web::Data<DbPool>) -> HttpResponse {
+    if let Err(resp) = product_access(&panel_user, &path, pool_data.get_ref()).await {
+        return resp;
+    }
      
     let product_id = path.into_inner();
     let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
@@ -58,7 +63,7 @@ async fn delete_product(path: web::Path<Uuid>,pool_data: web::Data<DbPool>) -> H
 }
 
 #[get("/delete-product-modal/{id}")]
-async fn delete_product_modal(path: web::Path<Uuid>,pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn delete_product_modal(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,pool_data: web::Data<DbPool>) -> HttpResponse {
     /* 
     let product_id = path.into_inner();
     let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
@@ -74,8 +79,11 @@ async fn delete_product_modal(path: web::Path<Uuid>,pool_data: web::Data<DbPool>
         }
     */
     let product_id = path.into_inner();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool_data.get_ref()).await {
+        return resp;
+    }
 
-    let product_id_str = product_id.to_string();
+    let product_id_str= product_id.to_string();
     let warning_modal = WarningModal{
         method: "hx-delete".to_string(),
         message: "¿Estás seguro de que deseas eliminar este producto?".to_string(),

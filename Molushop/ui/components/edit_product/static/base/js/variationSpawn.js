@@ -48,7 +48,7 @@ const edit_product_spawn_var = {
             }
         }else{
             //si el hermano no existe (nulo)
-            htmx.ajax('GET', '/components/edit-product-variation/spawn/'+id, {target:'closest .product-edit-container', swap:'outerHTML'})
+            htmx.ajax('GET', '/panel/components/edit-product-variation/spawn/'+id, {target:'closest .product-edit-container', swap:'outerHTML'})
         }
     },
     handleSwap3(element){
@@ -71,7 +71,7 @@ const edit_product_spawn_var = {
 
 //ahora si!
 function pruebaXX(elemento,id){
-    let urlFinal = '/components/edit-product-variation/spawn/'+id; //a7b51bc2-b5dd-4bda-b30a-f14c2ef9cd7c
+    let urlFinal = '/panel/components/edit-product-variation/spawn/'+id; //a7b51bc2-b5dd-4bda-b30a-f14c2ef9cd7c
     let clos = elemento.closest('.product-edit-container');
     console.log("HOla");
     htmx.ajax("GET",urlFinal,{

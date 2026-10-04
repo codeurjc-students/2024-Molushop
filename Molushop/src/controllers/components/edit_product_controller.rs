@@ -12,7 +12,9 @@ use crate::models::components::edit_product::Routes;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 
-use super::scope::SCOPE_COMPONENTS;
+use super::scope::SCOPE_PANEL_COMPONENTS;
+use super::panel_access::product_access;
+use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{delete_seller_product,edit_product_general,update_image, update_multiple_images_2,delete_all_images};
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -34,8 +36,8 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     pub static ref ROUTES: Routes = Routes{
         //delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
         //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -68,15 +70,14 @@ use crate::models::components::modal_1_model::Modal1;
 use crate::models::components::title::Title;
 
 #[post("/edit-general/{product_id}")]
-async fn edit_general(path: web::Path<Uuid>,form:web::Form<FormGeneral>,pool_data: web::Data<DbPool>) -> HttpResponse { 
+async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<FormGeneral>,pool_data: web::Data<DbPool>) -> HttpResponse {
     let product_id = path.into_inner();
-    let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
-    // Lógica para borrar el producto
+    if let Err(resp) = product_access(&panel_user, &product_id, pool_data.get_ref()).await {
+        return resp;
+    }
     let form_complete = form.into_inner();
-    //let result = delete_seller_product(&product_id,&seller_prueba, pool_data.get_ref()).await;
     let result = edit_product_general(&product_id,form_complete, pool_data.get_ref()).await;
-    //TODO: Verificar si el proudcto pertece al vendedor
-    match result{
+match result{
         Ok(_) => {
             println!("Producto editado correctamente");
             let modal_render = Modal1{
@@ -119,11 +120,15 @@ pub struct ImageData2{
 }
 use crate::models::models_x::NewImageProduct2;
 #[post("/edit-images/{product_id}")]
-async fn edit_images(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,
-    MultipartForm(form): MultipartForm<UploadForm>,pool_data: web::Data<DbPool>) -> HttpResponse { 
+async fn edit_images(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,client_data: web::Data<Arc<Client>>,
+    MultipartForm(form): MultipartForm<UploadForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
     let product_id = path.into_inner();
     let pool = pool_data.get_ref();
-    let client_data_x = client_data.get_ref().as_ref();
+    // Antes de subir nada a S3.
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+let client_data_x = client_data.get_ref().as_ref();
     let mut vec_images:Vec<ImageData> = Vec::new();
     let mut vec_images2:Vec<NewImageProduct2> = Vec::new();
 
@@ -210,10 +215,13 @@ async fn edit_images(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,
 }
 
 #[delete("/delete-all-images/{product_id}")]
-async fn delete_all_imgs(path: web::Path<Uuid>,client_data: web::Data<Arc<Client>>,pool_data: web::Data<DbPool>) -> HttpResponse { 
+async fn delete_all_imgs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,client_data: web::Data<Arc<Client>>,pool_data: web::Data<DbPool>) -> HttpResponse {
     let product_id = path.into_inner();
     let pool = pool_data.get_ref();
-    //let client_data_x = client_data.get_ref().as_ref();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+//let client_data_x = client_data.get_ref().as_ref();
     //let uploaded_file = client_data_x.upload(&form.file,"").await;
   
     let result_delete = delete_all_images(&product_id, pool).await;

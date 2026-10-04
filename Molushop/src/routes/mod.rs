@@ -6,6 +6,7 @@ pub mod cart;
 pub mod checkout;
 pub mod orders;
 pub mod panel;
+pub mod panel_products;
 
 use actix_web::web;
 use crate::middleware::auth::Auth;

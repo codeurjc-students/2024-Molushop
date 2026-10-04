@@ -14,7 +14,9 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-use super::scope::SCOPE_COMPONENTS;
+use super::scope::SCOPE_PANEL_COMPONENTS;
+use super::panel_access::variation_access;
+use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{set_variation_identifiers,update_variation_status,update_price_variation,set_stock_variation};
 
 use std::sync::Arc;
@@ -33,16 +35,16 @@ static SCOPE: &str = "/edit-product-variation";
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     
     pub static ref ROUTES: Routes = Routes{
-        //delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_price: Box::leak(format!("{}{}/edit-price",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_stock: Box::leak(format!("{}{}/edit-stock",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        new_identifier: Box::leak(format!("{}{}/new-identifier",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_identifiers: Box::leak(format!("{}{}/edit-identifiers",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        warning: Box::leak(format!("{}{}/pop-warning",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        delete_identifier: Box::leak(format!("{}{}/delete-identifier",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        //edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
+        //delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_price: Box::leak(format!("{}{}/edit-price",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_stock: Box::leak(format!("{}{}/edit-stock",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        new_identifier: Box::leak(format!("{}{}/new-identifier",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_identifiers: Box::leak(format!("{}{}/edit-identifiers",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        warning: Box::leak(format!("{}{}/pop-warning",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        delete_identifier: Box::leak(format!("{}{}/delete-identifier",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        //edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -72,13 +74,13 @@ use crate::services::components::edit_product_variation_service::start;
 use crate::models::components::modal_1_model::Modal1;
 
 #[get("/spawn/{id}")]
-async fn spawn(path: web::Path<Uuid>, pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn spawn(path: web::Path<Uuid>, panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
     let variation_id = path.into_inner();
     let pool = pool_data.get_ref();
-    //hacer un uuid de prueba de user
-    //hacer una función que le pase todos los datos de la variación y me devuelva el template
-    let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
-    let result_start=  start(&seller_prueba,&variation_id,&pool).await;
+    if let Err(resp) = variation_access(&panel_user, &variation_id, pool).await {
+        return resp;
+    }
+    let result_start=  start(&variation_id,&pool).await;
     match result_start{
         Ok(product_variation)=>{
             //tengo el ProductVariationEdit
@@ -131,11 +133,14 @@ pub struct AttributeForm{
 
 
 #[post("/edit-general/{id_variation}")]
-async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,form: web::Json<GeneralForm>)-> HttpResponse{
+async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form: web::Json<GeneralForm>)-> HttpResponse{
     let form_general = form.into_inner();
     let id_variation = path.into_inner();
     let pool = pool_data.get_ref();
-    let new_status:i16 =  form_general.status.parse().unwrap_or(0);
+    if let Err(resp) = variation_access(&panel_user, &id_variation, pool).await {
+        return resp;
+    }
+let new_status:i16 =  form_general.status.parse().unwrap_or(0);
     println!("{}",new_status);
     let result1 = update_variation_status(&id_variation,&new_status,&pool).await;
     let mut render:String=String::new();
@@ -178,11 +183,14 @@ pub struct IdentifersForm{
 }
 
 #[post("/edit-identifiers/{id_variation}")]
-async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,data: web::Json<IdentifersForm>)->HttpResponse{
+async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,data: web::Json<IdentifersForm>)->HttpResponse{
     //nos van a pasar en el form un json
     let var_id = path.into_inner();
     let pool =pool_data.get_ref();
-    let form_identifiers = data.into_inner();
+    if let Err(resp) = variation_access(&panel_user, &var_id, pool).await {
+        return resp;
+    }
+let form_identifiers = data.into_inner();
     let identifiers = form_identifiers.identifiers;
     let result =set_variation_identifiers(&identifiers, &var_id, pool).await;
 
@@ -212,12 +220,15 @@ async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,data
 use crate::models::components::edit_product_variation_model::*;
 
 #[post("/edit-price/{id_variation}")]
-async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,data:web::Json<PriceForm>)->HttpResponse{
+async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,data:web::Json<PriceForm>)->HttpResponse{
     let form  = data.into_inner();
-    
+
     let var_id  = path.into_inner();
     let pool = pool_data.get_ref();
-    // Convertir los valores string a BigDecimal
+    if let Err(resp) = variation_access(&panel_user, &var_id, pool).await {
+        return resp;
+    }
+// Convertir los valores string a BigDecimal
     let regular_price = match form.regular.parse::<BigDecimal>() {
         Ok(price) => price,
         Err(e) => {
@@ -271,10 +282,13 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,data:web::J
 }
 
 #[post("/edit-stock/{variation_id}")]
-async fn edit_stock(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,data:web::Json<StockForm>)->HttpResponse{
+async fn edit_stock(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,data:web::Json<StockForm>)->HttpResponse{
     let pool = pool_data.get_ref();
     let var_id = path.into_inner();
-    let form = data.into_inner();
+    if let Err(resp) = variation_access(&panel_user, &var_id, pool).await {
+        return resp;
+    }
+let form = data.into_inner();
     let new_stock= match form.stock.parse::<i32>(){
         Ok(stock) => stock,
         Err(e)=>{

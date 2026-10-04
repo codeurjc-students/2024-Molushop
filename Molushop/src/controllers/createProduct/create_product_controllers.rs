@@ -51,6 +51,8 @@ fn print_type_of<T>(_: &T) {
 }
 
 static SCOPE: &str = "/create-product";
+/// Se registra dentro del scope `/panel` (`routes/panel.rs`); `ROUTES` lleva la URL completa.
+static SCOPE_FULL: &str = "/panel/create-product";
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
   
@@ -67,13 +69,13 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     static ref ADD_SPECS_URL: String = format!("{}/add-specs", SCOPE);
     */
     pub static ref ROUTES: Routes = Routes{
-        category_children: Box::leak(format!("{}/category-children", SCOPE).into_boxed_str()),
-            reset_category: Box::leak(format!("{}/reset-category", SCOPE).into_boxed_str()),
-            next_select: Box::leak(format!("{}/next-select", SCOPE).into_boxed_str()),
-            create_product: Box::leak(format!("{}/create-product", SCOPE).into_boxed_str()),
-            add_variation: Box::leak(format!("{}/add-variation", SCOPE).into_boxed_str()),
-            add_variation_value: Box::leak(format!("{}/add-variation-value", SCOPE).into_boxed_str()),
-            add_specs: Box::leak(format!("{}/add-specs", SCOPE).into_boxed_str()),
+        category_children: Box::leak(format!("{}/category-children", SCOPE_FULL).into_boxed_str()),
+            reset_category: Box::leak(format!("{}/reset-category", SCOPE_FULL).into_boxed_str()),
+            next_select: Box::leak(format!("{}/next-select", SCOPE_FULL).into_boxed_str()),
+            create_product: Box::leak(format!("{}/create-product", SCOPE_FULL).into_boxed_str()),
+            add_variation: Box::leak(format!("{}/add-variation", SCOPE_FULL).into_boxed_str()),
+            add_variation_value: Box::leak(format!("{}/add-variation-value", SCOPE_FULL).into_boxed_str()),
+            add_specs: Box::leak(format!("{}/add-specs", SCOPE_FULL).into_boxed_str()),
     };
 
 }

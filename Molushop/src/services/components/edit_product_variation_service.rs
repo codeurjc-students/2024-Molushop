@@ -13,8 +13,8 @@ use bigdecimal::BigDecimal;
 
 //hacer un vec de variations
  
-pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariationEdit,Error>{
-    //añadir verificación que el producto tenga asociado el usuario!!!
+/// No comprueba propiedad: el handler llama antes a `can_edit_variation`.
+pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariationEdit,Error>{
 
     //primero obtener la variación //se va a obtener a partir del id de la variación directamente
     //va a ser editable por el usuario --> que el usuario

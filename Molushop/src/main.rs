@@ -124,8 +124,7 @@ async fn main() -> std::io::Result<()> {
             .service(controllers::test::scope())
             .service(aws::scope_aws()) /*  /aws/s3/xxx  */
             //create_product
-            .service(controllers::createProduct::create_product_controllers::scope_create_product())
-            .service(components::scope::scope_components())
+.service(components::scope::scope_components())
             // Static files
             //.service(fs::Files::new("/assets", "assets").show_files_listing())
             

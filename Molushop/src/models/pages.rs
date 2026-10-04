@@ -57,7 +57,8 @@ pub struct ProductsPanel {
     pub products: Vec<Product>, //ProductPanelGroup
     pub routes: &'static RoutesProductPanelGroup,
     pub page_name: String,
-
+    /// Admin: ve todas las tiendas (título distinto y tienda en cada tarjeta).
+    pub all_stores: bool,
 }
 
 use crate::models::components::edit_product::{ProductEdit,ProductEdit2};

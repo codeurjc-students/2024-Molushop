@@ -21,7 +21,9 @@ pub struct Product{
     pub code: String,
     pub variations_titles: Vec<String>,
     pub categories: Vec<String>,
-    pub id:Uuid
+    pub id:Uuid,
+    /// Solo se rellena en el listado del admin, que ve productos de todas las tiendas.
+    pub store_name: Option<String>,
     //images
 }
 

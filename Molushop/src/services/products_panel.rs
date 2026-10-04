@@ -9,21 +9,32 @@ use crate::models::data_transfer_objects::product::Product;
 use crate::models::models_x::{ProductVariation,Category,Price};
 use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
+use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{
-    get_seller_products,
+    get_panel_products,
     get_product_categories,
     get_product_variations,
     get_variations_with_prices
 };
 type DbPool = Pool<AsyncPgConnection>;
-use uuid::Uuid;
 
-pub async fn get_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{
+/// Productos del listado del panel: el admin ve los de todas las tiendas (con
+/// el nombre de la tienda), el vendedor solo los suyos. Sin tienda y sin admin
+/// -> lista vacía.
+pub async fn get_products(panel_user:&PanelUser,pool: &DbPool) -> Result<Vec<Product>,Error>{
 
-    let products = get_seller_products(user_id, pool).await?;
+    let seller_filter = if panel_user.is_admin {
+        None
+    } else {
+        match panel_user.seller_id {
+            Some(seller_id) => Some(seller_id),
+            None => return Ok(Vec::new()),
+        }
+    };
+    let products = get_panel_products(seller_filter.as_ref(), pool).await?;
     let mut products_final:Vec<Product> = Vec::new();
 
-    for product in products{
+    for (product, store_name) in products{
         let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
         let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
         let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
@@ -47,7 +58,8 @@ pub async fn get_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Er
             code: product.code,
             variations_titles: variation_titles,
             categories: categories_names,
-            id: product.id
+            id: product.id,
+            store_name: if panel_user.is_admin { Some(store_name) } else { None },
         };
         products_final.push(product_final);
     }
