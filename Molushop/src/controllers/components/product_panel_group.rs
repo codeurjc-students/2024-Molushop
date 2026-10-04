@@ -49,9 +49,14 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
     }
      
     let product_id = path.into_inner();
-    let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
+    // El vendedor borra solo su fila; el admin quita el producto a quien lo tenga.
+    let owner = match (panel_user.is_admin, panel_user.seller_id.as_ref()) {
+        (true, _) => None,
+        (false, Some(seller_id)) => Some(seller_id),
+        (false, None) => return HttpResponse::NotFound().finish(),
+    };
     // Lógica para borrar el producto
-    let result = delete_seller_product(&product_id,&seller_prueba, pool_data.get_ref()).await;
+    let result = delete_seller_product(&product_id,owner, pool_data.get_ref()).await;
     match result{
         Ok(_) => {
             HttpResponse::Ok().finish()
@@ -64,20 +69,6 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
 
 #[get("/delete-product-modal/{id}")]
 async fn delete_product_modal(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,pool_data: web::Data<DbPool>) -> HttpResponse {
-    /* 
-    let product_id = path.into_inner();
-    let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
-    // Lógica para borrar el producto
-    let result = delete_seller_product(&product_id,&seller_prueba, pool_data.get_ref()).await;
-    match result{
-        Ok(_) => {
-            HttpResponse::Ok().finish()
-        },
-        Err(e) => {
-            println!("Error! -> {}",e);
-            return HttpResponse::InternalServerError().json("Error al eliminar el producto");}
-        }
-    */
     let product_id = path.into_inner();
     if let Err(resp) = product_access(&panel_user, &product_id, pool_data.get_ref()).await {
         return resp;

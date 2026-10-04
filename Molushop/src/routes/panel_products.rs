@@ -12,7 +12,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::controllers::components::edit_product_controller::ROUTES as ROUTES_EDIT_PRODUCT;
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
-use crate::controllers::createProduct::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
+use crate::controllers::createProduct::create_product_controllers::{ROUTES as ROUTES_CREATE_PRODUCT, SIN_TIENDA};
 use crate::models::components::edit_product::EditProduct;
 use crate::models::components::title::Title;
 use crate::models::pages::{CategoryTemplate, ProductsPanel, ProductsPanelEdit};
@@ -57,7 +57,14 @@ async fn products_list(
     }
 }
 
-async fn products_create(pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn products_create(
+    panel_user: web::ReqData<PanelUser>,
+    pool_data: web::Data<DbPool>,
+) -> HttpResponse {
+    // Admin sin tienda: no hay a nombre de quién crear.
+    if panel_user.seller_id.is_none() {
+        return html(StatusCode::FORBIDDEN, SIN_TIENDA.to_string());
+    }
     match obtain_base_categories(pool_data.get_ref()).await {
         Ok(categories) => {
             let page = CategoryTemplate::new_2(categories, &ROUTES_CREATE_PRODUCT).render().unwrap();

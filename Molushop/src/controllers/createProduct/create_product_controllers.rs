@@ -14,6 +14,7 @@ use askama::Template;
 use uuid::Uuid;
 
 use crate::services::servicesX::*;
+use crate::services::panel_role_service::PanelUser;
 
 use crate::services;
 use crate::models::models_x::{ProductForm,Category};
@@ -53,6 +54,8 @@ fn print_type_of<T>(_: &T) {
 static SCOPE: &str = "/create-product";
 /// Se registra dentro del scope `/panel` (`routes/panel.rs`); `ROUTES` lleva la URL completa.
 static SCOPE_FULL: &str = "/panel/create-product";
+/// Aviso para el admin que entra a crear sin tener fila en `seller`.
+pub static SIN_TIENDA: &str = "Para crear productos necesitas una tienda. Crea tu tienda primero.";
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
   
@@ -190,8 +193,11 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
 }
 
 #[post("/create-product/{category_id}")]
-async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
-    let id_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
+async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,panel_user: web::ReqData<PanelUser>,data: web::Json<ProductForm>) -> impl Responder {
+    // El producto se crea a nombre de la tienda de quien está en el panel.
+    let Some(seller_id) = panel_user.seller_id else {
+        return HttpResponse::Forbidden().body(SIN_TIENDA);
+    };
 
     let category_id= path.into_inner();
     println!("{:?}",category_id);
@@ -203,7 +209,7 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data
     //match insert_new_product(&datox,pool).await{
     // Producto, vendedor, categoría, variaciones y precios van en UNA
     // transacción: o se crea todo o no se crea nada.
-    match insert_new_product_complete(id_prueba,&datox,&category_id,pool).await{
+    match insert_new_product_complete(seller_id,&datox,&category_id,pool).await{
         Ok(new_id) => {
             println!("Producto creado con sus variaciones: {:?}",&new_id);
             HttpResponse::Ok().body("Producto creado")

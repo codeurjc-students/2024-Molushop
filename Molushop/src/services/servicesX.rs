@@ -384,14 +384,20 @@ pub async fn get_product_variation(id_variation:&Uuid,pool:&DbPool) -> Result<Pr
     result
 }
 
-pub async fn delete_seller_product(prod_id:&Uuid,sell_id:&Uuid,pool:&DbPool) -> Result<usize,Error> {
+/// `sell_id` = `None` quita el producto a todas las tiendas (solo el admin).
+pub async fn delete_seller_product(prod_id:&Uuid,sell_id:Option<&Uuid>,pool:&DbPool) -> Result<usize,Error> {
     use crate::schema::product_seller::dsl::*;
-    
+
     //let connection = &mut establish_connection();
     let connection = &mut pool.get().await.unwrap();
-    let valor= diesel::delete(product_seller
-        .filter(product_id.eq(prod_id).and(seller_id.eq(sell_id)))
-    ).execute(connection).await?;
+    let valor= match sell_id {
+        Some(sell_id) => diesel::delete(product_seller
+            .filter(product_id.eq(prod_id).and(seller_id.eq(sell_id)))
+        ).execute(connection).await?,
+        None => diesel::delete(product_seller
+            .filter(product_id.eq(prod_id))
+        ).execute(connection).await?,
+    };
     //borrar producto
 
     //borrar variaciones
