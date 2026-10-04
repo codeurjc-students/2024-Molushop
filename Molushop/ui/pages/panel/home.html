@@ -1,0 +1,31 @@
+{% extends "layouts/panel.html" %}
+{% block content %}
+    <div class="panel-home">
+        <h1>Panel</h1>
+        <div class="panel-home-cards">
+            <a class="panel-home-card" href="/panel/products">
+                <h2>Productos</h2>
+                {% if panel_nav.is_admin %}
+                <p>Ver y editar los productos de todas las tiendas.</p>
+                {% else %}
+                <p>Ver y editar los productos de tu tienda.</p>
+                {% endif %}
+            </a>
+            {% if panel_nav.has_store %}
+            <a class="panel-home-card" href="/panel/products/create">
+                <h2>Añadir producto</h2>
+                <p>Crear un producto nuevo en tu tienda.</p>
+            </a>
+            {% endif %}
+            {% if panel_nav.is_admin %}
+            <a class="panel-home-card" href="/admin">
+                <h2>Administración</h2>
+                <p>Lo exclusivo del administrador.</p>
+            </a>
+            {% endif %}
+        </div>
+        {% if !panel_nav.has_store %}
+        <p class="panel-home-note">No tienes tienda: puedes gestionar los productos existentes, pero no crear nuevos.</p>
+        {% endif %}
+    </div>
+{% endblock %}

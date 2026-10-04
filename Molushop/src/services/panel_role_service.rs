@@ -17,6 +17,8 @@ type DbPool = Pool<AsyncPgConnection>;
 #[derive(Debug, Clone)]
 pub struct PanelUser {
     pub user_id: Uuid,
+    /// Para enseñarlo en la barra del panel.
+    pub username: String,
     pub is_admin: bool,
     /// `Some` si el usuario tiene tienda. Es el `seller_id` de `product_seller`,
     /// que coincide con el id del usuario.
@@ -43,17 +45,18 @@ pub async fn get_panel_user(user_id: &Uuid, pool: &DbPool) -> Result<PanelUser, 
         .await
         .map_err(|e| format!("Error obteniendo conexión para los roles: {:?}", e))?;
 
-    let (admin_id, seller_id): (Option<Uuid>, Option<Uuid>) = base_user::table
+    let (username, admin_id, seller_id): (String, Option<Uuid>, Option<Uuid>) = base_user::table
         .left_join(admins::table)
         .left_join(seller::table)
         .filter(base_user::id.eq(user_id))
-        .select((admins::id.nullable(), seller::id.nullable()))
+        .select((base_user::username, admins::id.nullable(), seller::id.nullable()))
         .first(connection)
         .await
         .map_err(|e| format!("Error leyendo los roles del usuario {}: {:?}", user_id, e))?;
 
     Ok(PanelUser {
         user_id: *user_id,
+        username,
         is_admin: admin_id.is_some(),
         seller_id,
     })

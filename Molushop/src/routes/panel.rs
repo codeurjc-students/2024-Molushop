@@ -11,6 +11,8 @@ use crate::middleware::auth::{Auth, SessionData};
 use crate::middleware::panel_guard::{PanelGuard, PANEL_LOGIN};
 use crate::models::components::panel_login_v1::PanelLoginData;
 use crate::models::pages_models::panel_login_page_model::PanelLoginPage;
+use crate::models::pages_models::panel_home_page_model::{AdminHomePage, PanelHomePage};
+use crate::models::components::panel_nav::PanelNav;
 use crate::services::panel_role_service::{get_panel_user, PanelUser};
 use crate::routes::panel_products;
 use crate::controllers::components::scope::scope_panel_components;
@@ -97,20 +99,26 @@ async fn panel_login(
         .body(page)
 }
 
-// Provisionales: el paso 6 las sustituye por el layout del panel.
-
 async fn panel_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
-    let pu = panel_user.into_inner();
+    let page = PanelHomePage {
+        user_logged: true,
+        page_name: "Panel".to_string(),
+        panel_nav: PanelNav::new(&panel_user, "home"),
+    }.render().unwrap();
+
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
-        .body(format!(
-            "<h1>Panel (provisional)</h1><p>user_id: {}</p><p>admin: {}</p><p>seller_id: {:?}</p>",
-            pu.user_id, pu.is_admin, pu.seller_id
-        ))
+        .body(page)
 }
 
 async fn admin_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
+    let page = AdminHomePage {
+        user_logged: true,
+        page_name: "Panel - Administración".to_string(),
+        panel_nav: PanelNav::new(&panel_user, "admin"),
+    }.render().unwrap();
+
     HttpResponse::Ok()
         .content_type("text/html; charset=utf-8")
-        .body(format!("<h1>Admin (provisional)</h1><p>user_id: {}</p>", panel_user.user_id))
+        .body(page)
 }

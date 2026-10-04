@@ -1,0 +1,6 @@
+{% extends "layouts/layout1.html" %}
+{# Layout del panel: layout1 + la barra de navegación. La página necesita un campo `panel_nav`. #}
+{% block header %}
+    {% include "components/panel_nav/styles.html" %}
+    {% include "components/panel_nav/templates/panel_nav.html" %}
+{% endblock %}

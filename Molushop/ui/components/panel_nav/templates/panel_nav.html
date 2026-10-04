@@ -1,0 +1,18 @@
+<nav class="panel-nav" aria-label="Panel">
+    <a class="panel-nav-brand" href="/panel">Panel</a>
+    <ul class="panel-nav-links">
+        <li><a href="/panel" {% if panel_nav.active == "home" %}class="active" aria-current="page"{% endif %}>Inicio</a></li>
+        <li><a href="/panel/products" {% if panel_nav.active == "products" %}class="active" aria-current="page"{% endif %}>Productos</a></li>
+        {% if panel_nav.has_store %}
+        <li><a href="/panel/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
+        {% endif %}
+        {% if panel_nav.is_admin %}
+        <li><a href="/admin" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>
+        {% endif %}
+    </ul>
+    <div class="panel-nav-right">
+        <span class="panel-nav-user">{{panel_nav.username}}{% if panel_nav.is_admin %} <span class="panel-nav-role">admin</span>{% endif %}</span>
+        <a href="/home">Ver tienda</a>
+        <button type="button" class="panel-nav-logout" hx-post="{{panel_nav.logout_url}}" hx-swap="none">Cerrar sesión</button>
+    </div>
+</nav>

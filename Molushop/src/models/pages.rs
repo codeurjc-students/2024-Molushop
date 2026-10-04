@@ -1,6 +1,7 @@
 use askama::Template;
 use super::models_x::{Category2,Category};
 use super::components::create_product::Routes;
+use super::components::panel_nav::PanelNav;
 use super::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
 #[derive(Template,Clone,Debug)]
 #[template(path = "pages/create_product/category.html")]
@@ -8,18 +9,21 @@ pub struct CategoryTemplate {
     pub user_logged:bool,
     categories: Vec<Category2>,
     routes: &'static Routes,
-    page_name: String
+    page_name: String,
+    panel_nav: PanelNav,
 }
 
 impl CategoryTemplate {
     pub fn new_2(
             categories1: Vec<Category>,
             routes: &'static Routes,
+            panel_nav: PanelNav,
         ) -> Self {
         CategoryTemplate {
             user_logged: false,
             categories: categories1.iter().map(|c| c.to_category2().unwrap()).collect(),
-            routes, page_name: "Categorias".to_string()
+            routes, page_name: "Categorias".to_string(),
+            panel_nav,
         }
     }
 
@@ -37,6 +41,7 @@ pub struct ProductsPanel {
     pub page_name: String,
     /// Admin: ve todas las tiendas (título distinto y tienda en cada tarjeta).
     pub all_stores: bool,
+    pub panel_nav: PanelNav,
 }
 
 use crate::models::components::edit_product::{ProductEdit,ProductEdit2};
@@ -49,4 +54,5 @@ pub struct ProductsPanelEdit {
     pub product: ProductEdit2,
     pub routes_edit_product: &'static Routes_edit_product,
     pub page_name: String,
+    pub panel_nav: PanelNav,
 }

@@ -14,6 +14,7 @@ use crate::controllers::components::edit_product_controller::ROUTES as ROUTES_ED
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
 use crate::controllers::createProduct::create_product_controllers::{ROUTES as ROUTES_CREATE_PRODUCT, SIN_TIENDA};
 use crate::models::components::edit_product::EditProduct;
+use crate::models::components::panel_nav::PanelNav;
 use crate::models::components::title::Title;
 use crate::models::pages::{CategoryTemplate, ProductsPanel, ProductsPanelEdit};
 use crate::services::components::edit_product;
@@ -47,6 +48,7 @@ async fn products_list(
                 routes: &ROUTES_PRODUCT_PANEL_GROUP,
                 page_name: "Panel Products".to_string(),
                 all_stores: panel_user.is_admin,
+                panel_nav: PanelNav::new(&panel_user, "products"),
             }.render().unwrap();
             html(StatusCode::OK, page)
         }
@@ -67,7 +69,7 @@ async fn products_create(
     }
     match obtain_base_categories(pool_data.get_ref()).await {
         Ok(categories) => {
-            let page = CategoryTemplate::new_2(categories, &ROUTES_CREATE_PRODUCT).render().unwrap();
+            let page = CategoryTemplate::new_2(categories, &ROUTES_CREATE_PRODUCT, PanelNav::new(&panel_user, "create")).render().unwrap();
             html(StatusCode::OK, page)
         }
         Err(e) => {
@@ -119,6 +121,7 @@ async fn products_edit(
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,
             page_name: "Edit Product".to_string(),
+            panel_nav: PanelNav::new(&panel_user, "products"),
         }.render().unwrap()
     };
     html(StatusCode::OK, page)

@@ -17,3 +17,4 @@ pub mod order_detail_v1;
 pub mod order_list_v1;
 pub mod product_reviews_v1;
 pub mod panel_login_v1;
+pub mod panel_nav;
