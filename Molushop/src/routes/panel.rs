@@ -11,10 +11,11 @@ use crate::middleware::auth::{Auth, SessionData};
 use crate::middleware::panel_guard::{PanelGuard, PANEL_LOGIN};
 use crate::models::components::panel_login_v1::PanelLoginData;
 use crate::models::pages_models::panel_login_page_model::PanelLoginPage;
-use crate::models::pages_models::panel_home_page_model::{AdminHomePage, PanelHomePage};
+use crate::models::pages_models::panel_home_page_model::PanelHomePage;
 use crate::models::components::panel_nav::PanelNav;
-use crate::services::panel_role_service::{get_all_stores, get_panel_user, PanelUser};
+use crate::services::panel_role_service::{get_panel_user, PanelUser};
 use crate::routes::panel_products;
+use crate::routes::admin_stores::{self, ADMIN_STORES};
 use crate::controllers::components::scope::scope_panel_components;
 use crate::controllers::createProduct::create_product_controllers::scope_create_product;
 
@@ -42,6 +43,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 .wrap(PanelGuard::admin())
                 .wrap(Auth::new())
                 .route("", web::get().to(admin_home))
+                .configure(admin_stores::config)
         );
 }
 
@@ -120,25 +122,9 @@ async fn panel_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
         .body(page)
 }
 
-async fn admin_home(panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
-    let stores = match get_all_stores(pool_data.get_ref()).await {
-        Ok(stores) => stores,
-        Err(e) => {
-            println!("Admin: {}", e);
-            return HttpResponse::InternalServerError()
-                .content_type("text/html; charset=utf-8")
-                .body("Error cargando las tiendas");
-        }
-    };
-
-    let page = AdminHomePage {
-        user_logged: true,
-        page_name: "Panel - Administración".to_string(),
-        panel_nav: PanelNav::new(&panel_user, "admin"),
-        stores,
-    }.render().unwrap();
-
-    HttpResponse::Ok()
-        .content_type("text/html; charset=utf-8")
-        .body(page)
+/// Lo único exclusivo del admin hoy es la gestión de tiendas.
+async fn admin_home() -> HttpResponse {
+    HttpResponse::Found()
+        .insert_header((header::LOCATION, ADMIN_STORES))
+        .finish()
 }

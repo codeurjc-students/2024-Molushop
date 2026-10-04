@@ -104,26 +104,6 @@ pub async fn resolve_store(
         .map_err(|e| format!("Error leyendo la tienda {}: {:?}", store_id, e))
 }
 
-/// Todas las tiendas, por nombre. Solo para el admin.
-pub async fn get_all_stores(pool: &DbPool) -> Result<Vec<PanelStore>, String> {
-    let connection = &mut pool
-        .get()
-        .await
-        .map_err(|e| format!("Error obteniendo conexión para las tiendas: {:?}", e))?;
-
-    seller::table
-        .select((seller::id, seller::store_name, seller::status))
-        .order_by(seller::store_name)
-        .load::<(Uuid, String, i16)>(connection)
-        .await
-        .map(|rows| {
-            rows.into_iter()
-                .map(|(id, store_name, status)| PanelStore { id, store_name, status })
-                .collect()
-        })
-        .map_err(|e| format!("Error leyendo las tiendas: {:?}", e))
-}
-
 /// ¿Está el producto a nombre de esta tienda? Para las páginas con la tienda en
 /// la URL: un producto de otra tienda es 404 aunque el usuario también la gestione.
 pub async fn product_in_store(

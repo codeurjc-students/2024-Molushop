@@ -8,7 +8,7 @@
         <li><a href="/panel/stores/{{store.id}}/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
         {% endif %}
         {% if panel_nav.is_admin %}
-        <li><a href="/admin" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>
+        <li><a href="/admin/stores" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>
         {% endif %}
     </ul>
     <div class="panel-nav-right">

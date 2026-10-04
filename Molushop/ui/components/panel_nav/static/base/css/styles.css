@@ -161,3 +161,137 @@
     border: 1px solid #f0b429;
     border-radius: 4px;
 }
+
+/* /admin/stores */
+.admin-stores {
+    max-width: 1100px;
+}
+
+.admin-box {
+    margin: 24px 0;
+    padding: 16px 20px;
+    border: 1px solid #d9e2ec;
+    border-radius: 8px;
+    background: #fff;
+}
+
+.admin-box h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+}
+
+.admin-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.admin-form label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.admin-form input[type="text"] {
+    padding: 6px 8px;
+    border: 1px solid #9aa5b1;
+    border-radius: 4px;
+    font: inherit;
+}
+
+.admin-form-inline {
+    margin-top: 8px;
+    gap: 6px;
+}
+
+.admin-form-inline input[type="text"] {
+    width: 130px;
+}
+
+.admin-stores button {
+    padding: 6px 12px;
+    border: 1px solid #1f2933;
+    border-radius: 4px;
+    background: #1f2933;
+    color: #fff;
+    font: inherit;
+    cursor: pointer;
+}
+
+.admin-stores button.admin-btn-danger {
+    background: #fff;
+    color: #8a041a;
+    border-color: #8a041a;
+}
+
+.admin-stores button.admin-link-btn {
+    padding: 0;
+    border: none;
+    background: none;
+    color: #8a041a;
+    text-decoration: underline;
+    font-size: 0.85rem;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.admin-hint {
+    margin: 8px 0 0;
+    color: #52606d;
+    font-size: 0.85rem;
+}
+
+.admin-msg {
+    margin: 16px 0;
+    padding: 10px 14px;
+    border-radius: 4px;
+    border: 1px solid;
+}
+
+.admin-msg-ok { background: #e3f9e5; border-color: #0e5814; color: #0e5814; }
+.admin-msg-error { background: #ffe3e3; border-color: #8a041a; color: #8a041a; }
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #d9e2ec;
+    text-align: left;
+    vertical-align: top;
+}
+
+.admin-table th {
+    background: #f5f7fa;
+    font-size: 0.85rem;
+}
+
+.admin-members {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-members li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-members form {
+    display: inline;
+}
+
+.admin-delete {
+    margin-top: 8px;
+}
