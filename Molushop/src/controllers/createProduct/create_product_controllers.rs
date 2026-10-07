@@ -2,7 +2,6 @@ use actix_web::{get, post, web,delete,Scope, App, HttpRequest, HttpResponse, Htt
 use aws_config::imds::client;
 use bigdecimal::BigDecimal;
 use lazy_static::lazy_static;
-use tera::Tera;
 use actix_files as fs;
 use serde::Deserialize;
 use serde::Serialize;

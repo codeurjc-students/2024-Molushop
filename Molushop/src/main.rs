@@ -24,7 +24,6 @@ pub mod middleware;
 pub mod constants;
 
 use services::servicesX;
-use routes::routes_x;
 use services::aws::s3::{client, startup};
 use controllers::components;
 
@@ -111,7 +110,6 @@ async fn main() -> std::io::Result<()> {
             .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)
-            .configure(routes_x::config)
             //.service(master::scope_master::scope_master(pool_data.clone()))
             .configure(routes::config_routes)
             
