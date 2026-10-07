@@ -1096,8 +1096,11 @@ pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
         from products p
         left join product_variations pv on p.id=pv.product_id
         left join prices pr on pv.id=pr.variation_id
-        left join product_seller ps on p.id=ps.product_id
-        left join seller s on ps.seller_id=s.id
+        -- JOIN y no LEFT JOIN: solo se enseña lo que vende una tienda ACTIVA
+        -- (seller.status = 1). Fuera quedan las tiendas pendientes, inactivas o
+        -- rechazadas y los productos sin tienda (los "borrados" del panel).
+        join product_seller ps on p.id=ps.product_id
+        join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
         group by p.id, p.name, p.brand, pr.currency, s.store_name, s.id
         order by p.name;
@@ -1214,8 +1217,10 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
         ) img_agg ON true
         LEFT JOIN Product_variations pv ON p.id = pv.product_id
         LEFT JOIN prices pr ON pv.id = pr.variation_id
-        LEFT JOIN product_seller ps ON p.id = ps.product_id
-        LEFT JOIN seller s ON ps.seller_id = s.id
+        -- Igual que en la portada: sin tienda ACTIVA el producto no existe
+        -- para el público (la consulta no devuelve fila).
+        JOIN product_seller ps ON p.id = ps.product_id
+        JOIN seller s ON ps.seller_id = s.id AND s.status = 1
         WHERE p.id = $1 AND p.status = 1
         GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;
     "#).bind::<diesel::sql_types::Uuid,_>(product_id)

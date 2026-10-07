@@ -100,6 +100,11 @@ async fn confirm(
                 .finish()
         }
 
+        Err(ServiceError::ProductUnavailable { line_id, product_name }) => {
+            let message = format!("«{}» ya no está disponible. Quítalo de la cesta para completar el pedido. No se ha cobrado nada.", product_name);
+            repaint(&user_id, &form, &message, Some(line_id), pool).await
+        }
+
         Err(ServiceError::MissingPrice) => {
             repaint(&user_id, &form, "Uno de los artículos no tiene precio disponible ahora mismo. No se ha cobrado nada.", None, pool).await
         }

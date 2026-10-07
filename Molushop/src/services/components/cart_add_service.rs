@@ -6,7 +6,8 @@ use diesel_async::pg::AsyncPgConnection;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
-use crate::schema::{carts, cart_products, product_variations, prices};
+use crate::schema::{carts, cart_products, product_seller, product_variations, prices, seller};
+use crate::services::panel_role_service::STORE_ACTIVE;
 use diesel::OptionalExtension;
 use crate::models::models_x::{Cart, ProductVariation, Price};
 use crate::models::error::ServiceError;
@@ -28,6 +29,21 @@ pub async fn add_to_cart(
         .first(&mut conn)
         .await
         .map_err(|_| ServiceError::VariationNotFound)?;
+
+    // Solo se compra lo que vende una tienda ACTIVA. La ficha ya no se enseña
+    // en ese caso; esto cubre la petición hecha a mano o una pestaña vieja.
+    let sold_by_active_store = diesel::select(diesel::dsl::exists(
+        product_seller::table
+            .inner_join(seller::table)
+            .filter(product_seller::product_id.eq(variation.product_id))
+            .filter(seller::status.eq(STORE_ACTIVE)),
+    ))
+    .get_result::<bool>(&mut conn)
+    .await
+    .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+    if !sold_by_active_store {
+        return Err(ServiceError::VariationNotFound);
+    }
 
     if variation.stock < quantity {
         return Err(ServiceError::NotEnoughStock);

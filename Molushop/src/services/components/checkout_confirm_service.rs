@@ -80,6 +80,15 @@ pub async fn confirm_order(
             return Err(ServiceError::MissingPrice);
         }
 
+        // Tampoco se vende lo de una tienda que ya no está activa. La consulta
+        // solo trae `store_name` de tiendas activas, así que su ausencia es la señal.
+        if let Some(row) = rows.iter().find(|r| r.store_name.is_none()) {
+            return Err(ServiceError::ProductUnavailable {
+                line_id: row.id,
+                product_name: row.name.clone().unwrap_or_default(),
+            });
+        }
+
         // 4. Totales recalculados en el servidor. El navegador no manda importes
         // y aunque los mandara se ignorarían.
         let items: Vec<CartItemData> = rows.iter().cloned().map(CartItemData::from).collect();

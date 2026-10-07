@@ -41,6 +41,13 @@ pub enum ServiceError {
     /// preferible a cobrar 0 por algo.
     #[error("Missing price")]
     MissingPrice,
+    /// Una línea es de un producto que ya no vende ninguna tienda activa (la
+    /// desactivaron o lo borraron con el artículo ya en la cesta).
+    #[error("Product unavailable: {product_name}")]
+    ProductUnavailable {
+        line_id: Uuid,
+        product_name: String,
+    },
     /// Stock insuficiente en UNA línea concreta, detectado ya dentro de la
     /// transacción. Lleva consigo qué línea y cuánto queda porque el checkout
     /// lo enseña en pantalla: es el fallo realista (alguien compró mientras el

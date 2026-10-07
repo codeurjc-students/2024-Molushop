@@ -22,6 +22,9 @@ pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartIte
     get_cart_items_conn(user_id, connection).await
 }
 
+/// `store_name` solo viene si el producto tiene una tienda ACTIVA: una línea
+/// con `store_name` vacío es de una tienda retirada y el checkout la rechaza.
+///
 /// La consulta de verdad, sobre una conexión que pone quien llama. El checkout
 /// la usa dentro de su transacción para releer las líneas antes de cobrarlas.
 pub async fn get_cart_items_conn(
@@ -72,7 +75,7 @@ pub async fn get_cart_items_conn(
         LEFT JOIN LATERAL (
             SELECT s2.store_name
             FROM product_seller ps
-            JOIN seller s2 ON s2.id = ps.seller_id
+            JOIN seller s2 ON s2.id = ps.seller_id AND s2.status = 1
             WHERE ps.product_id = p.id
             LIMIT 1
         ) s ON true
