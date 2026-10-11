@@ -16,6 +16,11 @@ pub enum ServiceError {
     #[error("Cart item not found")]
     CartItemNotFound,
 
+    /// Alta de producto con el JSON de variaciones mal formado (no es una lista
+    /// de objetos con `name`).
+    #[error("Invalid variations")]
+    InvalidVariations,
+
     // --- Opiniones ---
     /// La estrella no está entre 1 y 5. La plantilla solo pinta cinco radios,
     /// así que esto solo salta con una petición hecha a mano.

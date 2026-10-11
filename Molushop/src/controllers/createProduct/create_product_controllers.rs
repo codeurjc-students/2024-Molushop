@@ -228,6 +228,9 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
             println!("Producto creado con sus variaciones: {:?}",&new_id);
             HttpResponse::Ok().body("Producto creado")
         },
+        Err(crate::models::error::ServiceError::InvalidVariations) => {
+            HttpResponse::BadRequest().body("Las variaciones del producto no tienen un formato válido")
+        },
         Err(e) => {
             println!("Error al crear el producto (no se ha guardado nada): {}", e);
             HttpResponse::InternalServerError().body("Error al crear el producto")

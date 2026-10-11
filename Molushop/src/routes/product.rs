@@ -30,10 +30,18 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         )
         .route(
             "/{locale}/producto/{product_id}", 
-            web::get().to(get_product).wrap(Auth::new())
+            web::get().to(get_product_locale).wrap(Auth::new())
         );
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
+}
+
+/// La misma ficha con el locale delante. La ruta tiene dos parámetros, así que
+/// no puede usar el `web::Path<Uuid>` de `get_product`. El locale todavía no
+/// cambia nada: la ficha solo existe en español.
+async fn get_product_locale(path: web::Path<(String, Uuid)>, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
+    let (_locale, product_id) = path.into_inner();
+    get_product(web::Path::from(product_id), pool_data, req, opt_session_data).await
 }
 
 async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{

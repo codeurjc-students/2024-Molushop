@@ -223,20 +223,21 @@ struct FormTitulos {
     titulos: Vec<String>
 }
 
-pub async fn insert_new_product(form:&ProductForm,connection:&mut AsyncPgConnection) -> Result<Uuid, Error> {
+pub async fn insert_new_product(form:&ProductForm,connection:&mut AsyncPgConnection) -> Result<Uuid, ServiceError> {
     use crate::schema::products::dsl::*;
     let new_id = Uuid::new_v4();
     //metodo para obtener los nombres de los titulos de las variaciones
     //obtenern ese jsson b y obtener los nombres de las keys
-    let titles:Option<Value> = match form.variations.clone(){
+    // El JSON de variaciones lo escribe el navegador: si no es una lista de
+    // objetos con `name`, se rechaza la petición en vez de tumbar el hilo.
+    let titles:Option<Value> = match form.variations.as_ref(){
         Some(a)=>{
-            Some(json!({
-                "titulos": a.as_array()
-                    .unwrap()
-                    .iter()
-                    .map(|item| item["name"].as_str().unwrap())
-                    .collect::<Vec<&str>>()
-                }))
+            let names = a.as_array()
+                .ok_or(ServiceError::InvalidVariations)?
+                .iter()
+                .map(|item| item["name"].as_str().ok_or(ServiceError::InvalidVariations))
+                .collect::<Result<Vec<&str>, ServiceError>>()?;
+            Some(json!({ "titulos": names }))
         },
         None=>None
 
@@ -262,7 +263,7 @@ pub async fn insert_new_product(form:&ProductForm,connection:&mut AsyncPgConnect
         },
         Err(e) => {
             //println!("Error inserting data: {}",e);
-            Err(e)
+            Err(e.into())
         }
     }
 }
@@ -765,16 +766,27 @@ pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: 
             //Primero actualizar el precio 
             let now = chrono::Utc::now().naive_utc();
 
-            //si el precio es 
-            let result_price = update(prices::dsl::prices.filter(prices::dsl::variation_id.eq(&var_id).and(prices::dsl::currency.eq(&currency_insert))))
+            // INSERT ... ON CONFLICT y no un UPDATE a secas: una variación sin
+            // fila en `prices` no se actualizaba (0 filas, sin error) y no había
+            // forma de ponerle precio desde el panel.
+            //
+            // `price_history` NO se escribe aquí: lo hace el trigger
+            // `price_history_trigger` (AFTER INSERT OR UPDATE ON prices), que
+            // además cierra la fila anterior. Insertarlo también a mano dejaba
+            // dos filas por cada cambio.
+            insert_into(prices::dsl::prices)
+                .values((
+                    prices::dsl::variation_id.eq(&var_id),
+                    prices::dsl::price.eq(&price_insert),
+                    prices::dsl::currency.eq(&currency_insert),
+                    prices::dsl::start_date.eq(&now)
+                ))
+                .on_conflict((prices::dsl::variation_id, prices::dsl::currency))
+                .do_update()
                 .set((
                     prices::dsl::price.eq(&price_insert),
                     prices::dsl::start_date.eq(&now)
                 ))
-                .execute(tx).await?;
-
-            let result_price_history= insert_into(price_history::dsl::price_history)
-                .values((price_history::dsl::variation_id.eq(&var_id),price_history::dsl::price.eq(&price_insert),price_history::dsl::currency.eq(&currency_insert)))
                 .execute(tx).await?;
 
             //Si el discount no está activo
