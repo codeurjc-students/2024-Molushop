@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::constants::money::symbol_of;
 use crate::constants::urls::{HOME_URL, ORDER_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
-use crate::models::components::order_detail_v1::{OrderLineData, status_label};
+use crate::models::components::order_detail_v1::{OrderLineData, mixed_status, status_label};
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_list_v1/order_list_v1.html")]
@@ -48,6 +48,10 @@ impl OrderSummaryData {
     /// Nº de unidades, no de líneas.
     pub fn total_units(&self) -> i32 {
         self.items.iter().map(|it| it.quantity).sum()
+    }
+
+    pub fn mixed_status(&self) -> bool {
+        mixed_status(&self.items)
     }
 
     /// Fecha corta. Es la primera del proyecto que se pinta: hasta ahora

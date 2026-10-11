@@ -91,6 +91,27 @@
             }
         }
     }
+    /* Estado de una línea: solo se pinta cuando las líneas del pedido no van
+       todas igual. Mismos colores que la etiqueta del pedido. */
+    .line-status{
+        display: inline-block;
+        font-size: 0.8em;
+        border-radius: 15px;
+        padding: 0.2em 0.7em;
+        background-color: #e6f4ea;
+        color: #0b6b20;
+
+        &.order-status-0,
+        &.order-status-1,
+        &.order-status-3{
+            background-color: #fff4d6;
+            color: #7a4d00;
+        }
+        &.order-status-2{
+            background-color: #fde4e4;
+            color: #a01212;
+        }
+    }
     .lines{
         display: flex;
         flex-direction: column;

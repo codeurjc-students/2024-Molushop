@@ -39,6 +39,9 @@
                         <div class="variations">{{item.variation_label}}</div>
                         {% endif %}
                         <div class="quantity">x{{item.quantity}}</div>
+                        {% if order.mixed_status() %}
+                        <div><span class="line-status order-status-{{item.status}}">{{item.status_label()}}</span></div>
+                        {% endif %}
                     </div>
                 </div>
                 {% endfor %}

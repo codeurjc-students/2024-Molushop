@@ -30,6 +30,13 @@ pub fn status_label(status: i16) -> &'static str {
     }
 }
 
+/// ¿Tienen las líneas estados distintos? Pasa cuando el pedido mezcla tiendas y
+/// cada una va a su ritmo, o cuando se cancela solo una parte. Entonces la
+/// etiqueta del pedido (el resumen) no basta y cada línea enseña la suya.
+pub fn mixed_status(items: &[OrderLineData]) -> bool {
+    items.windows(2).any(|pair| pair[0].status != pair[1].status)
+}
+
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_detail_v1/order_detail_v1.html")]
 pub struct OrderDetailV1{
@@ -49,6 +56,8 @@ pub struct OrderLineData{
     pub unit_price: BigDecimal,
     pub quantity: i32,
     pub line_total: BigDecimal,
+    /// Estado de envío de esta línea (`order_items.status`).
+    pub status: i16,
     /// Ficha del producto, para enlazar el título. Vacío = sin enlace: la lista
     /// de "mis pedidos" no lo rellena porque allí la tarjeta entera ya es un
     /// enlace al pedido, y un `<a>` dentro de otro no es HTML válido.
@@ -81,6 +90,12 @@ pub struct OrderData{
     pub ship_province: String,
     pub items: Vec<OrderLineData>,
     pub cart_url: &'static str
+}
+
+impl OrderLineData {
+    pub fn status_label(&self) -> &'static str {
+        status_label(self.status)
+    }
 }
 
 impl Default for OrderData {
@@ -129,6 +144,10 @@ impl OrderData {
         self.items.iter().map(|it| it.quantity).sum()
     }
 
+    pub fn mixed_status(&self) -> bool {
+        mixed_status(&self.items)
+    }
+
     /// `product_ids` traduce `product_var_id` -> `product_id`: la línea guarda
     /// la variación comprada, pero la ficha es del producto.
     pub fn from_db(order: Order, items: Vec<OrderItem>, product_ids: &HashMap<Uuid, Uuid>) -> Self {
@@ -175,6 +194,7 @@ impl From<OrderItem> for OrderLineData {
             unit_price: db.unit_price,
             quantity: db.quantity,
             line_total: db.line_total,
+            status: db.status,
             product_url: String::new()
         }
     }
