@@ -71,11 +71,24 @@
             font-size: 0.9em;
             color: #555555;
         }
+        /* Verde = entregado (4). Amarillo = en curso: pendiente (0),
+           confirmado (1) o enviado (3). Rojo = cancelado (2). */
         .order-status{
             background-color: #e6f4ea;
             color: #0b6b20;
             border-radius: 15px;
             padding: 0.4em 0.9em;
+
+            &.order-status-0,
+            &.order-status-1,
+            &.order-status-3{
+                background-color: #fff4d6;
+                color: #7a4d00;
+            }
+            &.order-status-2{
+                background-color: #fde4e4;
+                color: #a01212;
+            }
         }
     }
     .lines{

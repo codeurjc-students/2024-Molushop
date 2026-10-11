@@ -26,7 +26,7 @@
                     <span class="order-number">Pedido nº {{order.order_number}}</span>
                     <span class="order-date">{{order.date_label()}}</span>
                 </div>
-                <span class="order-status">{{order.status_label()}}</span>
+                <span class="order-status order-status-{{order.status}}">{{order.status_label()}}</span>
             </div>
 
             <div class="lines">

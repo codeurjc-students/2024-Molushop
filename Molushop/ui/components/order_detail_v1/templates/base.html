@@ -22,7 +22,7 @@
             <h1>Pedido nº {{order.order_number}}</h1>
             {% endif %}
         </div>
-        <span class="order-status">{{order.status_label()}}</span>
+        <span class="order-status order-status-{{order.status}}">{{order.status_label()}}</span>
     </div>
 
     <div class="order-body">
