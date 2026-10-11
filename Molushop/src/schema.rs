@@ -189,6 +189,8 @@ diesel::table! {
         currency -> Bpchar,
         quantity -> Int4,
         line_total -> Numeric,
+        store_id -> Nullable<Uuid>,
+        status -> Int2,
     }
 }
 
@@ -381,6 +383,7 @@ diesel::joinable!(images_product_variations -> images_product (image_id));
 diesel::joinable!(images_product_variations -> product_variations (variation_id));
 diesel::joinable!(order_items -> orders (order_id));
 diesel::joinable!(order_items -> product_variations (product_var_id));
+diesel::joinable!(order_items -> seller (store_id));
 diesel::joinable!(orders -> base_user (user_id));
 diesel::joinable!(orders -> carts (cart_id));
 diesel::joinable!(orders -> customer_address (shipping_address_id));

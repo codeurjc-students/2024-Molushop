@@ -523,6 +523,11 @@ pub struct OrderItem {
     pub currency: String,
     pub quantity: i32,
     pub line_total: BigDecimal,
+    /// Tienda de la línea, para "pedidos de mi tienda". `None` si la tienda se
+    /// borró o la línea es anterior y su producto ya no tiene tienda.
+    pub store_id: Option<Uuid>,
+    /// Estado de envío de ESTA línea (mismos valores que `orders.status`).
+    pub status: i16,
 }
 
 #[derive(Insertable)]
@@ -540,6 +545,8 @@ pub struct NewOrderItem<'a> {
     pub currency: &'a str,
     pub quantity: i32,
     pub line_total: &'a BigDecimal,
+    pub store_id: Option<&'a Uuid>,
+    pub status: i16,
 }
 
 use diesel::sql_types::{Uuid as SqlUuid, Text, Nullable, Numeric,SmallInt,Bool,Json};
@@ -644,6 +651,10 @@ pub struct CartItem1{
     pub currency: Option<String>,
     #[diesel(sql_type = Nullable<Text>)]
     pub store_name: Option<String>,
+    /// La tienda de `store_name`. El carrito no la pinta; está aquí porque la
+    /// línea del pedido la guarda.
+    #[diesel(sql_type = Nullable<SqlUuid>)]
+    pub store_id: Option<Uuid>,
     #[diesel(sql_type = Integer)]
     pub quantity: i32,
     #[diesel(sql_type = Integer)]

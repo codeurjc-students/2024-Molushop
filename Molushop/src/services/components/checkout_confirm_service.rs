@@ -11,6 +11,7 @@ use crate::schema::{carts, cart_products, customer_address, orders, order_items}
 use crate::models::models_x::{Cart, CartItem1, NewCart, NewCustomerAddress, NewOrder, NewOrderItem};
 use crate::models::components::cart_total_v1::{CartTotalData, CartItemData};
 use crate::models::components::checkout_v1::ConfirmForm;
+use crate::models::components::order_detail_v1::ORDER_CONFIRMED;
 use crate::models::error::ServiceError;
 use crate::services::components::cart_get_service::get_cart_items_conn;
 use crate::services::components::checkout_get_service::parse_line_ids;
@@ -120,7 +121,7 @@ pub async fn confirm_order(
                 id: &order_id,
                 user_id,
                 cart_id: Some(&cart.id),
-                status: 1, // CONFIRMED
+                status: ORDER_CONFIRMED,
                 currency: &totals.currency,
                 subtotal: &totals.total,
                 discount_total: &zero,
@@ -185,6 +186,8 @@ pub async fn confirm_order(
                     currency: currency.trim(),
                     quantity: row.quantity,
                     line_total: &line_total,
+                    store_id: row.store_id.as_ref(),
+                    status: ORDER_CONFIRMED,
                 })
                 .execute(conn)
                 .await

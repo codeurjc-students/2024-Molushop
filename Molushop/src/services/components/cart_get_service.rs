@@ -58,6 +58,7 @@ pub async fn get_cart_items_conn(
             pr.price,
             pr.currency,
             s.store_name,
+            s.store_id,
             cp.quantity,
             pv.stock,
             (pr.price * cp.quantity) AS subtotal
@@ -73,7 +74,7 @@ pub async fn get_cart_items_conn(
             LIMIT 1
         ) pr ON true
         LEFT JOIN LATERAL (
-            SELECT s2.store_name
+            SELECT s2.store_name, s2.id AS store_id
             FROM product_seller ps
             JOIN seller s2 ON s2.id = ps.seller_id AND s2.status = 1
             WHERE ps.product_id = p.id

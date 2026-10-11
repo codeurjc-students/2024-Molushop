@@ -9,13 +9,23 @@ use crate::constants::money::{DEFAULT_CURRENCY, symbol_of};
 use crate::constants::urls::{CART_URL, PRODUCT_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
 
+// Valores de `orders.status` y de `order_items.status` (CHECK 0-4). El del pedido
+// es el resumen de los de sus líneas.
+pub const ORDER_PENDING: i16 = 0;
+pub const ORDER_CONFIRMED: i16 = 1;
+pub const ORDER_CANCELLED: i16 = 2;
+pub const ORDER_SHIPPED: i16 = 3;
+pub const ORDER_DELIVERED: i16 = 4;
+
 /// Etiqueta de `orders.status`. Vive suelta y no como método porque la usan la
 /// ficha del pedido y la lista de "mis pedidos": si cada una tuviera su `match`,
 /// añadir un estado nuevo arreglaría una y dejaría la otra mintiendo en silencio.
 pub fn status_label(status: i16) -> &'static str {
     match status {
-        1 => "Confirmado",
-        2 => "Cancelado",
+        ORDER_CONFIRMED => "Confirmado",
+        ORDER_CANCELLED => "Cancelado",
+        ORDER_SHIPPED => "Enviado",
+        ORDER_DELIVERED => "Entregado",
         _ => "Pendiente"
     }
 }
