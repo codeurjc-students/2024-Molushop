@@ -122,6 +122,9 @@ pub struct Identifier{
 }*/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GeneralForm{
+    // Un producto sin variaciones tiene una única variación sin atributos: el
+    // formulario no manda ningún `attributes[...]` y la clave ni aparece en el JSON.
+    #[serde(default)]
     pub attributes: Vec<AttributeForm>,
     pub status: String 
 }
