@@ -10,6 +10,7 @@
         {% endif %}
         {% if panel_nav.is_admin %}
         <li><a href="/admin/stores" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>
+        <li><a href="/admin/orders" {% if panel_nav.active == "admin_orders" %}class="active" aria-current="page"{% endif %}>Todos los pedidos</a></li>
         {% endif %}
     </ul>
     <div class="panel-nav-right">

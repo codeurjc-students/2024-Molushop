@@ -16,12 +16,12 @@ pub struct NavStore {
 pub struct PanelNav {
     /// Usuario con la sesión abierta.
     pub username: String,
-    /// Enseña el enlace a `/admin`.
+    /// Enseña los enlaces a `/admin/stores` y `/admin/orders`.
     pub is_admin: bool,
     /// `Some` en las páginas de `/panel/stores/{store_id}/...`: enseña el nombre
     /// de la tienda y sus enlaces (Productos, Añadir producto, Pedidos).
     pub store: Option<NavStore>,
-    /// Sección marcada: "home", "products", "create", "orders" o "admin".
+    /// Sección marcada: "home", "products", "create", "orders", "admin" o "admin_orders".
     pub active: &'static str,
     /// POST de logout de la tienda (misma sesión y cookie).
     pub logout_url: &'static str,

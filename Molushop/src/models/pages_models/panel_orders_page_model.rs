@@ -2,8 +2,8 @@ use askama::Template;
 use crate::models::components::panel_nav::PanelNav;
 use crate::services::panel_orders_service::PanelOrder;
 
-/// Listado de pedidos del panel. Lo usa la tienda (`/panel/stores/{id}/orders`,
-/// solo con sus líneas).
+/// Listado de pedidos del panel. Lo usan la tienda (`/panel/stores/{id}/orders`,
+/// solo con sus líneas) y el admin (`/admin/orders`, con todas).
 #[derive(Template,Clone,Debug)]
 #[template(path="pages/panel/orders.html")]
 pub struct PanelOrdersPage{

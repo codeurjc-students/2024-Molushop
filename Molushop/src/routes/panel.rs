@@ -18,6 +18,7 @@ use crate::routes::panel_products;
 use crate::routes::panel_orders;
 use crate::routes::panel_register;
 use crate::routes::admin_stores::{self, ADMIN_STORES};
+use crate::routes::admin_orders;
 use crate::controllers::components::scope::scope_panel_components;
 use crate::controllers::createProduct::create_product_controllers::scope_create_product;
 
@@ -48,6 +49,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 .wrap(Auth::new())
                 .route("", web::get().to(admin_home))
                 .configure(admin_stores::config)
+                .configure(admin_orders::config)
         );
 }
 
@@ -131,7 +133,7 @@ async fn panel_home(panel_user: web::ReqData<PanelUser>) -> HttpResponse {
         .body(page)
 }
 
-/// Lo único exclusivo del admin hoy es la gestión de tiendas.
+/// La portada del admin es la gestión de tiendas; los pedidos van aparte en la barra.
 async fn admin_home() -> HttpResponse {
     HttpResponse::Found()
         .insert_header((header::LOCATION, ADMIN_STORES))

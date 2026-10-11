@@ -33,8 +33,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 #[derive(Deserialize)]
 pub struct OrderQuery {
-    ok: Option<String>,
-    error: Option<String>,
+    pub ok: Option<String>,
+    pub error: Option<String>,
 }
 
 // Los avisos viajan como códigos y el texto se pone aquí: así la URL no puede
@@ -125,7 +125,7 @@ async fn order_detail(
 
 #[derive(Deserialize)]
 pub struct LineStatusForm {
-    status: i16,
+    pub status: i16,
 }
 
 async fn line_status(

@@ -8,6 +8,7 @@ pub mod panel;
 pub mod panel_products;
 pub mod panel_orders;
 pub mod admin_stores;
+pub mod admin_orders;
 pub mod panel_register;
 
 use actix_web::web;
