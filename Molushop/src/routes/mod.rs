@@ -6,6 +6,7 @@ pub mod checkout;
 pub mod orders;
 pub mod panel;
 pub mod panel_products;
+pub mod panel_orders;
 pub mod admin_stores;
 pub mod panel_register;
 

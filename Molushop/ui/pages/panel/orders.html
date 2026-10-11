@@ -1,0 +1,44 @@
+{% extends "layouts/panel.html" %}
+{% block content %}
+    <div class="panel-home admin-stores panel-orders">
+        <h1>{{title}}</h1>
+        {% if !all_lines %}
+        <p class="admin-hint">De cada pedido solo se muestran los artículos de esta tienda.</p>
+        {% endif %}
+
+        {% if orders.is_empty() %}
+        <p class="panel-home-note">Todavía no hay ningún pedido.</p>
+        {% else %}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Pedido</th>
+                    <th>Fecha</th>
+                    <th>Comprador</th>
+                    <th>Artículos</th>
+                    <th>Importe</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td><a href="{{base_url}}/{{order.id}}">Nº {{order.order_number}}</a></td>
+                    <td>{{order.created}}</td>
+                    <td>{{order.buyer}}</td>
+                    <td>
+                        <ul class="admin-members">
+                            {% for line in order.lines %}
+                            <li>{{line.product_name}} x{{line.quantity}}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                    <td>{{order.lines_total()}} {{order.currency_symbol()}}</td>
+                    <td><span class="panel-order-status panel-order-status-{{order.status()}}">{{order.status_label()}}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+{% endblock %}

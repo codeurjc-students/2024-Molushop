@@ -30,7 +30,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .route("/stores/{store_id}/products/edit/{id}", web::get().to(products_edit));
 }
 
-fn html(status: StatusCode, body: String) -> HttpResponse {
+pub fn html(status: StatusCode, body: String) -> HttpResponse {
     HttpResponse::build(status)
         .content_type("text/html; charset=utf-8")
         .body(body)
@@ -38,7 +38,7 @@ fn html(status: StatusCode, body: String) -> HttpResponse {
 
 /// La tienda de la URL o la respuesta de error. 404 tanto si no existe como si
 /// el usuario no puede entrar (ajena, pendiente o rechazada): no se revela cuál.
-async fn store_or_response(
+pub async fn store_or_response(
     panel_user: &PanelUser,
     store_id: &Uuid,
     pool: &DbPool,

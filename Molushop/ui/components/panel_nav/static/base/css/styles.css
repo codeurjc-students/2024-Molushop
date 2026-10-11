@@ -295,3 +295,36 @@
 .admin-delete {
     margin-top: 8px;
 }
+
+/* Pedidos del panel */
+.panel-order-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    background: #d9e2ec;
+    color: #1f2933;
+    vertical-align: middle;
+}
+
+/* 0 pendiente, 1 confirmado, 2 cancelado, 3 enviado, 4 entregado */
+.panel-order-status-0 { background: #fffbea; color: #8d2b0b; }
+.panel-order-status-2 { background: #ffe3e3; color: #8a041a; }
+.panel-order-status-3 { background: #e0e8f9; color: #19216c; }
+.panel-order-status-4 { background: #e3f9e5; color: #0e5814; }
+
+.panel-order-address {
+    font-style: normal;
+    line-height: 1.5;
+}
+
+.panel-orders .admin-box h2 + p,
+.panel-orders .admin-box address {
+    margin: 0 0 12px;
+}
+
+.panel-order-total {
+    margin-top: 16px;
+    text-align: right;
+}

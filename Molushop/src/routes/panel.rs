@@ -15,6 +15,7 @@ use crate::models::pages_models::panel_home_page_model::PanelHomePage;
 use crate::models::components::panel_nav::PanelNav;
 use crate::services::panel_role_service::{get_panel_user, PanelUser};
 use crate::routes::panel_products;
+use crate::routes::panel_orders;
 use crate::routes::panel_register;
 use crate::routes::admin_stores::{self, ADMIN_STORES};
 use crate::controllers::components::scope::scope_panel_components;
@@ -37,6 +38,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
                 .wrap(Auth::new())
                 .route("", web::get().to(panel_home))
                 .configure(panel_products::config)
+                .configure(panel_orders::config)
                 .service(scope_panel_components())
                 .service(scope_create_product())
 )

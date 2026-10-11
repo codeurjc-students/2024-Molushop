@@ -1,0 +1,78 @@
+{% extends "layouts/panel.html" %}
+{% block content %}
+    <div class="panel-home admin-stores panel-orders">
+        <p><a href="{{base_url}}">&larr; Pedidos</a></p>
+        <h1>Pedido nº {{order.order_number}}
+            <span class="panel-order-status panel-order-status-{{order.status()}}">{{order.status_label()}}</span>
+        </h1>
+
+        {% if let Some(msg) = ok_message %}
+        <p class="admin-msg admin-msg-ok" role="status">{{msg}}</p>
+        {% endif %}
+        {% if let Some(msg) = error_message %}
+        <p class="admin-msg admin-msg-error" role="alert">{{msg}}</p>
+        {% endif %}
+
+        <section class="admin-box">
+            <h2>Datos del pedido</h2>
+            <p>Fecha: {{order.created}} · Comprador: {{order.buyer}}</p>
+            <h2>Dirección de envío</h2>
+            <address class="panel-order-address">
+                {{order.ship_street1}}<br>
+                {% if !order.ship_street2.is_empty() %}{{order.ship_street2}}<br>{% endif %}
+                {{order.ship_postal_code}} {{order.ship_city}}<br>
+                {{order.ship_province}}
+            </address>
+        </section>
+
+        <h2>Artículos ({{order.total_units()}})</h2>
+        {% if !all_lines %}
+        <p class="admin-hint">Solo se muestran los artículos de esta tienda; el pedido puede llevar más de otras.</p>
+        {% endif %}
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Artículo</th>
+                    {% if all_lines %}<th>Tienda</th>{% endif %}
+                    <th>Cantidad</th>
+                    <th>Precio</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for line in order.lines %}
+                <tr>
+                    <td>
+                        {{line.product_name}}
+                        {% if !line.variation_label.is_empty() %}<p class="admin-hint">{{line.variation_label}}</p>{% endif %}
+                        {% if !line.sku.is_empty() %}<p class="admin-hint">Ref. {{line.sku}}</p>{% endif %}
+                    </td>
+                    {% if all_lines %}<td>{{line.store_name}}</td>{% endif %}
+                    <td>{{line.quantity}}</td>
+                    <td>{{line.unit_price}} {{order.currency_symbol()}}</td>
+                    <td>{{line.line_total}} {{order.currency_symbol()}}</td>
+                    <td><span class="panel-order-status panel-order-status-{{line.status}}">{{line.status_label()}}</span></td>
+                    <td>
+                        {# 1 confirmado -> 3 enviado -> 4 entregado; 2 cancelado solo desde confirmado #}
+                        <form method="post" action="{{base_url}}/{{order.id}}/lines/{{line.id}}/status" class="admin-actions">
+                            {% if line.can_ship() %}
+                            <button type="submit" name="status" value="3">Marcar enviado</button>
+                            {% endif %}
+                            {% if line.can_deliver() %}
+                            <button type="submit" name="status" value="4">Marcar entregado</button>
+                            {% endif %}
+                            {% if line.can_cancel() %}
+                            <button type="submit" name="status" value="2" class="admin-btn-danger"
+                                    onclick="return confirm('¿Cancelar este artículo? Sus unidades vuelven al stock y no se puede deshacer.');">Cancelar</button>
+                            {% endif %}
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="panel-order-total">Importe de estos artículos: <strong>{{order.lines_total()}} {{order.currency_symbol()}}</strong></p>
+    </div>
+{% endblock %}

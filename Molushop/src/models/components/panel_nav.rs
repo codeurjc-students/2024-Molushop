@@ -19,9 +19,9 @@ pub struct PanelNav {
     /// Enseña el enlace a `/admin`.
     pub is_admin: bool,
     /// `Some` en las páginas de `/panel/stores/{store_id}/...`: enseña el nombre
-    /// de la tienda y sus enlaces (Productos, Añadir producto).
+    /// de la tienda y sus enlaces (Productos, Añadir producto, Pedidos).
     pub store: Option<NavStore>,
-    /// Sección marcada: "home", "products", "create" o "admin".
+    /// Sección marcada: "home", "products", "create", "orders" o "admin".
     pub active: &'static str,
     /// POST de logout de la tienda (misma sesión y cookie).
     pub logout_url: &'static str,

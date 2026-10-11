@@ -5,4 +5,5 @@ pub mod orders_page_model;
 pub mod panel_login_page_model;
 pub mod panel_home_page_model;
 pub mod admin_stores_page_model;
+pub mod panel_orders_page_model;
 pub mod panel_register_page_model;

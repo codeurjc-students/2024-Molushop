@@ -6,6 +6,7 @@
         <li class="panel-nav-store">{{store.name}}</li>
         <li><a href="/panel/stores/{{store.id}}/products" {% if panel_nav.active == "products" %}class="active" aria-current="page"{% endif %}>Productos</a></li>
         <li><a href="/panel/stores/{{store.id}}/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
+        <li><a href="/panel/stores/{{store.id}}/orders" {% if panel_nav.active == "orders" %}class="active" aria-current="page"{% endif %}>Pedidos</a></li>
         {% endif %}
         {% if panel_nav.is_admin %}
         <li><a href="/admin/stores" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>
