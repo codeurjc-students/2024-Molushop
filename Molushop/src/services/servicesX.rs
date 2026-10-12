@@ -1166,7 +1166,9 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
         todas_las_combinaciones AS (
             SELECT jsonb_agg(
                 jsonb_build_object(
-                    'attributes', v.attributes,
+                    -- NULL en la variación única de un producto sin variaciones:
+                    -- como `[]`, que si no el mapa entero no se puede leer.
+                    'attributes', COALESCE(v.attributes, '[]'::jsonb),
                     -- Como texto, no como número: serde_json lee los números
                     -- JSON como f64 y 150.99 llegaba a BigDecimal como
                     -- 150.990000000000009094947017729282379150390625.

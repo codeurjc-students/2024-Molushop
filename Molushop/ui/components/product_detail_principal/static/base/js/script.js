@@ -98,8 +98,11 @@ const PRODUCT_DETAIL = {
         }
         
     },
-    findVariantByAttrs: function(attrsJson) {                                                                                                                                                        let attrs = (typeof attrsJson === "string") ? JSON.parse(attrsJson) : attrsJson;
-      let attrNames = Object.keys(attrs);                                                                                                                                                          if (attrNames.length === 0) return null;                                                                                                                                               
+    // Sin atributos seleccionados solo encaja la variación única de un producto
+    // sin variaciones (attributes = []); en uno con variaciones no encaja ninguna.
+    findVariantByAttrs: function(attrsJson) {
+      let attrs = (typeof attrsJson === "string") ? JSON.parse(attrsJson) : attrsJson;
+      let attrNames = Object.keys(attrs);
 
       return variantMap.find(variant =>
           attrNames.length === variant.attributes.length &&
