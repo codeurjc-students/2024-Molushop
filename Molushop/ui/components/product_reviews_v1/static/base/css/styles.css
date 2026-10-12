@@ -119,14 +119,6 @@
         gap: 0.5em;
         align-items: flex-start;
     }
-    .review-login-btn{
-        padding: 0.5em 1.2em;
-        border-radius: 999px;
-        background-color: #191919;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-    }
 
     /* Las estrellas están en el HTML del 5 al 1 y aquí se les da la vuelta:
        con ellas en ese orden, "~" alcanza a las de MENOR puntuación, que son
@@ -219,15 +211,6 @@
         gap: 0.8em;
     }
     /* Secundario a propósito: publicar es la acción normal, borrar la rara. */
-    .delete-review{
-        padding: 0.6em 1.4em;
-        border-radius: 999px;
-        border: 1px solid #b00020;
-        background-color: transparent;
-        color: #b00020;
-        font-weight: bold;
-        cursor: pointer;
-    }
     .mine-tag{
         margin-left: 0.4em;
         padding: 0.1em 0.6em;
@@ -238,16 +221,6 @@
         font-weight: normal;
     }
 
-    .publish-review{
-        align-self: flex-start;
-        padding: 0.6em 1.4em;
-        border-radius: 999px;
-        border: none;
-        background-color: #191919;
-        color: white;
-        font-weight: bold;
-        cursor: pointer;
-    }
 
     .reviews{
         display: flex;
@@ -299,19 +272,11 @@
         overflow-wrap: anywhere;
     }
 
+    /* Botones: el aspecto es del átomo m-btn; aquí solo dónde se colocan */
+    .publish-review{
+        align-self: flex-start;
+    }
     .more-reviews{
         align-self: center;
-        padding: 0.6em 1.4em;
-        border-radius: 999px;
-        border: 1px solid #191919;
-        background-color: white;
-        color: #191919;
-        font-weight: bold;
-        cursor: pointer;
-
-        &:hover{
-            background-color: #191919;
-            color: white;
-        }
     }
 }

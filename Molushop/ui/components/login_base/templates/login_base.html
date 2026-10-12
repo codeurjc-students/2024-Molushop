@@ -27,7 +27,7 @@
                     <label for="psw"><b>Password</b></label>
                     <input type="password" placeholder="Enter Password" name="pass" required autocomplete="current-password">
                     
-                    <button type="submit">Login</button>
+                    <button type="submit" class="m-btn m-btn--primary m-btn--block">Login</button>
                     <label>
                         <input type="checkbox" checked="checked" name="remember"> Remember me
                     </label>
@@ -35,19 +35,19 @@
             </form> 
             <div class="container">
                 <hr>
-                <button class="change"
+                <button type="button" class="m-btn m-btn--ghost m-btn--block change"
                     _="on click 
                     set containerOne to the closest .container-ext
                     set containerTwo to the next <div/> from containerOne
                     toggle .disabled on containerOne
                     toggle .disabled on containerTwo
                     end"
-                >Si no tienes cuenta, registrate!</buttonñ>
+                >Si no tienes cuenta, registrate!</button>
             </div>
 
 
             <div class="container" style="background-color:#f1f1f1">
-                <button type="button" class="cancelbtn">Cancel</button>
+                <button type="button" class="m-btn m-btn--secondary cancelbtn">Cancel</button>
                 <span class="psw">Forgot <a href="#">password?</a></span>
             </div>
         </div>
@@ -80,7 +80,7 @@
                     <label for="pass2"><b>Repeat Password</b></label>
                     <input type="password" placeholder="Enter Password" name="pass2" required>
                     
-                    <button type="submit">Register</button>
+                    <button type="submit" class="m-btn m-btn--primary m-btn--block">Register</button>
                     <label>
                         <input type="checkbox" checked="checked"> Remember me
                     </label>
@@ -89,18 +89,18 @@
             
             <div class="container">
                 <hr>
-                <button class="change"
+                <button type="button" class="m-btn m-btn--ghost m-btn--block change"
                     _="on click 
                     set containerOne to the closest .container-ext
                     set containerTwo to the previous .container-ext from containerOne
                     toggle .disabled on containerOne
                     toggle .disabled on containerTwo
                     end"
-                >Ya estoy registrado!</buttonñ>
+                >Ya estoy registrado!</button>
             </div>
 
             <div class="container" style="background-color:#f1f1f1">
-                <button type="button" class="cancelbtn">Cancel</button>
+                <button type="button" class="m-btn m-btn--secondary cancelbtn">Cancel</button>
                 <span class="psw">Forgot <a href="#">password?</a></span>
             </div>
         </div>

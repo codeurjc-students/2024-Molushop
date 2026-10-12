@@ -3,7 +3,7 @@
      <button type="button" class="m-btn m-btn--primary">Añadir al carrito</button>
      <a href="/carrito" class="m-btn m-btn--secondary">Ver carrito</a>
 
-   Variantes: --primary, --secondary, --danger, --ghost
+   Variantes: --primary, --secondary, --danger, --danger-outline, --ghost
    Tamaños:   --sm, (normal), --lg
    Otros:     --block (ocupa todo el ancho)
    Apagado:   atributo `disabled` en <button>; clase `is-disabled` en <a>
@@ -62,6 +62,16 @@
 }
 .m-btn--danger:hover  { background-color: hsl(349 100% 29%); }
 .m-btn--danger:active { background-color: hsl(349 100% 24%); }
+
+/* Acción destructiva que no debe gritar: va al lado de un botón principal
+   (p. ej. "Borrar mi opinión" junto a "Guardar cambios") */
+.m-btn--danger-outline {
+    background-color: var(--color-bg);
+    border-color: var(--color-danger);
+    color: var(--color-danger);
+}
+.m-btn--danger-outline:hover  { background-color: var(--color-danger-soft); }
+.m-btn--danger-outline:active { background-color: hsl(0 85% 90%); }
 
 /* Sin fondo: para acciones secundarias que no deben competir con la principal */
 .m-btn--ghost {

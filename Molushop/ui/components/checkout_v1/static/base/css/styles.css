@@ -123,18 +123,9 @@
             color: #555555;
         }
     }
+    /* El aspecto es del átomo m-btn; aquí solo la separación */
     .confirm-button{
         margin-top: 0.5em;
-        background-color: green;
-        border: none;
-        border-radius: 15px;
-        color: white;
-        font-size: 1em;
-        padding: 0.7em 0.5em;
-        cursor: pointer;
-    }
-    .confirm-button:hover{
-        background-color: #068817;
     }
     .checkout-error{
         background-color: #fdecea;

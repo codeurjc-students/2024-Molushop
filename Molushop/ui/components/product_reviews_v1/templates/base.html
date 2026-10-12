@@ -46,7 +46,7 @@
         <div class="form-error" id="review-form-error"></div>
 
         <div class="form-actions">
-            <button type="submit" class="publish-review">{% if reviews.has_my_review() %}Guardar cambios{% else %}Publicar opinión{% endif %}</button>
+            <button type="submit" class="m-btn m-btn--primary publish-review">{% if reviews.has_my_review() %}Guardar cambios{% else %}Publicar opinión{% endif %}</button>
             {% if reviews.has_my_review() %}
             {% include "components/product_reviews_v1/templates/delete_button.html" %}
             {% endif %}
@@ -68,7 +68,7 @@
          por delegación y lanza auth-required. -->
     <div class="review-login cont-1">
         <span>Identifícate para dejar tu opinión.</span>
-        <button type="button" class="review-login-btn">Identificarme</button>
+        <button type="button" class="m-btn m-btn--primary review-login-btn">Identificarme</button>
     </div>
     {% endif %}
 
@@ -126,7 +126,7 @@
     {% if reviews.has_more() %}
     <!-- Repinta la sección entera con una página más: el fragmento que devuelve
          el controlador es este mismo div, sin el <link> del wrapper. -->
-    <button type="button" class="more-reviews"
+    <button type="button" class="m-btn m-btn--secondary more-reviews"
         hx-get="{{reviews.next_page_url()}}"
         hx-target="#product-reviews-1"
         hx-swap="outerHTML">

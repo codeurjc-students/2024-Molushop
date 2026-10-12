@@ -37,33 +37,16 @@
     font-size: 16px;
 }
 
-.button-container {
+.warning-container .button-container {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-3);
     margin-top: 20px;
-    text-align: center;
 }
 
-.btn {
-    padding: 10px 30px;
-    margin: 0 10px;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 16px;
-}
 
-.btn-yes {
-    background-color: #28a745;
-    color: white;
-}
 
-.btn-no {
-    background-color: #dc3545;
-    color: white;
-}
 
-.btn:hover {
-    opacity: 0.8;
-}
 
 .warning-container.closing {
 	/* Animate when closing */

@@ -77,22 +77,4 @@
 }
 
 /* Estilos para el botón de añadir al carrito */
-.product-card .boton-agregar-carrito {
-    background-color: #007bff; /* Color azul para el botón */
-    color: #fff; /* Texto blanco */
-    border: none; /* Sin borde */
-    border-radius: 5px; /* Esquinas ligeramente redondeadas */
-    padding: 10px 15px; /* Espaciado interno del botón */
-    font-size: 1em; /* Tamaño de fuente del botón */
-    cursor: pointer; /* Cambia el cursor a una mano al pasar por encima */
-    transition: background-color 0.3s ease; /* Transición suave para el color de fondo */
-    width: 100%; /* Ocupa todo el ancho disponible */
-}
 
-.product-card .boton-agregar-carrito:hover {
-    background-color: #0056b3; /* Color más oscuro al pasar el ratón */
-}
-
-.product-card .boton-agregar-carrito:active {
-    background-color: #004085; /* Color aún más oscuro al hacer click */
-}

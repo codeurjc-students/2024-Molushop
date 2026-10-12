@@ -1,7 +1,7 @@
 <!-- En un include porque sale en dos sitios: dentro del formulario y en el
      aviso de "solo compradores". hx-confirm usa el confirm() del navegador:
      el borrado es duro y se lleva el texto. -->
-<button type="button" class="delete-review"
+<button type="button" class="m-btn m-btn--danger-outline delete-review"
     hx-delete="{{reviews.delete_url()}}"
     hx-confirm="¿Borrar tu opinión? No se puede deshacer."
     hx-target="#product-reviews-1"

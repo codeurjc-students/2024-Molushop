@@ -6,7 +6,7 @@
             <span class="warning-text">{{message}}</span>
         </div>
         <div class="button-container">
-            <button class="btn btn-yes"
+            <button type="button" class="m-btn m-btn--primary"
             _="on click trigger closeModal 
             {{hyperscript_action}}
             end"
@@ -16,7 +16,7 @@
                 hx-swap="{{swap}}"
             {% endif %}
             >Sí</button>
-            <button class="btn btn-no" _="on click trigger closeModal">No</button>
+            <button type="button" class="m-btn m-btn--secondary" _="on click trigger closeModal">No</button>
         </div>
     </div>
 </div>
