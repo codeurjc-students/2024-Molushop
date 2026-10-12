@@ -7,7 +7,7 @@ use crate::models::components::product_reviews_v1::ProductReviewsData;
 
 
 #[derive(Template,Clone,Debug)]
-#[template(path="pages/master/es/product/product_page.html")]
+#[template(path="pages/product/product.html")]
 pub struct ProductPage{
     pub user_logged: bool,
     pub page_name:String,

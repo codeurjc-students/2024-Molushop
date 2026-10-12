@@ -1,4 +1,7 @@
-pub mod master;
+pub mod home_page_model;
+pub mod product_page_model;
+pub mod cart_page_model;
+pub mod about_us_page_model;
 pub mod checkout_page_model;
 pub mod order_page_model;
 pub mod orders_page_model;

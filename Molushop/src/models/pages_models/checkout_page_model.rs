@@ -3,8 +3,7 @@ use crate::models::components::nav1_model::*;
 use crate::models::components::login_base_model::LoginProductData;
 use crate::models::components::checkout_v1::CheckoutData;
 
-/// Página de checkout. Vive fuera del árbol muerto `master/es/`, igual que
-/// `routes/checkout.rs`.
+/// Página de checkout.
 #[derive(Template,Clone,Debug)]
 #[template(path="pages/checkout/checkout.html")]
 pub struct CheckoutPage{

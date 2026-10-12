@@ -1,15 +1,20 @@
+//vam
 use askama::Template;
 use crate::models::components::product_card_model::ProductCardData;
 use crate::models::components::nav1_model::*;
 use crate::models::components::login_base_model::LoginProductData;
-use crate::models::components::cart_total_v1::CartTotalData;
 
 #[derive(Template,Clone,Debug)]
-#[template(path="pages/master/es/cart/cart_es.html")]
-pub struct CartPage{
+#[template(path="pages/home/home.html")]
+pub struct Home{
     pub user_logged: bool,
     pub page_name:String,
+    pub product:ProductCardData,
+    pub pcard1:String,
+    pub group_cards2:String,
     pub nav1:Nav1Data,
-    pub login_base_data:LoginProductData,
-    pub cart_total:CartTotalData
+    pub login_base_data:LoginProductData
 }
+
+
+//aqui los elementos de la pagina? tipo variables de componentes?

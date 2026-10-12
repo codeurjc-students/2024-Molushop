@@ -41,7 +41,6 @@ use std::any::type_name;
 use actix_jobs::{Job, Scheduler, run_forever};
 
 use jobs::job_config::init_jobs;
-use routes::master;
 
 fn print_type_of<T>(_: &T) {
     println!("{}", type_name::<T>());
@@ -110,7 +109,6 @@ async fn main() -> std::io::Result<()> {
             .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)
-            //.service(master::scope_master::scope_master(pool_data.clone()))
             .configure(routes::config_routes)
             
             //create_product

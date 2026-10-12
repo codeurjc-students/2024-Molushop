@@ -9,7 +9,6 @@ type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 use crate::middleware::auth::Auth;
 //scope ??
-//master/es/home
 // --> dispatcher --> ---> /home
 
 //cada página tiene su modelo, eso es vrd --> organizarlo tmb
@@ -29,10 +28,9 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
-//url--> master/es/home
 
 //el modelo lo creo aqui o en la pagina de modelos
-use crate::models::pages_models::master::es::home_model::*;
+use crate::models::pages_models::home_page_model::*;
 use crate::services::components::{
     product_card_service::*,
     product_card_group_service::*,

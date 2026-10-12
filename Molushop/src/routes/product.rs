@@ -7,7 +7,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 
-use crate::models::pages_models::master::es::product_page_model::*;
+use crate::models::pages_models::product_page_model::*;
 use crate::services::components::{
     product_card_service::*,
     product_card_group_service::*,
