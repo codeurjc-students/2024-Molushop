@@ -1,4 +1,3 @@
-{% import "components/button_1/templates/base.html" as btn %}
 <div class="cart-total-1" id="cart-total-1" data-update-url="{{cart_total.routes.update}}" data-remove-url="{{cart_total.routes.remove}}" data-checkout-url="{{cart_total.routes.checkout}}">
     <div class="cart-body">
         <div class="cart-main">
@@ -134,7 +133,7 @@
                     </div>
                     <div class="button-continue">
                         {# Sin JS el enlace lleva a /checkout a secas, que compra todo el carrito #}
-                        {% call btn::button_1(cart_total.routes.checkout, "Continuar") %}{% endcall %}
+                        <a href="{{cart_total.routes.checkout}}" class="m-btn m-btn--primary m-btn--block">Continuar</a>
                     </div>
                 </div>
             </div>

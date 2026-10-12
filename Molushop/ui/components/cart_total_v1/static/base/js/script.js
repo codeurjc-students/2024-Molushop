@@ -163,8 +163,7 @@ const CART_TOTAL_V1 = {
         let root = this.root();
         if (root == null) { return; }
 
-        let link = root.querySelector(".button-continue .button-1-a");
-        let button = root.querySelector(".button-continue .button-1");
+        let link = root.querySelector(".button-continue .m-btn");
         if (link == null) { return; }
 
         let base = root.dataset.checkoutUrl || "/checkout";
@@ -177,7 +176,7 @@ const CART_TOTAL_V1 = {
         // no existe; se marca con la clase y se corta el clic.
         let off = ids.length === 0;
         link.classList.toggle("is-disabled", off);
-        if (button != null) { button.classList.toggle("is-disabled", off); }
+        link.setAttribute("aria-disabled", off);
         if (off) { link.removeAttribute("href"); }
     },
 
