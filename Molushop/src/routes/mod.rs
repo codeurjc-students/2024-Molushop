@@ -1,5 +1,6 @@
 pub mod home;
 pub mod about_us;
+pub mod ui_catalog;
 pub mod product;
 pub mod cart;
 pub mod checkout;
@@ -18,6 +19,7 @@ use crate::middleware::auth::Auth;
 pub fn config_routes(cfg: &mut web::ServiceConfig) {
     home::config(cfg);
     about_us::config(cfg);
+    ui_catalog::config(cfg);
     product::config(cfg);
     cart::config(cfg);
     checkout::config(cfg);

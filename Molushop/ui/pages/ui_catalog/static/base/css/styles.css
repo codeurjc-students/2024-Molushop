@@ -1,0 +1,174 @@
+/* Estilos de la propia página de catálogo (no son átomos). */
+
+.ui-catalog {
+    max-width: var(--content-max-width);
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4) var(--space-7);
+    color: var(--color-text);
+    line-height: var(--line-height-base);
+}
+
+.ui-catalog h1 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+}
+
+.ui-catalog h2 {
+    margin: 0 0 var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+    font-size: var(--font-size-2xl);
+    line-height: var(--line-height-tight);
+}
+
+.ui-catalog h3 {
+    margin: var(--space-5) 0 var(--space-2);
+    font-size: var(--font-size-lg);
+}
+
+.ui-catalog section {
+    margin-top: var(--space-7);
+    /* Que el ancla no quede pegada al borde de arriba */
+    scroll-margin-top: var(--space-4);
+}
+
+.ui-catalog code {
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: var(--font-size-sm);
+}
+
+.ui-catalog-header p,
+.ui-catalog-note {
+    margin: 0 0 var(--space-3);
+    color: var(--color-text-muted);
+}
+
+.ui-catalog-index {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+}
+
+.ui-catalog-index a {
+    color: var(--color-primary-strong);
+    font-weight: var(--font-weight-medium);
+}
+
+/* ---- Colores ---- */
+
+.ui-swatches {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+.ui-swatch {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background-color: var(--color-bg);
+}
+
+.ui-swatch-color {
+    height: 64px;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ui-swatch-name,
+.ui-swatch-value {
+    display: block;
+    padding: 0 var(--space-2);
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: var(--font-size-xs);
+    overflow-wrap: anywhere;
+}
+
+.ui-swatch-name  { padding-top: var(--space-2); font-weight: var(--font-weight-bold); }
+.ui-swatch-value { padding-bottom: var(--space-2); color: var(--color-text-muted); }
+
+/* ---- Tipografía y espaciado ---- */
+
+.ui-type-row,
+.ui-space-row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.ui-space-row { align-items: center; }
+
+.ui-label {
+    flex: 0 0 220px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-regular);
+    color: var(--color-text-muted);
+}
+
+.ui-space-bar {
+    height: var(--space-4);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-primary);
+}
+
+/* ---- Radios y sombras ---- */
+
+.ui-boxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-5);
+}
+
+.ui-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 170px;
+    height: 90px;
+    padding: var(--space-2);
+    box-sizing: border-box;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-bg);
+    text-align: center;
+}
+
+.ui-box .ui-label { flex: none; }
+
+/* ---- Demos de átomos ---- */
+
+.ui-demo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    background-color: var(--color-bg);
+}
+
+.ui-demo--narrow > * { max-width: 320px; }
+
+.ui-code {
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-top: none;
+    border-radius: 0 0 var(--radius-md) var(--radius-md);
+    background-color: var(--color-bg-soft);
+    overflow-x: auto;
+}
+
+@media (max-width: 600px) {
+    .ui-type-row,
+    .ui-space-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-1);
+    }
+    .ui-label { flex: none; }
+}

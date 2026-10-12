@@ -1,0 +1,182 @@
+{% extends "layouts/layout1.html" %}
+{# Catálogo del sistema de diseño: enseña las variables de tokens.css y cada
+   átomo con sus variantes. Los colores y medidas no se repiten aquí: el script
+   los lee de las propias variables (atributo data-token). #}
+{% block scripts %}
+    <script src="/static/pages/ui_catalog/js/script.js" defer></script>
+{% endblock%}
+{% block styles %}
+    <link rel="stylesheet" href="/static/pages/ui_catalog/css/styles.css">
+{% endblock %}
+{% block content %}
+<div class="ui-catalog">
+    <header class="ui-catalog-header">
+        <h1>Catálogo de UI</h1>
+        <p>Variables y átomos de Molushop. Antes de escribir un color, un tamaño o un botón nuevo, mira si ya está aquí.</p>
+        <nav class="ui-catalog-index">
+            <a href="#colores">Colores</a>
+            <a href="#tipografia">Tipografía</a>
+            <a href="#espaciado">Espaciado</a>
+            <a href="#radios">Radios</a>
+            <a href="#sombras">Sombras</a>
+            <a href="#botones">Botones</a>
+        </nav>
+    </header>
+
+    <section id="colores">
+        <h2>Colores</h2>
+
+        <h3>Verde principal</h3>
+        <p class="ui-catalog-note">Tono 148 fijo; solo cambian la saturación y la claridad. <code>--green-500</code> es el color de la marca.</p>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--green-50"></div>
+            <div class="ui-swatch" data-token="--green-100"></div>
+            <div class="ui-swatch" data-token="--green-200"></div>
+            <div class="ui-swatch" data-token="--green-300"></div>
+            <div class="ui-swatch" data-token="--green-400"></div>
+            <div class="ui-swatch" data-token="--green-500"></div>
+            <div class="ui-swatch" data-token="--green-600"></div>
+            <div class="ui-swatch" data-token="--green-700"></div>
+            <div class="ui-swatch" data-token="--green-800"></div>
+            <div class="ui-swatch" data-token="--green-900"></div>
+        </div>
+
+        <h3>Grises</h3>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--gray-0"></div>
+            <div class="ui-swatch" data-token="--gray-50"></div>
+            <div class="ui-swatch" data-token="--gray-100"></div>
+            <div class="ui-swatch" data-token="--gray-200"></div>
+            <div class="ui-swatch" data-token="--gray-300"></div>
+            <div class="ui-swatch" data-token="--gray-500"></div>
+            <div class="ui-swatch" data-token="--gray-700"></div>
+            <div class="ui-swatch" data-token="--gray-900"></div>
+        </div>
+
+        <h3>Colores con significado</h3>
+        <p class="ui-catalog-note">Son los que se usan en los componentes. La escala de arriba solo se toca desde <code>tokens.css</code>.</p>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--color-primary"></div>
+            <div class="ui-swatch" data-token="--color-primary-hover"></div>
+            <div class="ui-swatch" data-token="--color-primary-active"></div>
+            <div class="ui-swatch" data-token="--color-primary-strong"></div>
+            <div class="ui-swatch" data-token="--color-primary-soft"></div>
+            <div class="ui-swatch" data-token="--color-on-primary"></div>
+        </div>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--color-text"></div>
+            <div class="ui-swatch" data-token="--color-text-muted"></div>
+            <div class="ui-swatch" data-token="--color-bg"></div>
+            <div class="ui-swatch" data-token="--color-bg-soft"></div>
+            <div class="ui-swatch" data-token="--color-border"></div>
+            <div class="ui-swatch" data-token="--color-border-strong"></div>
+        </div>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--color-success"></div>
+            <div class="ui-swatch" data-token="--color-success-soft"></div>
+            <div class="ui-swatch" data-token="--color-danger"></div>
+            <div class="ui-swatch" data-token="--color-danger-soft"></div>
+            <div class="ui-swatch" data-token="--color-warning"></div>
+            <div class="ui-swatch" data-token="--color-warning-soft"></div>
+            <div class="ui-swatch" data-token="--color-info"></div>
+            <div class="ui-swatch" data-token="--color-info-soft"></div>
+        </div>
+    </section>
+
+    <section id="tipografia">
+        <h2>Tipografía</h2>
+        <p class="ui-catalog-note">Roboto. Los tamaños van en <code>rem</code>.</p>
+        <div class="ui-type-row" data-font-size="--font-size-3xl">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-2xl">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-xl">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-lg">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-md">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-sm">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-xs">Molushop, productos únicos</div>
+
+        <h3>Pesos</h3>
+        <div class="ui-type-row" data-font-weight="--font-weight-regular">El veloz murciélago hindú comía feliz cardillo y kiwi</div>
+        <div class="ui-type-row" data-font-weight="--font-weight-medium">El veloz murciélago hindú comía feliz cardillo y kiwi</div>
+        <div class="ui-type-row" data-font-weight="--font-weight-bold">El veloz murciélago hindú comía feliz cardillo y kiwi</div>
+    </section>
+
+    <section id="espaciado">
+        <h2>Espaciado</h2>
+        <p class="ui-catalog-note">Múltiplos de 4px, para márgenes, rellenos y huecos.</p>
+        <div class="ui-space-row" data-space="--space-1"></div>
+        <div class="ui-space-row" data-space="--space-2"></div>
+        <div class="ui-space-row" data-space="--space-3"></div>
+        <div class="ui-space-row" data-space="--space-4"></div>
+        <div class="ui-space-row" data-space="--space-5"></div>
+        <div class="ui-space-row" data-space="--space-6"></div>
+        <div class="ui-space-row" data-space="--space-7"></div>
+    </section>
+
+    <section id="radios">
+        <h2>Radios</h2>
+        <div class="ui-boxes">
+            <div class="ui-box" data-radius="--radius-sm"></div>
+            <div class="ui-box" data-radius="--radius-md"></div>
+            <div class="ui-box" data-radius="--radius-lg"></div>
+            <div class="ui-box" data-radius="--radius-pill"></div>
+        </div>
+    </section>
+
+    <section id="sombras">
+        <h2>Sombras</h2>
+        <div class="ui-boxes">
+            <div class="ui-box" data-shadow="--shadow-sm"></div>
+            <div class="ui-box" data-shadow="--shadow-md"></div>
+            <div class="ui-box" data-shadow="--shadow-lg"></div>
+        </div>
+    </section>
+
+    <section id="botones">
+        <h2>Botones</h2>
+        <p class="ui-catalog-note">Clase base <code>m-btn</code> más una variante. Vale para <code>&lt;button&gt;</code> y para <code>&lt;a&gt;</code>.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--primary">Añadir al carrito</button>
+            <button type="button" class="m-btn m-btn--secondary">Seguir comprando</button>
+            <button type="button" class="m-btn m-btn--danger">Eliminar</button>
+            <button type="button" class="m-btn m-btn--ghost">Cancelar</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary"&gt;Añadir al carrito&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--secondary"&gt;Seguir comprando&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--danger"&gt;Eliminar&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--ghost"&gt;Cancelar&lt;/button&gt;</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--primary m-btn--sm">Pequeño</button>
+            <button type="button" class="m-btn m-btn--primary">Normal</button>
+            <button type="button" class="m-btn m-btn--primary m-btn--lg">Grande</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary m-btn--sm"&gt;Pequeño&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--primary m-btn--lg"&gt;Grande&lt;/button&gt;</code></pre>
+
+        <h3>Apagado</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--primary" disabled>Sin stock</button>
+            <button type="button" class="m-btn m-btn--secondary" disabled>No disponible</button>
+            <a href="#botones" class="m-btn m-btn--primary is-disabled" aria-disabled="true" tabindex="-1">Enlace apagado</a>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary" disabled&gt;Sin stock&lt;/button&gt;
+&lt;a href="..." class="m-btn m-btn--primary is-disabled" aria-disabled="true" tabindex="-1"&gt;Enlace apagado&lt;/a&gt;</code></pre>
+
+        <h3>Como enlace</h3>
+        <div class="ui-demo">
+            <a href="#botones" class="m-btn m-btn--primary">Continuar</a>
+            <a href="#botones" class="m-btn m-btn--secondary">Ver carrito</a>
+        </div>
+        <pre class="ui-code"><code>&lt;a href="/checkout" class="m-btn m-btn--primary"&gt;Continuar&lt;/a&gt;</code></pre>
+
+        <h3>A todo el ancho</h3>
+        <div class="ui-demo ui-demo--narrow">
+            <button type="button" class="m-btn m-btn--primary m-btn--block">Confirmar pedido</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary m-btn--block"&gt;Confirmar pedido&lt;/button&gt;</code></pre>
+    </section>
+</div>
+{% endblock %}
