@@ -1,0 +1,125 @@
+/* Variables de diseño de Molushop. Es el único sitio donde se escriben colores,
+   tamaños y sombras "a mano": los átomos y los componentes usan estas variables.
+
+   Hay dos niveles:
+   - la escala (--green-500, --gray-200...): los valores en bruto;
+   - los nombres con significado (--color-primary, --color-border...): lo que usa
+     el resto del CSS. Un componente no debería tocar la escala directamente. */
+
+/* Roboto variable (pesos 100-900 en un solo fichero), subconjunto latino.
+   Servida desde el propio proyecto: sin peticiones a terceros. Licencia Apache 2.0. */
+@font-face {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url('/assets/fonts/roboto-latin-wght-normal.woff2') format('woff2');
+}
+
+:root {
+    /* ---- Verde principal: tono 148 fijo, solo cambian saturación y claridad ---- */
+    --green-50:  hsl(148 75% 96%);
+    --green-100: hsl(148 75% 90%);
+    --green-200: hsl(148 75% 82%);
+    --green-300: hsl(148 75% 74%);
+    --green-400: hsl(148 75% 67%);
+    --green-500: #4ce693;            /* el color de la marca: hsl(148 75% 60%) */
+    --green-600: hsl(148 70% 46%);
+    --green-700: hsl(148 70% 34%);
+    --green-800: hsl(148 68% 24%);
+    --green-900: hsl(148 65% 16%);
+
+    /* ---- Grises, con una pizca del tono verde para que no desentonen ---- */
+    --gray-0:   hsl(0 0% 100%);
+    --gray-50:  hsl(148 12% 97%);
+    --gray-100: hsl(148 10% 94%);
+    --gray-200: hsl(148 8% 87%);
+    --gray-300: hsl(148 6% 78%);
+    --gray-500: hsl(148 4% 46%);
+    --gray-700: hsl(148 5% 30%);
+    --gray-900: hsl(148 8% 11%);
+
+    /* ---- Estados ---- */
+    --red-50:    hsl(0 85% 95%);
+    --red-600:   hsl(349 100% 35%);
+    --amber-50:  hsl(44 100% 92%);
+    --amber-500: hsl(42 87% 55%);
+    --amber-800: hsl(38 100% 24%);
+    --blue-50:   hsl(210 90% 95%);
+    --blue-700:  hsl(210 80% 35%);
+
+    /* ---- Colores con significado ---- */
+    --color-primary:        var(--green-500);
+    --color-primary-hover:  var(--green-400);
+    --color-primary-active: var(--green-600);
+    --color-primary-strong: var(--green-700);   /* verde para texto o iconos sobre blanco */
+    --color-primary-soft:   var(--green-50);    /* fondos suaves */
+    /* El verde principal es claro: encima va texto oscuro, no blanco (no se leería) */
+    --color-on-primary:     var(--green-900);
+
+    --color-text:        var(--gray-900);
+    --color-text-muted:  var(--gray-500);
+    --color-text-invert: var(--gray-0);
+    --color-bg:          var(--gray-0);
+    --color-bg-soft:     var(--gray-50);
+    --color-border:      var(--gray-200);
+    --color-border-strong: var(--gray-300);
+    --color-disabled:    var(--gray-300);
+    --color-focus:       var(--green-700);
+
+    --color-success:      var(--green-700);
+    --color-success-soft: var(--green-50);
+    --color-danger:       var(--red-600);
+    --color-danger-soft:  var(--red-50);
+    --color-warning:      var(--amber-800);
+    --color-warning-soft: var(--amber-50);
+    --color-warning-accent: var(--amber-500);
+    --color-info:         var(--blue-700);
+    --color-info-soft:    var(--blue-50);
+
+    /* ---- Tipografía ---- */
+    --font-family-base: 'Roboto', system-ui, -apple-system, "Segoe UI", sans-serif;
+
+    --font-size-xs:  0.75rem;    /* 12px */
+    --font-size-sm:  0.875rem;   /* 14px */
+    --font-size-md:  1rem;       /* 16px */
+    --font-size-lg:  1.125rem;   /* 18px */
+    --font-size-xl:  1.25rem;    /* 20px */
+    --font-size-2xl: 1.5rem;     /* 24px */
+    --font-size-3xl: 2rem;       /* 32px */
+
+    --font-weight-regular: 400;
+    --font-weight-medium:  500;
+    --font-weight-bold:    700;
+
+    --line-height-tight: 1.2;
+    --line-height-base:  1.5;
+
+    /* ---- Espaciado (múltiplos de 4px) ---- */
+    --space-1: 0.25rem;   /* 4px */
+    --space-2: 0.5rem;    /* 8px */
+    --space-3: 0.75rem;   /* 12px */
+    --space-4: 1rem;      /* 16px */
+    --space-5: 1.5rem;    /* 24px */
+    --space-6: 2rem;      /* 32px */
+    --space-7: 3rem;      /* 48px */
+
+    /* ---- Bordes redondeados ---- */
+    --radius-sm:   4px;
+    --radius-md:   8px;
+    --radius-lg:   16px;
+    --radius-pill: 999px;
+
+    /* ---- Sombras ---- */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+    /* ---- Otros ---- */
+    --transition-fast: 120ms ease;
+    --content-max-width: 1200px;
+
+    /* Puntos de corte. Una variable no sirve dentro de @media, así que van
+       escritos en cada @media; estos son los valores acordados:
+       móvil hasta 600px, tablet hasta 900px, escritorio a partir de ahí. */
+}
