@@ -2,7 +2,7 @@
 {% let images = product.images %}
 {% let variations = product.variations %}
 {% let routes = routes_edit_product %}
-<div class="product-edit-container" id="{{product.id}}"
+<div class="m-card m-card--raised product-edit-container" id="{{product.id}}"
     _="on load
         js(me) 
             imageManager.init(me);
