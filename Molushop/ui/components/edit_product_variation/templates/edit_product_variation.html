@@ -37,12 +37,12 @@
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
                 class="general-form" id="generalForm">
-                <div class="form-group">
-                    <label>Nombre</label>
+                <div class="m-field form-group">
+                    <label class="m-label">Nombre</label>
                     <p>{{general.name}}</p>
                 </div>
-                <div class="form-group">
-                    <label>Attributes</label>
+                <div class="m-field form-group">
+                    <label class="m-label">Attributes</label>
                     <div class="attributes-container">
                         {%for attribute in general.attributes%}
                         <div class="attribute-row">
@@ -53,7 +53,7 @@
                             
                             <!-- Texto visible para mostrar el nombre -->
                             <div class="attribute-label">{{attribute.name}}:</div> 
-                            <select name="attributes[{{loop.index0}}][value]" class="form-control">
+                            <select name="attributes[{{loop.index0}}][value]" class="m-input">
                                 <option value="red">{{attribute.value}}</option>
                                 <!-- más opciones -->
                             </select>
@@ -61,9 +61,9 @@
                         {%endfor%}
                     </div>
                 </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="form-control" name="status">
+                <div class="m-field form-group">
+                    <label class="m-label">Status</label>
+                    <select class="m-input" name="status">
                         <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
                         <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
@@ -84,13 +84,13 @@
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
                 >
-                <div class="form-group">
-                    <label>Regular Price</label>
-                    <input type="number" class="form-control" step="0.01" name="regular" value="{{prices.actual_price}}">
+                <div class="m-field form-group">
+                    <label class="m-label">Regular Price</label>
+                    <input type="number" class="m-input" step="0.01" name="regular" value="{{prices.actual_price}}">
                 </div>
-                <div class="form-group">
+                <div class="m-field form-group">
                     <div>
-                        Habilitar oferta para el producto
+                        <label class="m-check">
                         <input type="checkbox"  
                         {% if prices.sale_active %}
                             checked
@@ -106,6 +106,8 @@
                                 add @readonly to objective
                                 set discountActive.value to 'false'
                         end">
+                        Habilitar oferta para el producto
+                        </label>
                         <input 
                         type="hidden" name="discount_active" 
                         {% if prices.sale_active %}
@@ -115,18 +117,18 @@
                         {%endif%}
                         >    
                     </div>
-                    <label>Sale Price</label>
+                    <label class="m-label">Sale Price</label>
                     <input type="hidden" name="option" value="0">
                     <input 
                     {% if !prices.sale_active %}
                         readonly
                     {%endif%} 
-                    type="number" class="form-control discount" step="0.01" name="discount" value="{{prices.sale_price}}">
+                    type="number" class="m-input discount" step="0.01" name="discount" value="{{prices.sale_price}}">
                 </div>
                 <!--
-                <div class="form-group">
-                    <label>Tax Class</label>
-                    <select class="form-control" name="tax_class">
+                <div class="m-field form-group">
+                    <label class="m-label">Tax Class</label>
+                    <select class="m-input" name="tax_class">
                         <option value="standard">Standard</option>
                         <option value="reduced">Reduced Rate</option>
                         <option value="zero">Zero Rate</option>
@@ -179,22 +181,22 @@
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
             >
-                <div class="form-group">
-                    <label>Stock Quantity</label>
-                    <input type="number" class="form-control" name="stock" value="{{stock.number}}">
+                <div class="m-field form-group">
+                    <label class="m-label">Stock Quantity</label>
+                    <input type="number" class="m-input" name="stock" value="{{stock.number}}">
                 </div>
                 <!--
-                <div class="form-group">
-                    <label>Stock Status</label>
-                    <select class="form-control" name="stock_status">
+                <div class="m-field form-group">
+                    <label class="m-label">Stock Status</label>
+                    <select class="m-input" name="stock_status">
                         <option value="in_stock">In stock</option>
                         <option value="out_of_stock">Out of stock</option>
                         <option value="on_backorder">On backorder</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label>Low Stock Threshold</label>
-                    <input type="number" class="form-control" name="low_stock_threshold">
+                <div class="m-field form-group">
+                    <label class="m-label">Low Stock Threshold</label>
+                    <input type="number" class="m-input" name="low_stock_threshold">
                 </div> 
                 -->
                 <div class="form-actions">

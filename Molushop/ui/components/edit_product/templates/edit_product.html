@@ -38,34 +38,34 @@
                 hx-target = "body"
                 hx-swap="beforeend"
                 class="general-form" id="generalForm">
-                <div class="form-group">
-                    <label for="product-title">Product Title</label>
-                    <input name="name" type="text" class="form-control" value="{{general.name}}">
+                <div class="m-field form-group">
+                    <label class="m-label" for="product-title">Product Title</label>
+                    <input id="product-title" name="name" type="text" class="m-input" value="{{general.name}}">
                 </div>
-                <div class="form-group">
-                    <label for="product-description">Product Description</label>
-                    <input name="description" type="text" class="form-control" value="{{general.description}}">
+                <div class="m-field form-group">
+                    <label class="m-label" for="product-description">Product Description</label>
+                    <input id="product-description" name="description" type="text" class="m-input" value="{{general.description}}">
                 </div>
-                <div class="form-group">
-                    <label for="product-brand">Product Brand</label>
-                    <input name="brand" type="text" class="form-control" value="{{general.brand}}">
+                <div class="m-field form-group">
+                    <label class="m-label" for="product-brand">Product Brand</label>
+                    <input id="product-brand" name="brand" type="text" class="m-input" value="{{general.brand}}">
                 </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="form-control" name="status">
+                <div class="m-field form-group">
+                    <label class="m-label">Status</label>
+                    <select class="m-input" name="status">
                         <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
                         <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
                 <!--
-                <div class="form-group">
-                    <label for="slug">SLUG</label>
+                <div class="m-field form-group">
+                    <label class="m-label" for="slug">SLUG</label>
                     <div class="input-group">
-                        <select id="slug" class="form-control">
+                        <select id="slug" class="m-input">
                             <option value="set-new">Set new</option>
                         </select>
-                        <input type="text" class="form-control" placeholder="Enter slug">
+                        <input type="text" class="m-input" placeholder="Enter slug">
                     </div>
                 </div>
                 -->
@@ -128,7 +128,7 @@
                     </div>
                     <div class="tags-section">
                         <h3>Tags</h3>
-                        <input type="text" class="form-control" placeholder="Add tags...">
+                        <input type="text" class="m-input" placeholder="Add tags...">
                         <div class="tags-list">
                             <!-- Lista de tags -->
                         </div>
@@ -144,17 +144,17 @@
         <!-- Pestaña Prices 
         <div class="tab-pane" id="prices">
             <form class="prices-form" id="pricesForm">
-                <div class="form-group">
-                    <label>Regular Price</label>
-                    <input type="number" class="form-control" step="0.01">
+                <div class="m-field form-group">
+                    <label class="m-label">Regular Price</label>
+                    <input type="number" class="m-input" step="0.01">
                 </div>
-                <div class="form-group">
-                    <label>Sale Price</label>
-                    <input type="number" class="form-control" step="0.01">
+                <div class="m-field form-group">
+                    <label class="m-label">Sale Price</label>
+                    <input type="number" class="m-input" step="0.01">
                 </div>
-                <div class="form-group">
-                    <label>Tax Status</label>
-                    <select class="form-control">
+                <div class="m-field form-group">
+                    <label class="m-label">Tax Status</label>
+                    <select class="m-input">
                         <option>Taxable</option>
                         <option>None</option>
                     </select>
@@ -169,12 +169,12 @@
         <!-- Pestaña Shipping 
         <div class="tab-pane" id="shipping">
             <form class="prices-form" id="shippingForm">
-                <div class="form-group">
-                    <label>Weight (kg)</label>
-                    <input type="number" class="form-control" step="0.01">
+                <div class="m-field form-group">
+                    <label class="m-label">Weight (kg)</label>
+                    <input type="number" class="m-input" step="0.01">
                 </div>
-                <div class="form-group">
-                    <label>Dimensions (cm)</label>
+                <div class="m-field form-group">
+                    <label class="m-label">Dimensions (cm)</label>
                     <div class="dimensions-group">
                         <input type="number" placeholder="Length">
                         <input type="number" placeholder="Width">
@@ -191,13 +191,13 @@
         <!-- Pestaña Stock 
         <div class="tab-pane" id="stock">
             <form class="stock-form" id="stockForm">
-                <div class="form-group">
-                    <label>Stock Quantity</label>
-                    <input type="number" class="form-control">
+                <div class="m-field form-group">
+                    <label class="m-label">Stock Quantity</label>
+                    <input type="number" class="m-input">
                 </div>
-                <div class="form-group">
-                    <label>Stock Status</label>
-                    <select class="form-control">
+                <div class="m-field form-group">
+                    <label class="m-label">Stock Status</label>
+                    <select class="m-input">
                         <option>In stock</option>
                         <option>Out of stock</option>
                         <option>On backorder</option>
@@ -257,13 +257,13 @@
         <!-- Pestaña Advanced -->
         <div class="tab-pane" id="advanced">
             <form class="advanced-form" id="advancedForm">
-                <div class="form-group">
-                    <label>Purchase Note</label>
-                    <textarea class="form-control"></textarea>
+                <div class="m-field form-group">
+                    <label class="m-label">Purchase Note</label>
+                    <textarea class="m-input"></textarea>
                 </div>
-                <div class="form-group">
-                    <label>Menu Order</label>
-                    <input type="number" class="form-control">
+                <div class="m-field form-group">
+                    <label class="m-label">Menu Order</label>
+                    <input type="number" class="m-input">
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>

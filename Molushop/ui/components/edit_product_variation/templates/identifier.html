@@ -1,10 +1,10 @@
 {% let name = identifier.name%}
 {% let value = identifier.value%}
 <div class="identifier-row" id="row-{{number}}">
-    <div class="form-group-x">
-        <label>Nombre del Identificador</label>
+    <div class="m-field form-group-x">
+        <label class="m-label">Nombre del Identificador</label>
         <input type="text" 
-            class="form-control identifier-name" 
+            class="m-input identifier-name" 
             name="identifiers[{{number}}][name]" 
             list="identifier-options"
             value="{{name}}"
@@ -15,10 +15,10 @@
         {%endfor%}
         </datalist>
     </div>
-    <div class="form-group-x">
-        <label>Valor</label>
+    <div class="m-field form-group-x">
+        <label class="m-label">Valor</label>
         <input type="text" 
-               class="form-control identifier-value" 
+               class="m-input identifier-value" 
                name="identifiers[{{number}}][value]" 
                placeholder="Ingresa el valor..."
                value="{{value}}">
