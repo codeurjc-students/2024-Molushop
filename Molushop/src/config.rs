@@ -5,9 +5,6 @@ use std::path::{Path, PathBuf};
 
 
 pub fn static_config(cfg: &mut web::ServiceConfig) {
-    cfg
-        .service(fs::Files::new("/css", "./target_css").show_files_listing())
-    ;
     //Se agregan las rutas estáticas de los componentes y páginas, se añaden automáticamente si siguen la estrucutra:
     // ui/components/<component_name>/static/base
     // ui/pages/<page_name>/static/base
