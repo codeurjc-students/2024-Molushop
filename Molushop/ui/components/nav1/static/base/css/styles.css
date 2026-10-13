@@ -3,7 +3,8 @@
 /*Meter un maximo*/
 .nav1 {
   
-  background-color: green;
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -51,9 +52,10 @@
     display: flex;
     flex-direction: column;
     gap: 0.5em;
-    background-color: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
   }
   /* Sin esto el display:flex de arriba le gana al atributo hidden */
   .profile-menu[hidden]{
@@ -62,9 +64,9 @@
   .profile-menu-login{
     padding: 0.7em 1em;
     border: none;
-    border-radius: 999px;
-    background-color: #191919;
-    color: white;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
     font-size: 1em;
     font-weight: bold;
     cursor: pointer;
@@ -72,7 +74,7 @@
   .profile-menu-register{
     border: none;
     background-color: transparent;
-    color: #666;
+    color: var(--color-text-muted);
     font-size: 0.9em;
     cursor: pointer;
   }
@@ -83,26 +85,26 @@
     a{
       display: block;
       padding: 0.5em;
-      border-radius: 6px;
-      color: #191919;
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
       text-decoration: none;
     }
     a:hover{
-      background-color: #f2f2f2;
+      background-color: var(--color-bg-soft);
     }
   }
   .profile-menu-logout{
     padding: 0.5em;
     border: none;
-    border-top: 1px solid #e5e5e5;
+    border-top: 1px solid var(--color-border);
     background-color: transparent;
-    color: #666;
+    color: var(--color-text-muted);
     font-size: 0.9em;
     text-align: left;
     cursor: pointer;
   }
   .profile-menu-logout:hover{
-    color: #191919;
+    color: var(--color-text);
   }
 
   .container-nav{
@@ -124,8 +126,8 @@
         width: 100%;
         .search-box-container{
           justify-content: space-between;
-          border-radius: 10px;
-          background-color: white;
+          border-radius: var(--radius-md);
+          background-color: var(--color-bg);
           height: 1.5em;
           display: flex;
           align-items: center;
@@ -195,8 +197,8 @@
       position: absolute;
       top: -4px;
       right: -4px;
-      background-color: red;
-      color: white;
+      background-color: var(--color-danger);
+      color: var(--color-text-invert);
       border-radius: 50%;
       width: 1.3em;
       height: 1.3em;
