@@ -23,6 +23,7 @@
             <a href="#campos">Campos</a>
             <a href="#badges">Badges</a>
             <a href="#avisos">Avisos</a>
+            <a href="#tarjetas">Tarjetas</a>
         </nav>
     </header>
 
@@ -324,6 +325,51 @@
             <p class="m-alert m-alert--warning">Tu usuario no tiene acceso al panel. Entra con otra cuenta o <a href="#avisos">solicita una tienda</a>.</p>
         </div>
         <pre class="ui-code"><code>&lt;p class="m-alert m-alert--warning"&gt;... &lt;a href="/panel/register"&gt;solicita una tienda&lt;/a&gt;.&lt;/p&gt;</code></pre>
+    </section>
+
+    <section id="tarjetas">
+        <h2>Tarjetas</h2>
+        <p class="ui-catalog-note">Caja que agrupa contenido. <code>m-card</code> solo pone el fondo, el borde, las esquinas y el relleno; cómo se coloca lo de dentro es cosa de cada componente.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo ui-demo--cards">
+            <div class="m-card">
+                <strong>Normal</strong>
+                <p class="m-hint">Con borde. La de uso general.</p>
+            </div>
+            <div class="m-card m-card--raised">
+                <strong>Con sombra</strong>
+                <p class="m-hint">Para lo que flota sobre la página.</p>
+            </div>
+            <a href="#tarjetas" class="m-card m-card--link">
+                <strong>Enlace</strong>
+                <p class="m-hint">Toda la tarjeta se pulsa.</p>
+            </a>
+        </div>
+        <pre class="ui-code"><code>&lt;div class="m-card"&gt;...&lt;/div&gt;
+&lt;div class="m-card m-card--raised"&gt;...&lt;/div&gt;
+&lt;a href="/panel/stores/1" class="m-card m-card--link"&gt;...&lt;/a&gt;</code></pre>
+
+        <h3>Relleno</h3>
+        <div class="ui-demo ui-demo--cards">
+            <div class="m-card m-card--sm"><strong>Pequeño</strong></div>
+            <div class="m-card"><strong>Normal</strong></div>
+            <div class="m-card m-card--lg"><strong>Grande</strong></div>
+        </div>
+        <pre class="ui-code"><code>&lt;div class="m-card m-card--sm"&gt;...&lt;/div&gt;
+&lt;div class="m-card m-card--lg"&gt;...&lt;/div&gt;</code></pre>
+
+        <h3>Con otros átomos</h3>
+        <div class="ui-demo ui-demo--cards">
+            <div class="m-card ui-demo-card-stack">
+                <div class="ui-demo-card-head">
+                    <strong>Pedido nº 1042</strong>
+                    <span class="m-badge m-badge--info">Enviado</span>
+                </div>
+                <p class="m-hint">3 artículos · 54,90 €</p>
+                <a href="#tarjetas" class="m-btn m-btn--secondary m-btn--sm">Ver pedido</a>
+            </div>
+        </div>
     </section>
 </div>
 {% endblock %}

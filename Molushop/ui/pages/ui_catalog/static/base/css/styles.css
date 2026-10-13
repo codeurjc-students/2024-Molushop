@@ -160,6 +160,12 @@
 /* Bloques apilados a todo el ancho (avisos) */
 .ui-demo--stack { flex-direction: column; align-items: stretch; }
 
+/* Tarjetas: sobre fondo suave para que se vea la caja, y de ancho fijo */
+.ui-demo--cards { align-items: flex-start; background-color: var(--color-bg-soft); }
+.ui-demo--cards > * { flex: 0 1 240px; }
+.ui-demo-card-stack { display: flex; flex-direction: column; align-items: flex-start; gap: var(--space-2); }
+.ui-demo-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); width: 100%; }
+
 .ui-code {
     margin: 0;
     padding: var(--space-3) var(--space-4);
