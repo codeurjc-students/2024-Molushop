@@ -44,27 +44,17 @@
         display: flex;
         flex-direction: column;
         gap: 0.75em;
-        .field{
-            display: flex;
-            flex-direction: column;
-            gap: 0.25em;
-            width: 100%;
-        }
+        /* El aspecto de los campos es del átomo m-field; aquí solo la colocación */
         .field-row{
             display: flex;
             gap: 0.75em;
         }
-        .field-label{
-            font-size: 0.9em;
+        .field-row .m-field{
+            flex: 1;
         }
         .optional{
-            color: #777777;
-        }
-        input{
-            padding: 0.5em;
-            border: 1px solid #000000;
-            border-radius: 3px;
-            font-size: 1em;
+            color: var(--color-text-muted);
+            font-weight: var(--font-weight-regular);
         }
     }
     .lines{
