@@ -20,7 +20,7 @@
     <div class="var-cont">
         <input id="0" type="text" name="0" required> 
     </div>
-    <button hx-get="{{routes.add_variation_value}}" 
+    <button class="m-btn m-btn--secondary m-btn--sm" hx-get="{{routes.add_variation_value}}" 
         hx-target="previous .var-cont"
         hx-swap="beforeend"
         _="on htmx:afterRequest
@@ -32,7 +32,7 @@
             set lastChild's id to father's x
             trigger eventoPrueba on the previous .objetivo">
             Add more variations</button>
-    <button type="button" 
+    <button type="button" class="m-btn m-btn--danger-outline m-btn--sm"
         _="on click
             set father to the closest .cont-vars
             if father's x > 0
