@@ -18,7 +18,7 @@
                         flex-shrink: 0;
                         width: 70px;
                         height: 70px;
-                        background-color: grey;
+                        background-color: var(--color-bg-soft);
                         .image-mini{
                             height: 100%;
                             max-width: 100%;
@@ -110,18 +110,19 @@
                         .variation-name-cont{
                             padding: 0.5em 0.7em;
                             border-radius: 1em;
-                            border: 3px solid #d8efff;
+                            border: 3px solid var(--color-border);
                         }
                         .variation-name-cont:not([disabled]):hover{
-                            border-color: aquamarine;
+                            border-color: var(--color-primary);
                         }
                         .variation-input:checked + .variation-name-cont {
-                            border-color: aquamarine;
+                            border-color: var(--color-primary-strong);
+                            background-color: var(--color-primary-soft);
                         }
                         .variation-name-cont[disabled]{
-                            background-color: #cccccc;
-                            border-color: #999999;
-                            color: #666666;
+                            background-color: var(--gray-100);
+                            border-color: var(--color-disabled);
+                            color: var(--color-text-muted);
                             cursor: not-allowed;
                             opacity: 0.6;
                         }
@@ -131,7 +132,7 @@
                             border-radius: 5px;
                             max-width: 70px;
 
-                            border: 3px solid #d8efff;
+                            border: 3px solid var(--color-border);
                             
                             /*max-height: 60px;*/
                             .variation-image{
@@ -141,7 +142,7 @@
                             }
                         }
                         .variation-image-cont:not([disabled]):hover{
-                            border-color: rgb(212, 57, 18);
+                            border-color: var(--color-primary);
                         }
                     }
 
@@ -161,8 +162,8 @@
                     .quantity-product-cont{
                         display: flex;
                         align-items: center;
-                        background-color: white;
-                        border: 3px solid rgb(236, 236, 236);
+                        background-color: var(--color-bg);
+                        border: 3px solid var(--color-border);
                         border-radius: var(--radius-md);
 
                         input[type="number"]::-webkit-outer-spin-button,
