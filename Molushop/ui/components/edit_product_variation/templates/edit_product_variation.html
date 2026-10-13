@@ -71,7 +71,7 @@
                 </div>
                 <!-- resto del formulario -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save General</button>
+                    <button type="submit" class="m-btn m-btn--primary">Save General</button>
                 </div>
             </form>
         </div>
@@ -133,8 +133,8 @@
                     </select>
                 </div> -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Pricing</button>
-                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
                 </div>
             </form>
         </div>
@@ -154,7 +154,7 @@
                     {% include "components/edit_product_variation/templates/identifier.html"%}
                 {% endfor %}
                 <div>
-                    <button
+                    <button type="button" class="m-btn m-btn--secondary"
                         hx-get="{{routes.new_identifier}}"
                         hx-target="closest div"
                         hx-swap="beforebegin"
@@ -167,7 +167,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Identifiers</button>
+                    <button type="submit" class="m-btn m-btn--primary">Save Identifiers</button>
                 </div>
             </form>
         </div>
@@ -198,8 +198,8 @@
                 </div> 
                 -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Inventory</button>
-                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Save Inventory</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
                 </div>
             </form>
         </div>
