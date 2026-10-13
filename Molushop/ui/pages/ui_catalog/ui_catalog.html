@@ -21,6 +21,7 @@
             <a href="#sombras">Sombras</a>
             <a href="#botones">Botones</a>
             <a href="#campos">Campos</a>
+            <a href="#badges">Badges</a>
         </nav>
     </header>
 
@@ -269,6 +270,36 @@
             <label class="m-check"><input type="radio" name="ui-campo-radio"> Envío urgente</label>
         </div>
         <pre class="ui-code"><code>&lt;label class="m-check"&gt;&lt;input type="checkbox" name="oferta"&gt; Habilitar oferta&lt;/label&gt;</code></pre>
+    </section>
+
+    <section id="badges">
+        <h2>Badges</h2>
+        <p class="ui-catalog-note">Etiqueta corta para un estado. Clase base <code>m-badge</code> más una variante; no se pulsa.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo">
+            <span class="m-badge m-badge--neutral">Confirmado</span>
+            <span class="m-badge m-badge--warning">Pendiente</span>
+            <span class="m-badge m-badge--info">Enviado</span>
+            <span class="m-badge m-badge--success">Entregado</span>
+            <span class="m-badge m-badge--danger">Cancelado</span>
+        </div>
+        <pre class="ui-code"><code>&lt;span class="m-badge m-badge--neutral"&gt;Confirmado&lt;/span&gt;
+&lt;span class="m-badge m-badge--warning"&gt;Pendiente&lt;/span&gt;
+&lt;span class="m-badge m-badge--info"&gt;Enviado&lt;/span&gt;
+&lt;span class="m-badge m-badge--success"&gt;Entregado&lt;/span&gt;
+&lt;span class="m-badge m-badge--danger"&gt;Cancelado&lt;/span&gt;</code></pre>
+
+        <h3>Grande</h3>
+        <p class="ui-catalog-note">Para el estado que encabeza una página o una tarjeta, como el de un pedido.</p>
+        <div class="ui-demo">
+            <span class="m-badge m-badge--lg m-badge--neutral">Confirmado</span>
+            <span class="m-badge m-badge--lg m-badge--warning">Pendiente</span>
+            <span class="m-badge m-badge--lg m-badge--info">Enviado</span>
+            <span class="m-badge m-badge--lg m-badge--success">Entregado</span>
+            <span class="m-badge m-badge--lg m-badge--danger">Cancelado</span>
+        </div>
+        <pre class="ui-code"><code>&lt;span class="m-badge m-badge--lg m-badge--success"&gt;Entregado&lt;/span&gt;</code></pre>
     </section>
 </div>
 {% endblock %}
