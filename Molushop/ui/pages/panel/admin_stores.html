@@ -13,11 +13,13 @@
         <section class="admin-box">
             <h2>Crear tienda</h2>
             <form method="post" action="/admin/stores" class="admin-form">
-                <label>Nombre de la tienda
-                    <input type="text" name="store_name" maxlength="255" required>
+                <label class="m-field">
+                    <span class="m-label">Nombre de la tienda</span>
+                    <input class="m-input" type="text" name="store_name" maxlength="255" required>
                 </label>
-                <label>Usuario que la gestiona (opcional)
-                    <input type="text" name="username" placeholder="username">
+                <label class="m-field">
+                    <span class="m-label">Usuario que la gestiona (opcional)</span>
+                    <input class="m-input" type="text" name="username" placeholder="username">
                 </label>
                 <button type="submit" class="m-btn m-btn--primary">Crear tienda</button>
             </form>
@@ -62,7 +64,7 @@
                             {% endfor %}
                         </ul>
                         <form method="post" action="/admin/stores/{{item.store.id}}/members" class="admin-form admin-form-inline">
-                            <input type="text" name="username" placeholder="username" required aria-label="Usuario para asignar a {{item.store.store_name}}">
+                            <input class="m-input m-input--sm" type="text" name="username" placeholder="username" required aria-label="Usuario para asignar a {{item.store.store_name}}">
                             <button type="submit" class="m-btn m-btn--secondary m-btn--sm">Asignar</button>
                         </form>
                     </td>

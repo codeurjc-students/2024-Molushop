@@ -187,20 +187,6 @@
     gap: 12px;
 }
 
-.admin-form label {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    font-size: 0.9rem;
-}
-
-.admin-form input[type="text"] {
-    padding: 6px 8px;
-    border: 1px solid #9aa5b1;
-    border-radius: 4px;
-    font: inherit;
-}
-
 .admin-form-inline {
     margin-top: 8px;
     gap: 6px;
