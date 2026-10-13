@@ -26,7 +26,7 @@
         }
     }
     .back-link{
-        color: #555555;
+        color: var(--color-text-muted);
         font-size: 0.9em;
     }
 }

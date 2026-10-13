@@ -1,6 +1,5 @@
  /* Bordered form */
 .login-base{
-    font-family: Arial, sans-serif;
     display:flex;
     justify-content: center;
     .cont-total{
@@ -8,8 +7,8 @@
     }
 
     .container-ext{
-        border: 2px solid #c9c9c9; /* Un borde básico */
-        border-radius: 10px; /* Redondea las esquinas */
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
         padding:10px;
     }
     .container-title{

@@ -64,7 +64,7 @@
         .image-cont{
             width: 70px;
             height: 70px;
-            border-radius: 3px;
+            border-radius: var(--radius-sm);
             flex-shrink: 0;
         }
         .line-data{
@@ -77,7 +77,7 @@
         .shop,
         .quantity{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
         .line-money{
             display: flex;
@@ -105,7 +105,7 @@
         }
         .iva{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     /* El aspecto es del átomo m-btn; aquí solo la separación */
@@ -117,8 +117,8 @@
         margin-bottom: 1em;
     }
     .line-failed{
-        border: 1px solid #f5c2c0;
-        border-radius: 10px;
-        background-color: #fdecea;
+        border: 1px solid var(--color-danger);
+        border-radius: var(--radius-md);
+        background-color: var(--color-danger-soft);
     }
 }

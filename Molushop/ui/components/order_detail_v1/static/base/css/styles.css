@@ -23,7 +23,7 @@
             font-size: 1.4em;
         }
         .order-number{
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     .order-body{
@@ -58,7 +58,7 @@
         .image-cont{
             width: 70px;
             height: 70px;
-            border-radius: 10px;
+            border-radius: var(--radius-md);
             flex: 0 0 auto;
         }
         .line-data{
@@ -79,7 +79,7 @@
         }
         .variations, .shop, .quantity{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
         .line-money{
             display: flex;
@@ -87,7 +87,7 @@
         }
     }
     .address{
-        color: #333333;
+        color: var(--color-text);
         line-height: 1.4em;
     }
     .data-resume{

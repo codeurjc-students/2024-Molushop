@@ -2,7 +2,7 @@
 .warning-container {
 	/* Underlay covers entire screen. */
 	position: absolute;
-	background-color:rgba(0,0,0,0.5);
+	background-color: var(--color-overlay);
 	z-index:1000;
     top: 50%;
     left: 50%;
@@ -27,13 +27,13 @@
 }
 
 .warning-icon {
-    color: #856404;
+    color: var(--color-warning);
     font-size: 24px;
     margin-right: 10px;
 }
 
 .warning-text {
-    color: #856404;
+    color: var(--color-warning);
     font-size: 16px;
 }
 

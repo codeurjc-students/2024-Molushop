@@ -77,6 +77,13 @@
     --color-info:         var(--blue-700);
     --color-info-soft:    var(--blue-50);
 
+    /* Estrellas de valoración: el dorado es el del sprite stars.svg */
+    --color-rating:       #d3a81e;
+    --color-rating-empty: var(--gray-200);
+
+    /* Velo oscuro detrás de un modal */
+    --color-overlay:      rgba(0, 0, 0, 0.5);
+
     /* ---- Tipografía ---- */
     --font-family-base: 'Roboto', system-ui, -apple-system, "Segoe UI", sans-serif;
 

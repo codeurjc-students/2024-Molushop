@@ -17,11 +17,11 @@
             font-size: 1.3em;
         }
         .reviews-count{
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     .reviews-empty{
-        color: #555555;
+        color: var(--color-text-muted);
     }
 
     /* Mismo tamaño y reparto que las estrellas de la cabecera de la ficha: el
@@ -60,7 +60,7 @@
         }
         .average-total{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     .summary-bars{
@@ -78,22 +78,22 @@
         .bar-star{
             width: 1.2em;
             text-align: right;
-            color: #555555;
+            color: var(--color-text-muted);
         }
         .bar-track{
             flex: 1;
             height: 0.6em;
-            border-radius: 999px;
-            background-color: #eeeeee;
+            border-radius: var(--radius-pill);
+            background-color: var(--color-border);
             overflow: hidden;
         }
         .bar-fill{
             height: 100%;
-            background-color: #D3A81E;
+            background-color: var(--color-rating);
         }
         .bar-count{
             width: 2em;
-            color: #555555;
+            color: var(--color-text-muted);
             font-size: 0.9em;
         }
     }
@@ -134,7 +134,7 @@
             width: 100%;
             padding: 0;
             margin-bottom: 0.3em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
         input{
             /* Fuera de la vista pero NO display:none: así siguen recibiendo el
@@ -148,7 +148,7 @@
             cursor: pointer;
             font-size: 1.8em;
             line-height: 1;
-            color: #dddddd;
+            color: var(--color-rating-empty);
             transition: color 0.1s;
 
             &::before{
@@ -158,10 +158,10 @@
         input:checked ~ label,
         label:hover,
         label:hover ~ label{
-            color: #D3A81E;
+            color: var(--color-rating);
         }
         input:focus-visible + label{
-            outline: 2px solid #191919;
+            outline: 2px solid var(--color-focus);
             outline-offset: 2px;
         }
     }
@@ -213,8 +213,8 @@
             width: 2.2em;
             height: 2.2em;
             border-radius: 50%;
-            background-color: #191919;
-            color: white;
+            background-color: var(--color-text);
+            color: var(--color-text-invert);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -232,7 +232,7 @@
             }
             .review-date{
                 font-size: 0.85em;
-                color: #555555;
+                color: var(--color-text-muted);
             }
         }
     }

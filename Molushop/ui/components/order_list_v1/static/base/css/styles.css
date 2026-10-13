@@ -17,7 +17,7 @@
             font-size: 1.4em;
         }
         .list-count{
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     .list-empty{
@@ -38,7 +38,7 @@
         color: inherit;
 
         &:hover{
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            box-shadow: var(--shadow-md);
         }
     }
     .card-header{
@@ -57,7 +57,7 @@
         }
         .order-date{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     .lines{
@@ -73,7 +73,7 @@
         .image-cont{
             width: 60px;
             height: 60px;
-            border-radius: 10px;
+            border-radius: var(--radius-md);
             flex: 0 0 auto;
         }
         .line-data{
@@ -84,7 +84,7 @@
         }
         .variations, .quantity{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
     }
     .card-footer{
@@ -92,12 +92,12 @@
         justify-content: space-between;
         align-items: center;
         gap: 1em;
-        border-top: 1px solid #eeeeee;
+        border-top: 1px solid var(--color-border);
         padding-top: 0.8em;
 
         .units{
             font-size: 0.9em;
-            color: #555555;
+            color: var(--color-text-muted);
         }
         .card-total{
             display: flex;
