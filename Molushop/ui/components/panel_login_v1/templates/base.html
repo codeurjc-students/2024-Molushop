@@ -18,11 +18,15 @@
         {% endif %}
 
         <form class="login-form">
-            <label for="panel-login-username">Usuario</label>
-            <input id="panel-login-username" type="text" name="username" required autocomplete="username">
+            <div class="m-field">
+                <label class="m-label" for="panel-login-username">Usuario</label>
+                <input class="m-input" id="panel-login-username" type="text" name="username" required autocomplete="username">
+            </div>
 
-            <label for="panel-login-pass">Contraseña</label>
-            <input id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
+            <div class="m-field">
+                <label class="m-label" for="panel-login-pass">Contraseña</label>
+                <input class="m-input" id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
+            </div>
 
             <p class="login-error" hidden></p>
 

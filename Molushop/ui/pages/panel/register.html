@@ -18,22 +18,32 @@
                 {% if let Some(name) = logged_username %}
                 <p>Sesión iniciada como <strong>{{name}}</strong>. La tienda se asociará a tu cuenta.</p>
                 {% else %}
-                <label for="panel-register-username">Usuario</label>
-                <input id="panel-register-username" type="text" name="username" value="{{username}}" required autocomplete="username">
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-username">Usuario</label>
+                    <input class="m-input" id="panel-register-username" type="text" name="username" value="{{username}}" required autocomplete="username">
+                </div>
 
-                <label for="panel-register-email">Correo electrónico</label>
-                <input id="panel-register-email" type="email" name="email" value="{{email}}" required autocomplete="email">
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-email">Correo electrónico</label>
+                    <input class="m-input" id="panel-register-email" type="email" name="email" value="{{email}}" required autocomplete="email">
+                </div>
 
-                <label for="panel-register-pass">Contraseña</label>
-                <input id="panel-register-pass" type="password" name="pass" required autocomplete="new-password" aria-describedby="panel-register-pass-hint">
-                <small id="panel-register-pass-hint">Al menos 8 caracteres, con mayúscula, minúscula, número y un carácter especial.</small>
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-pass">Contraseña</label>
+                    <input class="m-input" id="panel-register-pass" type="password" name="pass" required autocomplete="new-password" aria-describedby="panel-register-pass-hint">
+                    <p class="m-hint" id="panel-register-pass-hint">Al menos 8 caracteres, con mayúscula, minúscula, número y un carácter especial.</p>
+                </div>
 
-                <label for="panel-register-pass2">Repite la contraseña</label>
-                <input id="panel-register-pass2" type="password" name="pass2" required autocomplete="new-password">
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-pass2">Repite la contraseña</label>
+                    <input class="m-input" id="panel-register-pass2" type="password" name="pass2" required autocomplete="new-password">
+                </div>
                 {% endif %}
 
-                <label for="panel-register-store">Nombre de la tienda</label>
-                <input id="panel-register-store" type="text" name="store_name" value="{{store_name}}" maxlength="255" required>
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-store">Nombre de la tienda</label>
+                    <input class="m-input" id="panel-register-store" type="text" name="store_name" value="{{store_name}}" maxlength="255" required>
+                </div>
 
                 <button type="submit" class="m-btn m-btn--primary">Solicitar tienda</button>
             </form>
