@@ -19,7 +19,7 @@
                 <label>Usuario que la gestiona (opcional)
                     <input type="text" name="username" placeholder="username">
                 </label>
-                <button type="submit">Crear tienda</button>
+                <button type="submit" class="m-btn m-btn--primary">Crear tienda</button>
             </form>
             <p class="admin-hint">Las tiendas que creas tú nacen activas. Las que solicita un vendedor llegan aquí como pendientes.</p>
         </section>
@@ -56,33 +56,33 @@
                             <li>
                                 {{member.username}}
                                 <form method="post" action="/admin/stores/{{item.store.id}}/members/{{member.user_id}}/remove">
-                                    <button type="submit" class="admin-link-btn" aria-label="Quitar a {{member.username}} de {{item.store.store_name}}">Quitar</button>
+                                    <button type="submit" class="m-btn m-btn--danger-link m-btn--sm" aria-label="Quitar a {{member.username}} de {{item.store.store_name}}">Quitar</button>
                                 </form>
                             </li>
                             {% endfor %}
                         </ul>
                         <form method="post" action="/admin/stores/{{item.store.id}}/members" class="admin-form admin-form-inline">
                             <input type="text" name="username" placeholder="username" required aria-label="Usuario para asignar a {{item.store.store_name}}">
-                            <button type="submit">Asignar</button>
+                            <button type="submit" class="m-btn m-btn--secondary m-btn--sm">Asignar</button>
                         </form>
                     </td>
                     <td>
                         <form method="post" action="/admin/stores/{{item.store.id}}/status" class="admin-actions">
                             {# 0 pendiente, 1 activa, 2 inactiva, 3 rechazada #}
                             {% if item.store.status == 0 %}
-                            <button type="submit" name="status" value="1">Aprobar</button>
-                            <button type="submit" name="status" value="3" class="admin-btn-danger">Rechazar</button>
+                            <button type="submit" name="status" value="1" class="m-btn m-btn--primary m-btn--sm">Aprobar</button>
+                            <button type="submit" name="status" value="3" class="m-btn m-btn--danger-outline m-btn--sm">Rechazar</button>
                             {% else if item.store.status == 1 %}
-                            <button type="submit" name="status" value="2" class="admin-btn-danger">Desactivar</button>
+                            <button type="submit" name="status" value="2" class="m-btn m-btn--danger-outline m-btn--sm">Desactivar</button>
                             {% else if item.store.status == 2 %}
-                            <button type="submit" name="status" value="1">Reactivar</button>
+                            <button type="submit" name="status" value="1" class="m-btn m-btn--primary m-btn--sm">Reactivar</button>
                             {% else if item.store.status == 3 %}
-                            <button type="submit" name="status" value="1">Aprobar</button>
+                            <button type="submit" name="status" value="1" class="m-btn m-btn--primary m-btn--sm">Aprobar</button>
                             {% endif %}
                         </form>
                         <form method="post" action="/admin/stores/{{item.store.id}}/delete" class="admin-actions admin-delete"
                               onsubmit="return confirm('¿Borrar esta tienda? No se puede deshacer.');">
-                            <button type="submit" class="admin-link-btn" aria-label="Borrar la tienda {{item.store.store_name}}">Borrar tienda</button>
+                            <button type="submit" class="m-btn m-btn--danger-link m-btn--sm" aria-label="Borrar la tienda {{item.store.store_name}}">Borrar tienda</button>
                         </form>
                     </td>
                 </tr>

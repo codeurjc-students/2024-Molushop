@@ -58,13 +58,13 @@
                         {# 1 confirmado -> 3 enviado -> 4 entregado; 2 cancelado solo desde confirmado #}
                         <form method="post" action="{{base_url}}/{{order.id}}/lines/{{line.id}}/status" class="admin-actions">
                             {% if line.can_ship() %}
-                            <button type="submit" name="status" value="3">Marcar enviado</button>
+                            <button type="submit" name="status" value="3" class="m-btn m-btn--primary m-btn--sm">Marcar enviado</button>
                             {% endif %}
                             {% if line.can_deliver() %}
-                            <button type="submit" name="status" value="4">Marcar entregado</button>
+                            <button type="submit" name="status" value="4" class="m-btn m-btn--primary m-btn--sm">Marcar entregado</button>
                             {% endif %}
                             {% if line.can_cancel() %}
-                            <button type="submit" name="status" value="2" class="admin-btn-danger"
+                            <button type="submit" name="status" value="2" class="m-btn m-btn--danger-outline m-btn--sm"
                                     onclick="return confirm('¿Cancelar este artículo? Sus unidades vuelven al stock y no se puede deshacer.');">Cancelar</button>
                             {% endif %}
                         </form>
