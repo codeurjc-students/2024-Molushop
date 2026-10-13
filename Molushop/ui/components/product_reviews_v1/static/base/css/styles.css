@@ -180,28 +180,10 @@
         white-space: nowrap;
     }
 
-    .review-textarea{
-        width: 100%;
-        box-sizing: border-box;
-        resize: vertical;
-        padding: 0.7em;
-        border: 1px solid #dddddd;
-        border-radius: 10px;
-        font: inherit;
-
-        &:focus{
-            outline: none;
-            border-color: #191919;
-        }
-    }
-
-    /* Vacío no ocupa nada: solo aparece cuando el servidor mete un aviso. */
-    .form-error{
-        color: #b00020;
-
-        &:empty{
-            display: none;
-        }
+    /* El comentario y el aviso de error usan los átomos m-input y m-error.
+       Vacío no ocupa nada: solo aparece cuando el servidor mete un aviso. */
+    .form-error:empty{
+        display: none;
     }
 
     .form-actions{

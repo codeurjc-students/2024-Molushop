@@ -57,7 +57,7 @@ fn session_user_id(req: &HttpRequest) -> Option<Uuid> {
 /// queda donde el usuario está escribiendo en vez de repintar la sección.
 fn form_error(message: &str) -> String {
     format!(
-        "<div class=\"form-error\" id=\"review-form-error\">{}</div>",
+        "<div class=\"m-error form-error\" id=\"review-form-error\">{}</div>",
         message
     )
 }

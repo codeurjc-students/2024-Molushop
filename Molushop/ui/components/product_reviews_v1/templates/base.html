@@ -39,11 +39,11 @@
         </fieldset>
 
         <label class="sr-only" for="review-comment">Comentario</label>
-        <textarea class="review-textarea" id="review-comment" name="comment" rows="4"
+        <textarea class="m-input" id="review-comment" name="comment" rows="4"
             maxlength="{{reviews.max_comment_len()}}"
             placeholder="Cuéntanos qué te ha parecido (opcional)">{{reviews.my_comment()}}</textarea>
 
-        <div class="form-error" id="review-form-error"></div>
+        <div class="m-error form-error" id="review-form-error"></div>
 
         <div class="form-actions">
             <button type="submit" class="m-btn m-btn--primary publish-review">{% if reviews.has_my_review() %}Guardar cambios{% else %}Publicar opinión{% endif %}</button>
@@ -58,7 +58,7 @@
         {% if reviews.has_my_review() %}
         <!-- Opinó cuando tenía el pedido y luego se canceló: ya no la edita,
              pero lo que escribió es suyo y puede quitarlo. -->
-        <div class="form-error" id="review-form-error"></div>
+        <div class="m-error form-error" id="review-form-error"></div>
         {% include "components/product_reviews_v1/templates/delete_button.html" %}
         {% endif %}
     </div>
