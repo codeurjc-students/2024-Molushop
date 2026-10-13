@@ -6,8 +6,8 @@
     set hijo's name to 'variations['+@x+']'+'[name]'"
     x=""
     class="cont-vars">
-    <label for="cat">Nombre categoría:</label>
-    <input class="objetivo" type="text" id="cat" name=""  required 
+    <label class="m-label" for="cat">Nombre categoría:</label>
+    <input class="m-input objetivo" type="text" id="cat" name=""  required 
     _="
     on eventoPrueba or keyup
         set valueNow to my value.trim()
@@ -18,7 +18,7 @@
         for eachChild in inputChild
             set the name of eachChild to 'variations['+numero+']'+'[values]['+(eachChild's id) +']'+'[value]' ">
     <div class="var-cont">
-        <input id="0" type="text" name="0" required> 
+        <input class="m-input" id="0" type="text" name="0" required> 
     </div>
     <button class="m-btn m-btn--secondary m-btn--sm" hx-get="{{routes.add_variation_value}}" 
         hx-target="previous .var-cont"

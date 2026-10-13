@@ -34,33 +34,12 @@ font-size: 1.2rem;
 margin-bottom: 1.5rem;
 }
 
-.select-cat label {
+/* El aspecto de los campos es del átomo m-field. En una variación la etiqueta
+   no tiene envoltorio propio (el hyperscript depende de esa estructura), así
+   que se separa aquí. */
+.select-cat .cont-vars .m-label {
 display: block;
-margin-bottom: 0.5rem;
-color: #34495e;
-font-weight: 500;
-}
-
-.select-cat input[type="text"],
-.select-cat textarea {
-width: 100%;
-padding: 0.8rem;
-border: 1px solid #dce4ec;
-border-radius: 4px;
-font-size: 1rem;
-transition: border-color 0.3s ease;
-}
-
-.select-cat input[type="text"]:focus,
-.select-cat textarea:focus {
-outline: none;
-border-color: #3498db;
-box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
-}
-
-.select-cat textarea {
-min-height: 100px;
-resize: vertical;
+margin-bottom: var(--space-1);
 }
 
 /* Botones: el aspecto lo pone el átomo m-btn; aquí solo la colocación */

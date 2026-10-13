@@ -6,9 +6,9 @@
         <div class="specsContainer" _="on load set @z to 0">
             <h4>Specs:</h4>
             {% for elem in specs %}
-            <div>
-                <label for="{{elem}}">{{elem}}</label>
-                <input type="text" id="{{elem}}" name="specs[{{elem}}]" required>
+            <div class="m-field">
+                <label class="m-label" for="{{elem}}">{{elem}}</label>
+                <input class="m-input" type="text" id="{{elem}}" name="specs[{{elem}}]" required>
             </div>
             {% endfor %}
             <div class="extra"></div>
@@ -34,25 +34,25 @@
         </div>
         
 
-        <div>
-            <label for="id">CODE:</label>
-            <input type="text" id="id" name="code" required>
+        <div class="m-field">
+            <label class="m-label" for="id">CODE:</label>
+            <input class="m-input" type="text" id="id" name="code" required>
         </div>
-        <div>
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="name" required>
+        <div class="m-field">
+            <label class="m-label" for="name">Nombre:</label>
+            <input class="m-input" type="text" id="name" name="name" required>
         </div>
-        <div>
-            <label for="price">Precio:</label>
-            <input pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)">
+        <div class="m-field">
+            <label class="m-label" for="price">Precio:</label>
+            <input class="m-input" pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)">
         </div>
-        <div>
-            <label for="brand">Marca:</label>
-            <input type="text" id="brand" name="brand" required>
+        <div class="m-field">
+            <label class="m-label" for="brand">Marca:</label>
+            <input class="m-input" type="text" id="brand" name="brand" required>
         </div>
-        <div>
-            <label for="description">Descripción:</label>
-            <textarea id="description" name="description"></textarea>
+        <div class="m-field">
+            <label class="m-label" for="description">Descripción:</label>
+            <textarea class="m-input" id="description" name="description"></textarea>
         </div>
         <div class="variations" _="on load set @y to 0">
             
