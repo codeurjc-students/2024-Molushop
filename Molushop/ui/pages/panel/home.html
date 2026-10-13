@@ -3,7 +3,7 @@
     <div class="panel-home">
         <h1>Mis tiendas</h1>
         {% if stores.is_empty() %}
-        <p class="panel-home-note">No gestionas ninguna tienda.</p>
+        <p class="m-alert m-alert--info panel-home-note">No gestionas ninguna tienda.</p>
         {% else %}
         <div class="panel-home-cards">
             {% for store in stores %}

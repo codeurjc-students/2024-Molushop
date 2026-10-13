@@ -6,13 +6,13 @@
         <h1>Panel de Molushop</h1>
 
         {% if panel_login.registered %}
-        <p class="login-notice" role="status">
+        <p class="m-alert m-alert--success" role="status">
             Cuenta creada. Inicia sesión para ver tu tienda: quedará pendiente hasta que un administrador la apruebe.
         </p>
         {% endif %}
 
         {% if panel_login.logged_without_access %}
-        <p class="login-notice">
+        <p class="m-alert m-alert--warning">
             Tu usuario no tiene acceso al panel. Entra con una cuenta de vendedor o de administrador, o <a href="/panel/register">solicita una tienda</a> con esta cuenta.
         </p>
         {% endif %}
@@ -28,7 +28,7 @@
                 <input class="m-input" id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
             </div>
 
-            <p class="login-error" hidden></p>
+            <p class="m-error login-error" hidden></p>
 
             <button type="submit" class="m-btn m-btn--primary">Entrar</button>
         </form>

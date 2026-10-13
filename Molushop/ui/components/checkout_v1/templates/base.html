@@ -10,7 +10,7 @@
     {% if let Some(error) = checkout.error %}
     {# El POST fallido repinta esta misma página en vez de redirigir: así no se
        pierde la dirección recién tecleada, que es lo que más duele reescribir. #}
-    <div class="checkout-error" role="alert">{{error.message}}</div>
+    <div class="m-alert m-alert--danger checkout-error" role="alert">{{error.message}}</div>
     {% endif %}
     <form class="checkout-body" method="post" action="{{checkout.routes.confirm}}">
         <input type="hidden" name="lines" value="{{checkout.line_ids}}">

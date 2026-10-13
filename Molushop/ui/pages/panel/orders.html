@@ -3,11 +3,11 @@
     <div class="panel-home admin-stores panel-orders">
         <h1>{{title}}</h1>
         {% if !all_lines %}
-        <p class="admin-hint">De cada pedido solo se muestran los artículos de esta tienda.</p>
+        <p class="m-hint admin-hint">De cada pedido solo se muestran los artículos de esta tienda.</p>
         {% endif %}
 
         {% if orders.is_empty() %}
-        <p class="panel-home-note">Todavía no hay ningún pedido.</p>
+        <p class="m-alert m-alert--info panel-home-note">Todavía no hay ningún pedido.</p>
         {% else %}
         <table class="admin-table">
             <thead>

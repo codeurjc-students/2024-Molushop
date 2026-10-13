@@ -6,12 +6,12 @@
         <div class="cont-1">
             <h1>Solicitar una tienda</h1>
 
-            <p class="login-notice">
+            <p class="m-alert m-alert--warning">
                 Tu tienda quedará pendiente hasta que un administrador la apruebe. Mientras tanto no podrás publicar productos.
             </p>
 
             {% if let Some(msg) = error %}
-            <p class="login-error" role="alert">{{msg}}</p>
+            <p class="m-error login-error" role="alert">{{msg}}</p>
             {% endif %}
 
             <form class="login-form" method="post" action="/panel/register">

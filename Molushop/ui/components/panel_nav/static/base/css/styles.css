@@ -139,12 +139,9 @@
     border-color: #d9e2ec;
 }
 
-.panel-home-note {
+/* El aspecto es del átomo m-alert; aquí solo la separación */
+.m-alert.panel-home-note {
     margin-top: 24px;
-    padding: 12px 16px;
-    background: #fffbea;
-    border: 1px solid #f0b429;
-    border-radius: 4px;
 }
 
 /* /admin/stores */
@@ -187,21 +184,14 @@
     gap: 6px;
 }
 
-.admin-hint {
+/* El aspecto es de los átomos m-hint y m-alert; aquí solo la separación */
+.m-hint.admin-hint {
     margin: 8px 0 0;
-    color: #52606d;
-    font-size: 0.85rem;
 }
 
-.admin-msg {
+.m-alert.admin-msg {
     margin: 16px 0;
-    padding: 10px 14px;
-    border-radius: 4px;
-    border: 1px solid;
 }
-
-.admin-msg-ok { background: #e3f9e5; border-color: #0e5814; color: #0e5814; }
-.admin-msg-error { background: #ffe3e3; border-color: #8a041a; color: #8a041a; }
 
 .admin-table {
     width: 100%;

@@ -7,10 +7,10 @@
         </h1>
 
         {% if let Some(msg) = ok_message %}
-        <p class="admin-msg admin-msg-ok" role="status">{{msg}}</p>
+        <p class="m-alert m-alert--success admin-msg" role="status">{{msg}}</p>
         {% endif %}
         {% if let Some(msg) = error_message %}
-        <p class="admin-msg admin-msg-error" role="alert">{{msg}}</p>
+        <p class="m-alert m-alert--danger admin-msg" role="alert">{{msg}}</p>
         {% endif %}
 
         <section class="admin-box">
@@ -27,7 +27,7 @@
 
         <h2>Artículos ({{order.total_units()}})</h2>
         {% if !all_lines %}
-        <p class="admin-hint">Solo se muestran los artículos de esta tienda; el pedido puede llevar más de otras.</p>
+        <p class="m-hint admin-hint">Solo se muestran los artículos de esta tienda; el pedido puede llevar más de otras.</p>
         {% endif %}
         <table class="admin-table">
             <thead>
@@ -46,8 +46,8 @@
                 <tr>
                     <td>
                         {{line.product_name}}
-                        {% if !line.variation_label.is_empty() %}<p class="admin-hint">{{line.variation_label}}</p>{% endif %}
-                        {% if !line.sku.is_empty() %}<p class="admin-hint">Ref. {{line.sku}}</p>{% endif %}
+                        {% if !line.variation_label.is_empty() %}<p class="m-hint admin-hint">{{line.variation_label}}</p>{% endif %}
+                        {% if !line.sku.is_empty() %}<p class="m-hint admin-hint">Ref. {{line.sku}}</p>{% endif %}
                     </td>
                     {% if all_lines %}<td>{{line.store_name}}</td>{% endif %}
                     <td>{{line.quantity}}</td>

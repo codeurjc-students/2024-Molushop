@@ -4,10 +4,10 @@
         <h1>Tiendas</h1>
 
         {% if let Some(msg) = ok_message %}
-        <p class="admin-msg admin-msg-ok" role="status">{{msg}}</p>
+        <p class="m-alert m-alert--success admin-msg" role="status">{{msg}}</p>
         {% endif %}
         {% if let Some(msg) = error_message %}
-        <p class="admin-msg admin-msg-error" role="alert">{{msg}}</p>
+        <p class="m-alert m-alert--danger admin-msg" role="alert">{{msg}}</p>
         {% endif %}
 
         <section class="admin-box">
@@ -23,11 +23,11 @@
                 </label>
                 <button type="submit" class="m-btn m-btn--primary">Crear tienda</button>
             </form>
-            <p class="admin-hint">Las tiendas que creas tú nacen activas. Las que solicita un vendedor llegan aquí como pendientes.</p>
+            <p class="m-hint admin-hint">Las tiendas que creas tú nacen activas. Las que solicita un vendedor llegan aquí como pendientes.</p>
         </section>
 
         {% if stores.is_empty() %}
-        <p class="panel-home-note">Todavía no hay ninguna tienda.</p>
+        <p class="m-alert m-alert--info panel-home-note">Todavía no hay ninguna tienda.</p>
         {% else %}
         <table class="admin-table">
             <thead>
@@ -51,7 +51,7 @@
                     <td>{{item.created}}</td>
                     <td>
                         {% if item.members.is_empty() %}
-                        <p class="admin-hint">Sin usuarios</p>
+                        <p class="m-hint admin-hint">Sin usuarios</p>
                         {% endif %}
                         <ul class="admin-members">
                             {% for member in item.members %}
