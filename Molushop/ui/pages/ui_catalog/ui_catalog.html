@@ -22,6 +22,7 @@
             <a href="#botones">Botones</a>
             <a href="#campos">Campos</a>
             <a href="#badges">Badges</a>
+            <a href="#avisos">Avisos</a>
         </nav>
     </header>
 
@@ -300,6 +301,29 @@
             <span class="m-badge m-badge--lg m-badge--danger">Cancelado</span>
         </div>
         <pre class="ui-code"><code>&lt;span class="m-badge m-badge--lg m-badge--success"&gt;Entregado&lt;/span&gt;</code></pre>
+    </section>
+
+    <section id="avisos">
+        <h2>Avisos</h2>
+        <p class="ui-catalog-note">Mensaje en bloque dentro de la página. Clase base <code>m-alert</code> más una variante. Para el error de un campo concreto se usa <code>m-error</code>, no esto.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo ui-demo--stack">
+            <p class="m-alert m-alert--info">Solo se muestran los artículos de esta tienda.</p>
+            <p class="m-alert m-alert--success" role="status">Tienda creada.</p>
+            <p class="m-alert m-alert--warning">Tu tienda quedará pendiente hasta que un administrador la apruebe.</p>
+            <p class="m-alert m-alert--danger">No hay suficiente stock de este artículo.</p>
+        </div>
+        <pre class="ui-code"><code>&lt;p class="m-alert m-alert--info"&gt;...&lt;/p&gt;
+&lt;p class="m-alert m-alert--success" role="status"&gt;Tienda creada.&lt;/p&gt;
+&lt;p class="m-alert m-alert--warning"&gt;...&lt;/p&gt;
+&lt;p class="m-alert m-alert--danger" role="alert"&gt;No hay suficiente stock de este artículo.&lt;/p&gt;</code></pre>
+
+        <h3>Con un enlace</h3>
+        <div class="ui-demo ui-demo--stack">
+            <p class="m-alert m-alert--warning">Tu usuario no tiene acceso al panel. Entra con otra cuenta o <a href="#avisos">solicita una tienda</a>.</p>
+        </div>
+        <pre class="ui-code"><code>&lt;p class="m-alert m-alert--warning"&gt;... &lt;a href="/panel/register"&gt;solicita una tienda&lt;/a&gt;.&lt;/p&gt;</code></pre>
     </section>
 </div>
 {% endblock %}

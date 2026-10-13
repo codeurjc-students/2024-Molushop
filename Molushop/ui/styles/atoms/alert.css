@@ -1,0 +1,56 @@
+/* Átomo: aviso. Mensaje en bloque dentro de la página: el resultado de una
+   acción, un error o algo que conviene saber antes de seguir.
+
+     <p class="m-alert m-alert--success" role="status">Tienda creada.</p>
+     <p class="m-alert m-alert--danger" role="alert">No se ha podido guardar.</p>
+
+   Variantes: --info (por defecto), --success, --warning, --danger
+   Vale para <p> y para <div>. `role="alert"` si es un error que acaba de
+   ocurrir; `role="status"` si solo informa.
+
+   No fija `display` a propósito: si lo hiciera le ganaría al atributo
+   `hidden`, y hay avisos que nacen ocultos y los enseña un script.
+
+   No es el error de un campo concreto: para eso está m-error (field.css). */
+
+.m-alert {
+    box-sizing: border-box;
+    margin: 0;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+    border-radius: var(--radius-md);
+    background-color: var(--color-info-soft);
+    color: var(--color-info);
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+}
+
+/* Los enlaces de dentro heredan el color del aviso, para no meter un azul
+   de navegador sobre un fondo rojo o ámbar. */
+.m-alert a {
+    color: inherit;
+    font-weight: var(--font-weight-medium);
+}
+
+/* ---- Variantes ---- */
+
+.m-alert--info {
+    background-color: var(--color-info-soft);
+    color: var(--color-info);
+}
+
+/* Mismo verde que el badge: --green-800 para que el texto se lea bien. */
+.m-alert--success {
+    background-color: var(--color-success-soft);
+    color: var(--green-800);
+}
+
+.m-alert--warning {
+    background-color: var(--color-warning-soft);
+    color: var(--color-warning);
+}
+
+.m-alert--danger {
+    background-color: var(--color-danger-soft);
+    color: var(--color-danger);
+}
