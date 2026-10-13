@@ -3,10 +3,8 @@
     justify-content: center;
     padding: 3em 1em;
 
+    /* La caja es del átomo m-card; aquí el tamaño y la colocación de lo de dentro */
     .cont-1{
-        background-color: white;
-        border-radius: 15px;
-        padding: 2em;
         width: 100%;
         max-width: 360px;
         display: flex;

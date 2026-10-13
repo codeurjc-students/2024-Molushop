@@ -98,20 +98,7 @@
     margin-top: 24px;
 }
 
-.panel-home-card {
-    display: block;
-    padding: 20px;
-    border: 1px solid #d9e2ec;
-    border-radius: 8px;
-    color: inherit;
-    text-decoration: none;
-    background: #fff;
-}
-
-.panel-home-card:hover {
-    border-color: #1f2933;
-}
-
+/* La caja es del átomo m-card (m-card--link en las tiendas que se pueden abrir) */
 .panel-home-card h2 {
     margin: 0 0 8px;
     font-size: 1.1rem;
@@ -130,13 +117,9 @@
     font-weight: 600;
 }
 
-.panel-home-card-disabled {
-    background: #f5f7fa;
-    color: #52606d;
-}
-
-.panel-home-card-disabled:hover {
-    border-color: #d9e2ec;
+.m-card.panel-home-card-disabled {
+    background-color: var(--color-bg-soft);
+    color: var(--color-text-muted);
 }
 
 /* El aspecto es del átomo m-alert; aquí solo la separación */
@@ -149,12 +132,9 @@
     max-width: 1100px;
 }
 
-.admin-box {
+/* La caja es del átomo m-card; aquí solo la separación */
+.m-card.admin-box {
     margin: 24px 0;
-    padding: 16px 20px;
-    border: 1px solid #d9e2ec;
-    border-radius: 8px;
-    background: #fff;
 }
 
 .admin-box h2 {
