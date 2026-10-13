@@ -23,13 +23,13 @@
                 <p>{{cat}}</p>
             {% endfor %}
             <div class="product-actions">
-                <button class="action-btn edit-btn"
+                <button type="button" class="m-btn m-btn--secondary m-btn--sm"
                     hx-get="/panel/stores/{{product.store_id}}/products/edit/{{product.id}}"
                     hx-target="closest .c-product-panel-group"
                     hx-swap="outerHTML"
                     hx-push-url="true"
                 >Editar</button>
-                <button class="action-btn delete-btn" 
+                <button type="button" class="m-btn m-btn--danger-outline m-btn--sm"
                     hx-get="{{routes.delete_product_modal}}/{{product.id}}"
                     hx-target="body"
                     hx-swap="beforeend"

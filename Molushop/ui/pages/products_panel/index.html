@@ -17,9 +17,7 @@
         <div class="header">
             <h1>Productos de {{store_name}}</h1>
             <input type="text" class="search-bar" placeholder="Buscar productos...">
-            <a href="/panel/stores/{{store_id}}/products/create">
-                <button class="add-product-btn">+ Añadir Producto</button>
-            </a>
+            <a href="/panel/stores/{{store_id}}/products/create" class="m-btn m-btn--primary">+ Añadir Producto</a>
         </div>
     <!--Aqui se incluyen los componentes-->
     {% include "components/product_panel_group/templates/base.html"%}
