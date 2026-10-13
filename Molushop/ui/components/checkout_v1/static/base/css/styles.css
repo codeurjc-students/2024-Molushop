@@ -2,11 +2,6 @@
     display: flex;
     justify-content: center;
     margin-top: 1.5em;
-    .cont-1{
-        padding: 1em;
-        border-radius: 3px;
-        border: 2px solid black;
-    }
     .checkout-empty{
         display: flex;
         flex-direction: column;

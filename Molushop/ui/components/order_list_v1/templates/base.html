@@ -8,19 +8,19 @@
 
     {% if !order_list.logged %}
     <!-- data-login-required: login_modal.js abre el login solo al entrar -->
-    <div class="list-empty cont-1" data-login-required>
+    <div class="list-empty m-card" data-login-required>
         <span>Identifícate para ver tus pedidos.</span>
         <button type="button" class="m-btn m-btn--primary open-login-modal">Identifícate</button>
     </div>
     {% else if order_list.orders.is_empty() %}
-    <div class="list-empty cont-1">
+    <div class="list-empty m-card">
         <span>Todavía no has hecho ningún pedido.</span>
         <a href="{{order_list.home_url}}" class="no-generic-a">Seguir comprando</a>
     </div>
     {% else %}
     <div class="orders">
         {% for order in order_list.orders %}
-        <a href="{{order.detail_url()}}" class="no-generic-a order-card cont-1">
+        <a href="{{order.detail_url()}}" class="no-generic-a order-card m-card m-card--link">
             <div class="card-header">
                 <div class="card-id">
                     <span class="order-number">Pedido nº {{order.order_number}}</span>

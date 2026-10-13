@@ -1,7 +1,7 @@
 <div class="cart-total-1" id="cart-total-1" data-update-url="{{cart_total.routes.update}}" data-remove-url="{{cart_total.routes.remove}}" data-checkout-url="{{cart_total.routes.checkout}}">
     <div class="cart-body">
         <div class="cart-main">
-            <div class="header-container cont-1">
+            <div class="header-container m-card">
                 <div class="header-container-title">
                     <h1>Cesta</h1>
                 </div>
@@ -18,7 +18,7 @@
                     </div>
                 </div>
             </div>
-            <div class="products-container cont-1">
+            <div class="products-container m-card">
                 {% if cart_total.items.is_empty() %}
                 <div class="empty-cart">
                     <span>Tu cesta está vacía</span>
@@ -92,7 +92,7 @@
 
             </div>
         </div>
-        <div class="cart-side cont-1">
+        <div class="cart-side m-card">
             <div class="total-items">
                 <h2 class="title-resume">Resumen</h2>
                 <div class="articles-images">

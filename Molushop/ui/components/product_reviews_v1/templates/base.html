@@ -11,7 +11,7 @@
          400/403/500: sólo el hueco de errores, para no borrar lo escrito
          (extensión response-targets, que ya carga layout1.html). El 403 es
          la compra cancelada entre pintar la ficha y publicar. -->
-    <form class="review-form cont-1"
+    <form class="review-form m-card"
         hx-post="{{reviews.routes.save}}"
         hx-target="#product-reviews-1"
         hx-swap="outerHTML"
@@ -53,7 +53,7 @@
         </div>
     </form>
     {% else if reviews.logged %}
-    <div class="review-login cont-1">
+    <div class="review-login m-card">
         <span>Solo pueden opinar quienes han comprado este producto.</span>
         {% if reviews.has_my_review() %}
         <!-- Opinó cuando tenía el pedido y luego se canceló: ya no la edita,
@@ -66,18 +66,18 @@
     <!-- Sin .open-login-modal: ese enganche se hace una vez al cargar y este
          botón puede llegar después, dentro del "ver más". Lo recoge script.js
          por delegación y lanza auth-required. -->
-    <div class="review-login cont-1">
+    <div class="review-login m-card">
         <span>Identifícate para dejar tu opinión.</span>
         <button type="button" class="m-btn m-btn--primary review-login-btn">Identificarme</button>
     </div>
     {% endif %}
 
     {% if reviews.is_empty() %}
-    <div class="reviews-empty cont-1">
+    <div class="reviews-empty m-card">
         <span>Este producto todavía no tiene opiniones.</span>
     </div>
     {% else %}
-    <div class="reviews-summary cont-1">
+    <div class="reviews-summary m-card">
         <div class="summary-average">
             <span class="average-number">{{reviews.average_label()}}</span>
             <svg aria-hidden="true" focusable="false" class="rating">
@@ -103,7 +103,7 @@
 
     <div class="reviews">
         {% for review in reviews.items %}
-        <article class="review cont-1">
+        <article class="review m-card">
             <div class="review-header">
                 <div class="avatar">{{review.initial()}}</div>
                 <div class="review-who">

@@ -6,11 +6,6 @@
     max-width: 1100px;
     margin: 0 auto;
 
-    .cont-1{
-        background-color: white;
-        border-radius: 15px;
-        padding: 1em;
-    }
     .order-missing{
         display: flex;
         flex-direction: column;

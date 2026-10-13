@@ -13,7 +13,7 @@
     </div>
     {% endif %}
     {% else %}
-    <div class="order-header cont-1">
+    <div class="order-header m-card">
         <div class="order-ok">
             {% if order.is_new %}
             <h1>¡Pedido confirmado!</h1>
@@ -26,7 +26,7 @@
     </div>
 
     <div class="order-body">
-        <div class="order-main cont-1">
+        <div class="order-main m-card">
             <h2 class="section-title">Artículos ({{order.total_units()}})</h2>
             <div class="lines">
                 {% for item in order.items %}
@@ -72,7 +72,7 @@
             </div>
         </div>
 
-        <div class="order-side cont-1">
+        <div class="order-side m-card">
             <h2 class="title-resume">Resumen</h2>
             <div class="data-resume">
                 <div class="space">
