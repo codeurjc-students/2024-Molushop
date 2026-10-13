@@ -23,7 +23,7 @@ use uuid::Uuid;
 
 use crate::constants::money::symbol_of;
 use crate::models::components::order_detail_v1::{
-    status_label, ORDER_CANCELLED, ORDER_CONFIRMED, ORDER_DELIVERED, ORDER_SHIPPED,
+    status_label, status_variant, ORDER_CANCELLED, ORDER_CONFIRMED, ORDER_DELIVERED, ORDER_SHIPPED,
 };
 use crate::models::models_x::{Order, OrderItem};
 use crate::schema::{base_user, order_items, orders};
@@ -105,6 +105,10 @@ impl PanelOrderLine {
         status_label(self.status)
     }
 
+    pub fn status_variant(&self) -> &'static str {
+        status_variant(self.status)
+    }
+
     pub fn can_ship(&self) -> bool {
         required_status(ORDER_SHIPPED) == Some(self.status)
     }
@@ -181,6 +185,10 @@ impl PanelOrder {
 
     pub fn status_label(&self) -> &'static str {
         status_label(self.status())
+    }
+
+    pub fn status_variant(&self) -> &'static str {
+        status_variant(self.status())
     }
 
     /// Nº de unidades, no de líneas.

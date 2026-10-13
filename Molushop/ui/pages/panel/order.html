@@ -3,7 +3,7 @@
     <div class="panel-home admin-stores panel-orders">
         <p><a href="{{base_url}}">&larr; Pedidos</a></p>
         <h1>Pedido nº {{order.order_number}}
-            <span class="panel-order-status panel-order-status-{{order.status()}}">{{order.status_label()}}</span>
+            <span class="m-badge m-badge--lg m-badge--{{order.status_variant()}}">{{order.status_label()}}</span>
         </h1>
 
         {% if let Some(msg) = ok_message %}
@@ -53,7 +53,7 @@
                     <td>{{line.quantity}}</td>
                     <td>{{line.unit_price}} {{order.currency_symbol()}}</td>
                     <td>{{line.line_total}} {{order.currency_symbol()}}</td>
-                    <td><span class="panel-order-status panel-order-status-{{line.status}}">{{line.status_label()}}</span></td>
+                    <td><span class="m-badge m-badge--{{line.status_variant()}}">{{line.status_label()}}</span></td>
                     <td>
                         {# 1 confirmado -> 3 enviado -> 4 entregado; 2 cancelado solo desde confirmado #}
                         <form method="post" action="{{base_url}}/{{order.id}}/lines/{{line.id}}/status" class="admin-actions">

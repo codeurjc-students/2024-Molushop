@@ -193,14 +193,9 @@
         gap: 0.8em;
     }
     /* Secundario a propósito: publicar es la acción normal, borrar la rara. */
+    /* El aspecto es del átomo m-badge */
     .mine-tag{
         margin-left: 0.4em;
-        padding: 0.1em 0.6em;
-        border-radius: 999px;
-        background-color: #f1ead2;
-        color: #6b5410;
-        font-size: 0.8em;
-        font-weight: normal;
     }
 
 

@@ -61,22 +61,9 @@
     flex: 1;
 }
 
-.product-status {
-    display: inline-block;
-    padding: 4px 8px;
-    border-radius: 12px;
-    font-size: 12px;
+/* El aspecto es del átomo m-badge; aquí solo la separación en la tarjeta */
+.product-info > .product-status {
     margin-bottom: 10px;
-}
-
-.status-active {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-
-.status-inactive {
-    background-color: #ffebee;
-    color: #c62828;
 }
 
 .product-actions {

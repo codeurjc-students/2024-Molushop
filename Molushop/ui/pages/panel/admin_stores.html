@@ -46,7 +46,7 @@
                         <a href="/panel/stores/{{item.store.id}}/products">{{item.store.store_name}}</a>
                     </td>
                     <td>
-                        <span class="panel-store-status panel-store-status-{{item.store.status}}">{{item.store.status_label()}}</span>
+                        <span class="m-badge m-badge--{{item.store.status_variant()}}">{{item.store.status_label()}}</span>
                     </td>
                     <td>{{item.created}}</td>
                     <td>

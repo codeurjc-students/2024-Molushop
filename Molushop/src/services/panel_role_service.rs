@@ -39,6 +39,16 @@ impl PanelStore {
             _ => "Desconocido",
         }
     }
+
+    /// Variante del átomo `m-badge` para el estado de la tienda.
+    pub fn status_variant(&self) -> &'static str {
+        match self.status {
+            STORE_PENDING => "warning",
+            STORE_ACTIVE => "success",
+            STORE_REJECTED => "danger",
+            _ => "neutral",
+        }
+    }
 }
 
 /// Quién está usando el panel y qué puede hacer en él.

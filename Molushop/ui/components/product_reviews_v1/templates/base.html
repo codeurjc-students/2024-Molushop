@@ -107,7 +107,7 @@
             <div class="review-header">
                 <div class="avatar">{{review.initial()}}</div>
                 <div class="review-who">
-                    <span class="author">{{review.author}}{% if reviews.is_mine(review.id) %} <span class="mine-tag">Tu opinión</span>{% endif %}</span>
+                    <span class="author">{{review.author}}{% if reviews.is_mine(review.id) %} <span class="m-badge m-badge--success mine-tag">Tu opinión</span>{% endif %}</span>
                     <span class="review-date">{{review.date_label()}}</span>
                 </div>
                 <svg aria-hidden="true" focusable="false" class="rating">

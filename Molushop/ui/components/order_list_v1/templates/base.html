@@ -26,7 +26,7 @@
                     <span class="order-number">Pedido nº {{order.order_number}}</span>
                     <span class="order-date">{{order.date_label()}}</span>
                 </div>
-                <span class="order-status order-status-{{order.status}}">{{order.status_label()}}</span>
+                <span class="m-badge m-badge--lg m-badge--{{order.status_variant()}}">{{order.status_label()}}</span>
             </div>
 
             <div class="lines">
@@ -40,7 +40,7 @@
                         {% endif %}
                         <div class="quantity">x{{item.quantity}}</div>
                         {% if order.mixed_status() %}
-                        <div><span class="line-status order-status-{{item.status}}">{{item.status_label()}}</span></div>
+                        <div><span class="m-badge m-badge--{{item.status_variant()}}">{{item.status_label()}}</span></div>
                         {% endif %}
                     </div>
                 </div>

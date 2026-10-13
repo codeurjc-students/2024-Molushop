@@ -10,13 +10,13 @@
                 {% if store.is_manageable() || panel_nav.is_admin %}
                 <a class="panel-home-card" href="/panel/stores/{{store.id}}/products">
                     <h2>{{store.store_name}}</h2>
-                    <p><span class="panel-store-status panel-store-status-{{store.status}}">{{store.status_label()}}</span></p>
+                    <p><span class="m-badge m-badge--{{store.status_variant()}}">{{store.status_label()}}</span></p>
                     <p>Ver y editar sus productos.</p>
                 </a>
                 {% else %}
                 <div class="panel-home-card panel-home-card-disabled">
                     <h2>{{store.store_name}}</h2>
-                    <p><span class="panel-store-status panel-store-status-{{store.status}}">{{store.status_label()}}</span></p>
+                    <p><span class="m-badge m-badge--{{store.status_variant()}}">{{store.status_label()}}</span></p>
                     <p>No puedes gestionar sus productos hasta que un administrador la apruebe.</p>
                 </div>
                 {% endif %}

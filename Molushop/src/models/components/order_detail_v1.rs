@@ -30,6 +30,19 @@ pub fn status_label(status: i16) -> &'static str {
     }
 }
 
+/// Variante del átomo `m-badge` (`ui/styles/atoms/badge.css`) para un estado de
+/// pedido: la plantilla pinta `m-badge--{variante}`. Suelta por lo mismo que
+/// `status_label`: comprador y panel tienen que colorear igual.
+pub fn status_variant(status: i16) -> &'static str {
+    match status {
+        ORDER_CONFIRMED => "neutral",
+        ORDER_CANCELLED => "danger",
+        ORDER_SHIPPED => "info",
+        ORDER_DELIVERED => "success",
+        _ => "warning"
+    }
+}
+
 /// ¿Tienen las líneas estados distintos? Pasa cuando el pedido mezcla tiendas y
 /// cada una va a su ritmo, o cuando se cancela solo una parte. Entonces la
 /// etiqueta del pedido (el resumen) no basta y cada línea enseña la suya.
@@ -96,6 +109,10 @@ impl OrderLineData {
     pub fn status_label(&self) -> &'static str {
         status_label(self.status)
     }
+
+    pub fn status_variant(&self) -> &'static str {
+        status_variant(self.status)
+    }
 }
 
 impl Default for OrderData {
@@ -137,6 +154,10 @@ impl OrderData {
 
     pub fn status_label(&self) -> &'static str {
         status_label(self.status)
+    }
+
+    pub fn status_variant(&self) -> &'static str {
+        status_variant(self.status)
     }
 
     /// Nº de unidades, no de líneas.
