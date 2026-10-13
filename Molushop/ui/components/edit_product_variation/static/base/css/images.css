@@ -7,17 +7,17 @@
     }
     
     .image-upload-section h3 {
-    color: #333;
+    color: var(--color-text);
     margin-bottom: 20px;
     font-size: 24px;
     }
     
     .dropzone {
-        border: 2px dashed #ccc;
+        border: 2px dashed var(--color-border-strong);
         border-radius: 8px;
         padding: 30px;
         text-align: center;
-        background-color: #f8f9fa;
+        background-color: var(--color-bg-soft);
         margin-bottom: 20px;
         position: relative;
         cursor: pointer;
@@ -25,7 +25,7 @@
     }
     
     .dropzone:hover {
-    border-color: #007bff;  
+    border-color: var(--color-primary-strong);  
     }
     
     .dropzone input[type="file"] {
@@ -44,13 +44,13 @@
     
     .dropzone-content i {
     font-size: 48px;
-    color: #007bff;
+    color: var(--color-primary-strong);
     margin-bottom: 10px;
     }
     
     .dropzone-content p {
     margin: 0;
-    color: #666;
+    color: var(--color-text-muted);
     font-size: 16px;
     }
     
@@ -67,7 +67,7 @@
         aspect-ratio: 1;
         border-radius: 8px;
         overflow: hidden;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        box-shadow: var(--shadow-sm);
     }
         
     .image-container img {
@@ -87,7 +87,7 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0,0,0,0.5);
+        background: var(--color-overlay);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -100,8 +100,8 @@
     }
         
     .delete-btn {
-        background: #dc3545;
-        color: white;
+        background: var(--color-danger);
+        color: var(--color-text-invert);
         border: none;
         border-radius: 50%;
         width: 40px;
@@ -111,15 +111,15 @@
     }
         
     .delete-btn:hover {
-        background: #c82333;
+        background: var(--color-danger-hover);
     }
         
     .no-images {
         grid-column: 1 / -1;
         text-align: center;
-        color: #666;
+        color: var(--color-text-muted);
         padding: 20px;
-        background: #f8f9fa;
+        background: var(--color-bg-soft);
         border-radius: 8px;
     }
         
@@ -129,8 +129,8 @@
         }
 
     .dropzone.highlight {
-        border-color: #007bff;
-        background-color: rgba(0, 123, 255, 0.1);
+        border-color: var(--color-primary-strong);
+        background-color: var(--color-primary-soft);
     }
         
         

@@ -61,7 +61,7 @@
     background-color: var(--color-danger);
     color: var(--color-text-invert);
 }
-.m-btn--danger:hover  { background-color: hsl(349 100% 29%); }
+.m-btn--danger:hover  { background-color: var(--color-danger-hover); }
 .m-btn--danger:active { background-color: hsl(349 100% 24%); }
 
 /* Acción destructiva que no debe gritar: va al lado de un botón principal
@@ -111,7 +111,7 @@
     color: var(--color-danger);
     text-decoration: underline;
 }
-.m-btn--danger-link:hover  { color: hsl(349 100% 29%); }
+.m-btn--danger-link:hover  { color: var(--color-danger-hover); }
 .m-btn--danger-link:active { color: hsl(349 100% 24%); }
 
 /* ---- Apagado ---- */

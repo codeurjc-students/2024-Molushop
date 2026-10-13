@@ -67,9 +67,15 @@
     --color-disabled:    var(--gray-300);
     --color-focus:       var(--green-700);
 
+    /* Superficie oscura (la barra del panel) y lo que va encima */
+    --color-bg-inverse:        var(--gray-900);
+    --color-text-invert-muted: var(--gray-300);
+    --color-border-inverse:    var(--gray-500);
+
     --color-success:      var(--green-700);
     --color-success-soft: var(--green-50);
     --color-danger:       var(--red-600);
+    --color-danger-hover: hsl(349 100% 29%);
     --color-danger-soft:  var(--red-50);
     --color-warning:      var(--amber-800);
     --color-warning-soft: var(--amber-50);

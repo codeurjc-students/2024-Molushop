@@ -1,5 +1,5 @@
 .select-cat h1 {
-color: #2c3e50;
+color: var(--color-text);
 text-align: center;
 margin-bottom: 2rem;
 font-weight: 300;
@@ -14,14 +14,14 @@ margin: 0 auto;
 
 /* Contenedor de especificaciones */
 .select-cat .specsContainer {
-background: #f8f9fa;
+background: var(--color-bg-soft);
 padding: 1.5rem;
 border-radius: 8px;
 margin-bottom: 2rem;
 }
 
 .select-cat .specsContainer h4 {
-color: #3498db;
+color: var(--color-primary-strong);
 margin-bottom: 1.5rem;
 font-size: 1.2rem;
 }
@@ -59,7 +59,7 @@ flex: 1;
 .select-cat .variations {
 margin: 2rem 0;
 padding: 1.5rem;
-background: #f8f9fa;
+background: var(--color-bg-soft);
 border-radius: 8px;
 }
 

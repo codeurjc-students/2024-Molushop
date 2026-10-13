@@ -67,6 +67,10 @@ dialog.login_modal{
     .container {
         padding: 16px;
     }
+    /* Franja de abajo: "Cancel" y "Forgot password?" */
+    .container-footer {
+        background-color: var(--color-bg-soft);
+    }
     .container-ext.disabled{
         display: none;
     }
