@@ -153,6 +153,10 @@
 
 .ui-demo--narrow > * { max-width: 320px; }
 
+/* Campos de formulario: columnas que se reparten el ancho y saltan de línea */
+.ui-demo--fields { align-items: flex-start; }
+.ui-demo--fields > * { flex: 1 1 220px; max-width: 320px; }
+
 .ui-code {
     margin: 0;
     padding: var(--space-3) var(--space-4);

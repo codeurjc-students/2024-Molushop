@@ -20,6 +20,7 @@
             <a href="#radios">Radios</a>
             <a href="#sombras">Sombras</a>
             <a href="#botones">Botones</a>
+            <a href="#campos">Campos</a>
         </nav>
     </header>
 
@@ -186,6 +187,88 @@
             <button type="button" class="m-btn m-btn--primary m-btn--block">Confirmar pedido</button>
         </div>
         <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary m-btn--block"&gt;Confirmar pedido&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="campos">
+        <h2>Campos de formulario</h2>
+        <p class="ui-catalog-note"><code>m-field</code> agrupa la etiqueta (<code>m-label</code>), el control (<code>m-input</code>) y sus mensajes. <code>m-input</code> vale para <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code> y <code>&lt;textarea&gt;</code>.</p>
+
+        <h3>Controles</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-texto">Nombre</label>
+                <input class="m-input" id="ui-campo-texto" type="text" placeholder="Tu nombre">
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-select">Estado</label>
+                <select class="m-input" id="ui-campo-select">
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                    <option>Borrador</option>
+                </select>
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-area">Descripción</label>
+                <textarea class="m-input" id="ui-campo-area" placeholder="Cuenta algo del producto"></textarea>
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;div class="m-field"&gt;
+    &lt;label class="m-label" for="nombre"&gt;Nombre&lt;/label&gt;
+    &lt;input class="m-input" id="nombre" type="text" name="nombre"&gt;
+&lt;/div&gt;</code></pre>
+
+        <h3>Ayuda y error</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-ayuda">Contraseña</label>
+                <input class="m-input" id="ui-campo-ayuda" type="password" aria-describedby="ui-campo-ayuda-hint">
+                <p class="m-hint" id="ui-campo-ayuda-hint">Al menos 8 caracteres.</p>
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-error">Correo electrónico</label>
+                <input class="m-input is-invalid" id="ui-campo-error" type="email" value="correo-sin-arroba" aria-invalid="true" aria-describedby="ui-campo-error-msg">
+                <p class="m-error" id="ui-campo-error-msg">Escribe un correo válido.</p>
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;input class="m-input is-invalid" id="email" type="email" aria-invalid="true" aria-describedby="email-error"&gt;
+&lt;p class="m-error" id="email-error"&gt;Escribe un correo válido.&lt;/p&gt;</code></pre>
+
+        <h3>Apagado y solo lectura</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-apagado">Apagado</label>
+                <input class="m-input" id="ui-campo-apagado" type="text" value="No se puede editar" disabled>
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-lectura">Solo lectura</label>
+                <input class="m-input" id="ui-campo-lectura" type="text" value="Se puede copiar" readonly>
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;input class="m-input" type="text" disabled&gt;
+&lt;input class="m-input" type="text" readonly&gt;</code></pre>
+
+        <h3>Pequeño y en línea</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-sm">Usuario</label>
+                <input class="m-input m-input--sm" id="ui-campo-sm" type="text" placeholder="username">
+            </div>
+            <div class="m-field m-field--inline">
+                <label class="m-label" for="ui-campo-linea">Cantidad</label>
+                <input class="m-input m-input--sm" id="ui-campo-linea" type="number" value="1" min="1">
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;input class="m-input m-input--sm" type="text"&gt;
+&lt;div class="m-field m-field--inline"&gt; ... &lt;/div&gt;</code></pre>
+
+        <h3>Casillas y radios</h3>
+        <div class="ui-demo">
+            <label class="m-check"><input type="checkbox" checked> Habilitar oferta</label>
+            <label class="m-check"><input type="checkbox"> Recordarme</label>
+            <label class="m-check"><input type="radio" name="ui-campo-radio" checked> Envío estándar</label>
+            <label class="m-check"><input type="radio" name="ui-campo-radio"> Envío urgente</label>
+        </div>
+        <pre class="ui-code"><code>&lt;label class="m-check"&gt;&lt;input type="checkbox" name="oferta"&gt; Habilitar oferta&lt;/label&gt;</code></pre>
     </section>
 </div>
 {% endblock %}
