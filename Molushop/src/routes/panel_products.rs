@@ -16,7 +16,6 @@ use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUC
 use crate::controllers::createProduct::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
 use crate::models::components::edit_product::EditProduct;
 use crate::models::components::panel_nav::PanelNav;
-use crate::models::components::title::Title;
 use crate::models::pages::{CategoryTemplate, ProductsPanel, ProductsPanelEdit};
 use crate::services::components::edit_product;
 use crate::services::panel_role_service::{product_in_store, resolve_store, PanelStore, PanelUser};
@@ -146,12 +145,11 @@ async fn products_edit(
 
     // Desde el listado llega por htmx: solo el título y el editor.
     let page = if req.headers().contains_key("HX-Request") {
-        let title = Title { title: "Edit Product".to_string() }.render().unwrap();
         let editor = EditProduct {
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,
         }.render().unwrap();
-        format!("{}{}", title, editor)
+        format!("<title>Edit Product</title>{}", editor)
     } else {
         ProductsPanelEdit {
             user_logged: false,

@@ -67,7 +67,6 @@ pub struct FormGeneral{
 }
 
 use crate::models::components::modal_1_model::Modal1;
-use crate::models::components::title::Title;
 
 #[post("/edit-general/{product_id}")]
 async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<FormGeneral>,pool_data: web::Data<DbPool>) -> HttpResponse {

@@ -3,7 +3,6 @@ pub mod product_panel;
 pub mod warning_modal;
 pub mod edit_product;
 pub mod modal_1_model;
-pub mod title;
 pub mod edit_product_variation_model;
 pub mod identifier_model;
 pub mod login_base_model;
