@@ -3,7 +3,7 @@ use serde::Serialize;
 use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "components/warning_modal/templates/base.html")]
+#[template(path = "components/modal/templates/confirm.html")]
 pub struct WarningModal{
     pub method: String,
     pub message: String,

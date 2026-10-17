@@ -1,0 +1,22 @@
+{# Modal de confirmación (WarningModal): una pregunta y "Sí" / "No". Hoy solo
+   confirma borrados, por eso el "Sí" va en rojo. Con htmx_active, el "Sí"
+   lanza la petición (method = hx-delete, hx-get...); si no, solo ejecuta el
+   hyperscript_action. #}
+{% extends "components/modal/templates/shell.html" %}
+{% block body %}
+<span class="m-modal__icon" aria-hidden="true">⚠️</span>
+<p>{{message}}</p>
+{% endblock %}
+{% block actions %}
+<button type="button" class="m-btn m-btn--secondary" _="init call me.focus() end on click trigger closeModal">No</button>
+<button type="button" class="m-btn m-btn--danger"
+    _="on click trigger closeModal
+    {{hyperscript_action}}
+    end"
+    {% if htmx_active %}
+    {{method}}="{{endpoint}}"
+    hx-target="{{target}}"
+    hx-swap="{{swap}}"
+    {% endif %}
+>Sí</button>
+{% endblock %}

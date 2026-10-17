@@ -1,0 +1,6 @@
+{# Modal de mensaje (Modal1): un texto y "Aceptar". #}
+{% extends "components/modal/templates/shell.html" %}
+{% block body %}<p>{{text}}</p>{% endblock %}
+{% block actions %}
+<button type="button" class="m-btn m-btn--primary" _="init call me.focus() end on click trigger closeModal">Aceptar</button>
+{% endblock %}

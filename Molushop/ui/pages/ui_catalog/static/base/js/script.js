@@ -75,3 +75,15 @@ const UI_CATALOG = {
 window.addEventListener("load", () => {
     UI_CATALOG.init();
 });
+
+// Modales de ejemplo: se abren igual que en la tienda, añadiendo su HTML al
+// final del body y procesando su hyperscript.
+document.addEventListener("click", (event) => {
+    let button = event.target.closest("[data-demo-modal]");
+    if (button == null) { return; }
+    let template = document.getElementById(button.dataset.demoModal);
+    document.body.insertAdjacentHTML("beforeend", template.innerHTML);
+    if (typeof _hyperscript !== "undefined") {
+        _hyperscript.processNode(document.body.lastElementChild);
+    }
+});

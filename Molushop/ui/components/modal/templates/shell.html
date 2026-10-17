@@ -1,0 +1,20 @@
+{# Carcasa común de los modales (átomo m-modal, ui/styles/atoms/modal.css).
+   La extienden message.html (Modal1) y confirm.html (WarningModal), que
+   rellenan los bloques body y actions.
+
+   Se añade al final del <body> (hx-swap="beforeend" o insertAdjacentHTML).
+   Cualquier cosa de dentro lo cierra con "trigger closeModal": sube hasta la
+   raíz, que se anima y se quita sola (a los 300ms como mucho, por si la
+   animación no llega a correr: pestaña en segundo plano, animaciones
+   desactivadas). El id myModal lo buscan los scripts de
+   la ficha y del carrito para procesar el hyperscript tras insertarlo. #}
+<div id="myModal" class="m-modal" role="dialog" aria-modal="true"
+    _="on closeModal add .closing then wait for animationend or 300ms then remove me end
+       on keyup[key is 'Escape'] from window trigger closeModal end">
+    <div class="m-modal__backdrop" _="on click trigger closeModal"></div>
+    <div class="m-modal__dialog">
+        <button type="button" class="m-modal__close" aria-label="Cerrar" _="on click trigger closeModal">&times;</button>
+        <div class="m-modal__body">{% block body %}{% endblock %}</div>
+        <div class="m-modal__actions">{% block actions %}{% endblock %}</div>
+    </div>
+</div>

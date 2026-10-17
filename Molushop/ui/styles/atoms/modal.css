@@ -1,0 +1,106 @@
+/* Átomo: modal. Ventana que tapa la página: un mensaje (Modal1) o una
+   pregunta de sí o no (WarningModal). Las dos plantillas extienden
+   ui/components/modal/templates/shell.html, que pone la estructura y el
+   cierre (la ×, pulsar fuera y la tecla Escape).
+
+     <div class="m-modal" role="dialog" aria-modal="true">
+         <div class="m-modal__backdrop"></div>
+         <div class="m-modal__dialog">
+             <button class="m-modal__close" aria-label="Cerrar">&times;</button>
+             <div class="m-modal__body">...</div>
+             <div class="m-modal__actions">botones m-btn</div>
+         </div>
+     </div>
+
+   Al cerrarse, hyperscript le pone .closing, espera a que acabe la animación
+   y lo quita del DOM. */
+
+.m-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    animation: m-modal-fade-in 150ms ease;
+}
+
+.m-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-overlay);
+}
+
+.m-modal__dialog {
+    position: relative; /* encima del fondo */
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 420px;
+    max-height: calc(100vh - 2 * var(--space-4));
+    overflow: auto;
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    background-color: var(--color-bg);
+    box-shadow: var(--shadow-lg);
+    color: var(--color-text);
+    animation: m-modal-zoom-in 150ms ease;
+}
+
+.m-modal__close {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--color-text-muted);
+    font-size: 24px;
+    line-height: 1;
+    cursor: pointer;
+}
+.m-modal__close:hover { background-color: var(--color-bg-soft); color: var(--color-text); }
+.m-modal__close:focus-visible {
+    outline: 2px solid var(--color-primary-strong);
+    outline-offset: 2px;
+}
+
+.m-modal__body {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    padding-right: var(--space-6); /* que el texto no pase por debajo de la × */
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-base);
+}
+.m-modal__body p { margin: 0; }
+
+/* Icono delante del texto (el ⚠️ de la pregunta) */
+.m-modal__icon {
+    flex-shrink: 0;
+    font-size: 24px;
+    line-height: 1;
+}
+
+.m-modal__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+}
+
+/* ---- Cierre ---- */
+
+.m-modal.closing { animation: m-modal-fade-out 150ms ease forwards; }
+.m-modal.closing .m-modal__dialog { animation: m-modal-zoom-out 150ms ease forwards; }
+
+@keyframes m-modal-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes m-modal-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes m-modal-zoom-in  { from { transform: scale(0.95); } to { transform: scale(1); } }
+@keyframes m-modal-zoom-out { from { transform: scale(1); } to { transform: scale(0.95); } }

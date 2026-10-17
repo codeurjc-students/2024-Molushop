@@ -3,7 +3,7 @@ use serde::Serialize;
 use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
 
 #[derive(Template,Clone,Debug)]
-#[template(path = "components/modal-1/templates/modal-1.html")]
+#[template(path = "components/modal/templates/message.html")]
 pub struct Modal1{
     pub text: String,
 }
