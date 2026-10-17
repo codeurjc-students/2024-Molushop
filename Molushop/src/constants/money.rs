@@ -4,7 +4,7 @@ use bigdecimal::{BigDecimal, RoundingMode};
 /// Moneda por defecto cuando un precio no la trae. Es un código ISO, igual que
 /// `prices.currency`, `orders.currency` y `order_items.currency`: en la BD y en
 /// los modelos SIEMPRE viaja el código, nunca el símbolo. El símbolo es cosa de
-/// la plantilla (`CartItemData::currency_symbol()`).
+/// la plantilla (el átomo `Price`).
 pub const DEFAULT_CURRENCY: &str = "EUR";
 
 /// Traduce el código ISO a su símbolo para pintarlo. Si no lo conoce devuelve el

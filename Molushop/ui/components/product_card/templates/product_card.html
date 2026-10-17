@@ -17,7 +17,7 @@
                 <span class="producto-valoracion-total">({{product.rating_count}})</span>
                 {% endif %}
             </div>
-            <p class="producto-precio">{{product.price}}€</p>
+            <p class="producto-precio">{{ product.price_tag() }}</p>
             <div class="producto-acciones">
                 <button type="button" class="m-btn m-btn--primary m-btn--block boton-agregar-carrito">Añadir al carrito</button>
             </div>

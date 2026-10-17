@@ -5,7 +5,8 @@ use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
-use crate::constants::money::{DEFAULT_CURRENCY, symbol_of};
+use crate::constants::money::DEFAULT_CURRENCY;
+use crate::models::components::price::Price;
 use crate::constants::urls::{CART_URL, PRODUCT_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
 
@@ -146,10 +147,22 @@ impl OrderData {
         Self { logged: true, ..Default::default() }
     }
 
-    /// Símbolo para pintar. El campo guarda el código ISO, igual que en el
-    /// carrito y que en la BD.
-    pub fn currency_symbol(&self) -> String {
-        symbol_of(&self.currency)
+    // Importes con el átomo de precio. El campo guarda el código ISO, igual
+    // que en el carrito y que en la BD; las líneas usan la moneda del pedido.
+    pub fn subtotal_tag(&self) -> Price {
+        Price::new(&self.subtotal, &self.currency)
+    }
+
+    pub fn discount_tag(&self) -> Price {
+        Price::new(&self.discount_total, &self.currency)
+    }
+
+    pub fn total_tag(&self) -> Price {
+        Price::new(&self.total_amount, &self.currency)
+    }
+
+    pub fn line_total_tag(&self, line: &OrderLineData) -> Price {
+        Price::new(&line.line_total, &self.currency)
     }
 
     pub fn status_label(&self) -> &'static str {

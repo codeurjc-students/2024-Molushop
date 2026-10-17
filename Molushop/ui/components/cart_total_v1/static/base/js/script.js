@@ -148,8 +148,9 @@ const CART_TOTAL_V1 = {
         let total = cents / 100;
 
         this.setText(root, ".summary-units", units);
-        this.setText(root, ".summary-total", total.toFixed(2));
-        this.setText(root, ".summary-final-total", (total - discount).toFixed(2));
+        // Importe del átomo m-price, en el mismo formato que lo pinta el servidor
+        this.setText(root, ".summary-total .m-price__amount", MONEY.format(total));
+        this.setText(root, ".summary-final-total .m-price__amount", MONEY.format(total - discount));
     },
 
     setText: function(root, selector, value) {

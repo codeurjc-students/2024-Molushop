@@ -5,7 +5,8 @@ use uuid::Uuid;
 
 use crate::models::models_x::CartItem1;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
-use crate::constants::money::{DEFAULT_CURRENCY, symbol_of};
+use crate::constants::money::DEFAULT_CURRENCY;
+use crate::models::components::price::Price;
 use crate::controllers::components::cart_add_controller::ROUTES;
 
 #[derive(Template,Clone,Debug)]
@@ -46,7 +47,7 @@ pub struct CartTotalData{
     /// Nº de unidades (no de líneas)
     pub total_units: i32,
     /// Código ISO tal cual está en `prices.currency` ("EUR"), NO el símbolo.
-    /// Para pintarlo usa `currency_symbol()`.
+    /// Para pintarlo usa `total_tag()` y compañía (átomo `Price`).
     pub currency: String
 }
 
@@ -61,7 +62,7 @@ pub struct CartItemData{
     pub url: String,
     pub price: BigDecimal,
     pub subtotal: BigDecimal,
-    /// Código ISO ("EUR"), no el símbolo. Ver `currency_symbol()`.
+    /// Código ISO ("EUR"), no el símbolo. Ver `price_tag()`.
     pub currency: String,
     pub store_name: String,
     pub quantity: i32,
@@ -105,18 +106,30 @@ impl CartTotalData {
         self.items.is_empty()
     }
 
-    /// Símbolo para pintar en la plantilla. Se expone como método y no como
-    /// campo por lo mismo que las URLs del carrito: el dato que se guarda es el
-    /// código ISO, y el símbolo sólo existe al renderizar.
-    pub fn currency_symbol(&self) -> String {
-        symbol_of(&self.currency)
+    // Los importes del resumen, con el átomo de precio. La moneda se guarda
+    // como código ISO y el símbolo lo pone Price al pintar.
+    pub fn total_tag(&self) -> Price {
+        Price::new(&self.total, &self.currency)
+    }
+
+    pub fn discount_tag(&self) -> Price {
+        Price::new(&self.discount, &self.currency)
+    }
+
+    pub fn final_total_tag(&self) -> Price {
+        Price::new(&self.final_total, &self.currency)
     }
 }
 
 impl CartItemData {
-    /// Símbolo de la moneda de la línea. Ver `CartTotalData::currency_symbol`.
-    pub fn currency_symbol(&self) -> String {
-        symbol_of(&self.currency)
+    /// Precio unitario de la línea (el carrito).
+    pub fn price_tag(&self) -> Price {
+        Price::new(&self.price, &self.currency)
+    }
+
+    /// Precio x cantidad (el checkout).
+    pub fn subtotal_tag(&self) -> Price {
+        Price::new(&self.subtotal, &self.currency)
     }
 }
 

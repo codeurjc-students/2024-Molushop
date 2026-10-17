@@ -32,17 +32,10 @@
             <span class="rating-count">Sin opiniones todavía</span>
             {% endif %}
         </a>
-        <div class="price">
-            <!-- Sin precio no se pinta "€": el script lo esconde y lo vuelve a
-                 enseñar al cambiar de variación (id product-currency). -->
-            {% match product_data.initial_price() %}
-            {% when Some with (price) %}
-                <span id="product-price">{{price}}</span>
-                <span id="product-currency">{{product_data.currency_symbol()}}</span>
-            {% when None %}
-                <span id="product-price">No disponible</span>
-                <span id="product-currency" hidden>{{product_data.currency_symbol()}}</span>
-            {% endmatch %}
+        <!-- El script cambia el importe al elegir otra variación y esconde la
+             moneda si no tiene precio (updatePrice, por el id product-price). -->
+        <div class="price" id="product-price">
+            {{ product_data.price_tag() }}
         </div>
         <div class="variations">
             {% for variation in product_data.variations_with_stock_status %}

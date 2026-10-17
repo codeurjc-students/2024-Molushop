@@ -70,10 +70,6 @@
                 text-decoration: underline;
             }
         }
-        .price{
-            font-size: 2.4em;
-            font-weight: bold;
-        }
         .variations{
             display: flex;
             flex-direction: column;

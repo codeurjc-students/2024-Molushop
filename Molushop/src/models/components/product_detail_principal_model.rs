@@ -5,11 +5,11 @@ use crate::models::{
 };
 use serde_json::{Value, from_value};
 use crate::controllers::components::cart_add_controller::ROUTES as CART_ROUTES;
-use crate::constants::money::symbol_of;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::models::components::stars::Stars;
+use crate::models::components::price::Price;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_detail_principal/product_detail_principal.html")]
 pub struct ProductDetailPrincipal{
@@ -22,7 +22,7 @@ pub struct ProductDetailPrincipalData{
     pub name: String,
     pub brand: String,
     pub description: String,
-    /// Código ISO ("EUR"), no el símbolo. Ver `currency_symbol()`.
+    /// Código ISO ("EUR"), no el símbolo: lo pone `Price` al pintar.
     pub currency: String,
     pub store_name: String,
     pub store_id: Uuid,
@@ -137,6 +137,12 @@ impl ProductDetailPrincipalData {
         self.variant_map.first().and_then(|v| v.price.as_ref())
     }
 
+    /// El precio grande de la cabecera: el de la variación que sale
+    /// seleccionada, o "No disponible". El JS lo cambia al elegir otra.
+    pub fn price_tag(&self) -> Price {
+        Price::maybe(self.initial_price(), &self.currency).lg()
+    }
+
     pub fn variant_map_json(&self) -> String {
         serde_json::to_string(&self.variant_map).unwrap_or_else(|_| "[]".to_string())
     }
@@ -145,12 +151,6 @@ impl ProductDetailPrincipalData {
     /// por eso es un método y no un campo: se lee de las rutas del carrito.
     pub fn cart_add_url(&self) -> &'static str {
         &CART_ROUTES.add
-    }
-
-    /// Símbolo de la moneda. El campo `currency` guarda el código ISO, igual que
-    /// en el carrito; el símbolo sólo existe al renderizar.
-    pub fn currency_symbol(&self) -> String {
-        symbol_of(&self.currency)
     }
 }
 

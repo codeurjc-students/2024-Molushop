@@ -6,6 +6,8 @@ use bigdecimal::BigDecimal;
 use crate::models::models_x::ProductCard1;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
 use crate::models::components::stars::Stars;
+use crate::models::components::price::Price;
+use crate::constants::money::DEFAULT_CURRENCY;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card/templates/product_card.html")]
@@ -17,7 +19,10 @@ pub struct ProductCard{
 pub struct ProductCardData{
     pub name: String,
     pub image: String,
-    pub price: BigDecimal,
+    /// `None` = ninguna variación tiene precio: se pinta "No disponible".
+    pub price: Option<BigDecimal>,
+    /// Código ISO ("EUR"); el símbolo lo pone Price.
+    pub currency: String,
     pub url : String,
     pub rating_average: f64,
     pub rating_count: i64
@@ -28,6 +33,10 @@ impl ProductCardData {
     pub fn stars(&self) -> Stars {
         Stars::sm(self.rating_average)
     }
+
+    pub fn price_tag(&self) -> Price {
+        Price::maybe(self.price.as_ref(), &self.currency)
+    }
 }
 
 //hacer una funcion default de error
@@ -36,7 +45,8 @@ impl Default for ProductCardData {
         Self {
             name: "Producto no disponible".to_string(),
             image: "/static/images/no-image.png".to_string(),
-            price: BigDecimal::from(0),
+            price: None,
+            currency: DEFAULT_CURRENCY.to_string(),
             url : "javascript:void(0)".to_string(),
             rating_average: 0.0,
             rating_count: 0
@@ -54,8 +64,9 @@ impl From<ProductCard1> for ProductCardData {
             // Mapeamos image_url a image
             image: db.image_url.unwrap_or_else(|| "/images/default-placeholder.png".to_string()),
             
-            // Si el precio es None, inicializamos un BigDecimal de 0
-            price: db.price.unwrap_or_else(|| BigDecimal::from(0)),
+            // Sin precio se pinta "No disponible", no "0 €".
+            price: db.price,
+            currency: db.currency.unwrap_or_else(|| DEFAULT_CURRENCY.to_string()),
 
             // Convertimos el UUID a una URL con formato producto/uuid
             url: format!("{}{}",PRODUCT_URL_PREFIX,db.id),

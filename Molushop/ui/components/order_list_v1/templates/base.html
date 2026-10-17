@@ -51,10 +51,7 @@
                 <span class="units">{{order.total_units()}} artículo{% if order.total_units() != 1 %}s{% endif %}</span>
                 <div class="card-total">
                     <span>Total</span>
-                    <div class="money">
-                        <span>{{order.total_amount}}</span>
-                        <span>{{order.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">{{ order.total_tag() }}</div>
                 </div>
             </div>
         </a>

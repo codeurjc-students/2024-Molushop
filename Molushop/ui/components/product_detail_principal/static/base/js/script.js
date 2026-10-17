@@ -124,13 +124,14 @@ const PRODUCT_DETAIL = {
             })
         );
 
-        let priceEl = document.getElementById("product-price");
-        let currencyEl = document.getElementById("product-currency");
+        // Átomo m-price: se cambia el importe y se esconde la moneda si no hay.
+        let priceEl = document.querySelector("#product-price .m-price__amount");
+        let currencyEl = document.querySelector("#product-price .m-price__currency");
         if (priceEl && match) {
             // price llega null si la variación no tiene fila en prices: se
             // enseña como no disponible en vez de "null €".
             let hasPrice = match.price != null;
-            priceEl.textContent = hasPrice ? match.price : "No disponible";
+            priceEl.textContent = hasPrice ? MONEY.format(match.price) : "No disponible";
             if (currencyEl) { currencyEl.hidden = !hasPrice; }
         }
     },

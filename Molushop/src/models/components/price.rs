@@ -11,8 +11,10 @@ use crate::constants::money::{format_amount, symbol_of};
 /// Igual que `Stars`: cada modelo tiene un método que devuelve el `Price` y la
 /// plantilla solo lo escribe.
 ///
-///     pub fn price(&self) -> Price { Price::new(&self.price, &self.currency) }
-///     {{ product.price() }}
+///     pub fn price_tag(&self) -> Price { Price::new(&self.price, &self.currency) }
+///     {{ product.price_tag() }}
+///
+/// (`price_tag` y no `price`, que suele ser ya el nombre del campo.)
 ///
 /// El CSS es `ui/styles/atoms/price.css`.
 #[derive(Template, Clone, Debug)]

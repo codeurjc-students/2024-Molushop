@@ -3,7 +3,7 @@ use bigdecimal::BigDecimal;
 use chrono::NaiveDateTime;
 use uuid::Uuid;
 
-use crate::constants::money::symbol_of;
+use crate::models::components::price::Price;
 use crate::constants::urls::{HOME_URL, ORDER_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
 use crate::models::components::order_detail_v1::{OrderLineData, mixed_status, status_label, status_variant};
@@ -36,9 +36,8 @@ pub struct OrderSummaryData{
 }
 
 impl OrderSummaryData {
-    /// Símbolo para pintar; el campo guarda el código ISO, igual que en la ficha.
-    pub fn currency_symbol(&self) -> String {
-        symbol_of(&self.currency)
+    pub fn total_tag(&self) -> Price {
+        Price::new(&self.total_amount, &self.currency)
     }
 
     pub fn status_label(&self) -> &'static str {

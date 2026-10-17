@@ -53,10 +53,7 @@
                         <div><span class="m-badge m-badge--{{item.status_variant()}}">{{item.status_label()}}</span></div>
                         {% endif %}
                     </div>
-                    <div class="line-money">
-                        <span>{{item.line_total}}</span>
-                        <span>{{order.currency_symbol()}}</span>
-                    </div>
+                    <div class="line-money">{{ order.line_total_tag(item) }}</div>
                 </div>
                 {% endfor %}
             </div>
@@ -77,17 +74,11 @@
             <div class="data-resume">
                 <div class="space">
                     <span>Artículos</span>
-                    <div class="money">
-                        <span>{{order.subtotal}}</span>
-                        <span>{{order.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">{{ order.subtotal_tag() }}</div>
                 </div>
                 <div class="space">
                     <span>Descuento</span>
-                    <div class="money">
-                        <span>- {{order.discount_total}}</span>
-                        <span>{{order.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">- {{ order.discount_tag() }}</div>
                 </div>
                 <div class="space">
                     <span>Envío</span>
@@ -95,10 +86,7 @@
                 </div>
                 <div class="space final-total">
                     <span>Total</span>
-                    <div class="money">
-                        <span>{{order.total_amount}}</span>
-                        <span>{{order.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">{{ order.total_tag() }}</div>
                 </div>
             </div>
             <a href="{{order.cart_url}}" class="no-generic-a back-to-cart">Volver a la cesta</a>

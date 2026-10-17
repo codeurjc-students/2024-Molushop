@@ -64,10 +64,7 @@
                         {% endif %}
                         <div class="quantity">x{{item.quantity}}</div>
                     </div>
-                    <div class="line-money">
-                        <span>{{item.subtotal}}</span>
-                        <span>{{item.currency_symbol()}}</span>
-                    </div>
+                    <div class="line-money">{{ item.subtotal_tag() }}</div>
                 </div>
                 {% endfor %}
             </div>
@@ -78,17 +75,11 @@
             <div class="data-resume">
                 <div class="space total">
                     <span>Total de articulos ({{checkout.cart_total.total_units}})</span>
-                    <div class="money">
-                        <span>{{checkout.cart_total.total}}</span>
-                        <span>{{checkout.cart_total.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">{{ checkout.cart_total.total_tag() }}</div>
                 </div>
                 <div class="space discounts">
                     <span>Descuento de articulos</span>
-                    <div class="money">
-                        <span>- {{checkout.cart_total.discount}}</span>
-                        <span>{{checkout.cart_total.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">- {{ checkout.cart_total.discount_tag() }}</div>
                 </div>
                 <div class="space shipment">
                     <span>Envío</span>
@@ -96,10 +87,7 @@
                 </div>
                 <div class="space final-total">
                     <span>Estimación total</span>
-                    <div class="money">
-                        <span>{{checkout.cart_total.final_total}}</span>
-                        <span>{{checkout.cart_total.currency_symbol()}}</span>
-                    </div>
+                    <div class="money">{{ checkout.cart_total.final_total_tag() }}</div>
                 </div>
                 <div class="iva">
                     IVA incluido

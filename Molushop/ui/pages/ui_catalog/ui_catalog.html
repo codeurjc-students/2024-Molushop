@@ -441,11 +441,11 @@ WarningModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: 
             {{ demo_price_missing() }}
         </div>
         <pre class="ui-code"><code>// en el modelo
-pub fn price(&amp;self) -&gt; Price { Price::new(&amp;self.price, &amp;self.currency) }
-pub fn price(&amp;self) -&gt; Price { Price::maybe(self.price.as_ref(), &amp;self.currency) }  // puede faltar
+pub fn price_tag(&amp;self) -&gt; Price { Price::new(&amp;self.price, &amp;self.currency) }
+pub fn price_tag(&amp;self) -&gt; Price { Price::maybe(self.price.as_ref(), &amp;self.currency) }  // puede faltar
 
 // en la plantilla
-&#123;&#123; product.price() &#125;&#125;
+&#123;&#123; product.price_tag() &#125;&#125;
 
 // en JS, al recalcular
 el.querySelector(".m-price__amount").textContent = MONEY.format(total);</code></pre>

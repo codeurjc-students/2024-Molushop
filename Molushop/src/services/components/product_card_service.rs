@@ -2,6 +2,7 @@
 use crate::models::components::product_card_model::*;
 use crate::services::servicesX::*;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
+use crate::constants::money::DEFAULT_CURRENCY;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
@@ -58,7 +59,8 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     ProductCardData{
         name:product.name,
         image:img_url,
-        price:precio,
+        price:Some(precio),
+        currency: DEFAULT_CURRENCY.to_string(),
         url: format!("{}{}",PRODUCT_URL_PREFIX,product.id),
         // Este camino (tarjetas sueltas por id) no consulta las opiniones: la
         // tarjeta sale sin estrellas. Las del listado vienen de get_product_cards1.
