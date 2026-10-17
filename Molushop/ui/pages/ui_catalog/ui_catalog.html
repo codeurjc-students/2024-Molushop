@@ -26,6 +26,7 @@
             <a href="#tarjetas">Tarjetas</a>
             <a href="#estrellas">Estrellas</a>
             <a href="#modales">Modales</a>
+            <a href="#precio">Precio</a>
         </nav>
     </header>
 
@@ -425,6 +426,36 @@ WarningModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: 
 
 // quien lo pide
 &lt;button hx-get="..." hx-target="body" hx-swap="beforeend"&gt;Eliminar&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="precio">
+        <h2>Precio</h2>
+        <p class="ui-catalog-note">Importe con su moneda, en formato español: coma decimal y punto de miles a partir de cinco cifras. Lo pinta el struct <code>Price</code> (<code>models/components/price.rs</code>) con <code>format_amount</code>; cuando el JS recalcula un precio usa <code>MONEY.format()</code> (<code>ui/utils/base.js</code>), que da el mismo texto. No fija color: lo decide cada componente.</p>
+
+        <h3>Importes: 9 · 150.99 · 1234.5 · 12345.678</h3>
+        <div class="ui-demo">
+            {{ demo_price("9") }}
+            {{ demo_price("150.99") }}
+            {{ demo_price("1234.5") }}
+            {{ demo_price("12345.678") }}
+            {{ demo_price_missing() }}
+        </div>
+        <pre class="ui-code"><code>// en el modelo
+pub fn price(&amp;self) -&gt; Price { Price::new(&amp;self.price, &amp;self.currency) }
+pub fn price(&amp;self) -&gt; Price { Price::maybe(self.price.as_ref(), &amp;self.currency) }  // puede faltar
+
+// en la plantilla
+&#123;&#123; product.price() &#125;&#125;
+
+// en JS, al recalcular
+el.querySelector(".m-price__amount").textContent = MONEY.format(total);</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            {{ demo_price("150.99") }}
+            {{ demo_price("150.99").lg() }}
+        </div>
+        <pre class="ui-code"><code>Price::new(&amp;precio, &amp;moneda).lg()</code></pre>
     </section>
 </div>
 {% endblock %}

@@ -1,0 +1,26 @@
+/* Átomo: precio. Lo pinta el struct Price (src/models/components/price.rs,
+   plantilla en ui/components/price/); aquí solo va el aspecto.
+
+     {{ product.price() }}   (el modelo devuelve Price::new(&precio, &moneda))
+
+     <span class="m-price">
+         <span class="m-price__amount">9,00</span><span class="m-price__currency">&nbsp;€</span>
+     </span>
+
+   Tamaños: (normal, hereda la letra de donde esté), --lg (cabecera de la ficha)
+
+   No fija color: el precio de la tarjeta va en verde de marca y el del
+   carrito en el color del texto, y eso lo decide cada componente. */
+
+.m-price {
+    font-weight: var(--font-weight-bold);
+    font-variant-numeric: tabular-nums; /* que las cifras no bailen al recalcular */
+    white-space: nowrap;
+}
+
+/* ---- Tamaños ---- */
+
+.m-price--lg {
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+}

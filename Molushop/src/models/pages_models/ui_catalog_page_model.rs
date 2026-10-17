@@ -3,6 +3,9 @@ use askama::Template;
 use crate::models::components::stars::Stars;
 use crate::models::components::modal_1_model::Modal1;
 use crate::models::components::warning_modal::WarningModal;
+use crate::models::components::price::Price;
+use bigdecimal::BigDecimal;
+use std::str::FromStr;
 
 /// Catálogo del sistema de diseño (`/ui`): las variables de `tokens.css` y los
 /// átomos. Es una página estática; los dos campos son los que pide `layout1`.
@@ -14,6 +17,15 @@ pub struct UiCatalogPage{
 }
 
 impl UiCatalogPage {
+    /// Precio de ejemplo para el catálogo ("150.99" -> 150,99 €).
+    pub fn demo_price(&self, amount: &str) -> Price {
+        Price::new(&BigDecimal::from_str(amount).unwrap_or_default(), "EUR")
+    }
+
+    pub fn demo_price_missing(&self) -> Price {
+        Price::maybe(None, "EUR")
+    }
+
     /// El modal de confirmación de ejemplo: sin htmx, el "Sí" solo lo cierra.
     pub fn demo_confirm(&self) -> WarningModal {
         WarningModal {

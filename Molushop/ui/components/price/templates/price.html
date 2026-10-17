@@ -1,0 +1,6 @@
+{# Átomo de precio: el formato está en src/models/components/price.rs. El JS
+   que cambia un precio (ficha al cambiar de variación, carrito al cambiar la
+   cantidad) escribe en .m-price__amount con MONEY.format() y, si no hay
+   precio, esconde .m-price__currency. El espacio va dentro de la moneda para
+   que desaparezca con ella. #}
+<span class="m-price{% if large %} m-price--lg{% endif %}"><span class="m-price__amount">{{amount_label()}}</span><span class="m-price__currency"{% if !has_amount() %} hidden{% endif %}>&nbsp;{{symbol()}}</span></span>
