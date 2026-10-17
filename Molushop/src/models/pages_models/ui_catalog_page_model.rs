@@ -1,4 +1,6 @@
 use askama::Template;
+// La plantilla llama a Stars::new(...) para enseñar el átomo de estrellas.
+use crate::models::components::stars::Stars;
 
 /// Catálogo del sistema de diseño (`/ui`): las variables de `tokens.css` y los
 /// átomos. Es una página estática; los dos campos son los que pide `layout1`.

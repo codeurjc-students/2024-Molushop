@@ -1,7 +1,8 @@
-/* Átomo: estrellas de valoración. Lo pinta la macro de ui/macros/stars.html;
+/* Átomo: estrellas de valoración. Lo pinta el struct Stars
+   (src/models/components/stars.rs, plantilla en ui/components/stars/);
    aquí solo va el tamaño.
 
-     <svg class="m-stars" viewBox="0 0 100 20" ...>...</svg>
+     {{ Stars::new(reviews.average) }}   {{ Stars::sm(product.rating) }}
 
    Tamaños: (normal, 20px de alto), --sm (16px, tarjeta de producto)
 

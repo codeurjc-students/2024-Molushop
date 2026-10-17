@@ -1,5 +1,4 @@
 {% extends "layouts/layout1.html" %}
-{% import "macros/stars.html" as stars %}
 {# Catálogo del sistema de diseño: enseña las variables de tokens.css y cada
    átomo con sus variantes. Los colores y medidas no se repiten aquí: el script
    los lee de las propias variables (atributo data-token). #}
@@ -383,25 +382,25 @@
 
     <section id="estrellas">
         <h2>Estrellas</h2>
-        <p class="ui-catalog-note">Valoración de 0 a 5, solo para leer. Es una macro de Askama: recibe la nota y pinta las cinco estrellas, redondeando a la media estrella más cercana. Las de opinar son otra cosa (radios en el formulario de opiniones).</p>
+        <p class="ui-catalog-note">Valoración de 0 a 5, solo para leer. Es una plantilla de Askama con su struct en Rust (<code>Stars</code>, en <code>models/components/stars.rs</code>): el redondeo a la media estrella más cercana y el texto para lectores de pantalla se calculan allí. Las de opinar son otra cosa (radios en el formulario de opiniones).</p>
 
         <h3>Notas: 5 · 4,6 · 4,2 · 2,5 · 0</h3>
         <div class="ui-demo">
-            {% call stars::stars(5) %}{% endcall %}
-            {% call stars::stars(4.6) %}{% endcall %}
-            {% call stars::stars(4.2) %}{% endcall %}
-            {% call stars::stars(2.5) %}{% endcall %}
-            {% call stars::stars(0) %}{% endcall %}
+            {{ Stars::new(5) }}
+            {{ Stars::new(4.6) }}
+            {{ Stars::new(4.2) }}
+            {{ Stars::new(2.5) }}
+            {{ Stars::new(0) }}
         </div>
-        <pre class="ui-code"><code>{{ "{%" }} import "macros/stars.html" as stars {{ "%}" }}
-{{ "{%" }} call stars::stars(reviews.average) {{ "%}" }}{{ "{%" }} endcall {{ "%}" }}</code></pre>
+        <pre class="ui-code"><code>// en el modelo: use crate::models::components::stars::Stars;
+&#123;&#123; Stars::new(reviews.average) &#125;&#125;</code></pre>
 
         <h3>Tamaños</h3>
         <div class="ui-demo">
-            {% call stars::stars(4.5) %}{% endcall %}
-            {% call stars::stars(4.5, "sm") %}{% endcall %}
+            {{ Stars::new(4.5) }}
+            {{ Stars::sm(4.5) }}
         </div>
-        <pre class="ui-code"><code>{{ "{%" }} call stars::stars(product.rating, "sm") {{ "%}" }}{{ "{%" }} endcall {{ "%}" }}</code></pre>
+        <pre class="ui-code"><code>&#123;&#123; Stars::sm(product.rating) &#125;&#125;</code></pre>
     </section>
 </div>
 {% endblock %}
