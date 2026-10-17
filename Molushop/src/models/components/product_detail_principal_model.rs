@@ -9,6 +9,7 @@ use crate::constants::money::symbol_of;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
+use crate::models::components::stars::Stars;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_detail_principal/product_detail_principal.html")]
 pub struct ProductDetailPrincipal{
@@ -27,7 +28,9 @@ pub struct ProductDetailPrincipalData{
     pub store_id: Uuid,
     pub images_product: Vec<ImageProduct>,
     pub variant_map: Vec<VariantMapItem>,
-    pub variations_with_stock_status: Vec<Variation>
+    pub variations_with_stock_status: Vec<Variation>,
+    pub rating_average: f64,
+    pub rating_count: i64
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ImageProduct{
@@ -106,11 +109,27 @@ impl Default for ProductDetailPrincipalData {
             images_product: Vec::new(),
             variant_map: Vec::new(),
             variations_with_stock_status: Vec::new(),
+            rating_average: 0.0,
+            rating_count: 0,
         }
     }
 }
 
 impl ProductDetailPrincipalData {
+    /// Las estrellas de la media, para la cabecera.
+    pub fn stars(&self) -> Stars {
+        Stars::new(self.rating_average)
+    }
+
+    /// "9 opiniones", "1 opinión".
+    pub fn rating_count_label(&self) -> String {
+        if self.rating_count == 1 {
+            "1 opinión".to_string()
+        } else {
+            format!("{} opiniones", self.rating_count)
+        }
+    }
+
     /// Precio de la variación que sale seleccionada al entrar (la primera del
     /// mapa, que viene ordenado por precio con los NULL al final). `None` si no
     /// hay variaciones o ni esa tiene precio.
@@ -156,6 +175,9 @@ impl From<ProductForPage1> for ProductDetailPrincipalData {
 
             variations_with_stock_status: parse_json(db.variations_with_stock_status, "variations_with_stock_status", &db.id)
                 .unwrap_or(default.variations_with_stock_status),
+
+            rating_average: db.rating_average,
+            rating_count: db.rating_count,
         }
     }
 }

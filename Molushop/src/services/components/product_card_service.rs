@@ -59,7 +59,11 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
         name:product.name,
         image:img_url,
         price:precio,
-        url: format!("{}{}",PRODUCT_URL_PREFIX,product.id)
+        url: format!("{}{}",PRODUCT_URL_PREFIX,product.id),
+        // Este camino (tarjetas sueltas por id) no consulta las opiniones: la
+        // tarjeta sale sin estrellas. Las del listado vienen de get_product_cards1.
+        rating_average: 0.0,
+        rating_count: 0
     }
 }
 pub async fn get_product_card_render(id:&Uuid,pool:&DbPool)->String{

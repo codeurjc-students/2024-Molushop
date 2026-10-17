@@ -23,15 +23,15 @@
         <div class="title">
             <span>{{product_data.name}}</span>
         </div>
-        <div class="rating-container">
-            <svg aria-hidden="true" focusable="false" class="rating">
-                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
-                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
-                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
-                <use href="/assets/svg/icons/stars.svg#stars-full-star" />
-                <use href="/assets/svg/icons/stars.svg#stars-half-star" />
-            </svg>
-        </div>
+        <!-- Lleva a la sección de opiniones, más abajo en la misma página. -->
+        <a class="rating-container" href="#product-reviews-1">
+            {% if product_data.rating_count > 0 %}
+            {{ product_data.stars() }}
+            <span class="rating-count">{{product_data.rating_count_label()}}</span>
+            {% else %}
+            <span class="rating-count">Sin opiniones todavía</span>
+            {% endif %}
+        </a>
         <div class="price">
             <!-- Sin precio no se pinta "€": el script lo esconde y lo vuelve a
                  enseñar al cambiar de variación (id product-currency). -->

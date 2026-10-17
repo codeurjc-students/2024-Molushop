@@ -571,6 +571,11 @@ pub struct ProductCard1 {
     pub store_name: Option<String>,
     #[diesel(sql_type = Nullable<SqlUuid>)]
     pub store_id: Option<Uuid>,
+    /// Media de las opiniones, 0 si no hay; al vuelo, como en RatingSummaryRow.
+    #[diesel(sql_type = diesel::sql_types::Double)]
+    pub rating_average: f64,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    pub rating_count: i64,
 }
 #[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -623,7 +628,12 @@ pub struct ProductForPage1{
     #[diesel(sql_type = Nullable<Jsonb>)]
     pub variant_map: Option<Value>,
     #[diesel(sql_type = Nullable<Jsonb>)]
-    pub variations_with_stock_status: Option<Value>
+    pub variations_with_stock_status: Option<Value>,
+    /// Media de las opiniones, 0 si no hay; al vuelo, como en RatingSummaryRow.
+    #[diesel(sql_type = diesel::sql_types::Double)]
+    pub rating_average: f64,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    pub rating_count: i64
 }
 
 #[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]

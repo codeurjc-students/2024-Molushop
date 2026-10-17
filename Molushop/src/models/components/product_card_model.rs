@@ -5,6 +5,7 @@ use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::models::models_x::ProductCard1;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
+use crate::models::components::stars::Stars;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card/templates/product_card.html")]
@@ -17,7 +18,16 @@ pub struct ProductCardData{
     pub name: String,
     pub image: String,
     pub price: BigDecimal,
-    pub url : String
+    pub url : String,
+    pub rating_average: f64,
+    pub rating_count: i64
+}
+
+impl ProductCardData {
+    /// Las estrellas de la media, en pequeño.
+    pub fn stars(&self) -> Stars {
+        Stars::sm(self.rating_average)
+    }
 }
 
 //hacer una funcion default de error
@@ -27,7 +37,9 @@ impl Default for ProductCardData {
             name: "Producto no disponible".to_string(),
             image: "/static/images/no-image.png".to_string(),
             price: BigDecimal::from(0),
-            url : "javascript:void(0)".to_string()
+            url : "javascript:void(0)".to_string(),
+            rating_average: 0.0,
+            rating_count: 0
         }
     }
 }
@@ -46,7 +58,10 @@ impl From<ProductCard1> for ProductCardData {
             price: db.price.unwrap_or_else(|| BigDecimal::from(0)),
 
             // Convertimos el UUID a una URL con formato producto/uuid
-            url: format!("{}{}",PRODUCT_URL_PREFIX,db.id)
+            url: format!("{}{}",PRODUCT_URL_PREFIX,db.id),
+
+            rating_average: db.rating_average,
+            rating_count: db.rating_count
         }
     }
 }

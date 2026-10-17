@@ -1104,7 +1104,10 @@ pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
             MIN(pr.price) price,
             pr.currency,
             s.store_name,
-            s.id store_id
+            s.id store_id,
+            -- Estrellas de la tarjeta (AVG da NULL sin filas).
+            (SELECT COALESCE(AVG(r.rating_value), 0)::float8 FROM ratings r WHERE r.product_id = p.id) AS rating_average,
+            (SELECT COUNT(*) FROM ratings r WHERE r.product_id = p.id) AS rating_count
         from products p
         left join product_variations pv on p.id=pv.product_id
         left join prices pr on pv.id=pr.variation_id
@@ -1218,7 +1221,11 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
                     )
                 )
                 FROM jsonb_array_elements(p.variations) AS v_def
-            ) AS variations_with_stock_status
+            ) AS variations_with_stock_status,
+            -- Media y número de opiniones para la cabecera, igual que el
+            -- resumen de product_reviews_service (AVG da NULL sin filas).
+            (SELECT COALESCE(AVG(r.rating_value), 0)::float8 FROM ratings r WHERE r.product_id = p.id) AS rating_average,
+            (SELECT COUNT(*) FROM ratings r WHERE r.product_id = p.id) AS rating_count
         FROM Products p
         LEFT JOIN LATERAL (
             SELECT jsonb_agg(jsonb_build_object(
