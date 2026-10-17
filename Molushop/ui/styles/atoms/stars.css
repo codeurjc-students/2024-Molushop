@@ -2,7 +2,7 @@
    (src/models/components/stars.rs, plantilla en ui/components/stars/);
    aquí solo va el tamaño.
 
-     {{ Stars::new(reviews.average) }}   {{ Stars::sm(product.rating) }}
+     {{ reviews.stars() }}   (el modelo devuelve Stars::new(...) o Stars::sm(...))
 
    Tamaños: (normal, 20px de alto), --sm (16px, tarjeta de producto)
 

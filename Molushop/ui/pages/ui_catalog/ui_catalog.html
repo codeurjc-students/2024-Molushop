@@ -392,15 +392,18 @@
             {{ Stars::new(2.5) }}
             {{ Stars::new(0) }}
         </div>
-        <pre class="ui-code"><code>// en el modelo: use crate::models::components::stars::Stars;
-&#123;&#123; Stars::new(reviews.average) &#125;&#125;</code></pre>
+        <pre class="ui-code"><code>// en el modelo del componente
+pub fn stars(&amp;self) -&gt; Stars { Stars::new(self.average) }
+
+// en la plantilla
+&#123;&#123; reviews.stars() &#125;&#125;</code></pre>
 
         <h3>Tamaños</h3>
         <div class="ui-demo">
             {{ Stars::new(4.5) }}
             {{ Stars::sm(4.5) }}
         </div>
-        <pre class="ui-code"><code>&#123;&#123; Stars::sm(product.rating) &#125;&#125;</code></pre>
+        <pre class="ui-code"><code>pub fn stars(&amp;self) -&gt; Stars { Stars::sm(self.rating) }</code></pre>
     </section>
 </div>
 {% endblock %}

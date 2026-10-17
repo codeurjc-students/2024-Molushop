@@ -3,10 +3,16 @@ use askama::Template;
 /// Átomo: estrellas de valoración, solo para leer (las de opinar son radios y
 /// van en product_reviews_v1). Pinta cinco estrellas para una nota de 0 a 5.
 ///
-/// Se usa desde cualquier plantilla cuyo modelo importe `Stars`:
+/// Cada modelo que pinta estrellas tiene un método que devuelve el `Stars`,
+/// y la plantilla solo lo escribe:
 ///
-///     {{ Stars::new(reviews.average) }}
-///     {{ Stars::sm(product.rating) }}
+///     pub fn stars(&self) -> Stars { Stars::new(self.average) }
+///     {{ reviews.stars() }}
+///
+/// Mejor un método que `{{ Stars::new(x) }}` en la plantilla: eso obliga a
+/// importar `Stars` en el modelo de cada página que incluya el componente
+/// (Askama resuelve los nombres allí), y Askama pasa los campos por
+/// referencia (`&f64`), que `Into<f64>` no acepta.
 ///
 /// El CSS es `ui/styles/atoms/stars.css`.
 #[derive(Template, Clone, Debug)]

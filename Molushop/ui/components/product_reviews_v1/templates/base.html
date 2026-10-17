@@ -80,11 +80,7 @@
     <div class="reviews-summary m-card">
         <div class="summary-average">
             <span class="average-number">{{reviews.average_label()}}</span>
-            <svg aria-hidden="true" focusable="false" class="rating">
-                {% for star in reviews.stars() %}
-                <use href="/assets/svg/icons/stars.svg#stars-{{star}}-star" />
-                {% endfor %}
-            </svg>
+            {{ reviews.stars() }}
             <span class="average-total">sobre {{reviews.total}} {% if reviews.total == 1 %}opinión{% else %}opiniones{% endif %}</span>
         </div>
 
@@ -110,11 +106,7 @@
                     <span class="author">{{review.author}}{% if reviews.is_mine(review.id) %} <span class="m-badge m-badge--success mine-tag">Tu opinión</span>{% endif %}</span>
                     <span class="review-date">{{review.date_label()}}</span>
                 </div>
-                <svg aria-hidden="true" focusable="false" class="rating">
-                    {% for star in review.stars() %}
-                    <use href="/assets/svg/icons/stars.svg#stars-{{star}}-star" />
-                    {% endfor %}
-                </svg>
+                {{ review.stars() }}
             </div>
             {% if review.has_comment() %}
             <p class="review-comment">{{review.comment_text()}}</p>

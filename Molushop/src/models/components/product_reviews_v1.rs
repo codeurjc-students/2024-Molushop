@@ -5,6 +5,7 @@ use uuid::Uuid;
 
 use crate::controllers::components::product_reviews_controller::ROUTES;
 use crate::models::models_x::RatingSummaryRow;
+use crate::models::components::stars::Stars;
 
 /// Tope del comentario. El mismo número que el CHECK de la tabla: la
 /// validación del servidor y la de la BD tienen que decir lo mismo, y el
@@ -60,12 +61,9 @@ impl ReviewData {
         self.created_at.format("%d/%m/%Y").to_string()
     }
 
-    /// Las cinco estrellas de ESTA opinión, llenas o vacías. Nunca media: la
-    /// media sólo aparece en el resumen de la cabecera.
-    pub fn stars(&self) -> Vec<&'static str> {
-        (1..=5)
-            .map(|i| if i <= self.rating_value { "full" } else { "empty" })
-            .collect()
+    /// Las estrellas de ESTA opinión (siempre enteras: la nota es de 1 a 5).
+    pub fn stars(&self) -> Stars {
+        Stars::new(self.rating_value)
     }
 
     /// Inicial para el círculo del avatar. Los usuarios no tienen foto.
@@ -204,22 +202,9 @@ impl ProductReviewsData {
         format!("{:.1}", self.average).replace('.', ",")
     }
 
-    /// Las cinco estrellas de la MEDIA. Media estrella a partir del cuarto
-    /// (4,3 -> cuatro llenas; 4,6 -> cuatro llenas y media), que es lo que ya
-    /// hace a ojo la cabecera de la ficha.
-    pub fn stars(&self) -> Vec<&'static str> {
-        (1..=5)
-            .map(|i| {
-                let i = i as f64;
-                if self.average >= i - 0.25 {
-                    "full"
-                } else if self.average >= i - 0.75 {
-                    "half"
-                } else {
-                    "empty"
-                }
-            })
-            .collect()
+    /// Las estrellas de la MEDIA, con media estrella.
+    pub fn stars(&self) -> Stars {
+        Stars::new(self.average)
     }
 
     /// El reparto, de 5 a 1 estrellas, que es el orden en que se lee.
