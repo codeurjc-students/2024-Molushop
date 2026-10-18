@@ -134,7 +134,7 @@ diesel::table! {
         product_var_id -> Nullable<Uuid>,
         added_at -> Timestamptz,
         #[max_length = 255]
-        notes -> Varchar,
+        notes -> Nullable<Varchar>,
     }
 }
 
