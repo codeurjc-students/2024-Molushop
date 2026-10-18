@@ -1,4 +1,3 @@
-pub mod pages;
 pub mod htmx;
 pub mod extra;    
 pub mod forms;

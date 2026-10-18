@@ -16,7 +16,9 @@ use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUC
 use crate::controllers::createProduct::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
 use crate::models::components::edit_product::EditProduct;
 use crate::models::components::panel_nav::PanelNav;
-use crate::models::pages::{CategoryTemplate, ProductsPanel, ProductsPanelEdit};
+use crate::models::pages_models::panel_products_page_model::PanelProductsPage;
+use crate::models::pages_models::panel_product_edit_page_model::PanelProductEditPage;
+use crate::models::pages_models::panel_product_create_page_model::PanelProductCreatePage;
 use crate::services::components::edit_product;
 use crate::services::panel_role_service::{product_in_store, resolve_store, PanelStore, PanelUser};
 use crate::services::products_panel;
@@ -65,7 +67,7 @@ async fn products_list(
 
     match products_panel::get_products(&store.id, pool).await {
         Ok(products) => {
-            let page = ProductsPanel {
+            let page = PanelProductsPage {
                 user_logged: false,
                 products,
                 routes: &ROUTES_PRODUCT_PANEL_GROUP,
@@ -96,7 +98,7 @@ async fn products_create(
 
     match obtain_base_categories(pool).await {
         Ok(categories) => {
-            let page = CategoryTemplate::new_2(
+            let page = PanelProductCreatePage::new_2(
                 categories,
                 &ROUTES_CREATE_PRODUCT,
                 PanelNav::new(&panel_user, "create").with_store(&store),
@@ -151,7 +153,7 @@ async fn products_edit(
         }.render().unwrap();
         format!("<title>Edit Product</title>{}", editor)
     } else {
-        ProductsPanelEdit {
+        PanelProductEditPage {
             user_logged: false,
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,

@@ -8,7 +8,8 @@
     {% include "components/product_panel_group/styles.html"%}
     {% include "components/edit_product/styles.html"%}
     {% include "components/edit_product_variation/styles.html"%}
-    <link rel="stylesheet" href="/static/pages/products-panel_edit/css/styles.css">
+    {# Misma cabecera que la lista de productos: comparte su CSS. #}
+    <link rel="stylesheet" href="/static/pages/panel_products/css/styles.css">
 {% endblock %}
 {% block content %}
     <div class="container">

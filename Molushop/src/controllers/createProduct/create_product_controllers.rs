@@ -196,7 +196,7 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
 #[post("/create-product/{category_id}")]
 async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,panel_user: web::ReqData<PanelUser>,req: HttpRequest,data: web::Json<ProductForm>) -> impl Responder {
     // El producto se crea a nombre de la tienda desde cuya página se manda el
-    // formulario (`hx-headers` en `pages/create_product/category.html`). La
+    // formulario (`hx-headers` en `pages/panel_product_create/panel_product_create.html`). La
     // cabecera la pone el cliente, así que se comprueba como la tienda de una URL.
     let store_id = req.headers().get(STORE_HEADER)
         .and_then(|v| v.to_str().ok())
