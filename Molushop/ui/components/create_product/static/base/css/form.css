@@ -31,14 +31,6 @@ font-size: 1.2rem;
 margin-bottom: 1.5rem;
 }
 
-/* El aspecto de los campos es del átomo m-field. En una variación la etiqueta
-   no tiene envoltorio propio (el hyperscript depende de esa estructura), así
-   que se separa aquí. */
-.select-cat .cont-vars .m-label {
-display: block;
-margin-bottom: var(--space-1);
-}
-
 /* Botones: el aspecto lo pone el átomo m-btn; aquí solo la colocación */
 .select-cat button[type="submit"] {
 margin-top: 1rem;
@@ -60,11 +52,50 @@ flex: 1;
 margin: 2rem 0;
 padding: 1.5rem;
 background: var(--color-bg-soft);
+border: 0;
 border-radius: 8px;
+/* Un fieldset no encoge por debajo de su contenido: sin esto desborda en móvil */
+min-width: 0;
 }
 
-.select-cat .btnAddVar {
-margin-right: 1rem;
+.select-cat .variations legend {
+color: var(--color-primary-strong);
+font-size: 1.2rem;
+font-weight: 600;
+}
+
+/* Cada atributo (Color, Talla…) en su caja */
+.select-cat .variation {
+margin: 0 0 1rem;
+padding: 1rem;
+background: var(--color-bg);
+border: 1px solid var(--color-border);
+border-radius: 8px;
+min-width: 0;
+animation: fadeIn 0.3s ease;
+}
+
+.select-cat .variation > .m-label {
+display: block;
+margin-bottom: var(--space-1);
+}
+
+.select-cat .variation .variation-value {
+display: flex;
+gap: var(--space-2);
+margin-bottom: var(--space-2);
+}
+
+.select-cat .variation-value .m-input {
+flex: 1;
+min-width: 0;
+}
+
+.select-cat .variation .variation-actions {
+display: flex;
+flex-wrap: wrap;
+gap: var(--space-2);
+margin-bottom: 0;
 }
 
 /* Responsive */
@@ -77,9 +108,9 @@ margin-right: 1rem;
     flex-direction: column;
 }
 
-.select-cat .variations button {
+/* Todos menos la × de cada valor, que va al lado de su campo */
+.select-cat .variations button:not([data-variations="remove-value"]) {
     width: 100%;
-    margin: 0.5rem 0;
 }
 }
 

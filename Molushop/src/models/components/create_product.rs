@@ -14,8 +14,6 @@ pub struct Routes{
     pub reset_category: &'static str,
     pub next_select: &'static str,
     pub create_product: &'static str,
-    pub add_variation: &'static str,
-    pub add_variation_value: &'static str,
     pub add_specs: &'static str,
 }
 
@@ -80,30 +78,6 @@ impl BaseProducto{
     }
 }
 
-
-#[derive(Template,Clone,Debug)]
-#[template(path = "components/create_product/templates/variations-input.html")]
-pub struct VariationsInput{
-    routes: &'static Routes,
-}
-impl VariationsInput{
-    pub fn new(routes: &'static Routes) -> Self {
-        VariationsInput {
-            routes
-        }
-    }
-}
-
-#[derive(Template,Clone,Debug)]
-#[template(path = "components/create_product/templates/variations-input-extra.html")]
-pub struct VariationsInputExtra{
-}
-impl VariationsInputExtra{
-    pub fn new() -> Self {
-        VariationsInputExtra {
-        }
-    }
-}
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/create_product/templates/specs-input.html")]

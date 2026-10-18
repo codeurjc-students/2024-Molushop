@@ -54,27 +54,36 @@
             <label class="m-label" for="description">Descripción:</label>
             <textarea class="m-input" id="description" name="description"></textarea>
         </div>
-        <div class="variations" _="on load set @y to 0">
-            
-            <button class="m-btn m-btn--secondary btnAddVar" 
-                hx-get="{{routes.add_variation}}" 
-                hx-target="this" 
-                hx-swap="beforebegin" 
-                _="on htmx:afterRequest
-                    set father to the closest .variations
-                    increment father's y
-                    log father's y"
-                    
-                >++ ADD VARIATION ++</button>
-            <button class="m-btn m-btn--danger-outline btnDelVar" type="button" 
-                _="on click
-                    set father to the closest .variations
-                    if father's y > 0
-                        decrement father's y then
-                        set varCont to the previous .cont-vars
-                        remove varCont" 
-                >-- DEL VARIATION --</button>
-        </div>
+        {# Los `name` (variations[i][name], variations[i][values][j][value]) no
+           se escriben aquí: los pone `renumberVariations` (js/functions.js) por
+           la posición de cada campo, así se puede quitar cualquiera. #}
+        <fieldset class="variations">
+            <legend>Variaciones</legend>
+            <p class="m-hint">Cada variación es un atributo (Color, Talla…) con sus valores. Se crea un artículo por cada combinación.</p>
+            <div class="variations-list"></div>
+            <button type="button" class="m-btn m-btn--secondary" data-variations="add-variation">+ Añadir variación</button>
+
+            <template class="tpl-variation">
+                <fieldset class="variation">
+                    <div class="m-field">
+                        <label class="m-label">Nombre</label>
+                        <input class="m-input" type="text" data-field="name" placeholder="Color" required>
+                    </div>
+                    <span class="m-label">Valores</span>
+                    <div class="variation-values"></div>
+                    <div class="variation-actions">
+                        <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-variations="add-value">+ Añadir valor</button>
+                        <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-variations="remove-variation">Quitar variación</button>
+                    </div>
+                </fieldset>
+            </template>
+            <template class="tpl-value">
+                <div class="variation-value">
+                    <input class="m-input" type="text" data-field="value" placeholder="Rojo" required>
+                    <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-variations="remove-value" aria-label="Quitar valor">×</button>
+                </div>
+            </template>
+        </fieldset>
         <div>
             <button type="submit" class="m-btn m-btn--primary m-btn--lg m-btn--block">Enviar</button>
         </div>

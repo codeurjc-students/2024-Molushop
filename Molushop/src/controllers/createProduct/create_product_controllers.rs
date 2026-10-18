@@ -77,8 +77,6 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
             reset_category: Box::leak(format!("{}/reset-category", SCOPE_FULL).into_boxed_str()),
             next_select: Box::leak(format!("{}/next-select", SCOPE_FULL).into_boxed_str()),
             create_product: Box::leak(format!("{}/create-product", SCOPE_FULL).into_boxed_str()),
-            add_variation: Box::leak(format!("{}/add-variation", SCOPE_FULL).into_boxed_str()),
-            add_variation_value: Box::leak(format!("{}/add-variation-value", SCOPE_FULL).into_boxed_str()),
             add_specs: Box::leak(format!("{}/add-specs", SCOPE_FULL).into_boxed_str()),
     };
 
@@ -94,8 +92,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(reset_category);
     cfg.service(next_category);
     cfg.service(create_product);
-    cfg.service(add_variation);
-    cfg.service(add_variation_value);
     cfg.service(add_specs);
 }
 
@@ -236,25 +232,6 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
             HttpResponse::InternalServerError().body("Error al crear el producto")
         }
     }
-}
-
-#[get("/add-variation")]
-async fn add_variation() -> impl Responder {
-    //let context = tera::Context::new();
-    let variations_input = VariationsInput::new(&ROUTES);
-    let rendered = variations_input.render().unwrap();
-    HttpResponse::Ok().body(rendered)
-}
-
-#[get("/add-variation-value")] //ESTO QUE HACE?
-async fn add_variation_value() -> impl Responder {
-    // let context = tera::Context::new();
-    //let rendered = TEMPLATES.render("create_product/variations-input-extra.html", &context).unwrap();
-    let variations_input_extra = VariationsInputExtra::new();
-    let rendered = variations_input_extra.render().unwrap();
-    HttpResponse::Ok()
-        .insert_header(("HX-Trigger","update_num"))
-        .body(rendered)
 }
 
 #[get("/add-specs")]
