@@ -6,96 +6,105 @@ font-weight: 300;
 font-size: 2.5rem;
 }
 
-/* La caja es del átomo m-card; aquí solo el ancho */
+/* La caja es del átomo m-card; aquí solo el ancho y la separación entre bloques */
 .select-cat form {
 max-width: 800px;
 margin: 0 auto;
 }
 
-/* Contenedor de especificaciones */
-.select-cat .specsContainer {
-background: var(--color-bg-soft);
-padding: 1.5rem;
-border-radius: 8px;
-margin-bottom: 2rem;
+.select-cat form > * + * {
+margin-top: var(--space-5);
 }
 
-.select-cat .specsContainer h4 {
-color: var(--color-primary-strong);
-margin-bottom: 1.5rem;
-font-size: 1.2rem;
-}
+/* ---- Secciones del alta (Specs, Variaciones) ----
+   cp-section   caja gris con título (legend) y ayuda (m-hint)
+   cp-item      caja blanca dentro de una sección
+   cp-list      columna de cajas o de filas
+   cp-row       fila "campo(s) + ×"
+   cp-actions   fila de botones */
 
-/* Estilos para los campos de entrada */
-.select-cat div:not(.btn-double-container) {
-margin-bottom: 1.5rem;
-}
-
-/* Botones: el aspecto lo pone el átomo m-btn; aquí solo la colocación */
-.select-cat button[type="submit"] {
-margin-top: 1rem;
-}
-
-/* Botones de Add/Delete Specs */
-.select-cat .btn-double-container {
-display: flex;
-gap: 1rem;
-margin-top: 1rem;
-}
-
-.select-cat .btn-double-container button {
-flex: 1;
-}
-
-/* Variaciones */
-.select-cat .variations {
-margin: 2rem 0;
-padding: 1.5rem;
+.select-cat .cp-section {
+margin-left: 0;
+margin-right: 0;
+padding: var(--space-5);
 background: var(--color-bg-soft);
 border: 0;
-border-radius: 8px;
+border-radius: var(--radius-md);
 /* Un fieldset no encoge por debajo de su contenido: sin esto desborda en móvil */
 min-width: 0;
 }
 
-.select-cat .variations legend {
+/* Flotando, la leyenda deja de ir encima del borde y se coloca dentro del
+   relleno, como cualquier otro título. */
+.select-cat .cp-section__title {
+float: left;
+width: 100%;
+padding: 0;
 color: var(--color-primary-strong);
-font-size: 1.2rem;
-font-weight: 600;
+font-size: var(--font-size-xl);
+font-weight: var(--font-weight-bold);
 }
 
-/* Cada atributo (Color, Talla…) en su caja */
-.select-cat .variation {
-margin: 0 0 1rem;
-padding: 1rem;
+.select-cat .cp-section__title + * {
+clear: both;
+}
+
+.select-cat .cp-section > * + * {
+margin-top: var(--space-4);
+}
+
+.select-cat .cp-section > .m-hint {
+margin-top: var(--space-1);
+}
+
+.select-cat .cp-item {
+display: flex;
+flex-direction: column;
+gap: var(--space-4);
+margin: 0;
+padding: var(--space-4);
 background: var(--color-bg);
 border: 1px solid var(--color-border);
-border-radius: 8px;
+border-radius: var(--radius-md);
 min-width: 0;
 animation: fadeIn 0.3s ease;
 }
 
-.select-cat .variation > .m-label {
-display: block;
-margin-bottom: var(--space-1);
+/* Sin specs de la categoría ni propias no se pinta la caja vacía */
+.select-cat .cp-item:not(:has(*)) {
+display: none;
 }
 
-.select-cat .variation .variation-value {
+.select-cat .cp-list {
+display: flex;
+flex-direction: column;
+gap: var(--space-2);
+}
+
+.select-cat .variations-list {
+gap: var(--space-4);
+}
+
+/* La lista de variaciones vacía no deja hueco antes del botón */
+.select-cat .cp-list:empty {
+display: none;
+}
+
+.select-cat .cp-row {
 display: flex;
 gap: var(--space-2);
-margin-bottom: var(--space-2);
+animation: fadeIn 0.3s ease;
 }
 
-.select-cat .variation-value .m-input {
+.select-cat .cp-row .m-input {
 flex: 1;
 min-width: 0;
 }
 
-.select-cat .variation .variation-actions {
+.select-cat .cp-actions {
 display: flex;
 flex-wrap: wrap;
 gap: var(--space-2);
-margin-bottom: 0;
 }
 
 /* Responsive */
@@ -104,13 +113,8 @@ margin-bottom: 0;
     padding: 1rem;
 }
 
-.select-cat .btn-double-container {
+.select-cat .cp-actions {
     flex-direction: column;
-}
-
-/* Todos menos la × de cada valor, que va al lado de su campo */
-.select-cat .variations button:not([data-variations="remove-value"]) {
-    width: 100%;
 }
 }
 
@@ -124,8 +128,4 @@ to {
     opacity: 1;
     transform: translateY(0);
 }
-}
-
-.select-cat .specsContainer > div:not(.btn-double-container) {
-animation: fadeIn 0.3s ease;
 }

@@ -14,7 +14,6 @@ pub struct Routes{
     pub reset_category: &'static str,
     pub next_select: &'static str,
     pub create_product: &'static str,
-    pub add_specs: &'static str,
 }
 
 
@@ -74,18 +73,6 @@ impl BaseProducto{
             category_id: id,
             routes,
             name
-        }
-    }
-}
-
-
-#[derive(Template,Clone,Debug)]
-#[template(path = "components/create_product/templates/specs-input.html")]
-pub struct SpecsInput{
-}
-impl SpecsInput{
-    pub fn new() -> Self {
-        SpecsInput {
         }
     }
 }

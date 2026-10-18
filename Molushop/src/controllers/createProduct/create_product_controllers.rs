@@ -78,7 +78,6 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
             reset_category: Box::leak(format!("{}/reset-category", SCOPE_FULL).into_boxed_str()),
             next_select: Box::leak(format!("{}/next-select", SCOPE_FULL).into_boxed_str()),
             create_product: Box::leak(format!("{}/create-product", SCOPE_FULL).into_boxed_str()),
-            add_specs: Box::leak(format!("{}/add-specs", SCOPE_FULL).into_boxed_str()),
     };
 
 }
@@ -93,7 +92,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(reset_category);
     cfg.service(next_category);
     cfg.service(create_product);
-    cfg.service(add_specs);
 }
 
 
@@ -231,12 +229,4 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
             HttpResponse::InternalServerError().body("Error al crear el producto")
         }
     }
-}
-
-#[get("/add-specs")]
-async fn add_specs() -> impl Responder {
-    let specs_input = SpecsInput::new();
-    let rendered = specs_input.render().unwrap();
-    
-    HttpResponse::Ok().body(rendered)
 }

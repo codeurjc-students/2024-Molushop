@@ -65,3 +65,28 @@ function renumberVariations(root) {
         });
     });
 }
+
+// Specs propias del alta de producto. Las de la categoría ya vienen en la
+// plantilla con su `name`; estas lo reciben al escribir el nombre.
+document.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-specs]');
+    if (!button) return;
+
+    if (button.dataset.specs === 'add-spec') {
+        const root = button.closest('.specs');
+        const spec = cloneTemplate(root, '.tpl-spec');
+        root.querySelector('.specs-list').append(spec);
+        spec.querySelector('input').focus();
+    } else {
+        button.closest('.spec-custom').remove();
+    }
+});
+
+document.addEventListener('input', (event) => {
+    const key = event.target.closest('[data-field="spec-key"]');
+    if (!key) return;
+    const value = key.closest('.spec-custom').querySelector('[data-field="spec-value"]');
+    const name = key.value.trim();
+    if (name) value.name = `specs[${name}]`;
+    else value.removeAttribute('name');
+});

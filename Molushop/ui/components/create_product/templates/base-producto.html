@@ -3,37 +3,34 @@
         hx-post="{{routes.create_product}}/{{category_id}}"
         hx-traget=".objetivo"
         hx-ext="json-enc-custom">
-        <div class="specsContainer" _="on load set @z to 0">
-            <h4>Specs</h4>
+        {# Specs y Variaciones comparten estructura (form.css): cp-section con
+           su título, cp-item para cada caja blanca, cp-row para cada fila
+           "campo + ×" y cp-actions para los botones. #}
+        <fieldset class="cp-section specs">
+            <legend class="cp-section__title">Specs</legend>
             <p class="m-hint">Opcionales: las que dejes en blanco no se guardan.</p>
-            {% for elem in specs %}
-            <div class="m-field">
-                <label class="m-label" for="spec-{{elem}}">{{elem}}</label>
-                <input class="m-input" type="text" id="spec-{{elem}}" name="specs[{{elem}}]">
+            <div class="cp-item specs-list">
+                {% for elem in specs %}
+                <div class="m-field">
+                    <label class="m-label" for="spec-{{elem}}">{{elem}}</label>
+                    <input class="m-input" type="text" id="spec-{{elem}}" name="specs[{{elem}}]">
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
-            <div class="extra"></div>
-            <div class="btn-double-container">
-                <button type="button" class="m-btn m-btn--secondary"
-                    hx-get="{{routes.add_specs}}"
-                    hx-swap="beforebegin"
-                    hx-target="closest .btn-double-container"
-                    _="on htmx:afterRequest
-                    set father to the closest .specsContainer
-                    increment father's z
-                    log father's z">+ Añadir spec</button>
-                <button type="button" class="m-btn m-btn--secondary"
-                    _="on click
-                    set father to the closest .specsContainer
-                    if father's z > 0
-                        decrement father's z 
-                        set btnCont to the closest .btn-double-container
-                        set lastSpec to the previous <div/> from btnCont
-                        remove lastSpec" 
-                        >Quitar última spec</button>
-            </div> 
-        </div>
-        
+            <div class="cp-actions">
+                <button type="button" class="m-btn m-btn--secondary" data-specs="add-spec">+ Añadir spec</button>
+            </div>
+
+            {# El valor no lleva `name` hasta que la spec tiene nombre (js/functions.js):
+               sin él, el navegador no lo manda y no llega una spec sin nombre. #}
+            <template class="tpl-spec">
+                <div class="cp-row spec-custom">
+                    <input class="m-input" type="text" data-field="spec-key" placeholder="Nombre (p. ej. Peso)" aria-label="Nombre de la spec">
+                    <input class="m-input" type="text" data-field="spec-value" placeholder="Valor" aria-label="Valor de la spec">
+                    <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-specs="remove-spec" aria-label="Quitar spec">×</button>
+                </div>
+            </template>
+        </fieldset>
 
         <div class="m-field">
             <label class="m-label" for="id">CODE:</label>
@@ -58,28 +55,32 @@
         {# Los `name` (variations[i][name], variations[i][values][j][value]) no
            se escriben aquí: los pone `renumberVariations` (js/functions.js) por
            la posición de cada campo, así se puede quitar cualquiera. #}
-        <fieldset class="variations">
-            <legend>Variaciones</legend>
+        <fieldset class="cp-section variations">
+            <legend class="cp-section__title">Variaciones</legend>
             <p class="m-hint">Cada variación es un atributo (Color, Talla…) con sus valores. Se crea un artículo por cada combinación.</p>
-            <div class="variations-list"></div>
-            <button type="button" class="m-btn m-btn--secondary" data-variations="add-variation">+ Añadir variación</button>
+            <div class="cp-list variations-list"></div>
+            <div class="cp-actions">
+                <button type="button" class="m-btn m-btn--secondary" data-variations="add-variation">+ Añadir variación</button>
+            </div>
 
             <template class="tpl-variation">
-                <fieldset class="variation">
+                <fieldset class="cp-item variation">
                     <div class="m-field">
                         <label class="m-label">Nombre</label>
                         <input class="m-input" type="text" data-field="name" placeholder="Color" required>
                     </div>
-                    <span class="m-label">Valores</span>
-                    <div class="variation-values"></div>
-                    <div class="variation-actions">
+                    <div class="m-field">
+                        <span class="m-label">Valores</span>
+                        <div class="cp-list variation-values"></div>
+                    </div>
+                    <div class="cp-actions">
                         <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-variations="add-value">+ Añadir valor</button>
                         <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-variations="remove-variation">Quitar variación</button>
                     </div>
                 </fieldset>
             </template>
             <template class="tpl-value">
-                <div class="variation-value">
+                <div class="cp-row variation-value">
                     <input class="m-input" type="text" data-field="value" placeholder="Rojo" required>
                     <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-variations="remove-value" aria-label="Quitar valor">×</button>
                 </div>
