@@ -131,11 +131,27 @@ impl ProductDetailPrincipalData {
         }
     }
 
-    /// Precio de la variación que sale seleccionada al entrar (la primera del
-    /// mapa, que viene ordenado por precio con los NULL al final). `None` si no
-    /// hay variaciones o ni esa tiene precio.
+    /// La variación que sale seleccionada al entrar: la de los valores marcados
+    /// `is_default` (la de más stock, ver `variacion_prioritaria`). Si no casa
+    /// ninguna, la primera del mapa. Un producto sin variaciones tiene una sola,
+    /// sin atributos, y casa siempre.
+    pub fn initial_variant(&self) -> Option<&VariantMapItem> {
+        let is_default = |attr: &VariantAttribute| {
+            self.variations_with_stock_status.iter().any(|v| {
+                v.name == attr.name && v.values.iter().any(|val| val.is_default && val.value == attr.value)
+            })
+        };
+        self.variant_map
+            .iter()
+            .find(|item| item.attributes.iter().all(is_default))
+            .or_else(|| self.variant_map.first())
+    }
+
+    /// Precio de la variación que sale seleccionada al entrar. Antes era el de
+    /// la primera del mapa (la más barata), que no tenía por qué ser la elegida.
+    /// `None` si no hay variaciones o esa no tiene precio.
     pub fn initial_price(&self) -> Option<&BigDecimal> {
-        self.variant_map.first().and_then(|v| v.price.as_ref())
+        self.initial_variant().and_then(|v| v.price.as_ref())
     }
 
     /// El precio grande de la cabecera: el de la variación que sale

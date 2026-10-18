@@ -26,6 +26,8 @@ const PRODUCT_DETAIL = {
         // El selector de cantidad (− +) lo mueve el átomo (QUANTITY, base.js);
         // aquí solo se lee su input al pulsar "Añadir al carrito".
         this.init_product_selection();
+        this.refreshAvailability();
+        this.element.addEventListener("m-qty-change", () => this.showError(null));
 
         document.addEventListener("auth-cancelled", () => this.clearPendingAdd());
         this.resumePendingAdd();
@@ -41,15 +43,16 @@ const PRODUCT_DETAIL = {
         return selected;
     },
 
-    // Devuelve las variaciones de variantMap que contienen el atributo name=attrName con value=attrValue
+    // Devuelve las variaciones de variantMap que contienen el atributo name=attrName con value=attrValue,
+    // primero las que tienen stock: al saltar de combinación se elige una que se pueda comprar.
     getVariantsByAttr: function(attrName, attrValue) {
-        return variantMap.filter(variant =>
-            variant.attributes.some(a => a.name === attrName && a.value === attrValue)
-        );
+        return variantMap
+            .filter(variant => variant.attributes.some(a => a.name === attrName && a.value === attrValue))
+            .sort((a, b) => (b.stock > 0) - (a.stock > 0));
     },
 
-    // Devuelve un Set con los valores válidos de targetAttrName,
-    // filtrando variantMap por todos los atributos seleccionados EXCEPTO targetAttrName
+    // Devuelve un Set con los valores de targetAttrName que, con el resto de lo
+    // seleccionado, dan una variación CON stock (para tachar los que no).
     getAvailableValues: function(selectedAttrs, targetAttrName) {
         let available = new Set();
         variantMap.forEach(variant => {
@@ -69,23 +72,22 @@ const PRODUCT_DETAIL = {
         return available;
     },
 
-    // Selecciona automáticamente los atributos del primer variant que coincida con la variación elegida.
+    // Al elegir un valor: si la combinación existe y tiene stock, se queda; si
+    // no, se salta a la primera con stock que lleve ese valor (o, si no hay
+    // ninguna, a la primera que exista). Después se repintan precio, píldoras y botón.
     updateAvailableOptions: function(event) {
-        console.log(event);
         let target = event.currentTarget;
-        console.log(target);
         let selectedAttrs = this.getSelectedAttrs();
         let variation = target.name.replace("variation-", "");
         let variationValue = target.value;
 
         let availableValues = this.getVariantsByAttr(variation, variationValue);
 
-        let newAttribute = this.findVariantByAttrs(selectedAttrs);
-        console.log(newAttribute);
+        let current = this.findVariantByAttrs(selectedAttrs);
 
-        if(newAttribute){
+        if (current && current.stock > 0) {
             this.updatePrice(selectedAttrs);
-        }else if (availableValues && availableValues.length > 0) {
+        } else if (availableValues && availableValues.length > 0) {
             let firstVariant = availableValues[0];
             firstVariant.attributes.forEach(attr => {
                 if (attr.name === variation) return;
@@ -97,7 +99,36 @@ const PRODUCT_DETAIL = {
             });
             this.updatePrice(selectedAttrs);
         }
-        
+        this.refreshAvailability();
+    },
+
+    // Tacha (sin apagar: se puede pulsar para cambiar de combinación) los
+    // valores que, con lo demás elegido, solo llevan a variaciones agotadas.
+    // Los que no tienen stock en ninguna combinación ya vienen `disabled` del servidor.
+    refreshAvailability: function() {
+        this.showError(null);
+        let selectedAttrs = this.getSelectedAttrs();
+        let byAttr = {};
+        this.element.querySelectorAll(".variation-input").forEach(input => {
+            let attrName = input.name.replace("variation-", "");
+            if (!(attrName in byAttr)) {
+                byAttr[attrName] = this.getAvailableValues(selectedAttrs, attrName);
+            }
+            let label = this.element.querySelector(`label[for="${CSS.escape(input.id)}"]`);
+            if (label) { label.classList.toggle("is-out-of-stock", !byAttr[attrName].has(input.value)); }
+        });
+        this.refreshAddButton();
+    },
+
+    // "Agotado" y apagado si la combinación elegida no existe o no tiene stock.
+    refreshAddButton: function() {
+        let btn = this.element.querySelector(".add-to-cart-btn");
+        if (btn == null) { return; }
+        let variant = this.findVariantByAttrs(this.getSelectedAttrs());
+        let soldOut = variant == null || variant.stock <= 0;
+        btn.disabled = soldOut;
+        let text = btn.querySelector("span");
+        if (text) { text.textContent = soldOut ? "Agotado" : "Añadir al carrito"; }
     },
     // Sin atributos seleccionados solo encaja la variación única de un producto
     // sin variaciones (attributes = []); en uno con variaciones no encaja ninguna.
@@ -137,18 +168,28 @@ const PRODUCT_DETAIL = {
         }
     },
 
+    // El aviso bajo el botón (null lo esconde). Se limpia al cambiar de
+    // variación o de cantidad: ya no se refiere a lo que hay elegido.
+    showError: function(message) {
+        let el = this.element.querySelector(".add-to-cart-error");
+        if (el == null) { return; }
+        el.textContent = message || "";
+        el.hidden = !message;
+    },
+
     addToCart: function() {
+        this.showError(null);
         let selectedAttrs = this.getSelectedAttrs();
         let variant = this.findVariantByAttrs(selectedAttrs);
 
         if (!variant) {
-            alert("Selecciona una variación válida");
+            this.showError("Selecciona una variación válida.");
             return;
         }
         // El servidor la rechazaría igual ("No price found"); así el aviso se
         // entiende y no se hace la petición.
         if (variant.price == null) {
-            alert("Esta variación no está disponible ahora mismo");
+            this.showError("Esta variación no está disponible ahora mismo.");
             return;
         }
 
@@ -156,7 +197,7 @@ const PRODUCT_DETAIL = {
         let quantity = parseInt(quantityInput.value) || 1;
 
         if (quantity <= 0) {
-            alert("La cantidad debe ser mayor a 0");
+            this.showError("La cantidad debe ser mayor que 0.");
             return;
         }
 

@@ -107,6 +107,15 @@
                             border-color: var(--color-primary-strong);
                             background-color: var(--color-primary-soft);
                         }
+                        /* Con lo demás elegido, este valor solo da combinaciones
+                           agotadas. Se puede pulsar: salta a una que tenga stock. */
+                        .variation-name-cont.is-out-of-stock span{
+                            text-decoration: line-through;
+                            color: var(--color-text-muted);
+                        }
+                        .variation-name-cont.is-out-of-stock{
+                            border-style: dashed;
+                        }
                         .variation-name-cont[disabled]{
                             background-color: var(--gray-100);
                             border-color: var(--color-disabled);
