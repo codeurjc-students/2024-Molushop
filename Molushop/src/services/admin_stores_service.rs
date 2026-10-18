@@ -90,6 +90,18 @@ pub struct AdminStore {
     pub members: Vec<StoreMember>,
 }
 
+/// Todos los usernames, en orden, para sugerirlos en los campos de asignar
+/// usuario (`<datalist>`). El campo sigue siendo texto: `add_member` es quien
+/// comprueba que existe.
+pub async fn list_usernames(pool: &DbPool) -> Result<Vec<String>, AdminStoreError> {
+    let conn = &mut connection(pool).await?;
+    Ok(base_user::table
+        .select(base_user::username)
+        .order(base_user::username)
+        .load::<String>(conn)
+        .await?)
+}
+
 /// Todas las tiendas con sus miembros. Las pendientes primero (son las que
 /// esperan al admin) y, dentro de cada estado, las más antiguas arriba.
 pub async fn list_stores(pool: &DbPool) -> Result<Vec<AdminStore>, AdminStoreError> {

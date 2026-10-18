@@ -115,6 +115,28 @@
     font-weight: 600;
 }
 
+/* Desplegable de tiendas, cuando hay más de una: sobre la barra oscura */
+.panel-nav-store-select {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border-inverse);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-inverse);
+    color: var(--color-text-invert);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.panel-nav-store-select:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.panel-nav-store:has(.panel-nav-store-select) {
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
 .m-card.panel-home-card-disabled {
     background-color: var(--color-bg-soft);
     color: var(--color-text-muted);

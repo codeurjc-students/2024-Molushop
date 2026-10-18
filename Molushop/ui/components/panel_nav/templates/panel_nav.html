@@ -3,7 +3,19 @@
     <ul class="panel-nav-links">
         <li><a href="/panel" {% if panel_nav.active == "home" %}class="active" aria-current="page"{% endif %}>Mis tiendas</a></li>
         {% if let Some(store) = panel_nav.store %}
+        {% if panel_nav.can_switch_store() %}
+        <li class="panel-nav-store">
+            {# Cambia a la misma sección de la otra tienda #}
+            <select class="panel-nav-store-select" aria-label="Cambiar de tienda"
+                    _="on change set window.location.href to my value">
+                {% for s in panel_nav.stores %}
+                <option value="{{ panel_nav.store_url(s) }}"{% if panel_nav.is_current_store(s) %} selected{% endif %}>{{s.name}}</option>
+                {% endfor %}
+            </select>
+        </li>
+        {% else %}
         <li class="panel-nav-store">{{store.name}}</li>
+        {% endif %}
         <li><a href="/panel/stores/{{store.id}}/products" {% if panel_nav.active == "products" %}class="active" aria-current="page"{% endif %}>Productos</a></li>
         <li><a href="/panel/stores/{{store.id}}/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
         <li><a href="/panel/stores/{{store.id}}/orders" {% if panel_nav.active == "orders" %}class="active" aria-current="page"{% endif %}>Pedidos</a></li>

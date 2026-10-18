@@ -11,6 +11,8 @@ pub struct AdminStoresPage{
     pub page_name:String,
     pub panel_nav: PanelNav,
     pub stores: Vec<AdminStore>,
+    /// Sugerencias para los campos de username (`<datalist>`).
+    pub usernames: Vec<String>,
     /// Aviso del último POST (viene de `?ok=` / `?error=`).
     pub ok_message: Option<&'static str>,
     pub error_message: Option<&'static str>

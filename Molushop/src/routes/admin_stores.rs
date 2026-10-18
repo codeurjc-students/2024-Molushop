@@ -16,7 +16,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use crate::models::components::panel_nav::PanelNav;
 use crate::models::pages_models::admin_stores_page_model::AdminStoresPage;
 use crate::services::admin_stores_service::{
-    add_member, create_store, delete_store, list_stores, remove_member, set_store_status, AdminStoreError,
+    add_member, create_store, delete_store, list_stores, list_usernames, remove_member, set_store_status, AdminStoreError,
 };
 use crate::services::panel_role_service::PanelUser;
 
@@ -94,12 +94,19 @@ async fn stores_page(
         }
     };
 
+    // Sin sugerencias la página sigue sirviendo: se escribe el username a mano.
+    let usernames = list_usernames(pool_data.get_ref()).await.unwrap_or_else(|e| {
+        println!("Admin tiendas, usernames: {:?}", e);
+        Vec::new()
+    });
+
     let query = query.into_inner();
     let page = AdminStoresPage {
         user_logged: true,
         page_name: "Panel - Tiendas".to_string(),
         panel_nav: PanelNav::new(&panel_user, "admin"),
         stores,
+        usernames,
         ok_message: query.ok.as_deref().and_then(ok_message),
         error_message: query.error.as_deref().and_then(error_message),
     }.render().unwrap();

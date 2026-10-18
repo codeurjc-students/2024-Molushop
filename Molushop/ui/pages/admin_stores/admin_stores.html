@@ -12,6 +12,10 @@
 
         <section class="m-card admin-box">
             <h2>Crear tienda</h2>
+            {# Sugerencias para todos los campos de username de la página #}
+            <datalist id="admin-usernames">
+                {% for name in usernames %}<option value="{{name}}"></option>{% endfor %}
+            </datalist>
             <form method="post" action="/admin/stores" class="admin-form">
                 <label class="m-field">
                     <span class="m-label">Nombre de la tienda</span>
@@ -19,7 +23,7 @@
                 </label>
                 <label class="m-field">
                     <span class="m-label">Usuario que la gestiona (opcional)</span>
-                    <input class="m-input" type="text" name="username" placeholder="username">
+                    <input class="m-input" type="text" name="username" placeholder="username" list="admin-usernames" autocomplete="off">
                 </label>
                 <button type="submit" class="m-btn m-btn--primary">Crear tienda</button>
             </form>
@@ -64,7 +68,7 @@
                             {% endfor %}
                         </ul>
                         <form method="post" action="/admin/stores/{{item.store.id}}/members" class="admin-form admin-form-inline">
-                            <input class="m-input m-input--sm" type="text" name="username" placeholder="username" required aria-label="Usuario para asignar a {{item.store.store_name}}">
+                            <input class="m-input m-input--sm" type="text" name="username" placeholder="username" required list="admin-usernames" autocomplete="off" aria-label="Usuario para asignar a {{item.store.store_name}}">
                             <button type="submit" class="m-btn m-btn--secondary m-btn--sm">Asignar</button>
                         </form>
                     </td>
