@@ -1075,7 +1075,7 @@ pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
             WHERE img.product_id = p.id 
             ORDER BY img.is_main DESC, img.id ASC 
             LIMIT 1) as image_url,
-            MIN(pr.price) price,
+            pr.price,
             pr.currency,
             s.store_name,
             s.id store_id,
@@ -1083,15 +1083,24 @@ pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
             (SELECT COALESCE(AVG(r.rating_value), 0)::float8 FROM ratings r WHERE r.product_id = p.id) AS rating_average,
             (SELECT COUNT(*) FROM ratings r WHERE r.product_id = p.id) AS rating_count
         from products p
-        left join product_variations pv on p.id=pv.product_id
-        left join prices pr on pv.id=pr.variation_id
+        -- El precio "desde": el más barato de las variaciones ACTIVAS que tienen
+        -- precio. Una subconsulta y no un GROUP BY por moneda: así una
+        -- variación sin precio no forma su propio grupo (salía el producto
+        -- dos veces, uno a 0 €). Sin ninguno, la tarjeta dice "No disponible".
+        left join lateral (
+            select pr2.price, pr2.currency
+            from product_variations pv
+            join prices pr2 on pr2.variation_id = pv.id
+            where pv.product_id = p.id and pv.status = 1
+            order by pr2.price asc
+            limit 1
+        ) pr on true
         -- JOIN y no LEFT JOIN: solo se enseña lo que vende una tienda ACTIVA
         -- (seller.status = 1). Fuera quedan las tiendas pendientes, inactivas o
         -- rechazadas y los productos sin tienda (los "borrados" del panel).
         join product_seller ps on p.id=ps.product_id
         join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
-        group by p.id, p.name, p.brand, pr.currency, s.store_name, s.id
         order by p.name;
     "#)
         .load::<ProductCard1>(connection).await?;
