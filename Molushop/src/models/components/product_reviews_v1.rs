@@ -110,9 +110,9 @@ pub struct ProductReviewsData {
     /// Sin sesión sale el botón que abre el login. Un visitante y un usuario
     /// identificado ven la MISMA lista: leer opiniones no pide sesión.
     pub logged: bool,
-    /// Con sesión y con un pedido no cancelado que lleve el producto: sólo
-    /// entonces sale el formulario. Con sesión y sin compra, el aviso de que
-    /// opinar es para quien lo ha comprado.
+    /// Con sesión y con alguna línea del producto ya entregada: sólo entonces
+    /// sale el formulario. Si no, el aviso de que opinar es para quien lo ha
+    /// recibido.
     pub can_review: bool,
     /// La opinión que ya dejó el usuario, si la hay: precarga el formulario y
     /// saca el botón de borrar. Puede existir aunque `can_review` sea falso (el

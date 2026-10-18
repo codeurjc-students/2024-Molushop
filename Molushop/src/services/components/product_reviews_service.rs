@@ -10,6 +10,7 @@ use uuid::Uuid;
 use crate::models::components::product_reviews_v1::{
     ProductReviewsData, ProductReviewsV1Body, ReviewData, MAX_COMMENT_LEN, PAGE_SIZE,
 };
+use crate::models::components::order_detail_v1::ORDER_DELIVERED;
 use crate::models::error::ServiceError;
 use crate::models::models_x::RatingSummaryRow;
 use crate::schema::{base_user, order_items, orders, product_variations, ratings};
@@ -174,15 +175,10 @@ pub async fn get_product_reviews_body_render(
     ProductReviewsV1Body { reviews: objeto }.render().unwrap()
 }
 
-/// `orders.status` = 2 es CANCELLED (ver la migración de `orders`).
-const ORDER_STATUS_CANCELLED: i16 = 2;
-
-/// ¿Tiene el usuario algún pedido NO cancelado con alguna variación de este
-/// producto? Es la regla para poder opinar. La opinión es por producto y el
-/// pedido va por variación, de ahí el paso por `product_variations`.
-///
-/// Cuenta también los pedidos pendientes. Exigir que esté entregado queda para
-/// cuando `orders` tenga ese estado.
+/// ¿Le ha llegado al usuario este producto? Es la regla para poder opinar:
+/// alguna línea suya ENTREGADA (`order_items.status`, que va por línea porque
+/// cada tienda envía lo suyo). La opinión es por producto y la línea va por
+/// variación, de ahí el paso por `product_variations`.
 async fn has_purchased(
     user_id: &Uuid,
     product_id: &Uuid,
@@ -193,7 +189,7 @@ async fn has_purchased(
             .inner_join(orders::table)
             .inner_join(product_variations::table)
             .filter(orders::user_id.eq(user_id))
-            .filter(orders::status.ne(ORDER_STATUS_CANCELLED))
+            .filter(order_items::status.eq(ORDER_DELIVERED))
             .filter(product_variations::product_id.eq(product_id)),
     ))
     .get_result::<bool>(connection)

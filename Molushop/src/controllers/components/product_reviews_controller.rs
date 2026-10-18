@@ -139,10 +139,10 @@ async fn save_product_review(
         Err(ServiceError::ProductNotFound) => {
             HttpResponse::BadRequest().body(form_error("Este producto ya no está disponible."))
         }
-        // 403 y no 401: la sesión es buena, lo que falta es la compra. Con un
+        // 403 y no 401: la sesión es buena, lo que falta es haberlo recibido. Con un
         // 401 se abriría el login, que no arregla nada.
         Err(ServiceError::NotPurchased) => HttpResponse::Forbidden()
-            .body(form_error("Solo pueden opinar quienes han comprado este producto.")),
+            .body(form_error("Solo pueden opinar quienes ya han recibido este producto.")),
         Err(e) => {
             println!("Error al guardar la opinión: {}", e);
             HttpResponse::InternalServerError()

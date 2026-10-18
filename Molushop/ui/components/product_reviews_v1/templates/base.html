@@ -10,7 +10,7 @@
     <!-- Éxito: el servidor devuelve la sección entera y sustituye a esta.
          400/403/500: sólo el hueco de errores, para no borrar lo escrito
          (extensión response-targets, que ya carga layout1.html). El 403 es
-         la compra cancelada entre pintar la ficha y publicar. -->
+         quien ya no cumple la regla (no le consta ninguna línea entregada). -->
     <form class="review-form m-card"
         hx-post="{{reviews.routes.save}}"
         hx-target="#product-reviews-1"
@@ -54,9 +54,9 @@
     </form>
     {% else if reviews.logged %}
     <div class="review-login m-card">
-        <span>Solo pueden opinar quienes han comprado este producto.</span>
+        <span>Solo pueden opinar quienes ya han recibido este producto.</span>
         {% if reviews.has_my_review() %}
-        <!-- Opinó cuando tenía el pedido y luego se canceló: ya no la edita,
+        <!-- Opinó con la regla anterior (bastaba un pedido) o se le canceló: ya no la edita,
              pero lo que escribió es suyo y puede quitarlo. -->
         <div class="m-error form-error" id="review-form-error"></div>
         {% include "components/product_reviews_v1/templates/delete_button.html" %}
