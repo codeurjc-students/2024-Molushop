@@ -80,6 +80,13 @@
                     <span>Descuento</span>
                     <div class="money">- {{ order.discount_tag() }}</div>
                 </div>
+                {% if order.has_cancelled() %}
+                {# El total que sigue en pie: lo cancelado no se envía ni se cobra #}
+                <div class="space">
+                    <span>Cancelado</span>
+                    <div class="money">- {{ order.cancelled_tag() }}</div>
+                </div>
+                {% endif %}
                 <div class="space">
                     <span>Envío</span>
                     <span>Gratis</span>

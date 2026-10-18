@@ -51,6 +51,16 @@ pub fn mixed_status(items: &[OrderLineData]) -> bool {
     items.windows(2).any(|pair| pair[0].status != pair[1].status)
 }
 
+/// Importe de las líneas canceladas. `orders.total_amount` es lo que se pidió y
+/// no se toca al cancelar (no hay pagos ni devoluciones); al comprador se le
+/// enseña lo que sigue en pie: el total menos esto.
+pub fn cancelled_total(items: &[OrderLineData]) -> BigDecimal {
+    items
+        .iter()
+        .filter(|it| it.status == ORDER_CANCELLED)
+        .fold(BigDecimal::from(0), |acc, it| acc + &it.line_total)
+}
+
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_detail_v1/order_detail_v1.html")]
 pub struct OrderDetailV1{
@@ -157,8 +167,17 @@ impl OrderData {
         Price::new(&self.discount_total, &self.currency)
     }
 
+    /// El total sin lo cancelado.
     pub fn total_tag(&self) -> Price {
-        Price::new(&self.total_amount, &self.currency)
+        Price::new(&(&self.total_amount - cancelled_total(&self.items)), &self.currency)
+    }
+
+    pub fn has_cancelled(&self) -> bool {
+        self.items.iter().any(|it| it.status == ORDER_CANCELLED)
+    }
+
+    pub fn cancelled_tag(&self) -> Price {
+        Price::new(&cancelled_total(&self.items), &self.currency)
     }
 
     pub fn line_total_tag(&self, line: &OrderLineData) -> Price {
@@ -231,5 +250,34 @@ impl From<OrderItem> for OrderLineData {
             status: db.status,
             product_url: String::new()
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    fn line(total: &str, status: i16) -> OrderLineData {
+        let total = BigDecimal::from_str(total).unwrap();
+        OrderLineData {
+            product_name: String::new(),
+            variation_label: String::new(),
+            sku: String::new(),
+            image: String::new(),
+            store_name: String::new(),
+            unit_price: total.clone(),
+            quantity: 1,
+            line_total: total,
+            status,
+            product_url: String::new(),
+        }
+    }
+
+    #[test]
+    fn cancelled_total_sums_only_cancelled_lines() {
+        let items = vec![line("10.00", ORDER_CONFIRMED), line("4.50", ORDER_CANCELLED), line("1.25", ORDER_CANCELLED)];
+        assert_eq!(cancelled_total(&items), BigDecimal::from_str("5.75").unwrap());
+        assert_eq!(cancelled_total(&items[..1]), BigDecimal::from(0));
     }
 }

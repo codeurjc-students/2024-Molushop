@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::models::components::price::Price;
 use crate::constants::urls::{HOME_URL, ORDER_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
-use crate::models::components::order_detail_v1::{OrderLineData, mixed_status, status_label, status_variant};
+use crate::models::components::order_detail_v1::{OrderLineData, cancelled_total, mixed_status, status_label, status_variant};
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_list_v1/order_list_v1.html")]
@@ -36,8 +36,9 @@ pub struct OrderSummaryData{
 }
 
 impl OrderSummaryData {
+    /// El total sin lo cancelado, igual que en la ficha del pedido.
     pub fn total_tag(&self) -> Price {
-        Price::new(&self.total_amount, &self.currency)
+        Price::new(&(&self.total_amount - cancelled_total(&self.items)), &self.currency)
     }
 
     pub fn status_label(&self) -> &'static str {
