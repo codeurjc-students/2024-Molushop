@@ -6,12 +6,13 @@ use std::collections::HashMap;
 use std::time::Duration as DurationTime;
 
 use actix_web::cookie::time::Duration as CookieDuration;
-use actix_web::cookie::Cookie;
+use actix_web::cookie::{Cookie, SameSite};
 use actix_web::HttpRequest;
 use chrono::{Duration, Utc};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use ipnet::IpNet;
+use sha2::{Digest, Sha256};
 use uuid::Uuid;
 
 use crate::models::models_x::NewUserSession;
@@ -48,8 +49,9 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
         id: &Uuid::new_v4(),
         user_id,
         jti: &jti,
-        // Pendiente antes de publicar: guarda el token tal cual (la columna no se lee).
-        refresh_token_hash: &token,
+        // Nunca el token en claro: si se filtra la tabla, no sirve para entrar.
+        // Hoy la columna no se lee; el hash permite buscar una sesión por su token.
+        refresh_token_hash: &token_hash(&token),
         issued_at: &now,
         expires_at: &expires_at,
         last_used_at: &now,
@@ -63,9 +65,31 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
         .map_err(|e| format!("Error guardando la sesión: {}", e))?;
 
     let mut cookie = Cookie::new("sesion_token", token);
+    // Explícito y no el Lax por defecto del navegador: la cookie no viaja en
+    // peticiones POST que vengan de otra web (primera barrera contra CSRF).
+    cookie.set_same_site(SameSite::Lax);
     cookie.set_max_age(CookieDuration::seconds(SESSION_SECONDS));
     cookie.set_http_only(true);
     cookie.set_secure(true);
     cookie.set_path("/");
     Ok(cookie)
+}
+
+/// SHA-256 del token, en hexadecimal (64 caracteres).
+fn token_hash(token: &str) -> String {
+    hex::encode(Sha256::digest(token.as_bytes()))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn token_hash_is_sha256_hex() {
+        // Vector conocido: SHA-256("abc")
+        assert_eq!(
+            token_hash("abc"),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
 }

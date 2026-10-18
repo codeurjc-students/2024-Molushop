@@ -103,7 +103,7 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
     //if cookie1.is_some(){
     if let Some(c) = cookie1{
         let token = c.value().to_string();
-        println!("la cookie existe!, su valor es:{}",&token);
+        // El token no se escribe en el log: con él se entra como el usuario.
         //hacer la validación de la cookie
         
         match validate_local_token(&token,&claims_data){
