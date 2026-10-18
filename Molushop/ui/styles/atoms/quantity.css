@@ -1,0 +1,98 @@
+/* Átomo: selector de cantidad. Lo pinta el struct Quantity
+   (src/models/components/quantity.rs, plantilla en ui/components/quantity/);
+   los botones los mueve QUANTITY (ui/utils/base.js).
+
+     {{ item.quantity_tag() }}   (el modelo devuelve Quantity::new(valor, min, max))
+
+     <span class="m-qty">
+         <button class="m-qty__btn" data-step="-1">−</button>
+         <input class="m-qty__input" type="number" value="1" min="1" max="99">
+         <button class="m-qty__btn" data-step="1">+</button>
+     </span>
+
+   Tamaños: (normal, mide lo mismo que un m-btn), --sm (líneas del carrito)
+   Apagado: el botón lleva `disabled` en el límite (lo pone el servidor y lo
+   mantiene el JS). */
+
+.m-qty {
+    display: inline-flex;
+    align-items: stretch;
+    box-sizing: border-box;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.m-qty:focus-within {
+    border-color: var(--color-focus);
+}
+
+.m-qty__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25em;
+    padding: var(--space-2);
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    cursor: pointer;
+    user-select: none;
+    transition: background-color var(--transition-fast);
+}
+
+.m-qty__btn:hover:not(:disabled) {
+    background-color: var(--color-bg-soft);
+}
+
+.m-qty__btn:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+}
+
+.m-qty__btn:disabled {
+    color: var(--color-disabled);
+    cursor: default;
+}
+
+.m-qty__input {
+    width: 2.5em;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-md);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+.m-qty__input:focus {
+    outline: none; /* el borde lo marca .m-qty:focus-within */
+}
+
+.m-qty__input::-webkit-outer-spin-button,
+.m-qty__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* ---- Tamaños ---- */
+
+.m-qty--sm .m-qty__btn {
+    min-width: 1.75em;
+    padding: var(--space-1);
+    font-size: var(--font-size-sm);
+}
+
+.m-qty--sm .m-qty__input {
+    width: 2em;
+    font-size: var(--font-size-sm);
+}

@@ -4,6 +4,7 @@ use crate::models::components::stars::Stars;
 use crate::models::components::modal_1_model::Modal1;
 use crate::models::components::warning_modal::WarningModal;
 use crate::models::components::price::Price;
+use crate::models::components::quantity::Quantity;
 use bigdecimal::BigDecimal;
 use std::str::FromStr;
 
@@ -24,6 +25,11 @@ impl UiCatalogPage {
 
     pub fn demo_price_missing(&self) -> Price {
         Price::maybe(None, "EUR")
+    }
+
+    /// Selector de cantidad de ejemplo; `max` 0 = sin tope.
+    pub fn demo_quantity(&self, value: i32, min: i32, max: i32) -> Quantity {
+        Quantity::new(value, min, (max > 0).then_some(max))
     }
 
     /// El modal de confirmación de ejemplo: sin htmx, el "Sí" solo lo cierra.

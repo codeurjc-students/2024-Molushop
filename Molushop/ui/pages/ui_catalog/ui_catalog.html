@@ -27,6 +27,7 @@
             <a href="#estrellas">Estrellas</a>
             <a href="#modales">Modales</a>
             <a href="#precio">Precio</a>
+            <a href="#cantidad">Cantidad</a>
         </nav>
     </header>
 
@@ -456,6 +457,34 @@ el.querySelector(".m-price__amount").textContent = MONEY.format(total);</code></
             {{ demo_price("150.99").lg() }}
         </div>
         <pre class="ui-code"><code>Price::new(&amp;precio, &amp;moneda).lg()</code></pre>
+    </section>
+
+    <section id="cantidad">
+        <h2>Cantidad</h2>
+        <p class="ui-catalog-note">Selector − 1 +. Lo pinta el struct <code>Quantity</code> (<code>models/components/quantity.rs</code>), que ajusta el valor a los límites y apaga el botón del límite. Los botones los mueve <code>QUANTITY</code> (<code>ui/utils/base.js</code>), delegado sobre <code>document</code>: no hay que engancharlo. Cada clic lanza el evento <code>m-qty-change</code> desde el input; lo escrito a mano solo se ajusta a los límites al salir del campo.</p>
+
+        <h3>Mínimo 1, máximo 5 · en el máximo · sin tope</h3>
+        <div class="ui-demo">
+            {{ demo_quantity(1, 1, 5) }}
+            {{ demo_quantity(5, 1, 5) }}
+            {{ demo_quantity(12, 0, 0) }}
+        </div>
+        <pre class="ui-code"><code>// en el modelo
+pub fn quantity_tag(&amp;self) -&gt; Quantity { Quantity::new(self.quantity, 0, Some(self.stock)) }
+
+// en la plantilla
+&#123;&#123; item.quantity_tag() &#125;&#125;
+
+// en JS, el componente decide qué hacer con la cantidad
+root.addEventListener("m-qty-change", (event) =&gt; enviar(event.detail.value));</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            {{ demo_quantity(2, 1, 5) }}
+            {{ demo_quantity(2, 1, 5).sm() }}
+            <button type="button" class="m-btn m-btn--primary">Añadir al carrito</button>
+        </div>
+        <pre class="ui-code"><code>Quantity::new(valor, min, max).sm()</code></pre>
     </section>
 </div>
 {% endblock %}

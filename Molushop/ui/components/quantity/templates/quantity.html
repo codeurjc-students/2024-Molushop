@@ -1,0 +1,4 @@
+{# Átomo de cantidad: el struct está en src/models/components/quantity.rs y el
+   JS de los botones es QUANTITY (ui/utils/base.js). El componente que lo usa
+   lee la cantidad de .m-qty__input y escucha el evento m-qty-change. #}
+<span class="m-qty{% if small %} m-qty--sm{% endif %}"><button type="button" class="m-qty__btn" data-step="-1"{% if at_min() %} disabled{% endif %} aria-label="Quitar una unidad">−</button><input type="number" class="m-qty__input" inputmode="numeric" value="{{value}}" min="{{min}}"{% if let Some(m) = max %} max="{{m}}"{% endif %} aria-label="Cantidad"><button type="button" class="m-qty__btn" data-step="1"{% if at_max() %} disabled{% endif %} aria-label="Añadir una unidad">+</button></span>

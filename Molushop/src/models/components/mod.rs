@@ -19,3 +19,4 @@ pub mod panel_login_v1;
 pub mod panel_nav;
 pub mod stars;
 pub mod price;
+pub mod quantity;
