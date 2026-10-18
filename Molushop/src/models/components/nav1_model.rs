@@ -25,5 +25,6 @@ pub struct Routes{
     pub home: String,
     pub cart: String,
     pub orders: String,
+    pub account: String,
     pub logout: String
 }

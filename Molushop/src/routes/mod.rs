@@ -11,6 +11,7 @@ pub mod panel_orders;
 pub mod admin_stores;
 pub mod admin_orders;
 pub mod panel_register;
+pub mod account;
 
 use actix_web::web;
 use crate::middleware::auth::Auth;
@@ -24,5 +25,6 @@ pub fn config_routes(cfg: &mut web::ServiceConfig) {
     cart::config(cfg);
     checkout::config(cfg);
     orders::config(cfg);
+    account::config(cfg);
     panel::config(cfg);
 }

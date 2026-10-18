@@ -1,0 +1,67 @@
+{% extends "layouts/layout1.html" %}
+{% block scripts %}
+    {% include "components/nav1/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/nav1/styles.html"%}
+    <link rel="stylesheet" href="/static/pages/account/account.css">
+{% endblock %}
+{% block header %}
+    {% include "components/nav1/templates/nav1.html"%}
+{% endblock %}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <div class="account-page">
+        {% if !user_logged %}
+        <div class="m-card account-box">
+            <h1>Mi cuenta</h1>
+            <p>Identifícate para cambiar tu contraseña o cerrar tus sesiones.</p>
+            <button type="button" class="m-btn m-btn--primary open-login-modal">Identifícate</button>
+        </div>
+        {% else %}
+        <h1>Mi cuenta</h1>
+        <p class="m-hint">Usuario: {{username}}</p>
+
+        {% if let Some(msg) = ok_message %}
+        <p class="m-alert m-alert--success account-msg" role="status">{{msg}}</p>
+        {% endif %}
+        {% if let Some(msg) = error_message %}
+        <p class="m-alert m-alert--danger account-msg" role="alert">{{msg}}</p>
+        {% endif %}
+
+        <section class="m-card account-box">
+            <h2>Cambiar contraseña</h2>
+            {# Formulario clásico: el POST redirige aquí con ?ok= o ?error= #}
+            <form method="post" action="/account/password" class="account-form">
+                <label class="m-field">
+                    <span class="m-label">Contraseña actual</span>
+                    <input class="m-input" type="password" name="current" autocomplete="current-password" required>
+                </label>
+                <label class="m-field">
+                    <span class="m-label">Nueva contraseña</span>
+                    <input class="m-input" type="password" name="new" autocomplete="new-password" minlength="8" required>
+                    <span class="m-hint">Al menos 8 caracteres, con mayúscula, minúscula, número y un símbolo (!@#$%^&amp;*...).</span>
+                </label>
+                <label class="m-field">
+                    <span class="m-label">Repite la nueva contraseña</span>
+                    <input class="m-input" type="password" name="new2" autocomplete="new-password" minlength="8" required>
+                </label>
+                <button type="submit" class="m-btn m-btn--primary">Cambiar contraseña</button>
+            </form>
+            <p class="m-hint">Al cambiarla se cierran tus sesiones en otros dispositivos; en este sigues dentro.</p>
+        </section>
+
+        <section class="m-card account-box">
+            <h2>Sesiones</h2>
+            {% if other_sessions == 0 %}
+            <p>No tienes la sesión abierta en ningún otro dispositivo.</p>
+            {% else %}
+            <p>Tienes la sesión abierta en {{other_sessions}} {% if other_sessions == 1 %}dispositivo más{% else %}dispositivos más{% endif %}.</p>
+            <form method="post" action="/account/sessions">
+                <button type="submit" class="m-btn m-btn--danger-outline">Cerrar sesión en todos los demás dispositivos</button>
+            </form>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+{% endblock %}

@@ -45,6 +45,7 @@
           {% if nav1.logged %}
           <ul class="profile-menu-list">
             <li><a href="{{nav1.routes.orders}}">Mis Pedidos</a></li>
+            <li><a href="{{nav1.routes.account}}">Mi cuenta</a></li>
           </ul>
           <button type="button" class="profile-menu-logout"
             hx-post="{{nav1.routes.logout}}"
