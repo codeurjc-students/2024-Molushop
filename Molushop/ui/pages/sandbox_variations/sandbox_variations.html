@@ -1,0 +1,245 @@
+{% extends "layouts/layout1.html" %}
+{# Prueba: cómo enseñar las variaciones en el listado del panel. Las cuentas
+   (agrupar, la matriz, el precio habitual) están en
+   src/models/pages_models/sandbox_variations_page_model.rs. #}
+{% block scripts %}
+    <script src="/static/pages/sandbox_variations/js/script.js" defer></script>
+{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" href="/static/pages/sandbox_variations/css/styles.css">
+{% endblock %}
+{% block content %}
+<div class="sbx" data-show="all">
+    <header class="sbx-header">
+        <a href="/sandbox">← Sandbox</a>
+        <h1>Variaciones en el listado del panel</h1>
+        <p>Productos reales de <strong>{{store_name}}</strong>. Otra tienda: <code>/sandbox/variaciones?store=&lt;id&gt;</code></p>
+        <div class="sbx-filter" role="group" aria-label="Qué opción ver">
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-show="all" aria-pressed="true">Todas</button>
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-show="summary" aria-pressed="false">1 · Resumen</button>
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-show="table" aria-pressed="false">2 · Tabla agrupada</button>
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-show="matrix" aria-pressed="false">3 · Matriz</button>
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-show="explorer" aria-pressed="false">4 · Filtros</button>
+        </div>
+        <p class="sbx-legend">
+            <span class="sbx-swatch is-active"></span> Activa con stock
+            <span class="sbx-swatch is-out"></span> Activa sin stock
+            <span class="sbx-swatch is-draft"></span> Borrador
+            <span class="sbx-swatch is-inactive"></span> Inactiva
+            <span class="sbx-swatch is-missing"></span> No existe
+            <span class="sbx-swatch is-filtered"></span> Oculta por los filtros (4)
+        </p>
+    </header>
+
+    {% for demo in products %}
+    <article class="m-card sbx-product">
+        <header class="sbx-product__head">
+            {% if let Some(image_url) = demo.product.image_url %}
+                <img src="{{image_url}}" alt="{{demo.product.name}}" class="sbx-product__image" loading="lazy">
+            {% else %}
+                <div class="sbx-product__image sbx-product__image--empty" aria-hidden="true">Sin imagen</div>
+            {% endif %}
+            <div>
+                <h2>{{demo.product.name}}</h2>
+                <p class="m-hint">{{demo.total()}} variaciones · {{demo.titles().len()}} atributos</p>
+            </div>
+        </header>
+
+        {# ---- 1 · Resumen: siempre visible en la tarjeta ---- #}
+        <section class="sbx-option" data-option="summary">
+            <h3 class="sbx-option__title">1 · Resumen</h3>
+            <p class="sbx-stats">
+                <span><strong>{{demo.total()}}</strong> variaciones</span>
+                <span><strong>{{demo.active()}}</strong> activas</span>
+                <span><strong>{{demo.stock()}}</strong> en stock</span>
+                <span>
+                    {% if let Some(min) = demo.price_min() %}{{min}}{% endif %}
+                    {% if let Some(max) = demo.price_max() %} – {{max}}{% endif %}
+                </span>
+                {% if demo.active_out_of_stock() > 0 %}
+                    <span class="m-badge m-badge--warning">{{demo.active_out_of_stock()}} activas sin stock</span>
+                {% endif %}
+                {% if demo.active() == 0 %}
+                    <span class="m-badge m-badge--neutral">Ninguna a la venta</span>
+                {% endif %}
+            </p>
+            {% if !demo.titles().is_empty() %}
+            <dl class="sbx-attrs">
+                {% for (title, values) in demo.attribute_values() %}
+                <div>
+                    <dt>{{title}}</dt>
+                    <dd>{% for value in values %}<span class="sbx-chip">{{value}}</span>{% endfor %}</dd>
+                </div>
+                {% endfor %}
+            </dl>
+            {% endif %}
+        </section>
+
+        {# ---- 2 · Tabla agrupada por el primer atributo ---- #}
+        <section class="sbx-option" data-option="table">
+            <h3 class="sbx-option__title">2 · Tabla{% if !demo.titles().is_empty() %} agrupada por {{demo.title(0)}}{% endif %}</h3>
+            <div class="sbx-scroll">
+                <table class="sbx-table">
+                    <thead>
+                        <tr>
+                            {% for title in demo.rest_titles() %}<th scope="col">{{title}}</th>{% endfor %}
+                            <th scope="col">Precio</th>
+                            <th scope="col" class="num">Stock</th>
+                            <th scope="col">Estado</th>
+                        </tr>
+                    </thead>
+                    {% for (group, vars) in demo.groups() %}
+                    <tbody>
+                        {% if !group.is_empty() %}
+                        <tr class="sbx-group">
+                            <th scope="rowgroup" colspan="{{demo.rest_titles().len() + 3}}">{{group}} <span>· {{vars.len()}}</span></th>
+                        </tr>
+                        {% endif %}
+                        {% for pv in vars %}
+                        <tr class="{{demo.state_class(pv)}}">
+                            {% for value in demo.rest_values(pv) %}<td>{{value}}</td>{% endfor %}
+                            <td>{{pv.price_tag()}}</td>
+                            <td class="num">{{pv.stock}}</td>
+                            <td><span class="m-badge m-badge--{{demo.status_variant(pv)}}">{{demo.status_label(pv)}}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    {% endfor %}
+                </table>
+            </div>
+        </section>
+
+        {# ---- 3 · Matriz: filas = 1.er atributo, columnas = 2.º ---- #}
+        <section class="sbx-option" data-option="matrix">
+            <h3 class="sbx-option__title">3 · Matriz</h3>
+            {% match demo.matrix() %}
+            {% when Some(tables) %}
+                {% if let Some(usual) = demo.usual_price_tag() %}
+                <p class="m-hint">Cada celda es el stock. Precio habitual {{usual}}: solo se escribe en las celdas que cambian.</p>
+                {% endif %}
+                {% for table in tables %}
+                    {% if let Some(title) = table.title %}<h4 class="sbx-matrix__title">{{title}}</h4>{% endif %}
+                    <div class="sbx-scroll">
+                        <table class="sbx-matrix">
+                            <thead>
+                                <tr>
+                                    <th scope="col" class="sbx-matrix__corner">{{demo.title(0)}} \ {{demo.title(1)}}</th>
+                                    {% for col in table.cols %}<th scope="col">{{col}}</th>{% endfor %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for (row, cells) in table.rows %}
+                                <tr>
+                                    <th scope="row">{{row}}</th>
+                                    {% for cell in cells %}
+                                        {% match cell %}
+                                        {% when Some(pv) %}
+                                        <td class="sbx-cell {{demo.state_class(pv)}}" title="{{demo.status_label(pv)}} · {{pv.stock}} uds">
+                                            <strong>{{pv.stock}}</strong>
+                                            {% if demo.has_unusual_price(pv) %}<span class="sbx-cell__price">{{pv.price_tag()}}</span>{% endif %}
+                                        </td>
+                                        {% when None %}
+                                        <td class="sbx-cell is-missing" title="Esta combinación no existe">—</td>
+                                        {% endmatch %}
+                                    {% endfor %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            {% when None %}
+                <p class="m-hint">Sin matriz: hacen falta 2 o 3 atributos y este producto tiene {{demo.titles().len()}}. Aquí valdría la tabla.</p>
+            {% endmatch %}
+        </section>
+
+        {# ---- 4 · Tabla con filtros + matriz con ejes a elegir ----
+           Las filas llevan sus valores en data-a0, data-a1…: el JS filtra la
+           tabla y monta la matriz a partir de ellas (js/script.js). #}
+        <section class="sbx-option sbx-explorer" data-option="explorer">
+            <h3 class="sbx-option__title">4 · Tabla con filtros y matriz</h3>
+
+            <div class="sbx-toolbar">
+                {% for (i, title, values) in demo.filters() %}
+                <label class="sbx-toolbar__field">
+                    <span class="m-label">{{title}}</span>
+                    <select class="m-input m-input--sm" data-filter-attr="{{i}}">
+                        <option value="">Todos</option>
+                        {% for value in values %}<option>{{value}}</option>{% endfor %}
+                    </select>
+                </label>
+                {% endfor %}
+                <div class="sbx-toolbar__field">
+                    <span class="m-label">Estado</span>
+                    <div class="sbx-states" role="group" aria-label="Filtrar por estado">
+                        <button type="button" class="sbx-state is-active" data-filter-state="is-active" aria-pressed="false">Con stock</button>
+                        <button type="button" class="sbx-state is-out" data-filter-state="is-out" aria-pressed="false">Sin stock</button>
+                        <button type="button" class="sbx-state is-draft" data-filter-state="is-draft" aria-pressed="false">Borrador</button>
+                        <button type="button" class="sbx-state is-inactive" data-filter-state="is-inactive" aria-pressed="false">Inactiva</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sbx-toolbar sbx-toolbar--meta">
+                <p class="sbx-count" aria-live="polite">Mostrando <strong data-count>{{demo.total()}}</strong> de {{demo.total()}}</p>
+                <button type="button" class="m-btn m-btn--ghost m-btn--sm" data-filter-reset>Quitar filtros</button>
+                {% if demo.titles().len() >= 2 %}
+                <div class="sbx-views" role="group" aria-label="Vista">
+                    <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-view="table" aria-pressed="true">Tabla</button>
+                    <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-view="matrix" aria-pressed="false">Matriz</button>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="sbx-scroll" data-panel="table">
+                <table class="sbx-table sbx-ftable">
+                    <thead>
+                        <tr>
+                            {% for title in demo.titles() %}<th scope="col">{{title}}</th>{% endfor %}
+                            <th scope="col">Precio</th>
+                            <th scope="col" class="num">Stock</th>
+                            <th scope="col">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pv in demo.sorted_variations() %}
+                        <tr class="{{demo.state_class(pv)}}" data-state="{{demo.state_class(pv)}}"
+                            data-stock="{{pv.stock}}" data-price="{{pv.price}}" data-symbol="{{pv.price_tag().symbol()}}"
+                            {% for value in demo.all_values(pv) %} data-a{{loop.index0}}="{{value}}"{% endfor %}>
+                            {# data-label: en móvil, la etiqueta de cada valor en su tarjeta #}
+                            {% for value in demo.all_values(pv) %}<td class="attr" data-label="{{demo.title(loop.index0)}}">{{value}}</td>{% endfor %}
+                            <td data-label="Precio">{{pv.price_tag()}}</td>
+                            <td class="num" data-label="Stock">{{pv.stock}}</td>
+                            <td class="state"><span class="m-badge m-badge--{{demo.status_variant(pv)}}">{{demo.status_label(pv)}}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                <p class="m-hint sbx-empty" hidden>Ninguna variación cumple los filtros.</p>
+            </div>
+
+            {% if demo.titles().len() >= 2 %}
+            <div data-panel="matrix" hidden>
+                <div class="sbx-toolbar">
+                    <label class="sbx-toolbar__field">
+                        <span class="m-label">Filas</span>
+                        <select class="m-input m-input--sm" data-axis="rows">
+                            {% for title in demo.titles() %}<option value="{{loop.index0}}"{% if loop.first %} selected{% endif %}>{{title}}</option>{% endfor %}
+                        </select>
+                    </label>
+                    <label class="sbx-toolbar__field">
+                        <span class="m-label">Columnas</span>
+                        <select class="m-input m-input--sm" data-axis="cols">
+                            {% for title in demo.titles() %}<option value="{{loop.index0}}"{% if loop.index0 == 1 %} selected{% endif %}>{{title}}</option>{% endfor %}
+                        </select>
+                    </label>
+                </div>
+                <p class="m-hint">Los demás atributos se fijan con los filtros de arriba. Si no se fijan, cada celda suma el stock de las variaciones que junta (×N).</p>
+                <div class="sbx-scroll" data-matrix></div>
+            </div>
+            {% endif %}
+        </section>
+    </article>
+    {% endfor %}
+</div>
+{% endblock %}

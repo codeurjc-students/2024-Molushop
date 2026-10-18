@@ -1,0 +1,21 @@
+{% extends "layouts/layout1.html" %}
+{# Índice de las pruebas de UI. Cada prueba es una subpágina; cuando la idea
+   pasa a su componente real se borra su subpágina y su enlace de aquí. Lo ya
+   decidido vive en /ui. #}
+{% block styles %}
+    <link rel="stylesheet" href="/static/pages/sandbox_variations/css/styles.css">
+{% endblock %}
+{% block content %}
+<div class="sbx">
+    <header class="sbx-header">
+        <h1>Sandbox</h1>
+        <p>Pruebas de UI con el CSS y los datos de verdad, antes de tocar el componente real. Solo existe en desarrollo. Lo ya decidido está en <a href="/ui">/ui</a>.</p>
+    </header>
+    <nav class="sbx-index">
+        <a href="/sandbox/variaciones" class="m-card m-card--link">
+            <strong>Variaciones en el listado del panel</strong>
+            <span class="m-hint">Resumen, tabla agrupada y matriz, con los productos de una tienda.</span>
+        </a>
+    </nav>
+</div>
+{% endblock %}
