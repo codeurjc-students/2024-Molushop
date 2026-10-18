@@ -1,16 +1,9 @@
 use askama::Template;
-use serde::Serialize;
-use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/modal/templates/message.html")]
 pub struct MessageModal{
     pub text: String,
-}
-
-#[derive(Serialize,Clone,Debug)]
-pub struct Routes{
-    pub base: &'static str,
 }
 
 impl MessageModal{
