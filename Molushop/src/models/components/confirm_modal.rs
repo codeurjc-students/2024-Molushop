@@ -4,7 +4,7 @@ use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGr
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/modal/templates/confirm.html")]
-pub struct WarningModal{
+pub struct ConfirmModal{
     pub method: String,
     pub message: String,
     pub endpoint: String,

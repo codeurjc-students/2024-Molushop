@@ -10,7 +10,7 @@ use ipnet::IpNet;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use crate::models::models_x::NewUserSession;
-use crate::{controllers::createProduct::product, models::components::warning_modal::WarningModal};
+use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
 use crate::models::components::login_base_model::*;
 use crate::services::components::login_base_service::*;
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -90,7 +90,7 @@ async fn logout(req: HttpRequest, pool_data: web::Data<DbPool>) -> HttpResponse 
     if let Some(session) = session {
         if let Err(e) = revoke_session(&session.jti, &session.id, pool_data.get_ref()).await {
             println!("Error al revocar la sesión: {}", e);
-            let modal_render = Modal1::new("No se ha podido cerrar la sesión").render().unwrap();
+            let modal_render = MessageModal::new("No se ha podido cerrar la sesión").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
     }
@@ -116,7 +116,7 @@ async fn spawn()->HttpResponse	{
 
 }
 
-use crate::models::components::modal_1_model::Modal1;
+use crate::models::components::message_modal::MessageModal;
 use crate::services::auth::{hash_password,verify_password};
 use crate::models::error::ServiceError;
 
@@ -134,7 +134,7 @@ async fn create_user(form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->
 
     if !is_validated.is_valid {
         let message = "Hay problemas con el formato";
-        let modal_render = Modal1::new(message).render().unwrap();
+        let modal_render = MessageModal::new(message).render().unwrap();
         return HttpResponse::BadRequest().body(modal_render) 
     };
 
@@ -144,7 +144,7 @@ async fn create_user(form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->
         Err(e)=>{
             println!("Error! -> {}",e);
             let message = "Ha habido un problema al hashear la contraseña";
-            let modal_render = Modal1::new(message).render().unwrap();
+            let modal_render = MessageModal::new(message).render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
     };
@@ -155,13 +155,13 @@ async fn create_user(form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->
         Ok(num)=>{
             //let message = "Usuario creado correctamente";
             let mensaje = format!("Usuario creado correctamente: {}",num);
-            let modal_render = Modal1::new(&mensaje).render().unwrap();
+            let modal_render = MessageModal::new(&mensaje).render().unwrap();
             return HttpResponse::Ok().body(modal_render)
         },
         Err(e)=>{
             println!("Error! -> {}",e);
             let message = "No se ha podido crear el usuario";
-            let modal_render = Modal1::new(message).render().unwrap();
+            let modal_render = MessageModal::new(message).render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
     }
@@ -179,7 +179,7 @@ async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpReq
         Err(e)=>{
             println!("Error! -> {}",e);
             let message = "El usuario no existe?";
-            let modal_render = Modal1::new(message).render().unwrap();
+            let modal_render = MessageModal::new(message).render().unwrap();
             return HttpResponse::Unauthorized().body(modal_render)
         }
     };
@@ -257,7 +257,7 @@ async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpReq
                         match insert_session_login(new_user_session,&pool).await{
                             Ok(_)=>{
                                 //let message = "El password es correcto";
-                                let modal_render = Modal1::new("El login se ha realizado correctamente").render().unwrap();
+                                let modal_render = MessageModal::new("El login se ha realizado correctamente").render().unwrap();
                                 return HttpResponse::Ok()
                                     .cookie(cookie)
                                     .body(modal_render)
@@ -265,7 +265,7 @@ async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpReq
                             Err(e)=>{
                                 println!("Error pete: {}",e);
                                 let message = "Fallo ";
-                                let modal_render = Modal1::new(message).render().unwrap();
+                                let modal_render = MessageModal::new(message).render().unwrap();
                                 return HttpResponse::InternalServerError().body(modal_render)  
                             }
                         }
@@ -273,20 +273,20 @@ async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpReq
                     Err(e)=>{
                         println!("Error pete: {}",e);
                         let message = "Peto en el token";
-                        let modal_render = Modal1::new(message).render().unwrap();
+                        let modal_render = MessageModal::new(message).render().unwrap();
                         return HttpResponse::Unauthorized().body(modal_render)   
                     }
                 }
             }else {
                 let message = "LA CONTRSAEÑA NO ES LA MISMA";
-                let modal_render = Modal1::new(message).render().unwrap();
+                let modal_render = MessageModal::new(message).render().unwrap();
                 return HttpResponse::Unauthorized().body(modal_render)    
             }
         },
         Err(e)=>{
             println!("Error! -> {}",e);
             let message = "Ha habido un problema resolviendo el pass";
-            let modal_render = Modal1::new(message).render().unwrap();
+            let modal_render = MessageModal::new(message).render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
     }

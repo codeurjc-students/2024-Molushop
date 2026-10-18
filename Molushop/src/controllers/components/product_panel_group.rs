@@ -5,7 +5,7 @@ use askama::Template;
 use uuid::Uuid;
 
 use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::models::components::warning_modal::WarningModal;
+use crate::models::components::confirm_modal::ConfirmModal;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
@@ -79,7 +79,7 @@ async fn delete_product_modal(path: web::Path<Uuid>,panel_user: web::ReqData<Pan
     }
 
     let product_id_str= product_id.to_string();
-    let warning_modal = WarningModal{
+    let warning_modal = ConfirmModal{
         method: "hx-delete".to_string(),
         message: "¿Estás seguro de que deseas eliminar este producto?".to_string(),
         endpoint: format!("{}/{}",ROUTES.delete_product,&product_id_str),

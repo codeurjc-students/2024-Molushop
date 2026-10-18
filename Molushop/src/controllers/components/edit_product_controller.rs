@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::{controllers::createProduct::product, models::components::warning_modal::WarningModal};
+use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
 use crate::models::components::edit_product::Routes;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
@@ -66,7 +66,7 @@ pub struct FormGeneral{
     pub status: i16
 }
 
-use crate::models::components::modal_1_model::Modal1;
+use crate::models::components::message_modal::MessageModal;
 
 #[post("/edit-general/{product_id}")]
 async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<FormGeneral>,pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -79,14 +79,14 @@ async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,
 match result{
         Ok(_) => {
             println!("Producto editado correctamente");
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Producto actualizado correctamente!".to_string()
             }.render().unwrap();
             HttpResponse::Ok().body(modal_render)
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Ha ocurrido un error!".to_string()
             }.render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render);}
@@ -167,7 +167,7 @@ let client_data_x = client_data.get_ref().as_ref();
     match result_multiple{
         Ok(_) => {
             println!("Producto editado correctamente");
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Imagen actualizada correctamente!".to_string()
             }.render().unwrap();
 
@@ -186,7 +186,7 @@ let client_data_x = client_data.get_ref().as_ref();
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Ha ocurrido un error!".to_string()
             }.render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render);}
@@ -198,14 +198,14 @@ let client_data_x = client_data.get_ref().as_ref();
     match result_update{
         Ok(_) => {
             println!("Producto editado correctamente");
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Imagen actualizada correctamente!".to_string()
             }.render().unwrap();
             HttpResponse::Ok().body(modal_render)
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Ha ocurrido un error!".to_string()
             }.render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render);}
@@ -231,7 +231,7 @@ async fn delete_all_imgs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            /*let modal_render = Modal1{
+            /*let modal_render = MessageModal{
             text:"Ha ocurrido un error!".to_string()
             }.render().unwrap();*/
             HttpResponse::InternalServerError().body("Algo ha ido mal")

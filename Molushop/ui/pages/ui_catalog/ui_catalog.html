@@ -411,19 +411,19 @@ pub fn stars(&amp;self) -&gt; Stars { Stars::new(self.average) }
 
     <section id="modales">
         <h2>Modales</h2>
-        <p class="ui-catalog-note">Ventana que tapa la página. Dos structs con la misma carcasa (<code>components/modal/templates/shell.html</code>): <code>Modal1</code> para un mensaje y <code>WarningModal</code> para pedir confirmación. El controlador devuelve el HTML y se añade al final del <code>body</code>; se cierra con la ×, pulsando fuera, con Escape o con sus botones.</p>
+        <p class="ui-catalog-note">Ventana que tapa la página. Dos structs con la misma carcasa (<code>components/modal/templates/shell.html</code>): <code>MessageModal</code> para un mensaje y <code>ConfirmModal</code> para pedir confirmación. El controlador devuelve el HTML y se añade al final del <code>body</code>; se cierra con la ×, pulsando fuera, con Escape o con sus botones.</p>
 
         <div class="ui-demo">
             <button type="button" class="m-btn m-btn--secondary" data-demo-modal="demo-modal-message">Abrir mensaje</button>
             <button type="button" class="m-btn m-btn--danger-outline" data-demo-modal="demo-modal-confirm">Abrir confirmación</button>
         </div>
-        <template id="demo-modal-message">{{ Modal1::new("Producto añadido al carrito")|safe }}</template>
+        <template id="demo-modal-message">{{ MessageModal::new("Producto añadido al carrito")|safe }}</template>
         <template id="demo-modal-confirm">{{ demo_confirm()|safe }}</template>
         <pre class="ui-code"><code>// mensaje
-HttpResponse::Ok().body(Modal1::new("No hay suficiente stock").render().unwrap())
+HttpResponse::Ok().body(MessageModal::new("No hay suficiente stock").render().unwrap())
 
 // confirmación: el "Sí" lanza la petición htmx
-WarningModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: true, .. }
+ConfirmModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: true, .. }
 
 // quien lo pide
 &lt;button hx-get="..." hx-target="body" hx-swap="beforeend"&gt;Eliminar&lt;/button&gt;</code></pre>

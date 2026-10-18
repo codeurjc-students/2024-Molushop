@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::{controllers::createProduct::product, models::components::warning_modal::WarningModal};
+use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
 use crate::models::components::edit_product_variation_model::Routes;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
@@ -71,7 +71,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 use crate::models::components::edit_product_variation_model::EditProductVariation;
 use crate::services::components::edit_product_variation_service::start;
-use crate::models::components::modal_1_model::Modal1;
+use crate::models::components::message_modal::MessageModal;
 
 #[get("/spawn/{id}")]
 async fn spawn(path: web::Path<Uuid>, panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -93,7 +93,7 @@ async fn spawn(path: web::Path<Uuid>, panel_user: web::ReqData<PanelUser>, pool_
         },
         Err(e)=>{
             println!("Error: {}",e);
-            let modal_render = Modal1{
+            let modal_render = MessageModal{
                 text:"Ha ocurrido un error!".to_string()
             }.render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
@@ -149,11 +149,11 @@ let new_status:i16 =  form_general.status.parse().unwrap_or(0);
     let mut render:String=String::new();
     match result1{
         Ok(_)=>{
-            render = Modal1::new("Identificador editado correctamente").render().unwrap();
+            render = MessageModal::new("Identificador editado correctamente").render().unwrap();
         },
         Err(e)=>{
             println!("Ha ocurrido un error: {}",e);
-            render = Modal1::new("Algo ha ido mal").render().unwrap();
+            render = MessageModal::new("Algo ha ido mal").render().unwrap();
         }
     }
     let status_value = form_general.status;
@@ -172,7 +172,7 @@ let new_status:i16 =  form_general.status.parse().unwrap_or(0);
     //aqui añadir headers a la respuesta
     /* 
     println!("{:?}",form_general);
-    let modal_respuesta = Modal1{
+    let modal_respuesta = MessageModal{
         text:"Prueba de edit_general, hecha correctamente".to_string()
     }.render().unwrap();
     HttpResponse::Ok().body(modal_respuesta)*/
@@ -200,7 +200,7 @@ let form_identifiers = data.into_inner();
     match result{
         Ok(numero) =>{
             //aqui añadir a que 
-            let modal_respuesta = Modal1{
+            let modal_respuesta = MessageModal{
                 text:"Identificadores editados correctamente".to_string()
             }.render().unwrap();
             println!("Todo correcto");
@@ -208,7 +208,7 @@ let form_identifiers = data.into_inner();
         },
         Err(e)=>{
             println!("Ha ocurrido un error: {}",e);
-            let modal_respuesta = Modal1{
+            let modal_respuesta = MessageModal{
                 text:"Ha habido un error al editar los identificadores".to_string()
             }.render().unwrap();
             println!("Todo incorrecto");
@@ -269,14 +269,14 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
 
     match result_update_price {
         Ok(_) => {
-            let modal_respuesta = Modal1 {
+            let modal_respuesta = MessageModal {
                 text: "Precio actualizado correctamente".to_string()
             }.render().unwrap();
             HttpResponse::Ok().body(modal_respuesta)
         },
         Err(e) => {
             println!("Error al actualizar precio: {}", e);
-            let modal_respuesta = Modal1 {
+            let modal_respuesta = MessageModal {
                 text: "Error al actualizar el precio".to_string()
             }.render().unwrap();
             HttpResponse::InternalServerError().body(modal_respuesta)
@@ -295,7 +295,7 @@ let form = data.into_inner();
     let new_stock= match form.stock.parse::<i32>(){
         Ok(stock) => stock,
         Err(e)=>{
-            let modal_respuesta = Modal1::new("Ha ocurrido un error").render().unwrap();
+            let modal_respuesta = MessageModal::new("Ha ocurrido un error").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_respuesta)
         }
     };
@@ -304,12 +304,12 @@ let form = data.into_inner();
     let result_stock = set_stock_variation(&var_id, &new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
-            let modal_respuesta = Modal1::new("Todo correcto").render().unwrap();
+            let modal_respuesta = MessageModal::new("Todo correcto").render().unwrap();
             return HttpResponse::Ok().body(modal_respuesta)
         },
         Err(e)=>{
             println!("{}",e);
-            let modal_respuesta = Modal1::new("Ha ocurrido un error").render().unwrap();
+            let modal_respuesta = MessageModal::new("Ha ocurrido un error").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_respuesta)
         }
     }
@@ -334,7 +334,7 @@ pub struct WarningParameters{
 async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
     //obtener el warning
     /* 
-    let warning_modal = WarningModal{
+    let warning_modal = ConfirmModal{
         method:params.method.clone(),
         message:"Seguro que quieres eliminar el identificador?".to_string(),
         endpoint:params.endpoint.clone(),
@@ -345,7 +345,7 @@ async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
     remove target
     */
     println!("{:?}",params);
-    let warning_modal = WarningModal{
+    let warning_modal = ConfirmModal{
         method:params.method.clone(),
         message:params.message.clone(),
         endpoint:params.endpoint.clone(),

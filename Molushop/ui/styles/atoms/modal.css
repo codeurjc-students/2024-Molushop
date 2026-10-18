@@ -1,5 +1,5 @@
-/* Átomo: modal. Ventana que tapa la página: un mensaje (Modal1) o una
-   pregunta de sí o no (WarningModal). Las dos plantillas extienden
+/* Átomo: modal. Ventana que tapa la página: un mensaje (MessageModal) o una
+   pregunta de sí o no (ConfirmModal). Las dos plantillas extienden
    ui/components/modal/templates/shell.html, que pone la estructura y el
    cierre (la ×, pulsar fuera y la tecla Escape).
 

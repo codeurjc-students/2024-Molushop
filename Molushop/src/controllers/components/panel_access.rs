@@ -13,18 +13,18 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-use crate::models::components::modal_1_model::Modal1;
+use crate::models::components::message_modal::MessageModal;
 use crate::services::panel_role_service::{can_edit_product, can_edit_variation, PanelUser};
 
 fn to_response(result: Result<bool, String>) -> Result<(), HttpResponse> {
     match result {
         Ok(true) => Ok(()),
         Ok(false) => Err(HttpResponse::NotFound()
-            .body(Modal1::new("Producto no encontrado").render().unwrap())),
+            .body(MessageModal::new("Producto no encontrado").render().unwrap())),
         Err(e) => {
             println!("Panel: {}", e);
             Err(HttpResponse::InternalServerError()
-                .body(Modal1::new("Ha ocurrido un error!").render().unwrap()))
+                .body(MessageModal::new("Ha ocurrido un error!").render().unwrap()))
         }
     }
 }

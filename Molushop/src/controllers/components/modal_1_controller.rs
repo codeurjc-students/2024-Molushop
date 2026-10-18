@@ -5,12 +5,12 @@ use askama::Template;
 use uuid::Uuid;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::models::components::warning_modal::WarningModal;
+use crate::models::components::confirm_modal::ConfirmModal;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 
-use crate::models::components::modal_1_model::Routes;
+use crate::models::components::message_modal::Routes;
 
 use super::scope::SCOPE_COMPONENTS;
 use crate::services::servicesX::{delete_seller_product};

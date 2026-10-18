@@ -4,7 +4,7 @@ use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGr
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/modal/templates/message.html")]
-pub struct Modal1{
+pub struct MessageModal{
     pub text: String,
 }
 
@@ -13,7 +13,7 @@ pub struct Routes{
     pub base: &'static str,
 }
 
-impl Modal1{
+impl MessageModal{
     pub fn new(text: &str)-> Self{
         Self{
             text: text.to_string()

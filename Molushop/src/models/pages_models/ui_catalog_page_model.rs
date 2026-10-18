@@ -1,8 +1,8 @@
 use askama::Template;
 // La plantilla los construye para enseñar cada átomo.
 use crate::models::components::stars::Stars;
-use crate::models::components::modal_1_model::Modal1;
-use crate::models::components::warning_modal::WarningModal;
+use crate::models::components::message_modal::MessageModal;
+use crate::models::components::confirm_modal::ConfirmModal;
 use crate::models::components::price::Price;
 use crate::models::components::quantity::Quantity;
 use bigdecimal::BigDecimal;
@@ -33,8 +33,8 @@ impl UiCatalogPage {
     }
 
     /// El modal de confirmación de ejemplo: sin htmx, el "Sí" solo lo cierra.
-    pub fn demo_confirm(&self) -> WarningModal {
-        WarningModal {
+    pub fn demo_confirm(&self) -> ConfirmModal {
+        ConfirmModal {
             method: String::new(),
             message: "¿Estás seguro de que deseas eliminar este producto?".to_string(),
             endpoint: String::new(),
