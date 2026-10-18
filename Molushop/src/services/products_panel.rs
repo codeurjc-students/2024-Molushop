@@ -19,7 +19,8 @@ use crate::services::servicesX::{
 type DbPool = Pool<AsyncPgConnection>;
 
 use diesel::sql_query;
-use diesel::sql_types::{Array, Nullable, SmallInt, Uuid as SqlUuid};
+use diesel::sql_types::{Array, Nullable, SmallInt, Text, Uuid as SqlUuid};
+use std::collections::HashMap;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use diesel_async::scoped_futures::ScopedFutureExt;
 use crate::constants::product_status::PRODUCT_DELETED;
@@ -63,6 +64,8 @@ pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool:
 pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{
 
     let products = get_panel_products(Some(std::slice::from_ref(store_id)), pool).await?;
+    let product_ids: Vec<Uuid> = products.iter().map(|(p, _)| p.id).collect();
+    let mut images = get_main_images(&product_ids, pool).await?;
     let mut products_final:Vec<Product> = Vec::new();
 
     for (product, _store_name) in products{
@@ -92,11 +95,39 @@ pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,E
             id: product.id,
             store_name: None,
             store_id: *store_id,
+            image_url: images.remove(&product.id),
         };
         products_final.push(product_final);
     }
         
     Ok(products_final)
+}
+
+#[derive(diesel::QueryableByName)]
+struct MainImage {
+    #[diesel(sql_type = SqlUuid)]
+    product_id: Uuid,
+    #[diesel(sql_type = Text)]
+    image_url: String,
+}
+
+/// La imagen principal de cada producto, en una consulta para todo el listado.
+/// La marcada `is_main` y si no, la primera por `display_order`. `NULLS LAST`
+/// porque en orden descendente Postgres pone los NULL delante de los `true`.
+async fn get_main_images(product_ids: &[Uuid], pool: &DbPool) -> Result<HashMap<Uuid, String>, Error> {
+    if product_ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+    let mut conn = pool.get().await.unwrap();
+    let rows = sql_query(
+        "SELECT DISTINCT ON (product_id) product_id, image_url
+         FROM images_product WHERE product_id = ANY($1)
+         ORDER BY product_id, is_main DESC NULLS LAST, display_order ASC, id ASC"
+    )
+        .bind::<Array<SqlUuid>, _>(product_ids)
+        .load::<MainImage>(&mut conn)
+        .await?;
+    Ok(rows.into_iter().map(|r| (r.product_id, r.image_url)).collect())
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

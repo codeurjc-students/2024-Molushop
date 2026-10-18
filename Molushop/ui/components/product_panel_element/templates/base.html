@@ -4,8 +4,11 @@
 
 <div class="c-product-panel-element product-card" id="card-{{product.id}}">
     <div class="product-main">
-        <!--Aqui ponemos las imagenes que tengamos, si no tiene --->
-        <img src="https://via.placeholder.com/150" alt="Producto" class="product-image">
+        {% if let Some(image_url) = product.image_url %}
+            <img src="{{image_url}}" alt="{{product.name}}" class="product-image" loading="lazy">
+        {% else %}
+            <div class="product-image product-image--empty" aria-hidden="true">Sin imagen</div>
+        {% endif %}
         <div class="product-info">
             {% if product.status == 0 %}
                 <span class="m-badge m-badge--neutral product-status">Draft</span>

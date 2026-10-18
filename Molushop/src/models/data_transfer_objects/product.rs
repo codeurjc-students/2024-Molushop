@@ -27,7 +27,8 @@ pub struct Product{
     pub store_name: Option<String>,
     /// Tienda desde la que se lista: va en la URL de "Editar".
     pub store_id: Uuid,
-    //images
+    /// Imagen principal; `None` si el producto no tiene ninguna.
+    pub image_url: Option<String>,
 }
 
 

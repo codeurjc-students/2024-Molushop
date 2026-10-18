@@ -50,10 +50,22 @@
 }
 
 .product-image {
+    flex-shrink: 0;
     width: 150px;
     height: 150px;
     object-fit: cover;
     border-radius: 4px;
+}
+
+/* Sin imagen guardada: un hueco del mismo tamaño para que no baile la tarjeta */
+.product-image--empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px dashed var(--color-border-strong);
+    background-color: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
 }
 
 .product-info {
