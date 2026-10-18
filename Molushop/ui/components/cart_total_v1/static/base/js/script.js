@@ -23,20 +23,25 @@ const CART_TOTAL_V1 = {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
 
-            let less = event.target.closest(".minus-cont");
-            let more = event.target.closest(".plus-cont");
             let trash = event.target.closest(".trash");
-
-            if (less)  { this.step(less.closest(".card"), -1); }
-            if (more)  { this.step(more.closest(".card"), 1); }
             if (trash) { this.remove(trash.closest(".card")); }
+        });
+
+        // − y + del selector (átomo QUANTITY, base.js): ya ha cambiado el
+        // input sin salirse de 0..stock; aquí solo se manda.
+        document.addEventListener("m-qty-change", (event) => {
+            let root = this.root();
+            if (root == null || !root.contains(event.target)) { return; }
+
+            clearTimeout(this.debounce);
+            this.applyQuantity(event.target.closest(".card"));
         });
 
         // Cantidad escrita a mano: se espera a que el usuario deje de teclear
         document.addEventListener("input", (event) => {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
-            if (!event.target.classList.contains("quantity-input")) { return; }
+            if (!event.target.classList.contains("m-qty__input")) { return; }
 
             let card = event.target.closest(".card");
             clearTimeout(this.debounce);
@@ -135,7 +140,7 @@ const CART_TOTAL_V1 = {
             let id = card.dataset.lineId;
             if (!id || this.unselected.has(id)) { return; }
 
-            let input = card.querySelector(".quantity-input");
+            let input = card.querySelector(".m-qty__input");
             let quantity = parseInt(input != null ? input.value : "0") || 0;
             let price = parseFloat(card.dataset.price) || 0;
 
@@ -181,19 +186,9 @@ const CART_TOTAL_V1 = {
         if (off) { link.removeAttribute("href"); }
     },
 
-    // Suma delta a la cantidad de la línea y la envía
-    step: function(card, delta) {
-        if (card == null) { return; }
-        let input = card.querySelector(".quantity-input");
-        let current = parseInt(input.value) || 0;
-        input.value = current + delta;
-        clearTimeout(this.debounce);
-        this.applyQuantity(card);
-    },
-
     applyQuantity: function(card) {
         if (card == null) { return; }
-        let input = card.querySelector(".quantity-input");
+        let input = card.querySelector(".m-qty__input");
         let stock = parseInt(card.dataset.stock) || 0;
         let quantity = parseInt(input.value);
 

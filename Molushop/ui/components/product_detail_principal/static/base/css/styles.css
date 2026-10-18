@@ -147,45 +147,6 @@
                 .quantity-product{
                     /* flex para que la caja de cantidad mida lo mismo de alto que el botón */
                     display: flex;
-                    .quantity-product-cont{
-                        display: flex;
-                        align-items: center;
-                        background-color: var(--color-bg);
-                        border: 3px solid var(--color-border);
-                        border-radius: var(--radius-md);
-
-                        input[type="number"]::-webkit-outer-spin-button,
-                        input[type="number"]::-webkit-inner-spin-button {
-                            -webkit-appearance: none;
-                            margin: 0;
-                        }
-                        /* Para Firefox */
-                        input[type="number"] {
-                            -moz-appearance: textfield;
-                        }
-
-                        .input-no-style{
-                            background: transparent;
-                            border: none;
-                            width: 2em;
-                            text-align: center;
-                        }
-                        .more-less-cont{
-                            padding: 2px 9px;
-                            user-select: none;
-                        }
-                        .minus-cont{
-                            width: 100%;
-                        }
-                        .minus{
-                            position:relative;
-                            top: -2px;
-                            
-                        }
-                        .plus{
-                        }
-                    }
-                    
                 }
                 .button-container-add{
                     /* El aspecto del botón es del átomo m-btn; aquí solo su hueco.

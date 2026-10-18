@@ -23,8 +23,9 @@ const PRODUCT_DETAIL = {
             });
         });
 
+        // El selector de cantidad (− +) lo mueve el átomo (QUANTITY, base.js);
+        // aquí solo se lee su input al pulsar "Añadir al carrito".
         this.init_product_selection();
-        this.init_quantity();
 
         document.addEventListener("auth-cancelled", () => this.clearPendingAdd());
         this.resumePendingAdd();
@@ -151,7 +152,7 @@ const PRODUCT_DETAIL = {
             return;
         }
 
-        let quantityInput = this.element.querySelector(".quantity-product input[type='number']");
+        let quantityInput = this.element.querySelector(".quantity-product .m-qty__input");
         let quantity = parseInt(quantityInput.value) || 1;
 
         if (quantity <= 0) {
@@ -248,37 +249,14 @@ const PRODUCT_DETAIL = {
             if (input) { input.checked = true; }
         });
         this.updatePrice(this.getSelectedAttrs());
-        let quantityInput = this.element.querySelector(".quantity-product input[type='number']");
-        if (quantityInput) { quantityInput.value = pending.quantity; }
+        let quantityInput = this.element.querySelector(".quantity-product .m-qty__input");
+        if (quantityInput) {
+            quantityInput.value = pending.quantity;
+            QUANTITY.refresh(quantityInput);
+        }
 
         // El mismo camino que el botón: si ya no hay stock, sale el modal de error del servidor
         this.addToCart();
-    },
-
-    // +/- del selector de cantidad. Sólo tocan el input: la petición al
-    // carrito la sigue lanzando el botón "Añadir al carrito".
-    stepQuantity: function(delta) {
-        let input = this.element.querySelector(".quantity-product input[type='number']");
-        if (input == null) { return; }
-
-        // Los límites se leen del propio input para que manden los atributos
-        // min/max de la plantilla y no queden duplicados aquí.
-        let min = parseInt(input.min);
-        let max = parseInt(input.max);
-        let quantity = (parseInt(input.value) || 0) + delta;
-
-        if (!isNaN(min) && quantity < min) { quantity = min; }
-        if (!isNaN(max) && quantity > max) { quantity = max; }
-
-        input.value = quantity;
-    },
-
-    init_quantity: function() {
-        let minus = this.element.querySelector(".quantity-product .minus-cont");
-        let plus = this.element.querySelector(".quantity-product .plus-cont");
-
-        if (minus) { minus.addEventListener("click", () => this.stepQuantity(-1)); }
-        if (plus) { plus.addEventListener("click", () => this.stepQuantity(1)); }
     },
 
     init_product_selection: function() {

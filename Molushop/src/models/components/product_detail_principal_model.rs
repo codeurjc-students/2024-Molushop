@@ -10,6 +10,7 @@ use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::models::components::stars::Stars;
 use crate::models::components::price::Price;
+use crate::models::components::quantity::Quantity;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_detail_principal/product_detail_principal.html")]
 pub struct ProductDetailPrincipal{
@@ -141,6 +142,12 @@ impl ProductDetailPrincipalData {
     /// seleccionada, o "No disponible". El JS lo cambia al elegir otra.
     pub fn price_tag(&self) -> Price {
         Price::maybe(self.initial_price(), &self.currency).lg()
+    }
+
+    /// Cantidad a añadir, de 1 a 99. El tope real es el stock de la variación
+    /// elegida, y ese lo comprueba el servidor al añadir.
+    pub fn quantity_tag(&self) -> Quantity {
+        Quantity::new(1, 1, Some(99))
     }
 
     pub fn variant_map_json(&self) -> String {

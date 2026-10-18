@@ -7,6 +7,7 @@ use crate::models::models_x::CartItem1;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
 use crate::constants::money::DEFAULT_CURRENCY;
 use crate::models::components::price::Price;
+use crate::models::components::quantity::Quantity;
 use crate::controllers::components::cart_add_controller::ROUTES;
 
 #[derive(Template,Clone,Debug)]
@@ -130,6 +131,13 @@ impl CartItemData {
     /// Precio x cantidad (el checkout).
     pub fn subtotal_tag(&self) -> Price {
         Price::new(&self.subtotal, &self.currency)
+    }
+
+    /// El selector de la línea, de 0 al stock. Si el stock ya es menor que
+    /// lo que hay en el carrito, el tope es la cantidad actual: así el input
+    /// enseña lo que de verdad hay (y lo que suma el total), no el stock.
+    pub fn quantity_tag(&self) -> Quantity {
+        Quantity::new(self.quantity, 0, Some(self.stock.max(self.quantity))).sm()
     }
 }
 

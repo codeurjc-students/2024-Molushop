@@ -58,16 +58,7 @@
                                 {% endif %}
                             </div>
                             <div class="quantity-product">
-                                <div class="quantity-product-cont">
-                                    <div class="minus-cont more-less-cont">
-                                        <span class="more-less minus">-</span>
-                                    </div>
-                                    <input type="number" min="0" max="{{item.stock}}" class="input-no-style quantity-input" value="{{item.quantity}}" maxlength="2"
-                                        oninput="if(this.value.length > this.maxLength) this.value = this.value.slice(0, this.maxLength);">
-                                    <div class="plus-cont more-less-cont">
-                                        <span class="more-less plus">+</span>
-                                    </div>
-                                </div>
+                                {{ item.quantity_tag() }}
                             </div>
                             <div class="buttons-extra">
                                 <div class="trash">
