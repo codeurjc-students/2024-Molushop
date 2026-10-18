@@ -81,9 +81,10 @@ pub async fn confirm_order(
             return Err(ServiceError::MissingPrice);
         }
 
-        // Tampoco se vende lo de una tienda que ya no está activa. La consulta
-        // solo trae `store_name` de tiendas activas, así que su ausencia es la señal.
-        if let Some(row) = rows.iter().find(|r| r.store_name.is_none()) {
+        // Tampoco se vende lo de una tienda que ya no está activa (la consulta
+        // solo trae `store_name` de tiendas activas, así que su ausencia es la
+        // señal) ni un producto o variación que ya no están activos.
+        if let Some(row) = rows.iter().find(|r| r.store_name.is_none() || !r.on_sale) {
             return Err(ServiceError::ProductUnavailable {
                 line_id: row.id,
                 product_name: row.name.clone().unwrap_or_default(),

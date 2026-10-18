@@ -6,7 +6,8 @@ use diesel_async::pg::AsyncPgConnection;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
-use crate::schema::{carts, cart_products, product_seller, product_variations, prices, seller};
+use crate::schema::{carts, cart_products, product_seller, product_variations, prices, products, seller};
+use crate::constants::product_status::PRODUCT_ACTIVE;
 use crate::services::panel_role_service::STORE_ACTIVE;
 use diesel::OptionalExtension;
 use crate::models::models_x::{Cart, ProductVariation, Price};
@@ -30,13 +31,19 @@ pub async fn add_to_cart(
         .await
         .map_err(|_| ServiceError::VariationNotFound)?;
 
-    // Solo se compra lo que vende una tienda ACTIVA. La ficha ya no se enseña
-    // en ese caso; esto cubre la petición hecha a mano o una pestaña vieja.
+    // Solo se compra una variación activa (1) de un producto ACTIVO que vende
+    // una tienda ACTIVA. La ficha ya no se enseña en esos casos; esto cubre la
+    // petición hecha a mano o una pestaña vieja (p. ej. de un producto eliminado).
+    if variation.status != 1 {
+        return Err(ServiceError::VariationNotFound);
+    }
     let sold_by_active_store = diesel::select(diesel::dsl::exists(
         product_seller::table
             .inner_join(seller::table)
+            .inner_join(products::table)
             .filter(product_seller::product_id.eq(variation.product_id))
-            .filter(seller::status.eq(STORE_ACTIVE)),
+            .filter(seller::status.eq(STORE_ACTIVE))
+            .filter(products::status.eq(PRODUCT_ACTIVE)),
     ))
     .get_result::<bool>(&mut conn)
     .await

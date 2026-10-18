@@ -13,7 +13,7 @@ use diesel_async::pg::AsyncPgConnection;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{delete_seller_product};
+use crate::services::products_panel::delete_product as delete_product_service;
 type DbPool = Pool<AsyncPgConnection>;
 
 static SCOPE: &str = "/product-panel-group";
@@ -49,7 +49,7 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
     }
      
     let product_id = path.into_inner();
-    // El vendedor lo quita solo de sus tiendas; el admin, de quien lo tenga.
+    // El vendedor solo borra lo de sus tiendas; el admin, cualquiera.
     let owner = if panel_user.is_admin {
         None
     } else {
@@ -59,12 +59,13 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
         }
         Some(store_ids)
     };
-    // Lógica para borrar el producto
-    let result = delete_seller_product(&product_id,owner.as_deref(), pool_data.get_ref()).await;
+    // No borra la fila: lo marca como borrado y lo quita de los carritos.
+    let result = delete_product_service(&product_id,owner.as_deref(), pool_data.get_ref()).await;
     match result{
-        Ok(_) => {
+        Ok(true) => {
             HttpResponse::Ok().finish()
         },
+        Ok(false) => HttpResponse::NotFound().finish(),
         Err(e) => {
             println!("Error! -> {}",e);
             return HttpResponse::InternalServerError().json("Error al eliminar el producto");}

@@ -669,6 +669,10 @@ pub struct CartItem1{
     pub quantity: i32,
     #[diesel(sql_type = Integer)]
     pub stock: i32,
+    /// Producto y variación activos. Un producto eliminado o inactivo, o una
+    /// variación desactivada, ya no se venden aunque sigan en el carrito.
+    #[diesel(sql_type = Bool)]
+    pub on_sale: bool,
     #[diesel(sql_type = Nullable<Numeric>)]
     pub subtotal: Option<BigDecimal>
 }

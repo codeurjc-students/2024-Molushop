@@ -24,6 +24,7 @@ pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartIte
 
 /// `store_name` solo viene si el producto tiene una tienda ACTIVA: una línea
 /// con `store_name` vacío es de una tienda retirada y el checkout la rechaza.
+/// Igual con `on_sale` = false (producto o variación que ya no están activos).
 ///
 /// La consulta de verdad, sobre una conexión que pone quien llama. El checkout
 /// la usa dentro de su transacción para releer las líneas antes de cobrarlas.
@@ -61,6 +62,8 @@ pub async fn get_cart_items_conn(
             s.store_id,
             cp.quantity,
             pv.stock,
+            -- 1 = ACTIVE en products.status y en product_variations.status
+            (p.status = 1 AND pv.status = 1) AS on_sale,
             (pr.price * cp.quantity) AS subtotal
         FROM cart_products cp
         JOIN carts c ON c.id = cp.cart_id

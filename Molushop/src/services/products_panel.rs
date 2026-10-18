@@ -18,6 +18,46 @@ use crate::services::servicesX::{
 };
 type DbPool = Pool<AsyncPgConnection>;
 
+use diesel::sql_query;
+use diesel::sql_types::{Array, Nullable, SmallInt, Uuid as SqlUuid};
+use diesel_async::{AsyncConnection, RunQueryDsl};
+use diesel_async::scoped_futures::ScopedFutureExt;
+use crate::constants::product_status::PRODUCT_DELETED;
+
+/// "Eliminar" del panel. No borra la fila (los pedidos y las opiniones apuntan
+/// a sus variaciones): la marca como `PRODUCT_DELETED` y, en la misma
+/// transacción, la quita de los carritos activos, para que nadie se quede con
+/// una línea que ya no puede comprar.
+///
+/// `store_ids`: `None` (el admin) cualquier producto; `Some(tiendas)` solo si
+/// es de una de ellas. `Ok(false)` si no existe, ya estaba borrado o es ajeno.
+pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool: &DbPool) -> Result<bool, Error> {
+    let mut conn = pool.get().await.unwrap();
+    let store_ids: Option<Vec<Uuid>> = store_ids.map(|ids| ids.to_vec());
+
+    conn.transaction::<bool, Error, _>(|conn| async move {
+        let marked = sql_query(
+            "UPDATE products SET status = $1              WHERE id = $2 AND status <> $1                AND ($3::uuid[] IS NULL OR EXISTS (                    SELECT 1 FROM product_seller ps                    WHERE ps.product_id = products.id AND ps.seller_id = ANY($3)))"
+        )
+            .bind::<SmallInt, _>(PRODUCT_DELETED)
+            .bind::<SqlUuid, _>(product_id)
+            .bind::<Nullable<Array<SqlUuid>>, _>(store_ids)
+            .execute(conn)
+            .await?;
+        if marked == 0 {
+            return Ok(false);
+        }
+
+        sql_query(
+            "DELETE FROM cart_products cp              USING carts c, product_variations pv              WHERE c.id = cp.cart_id AND c.status = 1                AND pv.id = cp.product_var_id AND pv.product_id = $1"
+        )
+            .bind::<SqlUuid, _>(product_id)
+            .execute(conn)
+            .await?;
+        Ok(true)
+    }.scope_boxed()).await
+}
+
 /// Productos de una tienda para su listado del panel. Quien llama ya ha
 /// comprobado que el usuario puede entrar en esa tienda.
 pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{

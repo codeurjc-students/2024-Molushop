@@ -346,6 +346,8 @@ pub async fn get_panel_products(seller_filter:Option<&[Uuid]>,pool: &DbPool) -> 
     let mut query = products::table
         .inner_join(product_seller::table.inner_join(seller::table))
         .select((Products::as_select(), seller::store_name))
+        // Lo "eliminado" desde el panel ya no se lista.
+        .filter(products::status.ne(crate::constants::product_status::PRODUCT_DELETED))
         .order_by((seller::store_name, products::name))
         .into_boxed();
     if let Some(store_ids) = seller_filter {
@@ -383,34 +385,6 @@ pub async fn get_product_variation(id_variation:&Uuid,pool:&DbPool) -> Result<Pr
     let connection = &mut pool.get().await.unwrap();
     let result = product_variations.filter(id.eq(id_variation)).first::<ProductVariation>(connection).await;
     result
-}
-
-/// `sell_ids` = `None` quita el producto a todas las tiendas (solo el admin);
-/// `Some(tiendas)` solo a esas.
-pub async fn delete_seller_product(prod_id:&Uuid,sell_ids:Option<&[Uuid]>,pool:&DbPool) -> Result<usize,Error> {
-    use crate::schema::product_seller::dsl::*;
-
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
-    let valor= match sell_ids {
-        Some(sell_ids) => diesel::delete(product_seller
-            .filter(product_id.eq(prod_id).and(seller_id.eq_any(sell_ids)))
-        ).execute(connection).await?,
-        None => diesel::delete(product_seller
-            .filter(product_id.eq(prod_id))
-        ).execute(connection).await?,
-    };
-    //borrar producto
-
-    //borrar variaciones
-
-    //en este contexto es borrar el producto entero, en otros puede variar 
-    Ok(valor)
-}
-
-pub async fn delete_product_complete(id_producto:&Uuid,pool: &DbPool) -> Result<usize,Error>{
-    //TODO
-    Ok(1)
 }
 
 use crate::controllers::components::edit_product_controller::FormGeneral;

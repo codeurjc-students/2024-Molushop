@@ -11,7 +11,8 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
-use crate::schema::{base_user, product_seller, seller, store_members};
+use crate::constants::product_status::PRODUCT_DELETED;
+use crate::schema::{base_user, product_seller, products, seller, store_members};
 use crate::services::panel_role_service::{
     PanelStore, STORE_ACTIVE, STORE_INACTIVE, STORE_PENDING, STORE_REJECTED,
 };
@@ -241,13 +242,17 @@ pub async fn set_store_status(
 /// Borra la tienda y, en cascada, sus miembros. Solo si no tiene productos:
 /// borrarla con productos los dejaría en `products` sin dueño (la cascada solo
 /// se lleva `product_seller`). Para retirar una tienda con catálogo está
-/// "desactivar", que no pierde nada.
+/// "desactivar", que no pierde nada. Los productos eliminados no cuentan: ya
+/// no se venden ni se ven, y la cascada solo quita su fila de `product_seller`.
 pub async fn delete_store(store_id: &Uuid, pool: &DbPool) -> Result<(), AdminStoreError> {
     let conn = &mut connection(pool).await?;
 
     conn.transaction::<(), AdminStoreError, _>(|conn| async move {
         let has_products = diesel::select(diesel::dsl::exists(
-            product_seller::table.filter(product_seller::seller_id.eq(store_id)),
+            product_seller::table
+                .inner_join(products::table)
+                .filter(product_seller::seller_id.eq(store_id))
+                .filter(products::status.ne(PRODUCT_DELETED)),
         ))
         .get_result::<bool>(conn)
         .await?;

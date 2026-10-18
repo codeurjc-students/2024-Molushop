@@ -68,8 +68,8 @@ pub struct CartItemData{
     pub store_name: String,
     pub quantity: i32,
     pub stock: i32,
-    /// False si ya no se puede comprar: sin tienda activa (tienda desactivada o
-    /// producto borrado) o sin precio. Son los mismos casos en que el checkout
+    /// False si ya no se puede comprar: sin tienda activa, producto eliminado o
+    /// inactivo, variación desactivada o sin precio. Son los mismos casos en que el checkout
     /// rechaza el pedido; el carrito la marca, no la cuenta y no deja elegirla.
     pub available: bool
 }
@@ -158,7 +158,7 @@ fn currency_code(code: Option<String>) -> String {
 
 impl From<CartItem1> for CartItemData {
     fn from(db: CartItem1) -> Self {
-        let available = db.store_name.is_some() && db.price.is_some();
+        let available = db.on_sale && db.store_name.is_some() && db.price.is_some();
         let price = db.price.unwrap_or_else(|| BigDecimal::from(0));
         // Si la consulta no pudo calcular el subtotal (producto sin precio) lo recalculamos aquí
         let subtotal = db.subtotal

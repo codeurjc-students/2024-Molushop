@@ -15,7 +15,7 @@ use diesel_async::pg::AsyncPgConnection;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{delete_seller_product,edit_product_general,update_image, update_multiple_images_2,delete_all_images};
+use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
 type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;

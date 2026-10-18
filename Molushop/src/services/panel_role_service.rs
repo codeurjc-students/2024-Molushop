@@ -4,6 +4,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 
+use crate::constants::product_status::PRODUCT_DELETED;
 use crate::schema::{admins, base_user, product_seller, product_variations, products, seller, store_members};
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -184,6 +185,7 @@ pub async fn get_panel_user(user_id: &Uuid, pool: &DbPool) -> Result<PanelUser, 
 /// Admin: cualquier producto que exista. Vendedor: solo los que están en
 /// `product_seller` a nombre de una de sus tiendas gestionables. `Ok(false)` también si el producto no existe:
 /// el handler responde 404 en los dos casos para no revelar productos ajenos.
+/// Un producto eliminado (`PRODUCT_DELETED`) cuenta como inexistente.
 pub async fn can_edit_product(
     panel_user: &PanelUser,
     product_id: &Uuid,
@@ -196,7 +198,9 @@ pub async fn can_edit_product(
 
     let query_result = if panel_user.is_admin {
         diesel::select(diesel::dsl::exists(
-            products::table.filter(products::id.eq(product_id)),
+            products::table
+                .filter(products::id.eq(product_id))
+                .filter(products::status.ne(PRODUCT_DELETED)),
         ))
         .get_result::<bool>(connection)
         .await
@@ -207,8 +211,10 @@ pub async fn can_edit_product(
         }
         diesel::select(diesel::dsl::exists(
             product_seller::table
+                .inner_join(products::table)
                 .filter(product_seller::product_id.eq(product_id))
-                .filter(product_seller::seller_id.eq_any(store_ids)),
+                .filter(product_seller::seller_id.eq_any(store_ids))
+                .filter(products::status.ne(PRODUCT_DELETED)),
         ))
         .get_result::<bool>(connection)
         .await
