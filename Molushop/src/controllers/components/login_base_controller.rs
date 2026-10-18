@@ -1,15 +1,11 @@
-use actix_web::{cookie::{time::OffsetDateTime, Cookie}, delete, dev::Transform, get, http::StatusCode, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Scope};
-use actix_web::cookie::time::Duration as CookieDuration;
+use actix_web::{cookie::Cookie, delete, dev::Transform, get, http::StatusCode, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Scope};
 use aws_sdk_s3::primitives::event_stream::Message;
 use bigdecimal::BigDecimal;
 use diesel::result;
 use lazy_static::lazy_static;
 use askama::Template;
-use uuid::Uuid;
-use ipnet::IpNet;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use crate::models::models_x::NewUserSession;
 use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
 use crate::models::components::login_base_model::*;
 use crate::services::components::login_base_service::*;
@@ -18,14 +14,11 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use super::scope::SCOPE_COMPONENTS;
-use crate::services::servicesX::{new_user_base,get_user,insert_session_login,revoke_session};
+use crate::services::servicesX::{new_user_base,get_user,revoke_session};
 use crate::models::components::login_base_model::*;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::constants::urls::HOME_URL;
 use actix_web::HttpMessage;
-use std::collections::HashMap;
-use chrono::{Utc, NaiveDateTime, Duration};
-use std::time::Duration as DurationTime;
 
 pub static SCOPE1: &str = "/login-base-login";
 pub static SCOPE2: &str = "/login-base-register";
@@ -167,7 +160,7 @@ async fn create_user(form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->
     }
 }
 
-use crate::services::paseto_token_session_service::*;
+use crate::services::session_service::start_session;
 
 #[post("/login")]
 async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpRequest)->HttpResponse{
@@ -187,94 +180,18 @@ async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpReq
     match verify_password(&form_login.pass,&hashed_pass){
         Ok(res)=>{
             if res{
-                //aqui añadir algo en la respuesta, en el header, o añadir la cookie
-                //let token_result  = generate_local_token();
-                //aqui meter los datos al hashmap nuevo
-                let mut claims_data = HashMap::new();
-                let new_jti = Uuid::new_v4().to_string();
-                claims_data.insert("iss".to_string(),"Molushop.com".to_string());
-                claims_data.insert("aud".to_string(),"Molushop/user".to_string());
-                claims_data.insert("sub".to_string(),user_data.id.to_string());
-                claims_data.insert("jti".to_string(),new_jti.clone());
-
-                let token_result  = generate_local_token_duration(&DurationTime::from_secs(3600),&claims_data);
-                match token_result{
-                    Ok(token)=>{
-                        //crear la cookie --> método?
-                        let mut cookie = Cookie::new("sesion_token", token.clone());
-                        let mut now = OffsetDateTime::now_utc();
-                        now += DurationTime::from_secs(3600);
-                        //cookie.set_expires(now);
-                        cookie.set_max_age(CookieDuration::seconds(3600));
-                        cookie.set_http_only(true);
-                        cookie.set_secure(true);
-                        cookie.set_path("/");
-
-                        //aquí el login se ha completado
-                        //sacar el user_agent
-                        let user_agent = match req
-                            .headers()
-                            .get("User-Agent") // Obtenemos el HeaderValue
-                            .and_then(|value| value.to_str().ok())
-                            {
-                                Some(ua)=>Some(ua),
-                                None=>None
-                            };
-                        
-                        //crear los objetos de tiempo
-                        let ahora = Utc::now().naive_utc();
-                        let expira_en = match ahora.checked_add_signed(Duration::seconds(3600)){
-                            Some(time)=>time,
-                            None => Utc::now().naive_utc()
-                        };
-                        let ip_net:IpNet;
-                        //obtener la ip
-                        let peer_addr = req.peer_addr();
-                        let ip_addr = match peer_addr{
-                            Some(addr)=>{
-                                let ip_addr = addr.ip();
-                                ip_net = ip_addr.into();
-                                Some(&ip_net)
-                            },
-                            None=> None
-                        };
-
-                        //crear un objeto de inserción
-                        let new_user_session = NewUserSession{
-                            id:&Uuid::new_v4(),
-                            user_id:&user_data.id,
-                            jti:&new_jti,
-                            refresh_token_hash:&token,
-                            issued_at: &ahora,
-                            expires_at: &expira_en,
-                            last_used_at: &ahora,
-                            is_revoked: &false,
-                            ip_address: ip_addr,
-                            user_agent: user_agent,
-                            device_info: Some("por ahora xd"),
-                        };
-                        //si falla el insert soltar el error
-                        match insert_session_login(new_user_session,&pool).await{
-                            Ok(_)=>{
-                                //let message = "El password es correcto";
-                                let modal_render = MessageModal::new("El login se ha realizado correctamente").render().unwrap();
-                                return HttpResponse::Ok()
-                                    .cookie(cookie)
-                                    .body(modal_render)
-                            },
-                            Err(e)=>{
-                                println!("Error pete: {}",e);
-                                let message = "Fallo ";
-                                let modal_render = MessageModal::new(message).render().unwrap();
-                                return HttpResponse::InternalServerError().body(modal_render)  
-                            }
-                        }
+                // Contraseña correcta: token, fila en `user_sessions` y cookie.
+                match start_session(&user_data.id, &req, pool).await {
+                    Ok(cookie) => {
+                        let modal_render = MessageModal::new("El login se ha realizado correctamente").render().unwrap();
+                        return HttpResponse::Ok()
+                            .cookie(cookie)
+                            .body(modal_render)
                     },
-                    Err(e)=>{
-                        println!("Error pete: {}",e);
-                        let message = "Peto en el token";
-                        let modal_render = MessageModal::new(message).render().unwrap();
-                        return HttpResponse::Unauthorized().body(modal_render)   
+                    Err(e) => {
+                        println!("Login: {}", e);
+                        let modal_render = MessageModal::new("No se ha podido iniciar la sesión. Inténtalo de nuevo.").render().unwrap();
+                        return HttpResponse::InternalServerError().body(modal_render)
                     }
                 }
             }else {

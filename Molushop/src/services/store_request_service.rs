@@ -142,7 +142,8 @@ pub async fn request_store_for_user(
 
 /// Alguien sin cuenta se registra como vendedor: usuario + tienda pendiente en
 /// una sola transacción. Las reglas de la cuenta son las del registro de la
-/// tienda (`form_register_validation`).
+/// tienda (`form_register_validation`). Devuelve el id del usuario nuevo, para
+/// abrirle la sesión.
 pub async fn register_seller(
     form: &FormRegister,
     store_name: &str,
@@ -200,7 +201,7 @@ pub async fn register_seller(
                 other => StoreRequestError::Db(format!("{:?}", other)),
             })?;
 
-        insert_pending_store(&store_name, &user_id, conn).await
+        insert_pending_store(&store_name, &user_id, conn).await.map(|_| user_id)
     }.scope_boxed())
     .await
 }

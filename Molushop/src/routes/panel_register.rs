@@ -1,11 +1,11 @@
 //! `/panel/register`: solicitar una tienda. Va FUERA del scope `/panel` (como
 //! el login) porque quien llega aquí todavía no tiene acceso al panel.
 //!
-//! - Sin sesión: crea la cuenta y la tienda a la vez, y manda a iniciar sesión.
+//! - Sin sesión: crea la cuenta y la tienda a la vez, y entra ya con ella.
 //! - Con sesión: solo pide el nombre de la tienda ("abrir mi tienda").
 //! En los dos casos la tienda nace pendiente de aprobación.
 
-use actix_web::{http::header, web, HttpResponse};
+use actix_web::{http::header, web, HttpRequest, HttpResponse};
 use askama::Template;
 use serde::Deserialize;
 
@@ -17,6 +17,7 @@ use crate::middleware::auth::{Auth, SessionData};
 use crate::middleware::panel_guard::PANEL_LOGIN;
 use crate::models::components::login_base_model::FormRegister;
 use crate::models::pages_models::panel_register_page_model::PanelRegisterPage;
+use crate::services::session_service::start_session;
 use crate::services::store_request_service::{
     get_username, register_seller, request_store_for_user, StoreRequestError,
 };
@@ -103,6 +104,7 @@ async fn register_page(
 }
 
 async fn register_submit(
+    req: HttpRequest,
     form: web::Form<RegisterForm>,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
@@ -122,9 +124,24 @@ async fn register_submit(
                 pass: form.pass.clone().unwrap_or_default(),
                 pass2: form.pass2.clone().unwrap_or_default(),
             };
-            register_seller(&account, &form.store_name, pool)
-                .await
-                .map(|_| format!("{}?registered=1", PANEL_LOGIN))
+            match register_seller(&account, &form.store_name, pool).await {
+                // Recién creada la cuenta, entra ya: al panel, donde ve su
+                // tienda pendiente de aprobación.
+                Ok(user_id) => match start_session(&user_id, &req, pool).await {
+                    Ok(cookie) => {
+                        return HttpResponse::SeeOther()
+                            .insert_header((header::LOCATION, "/panel"))
+                            .cookie(cookie)
+                            .finish();
+                    }
+                    // La cuenta ya existe: si falla la sesión, que entre a mano.
+                    Err(e) => {
+                        println!("Registro de tienda, sesión: {}", e);
+                        Ok(format!("{}?registered=1", PANEL_LOGIN))
+                    }
+                },
+                Err(e) => Err(e),
+            }
         }
     };
 
