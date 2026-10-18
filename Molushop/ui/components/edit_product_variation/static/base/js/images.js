@@ -67,10 +67,11 @@ const imageManager = {
         
         this.imageGallery.innerHTML = '';
         
+        let rejected = [];
         let validFiles = files.filter(file => {
             let validTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (!validTypes.includes(file.type)) {
-                alert(`File ${file.name} is not a valid image file`);
+                rejected.push(file.name);
                 return false;
             }
             return true;
@@ -78,6 +79,16 @@ const imageManager = {
 
         if (validFiles.length === 0) {
             this.imageGallery.innerHTML = '<p class="no-images">No hay imágenes</p>';
+        }
+        // Aviso en la propia galería. El nombre va como texto: viene del
+        // fichero del usuario y no se mete como HTML.
+        if (rejected.length > 0) {
+            let note = document.createElement('p');
+            note.className = 'm-error';
+            note.textContent = `No son imágenes JPG, PNG o GIF y no se subirán: ${rejected.join(', ')}`;
+            this.imageGallery.prepend(note);
+        }
+        if (validFiles.length === 0) {
             return;
         }
 
