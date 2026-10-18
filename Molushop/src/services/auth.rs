@@ -27,3 +27,24 @@ pub fn verify_password(password: &str,hash:&str)-> Result<bool,ServiceError>{
         Err(_) => Ok(false),
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// El hash de `seeds/dev.sql` se generó fuera de la app (argon2id con los
+    /// parámetros por defecto). Si este test falla, los usuarios del seed no
+    /// pueden entrar: regenerar el hash del seed.
+    #[test]
+    fn seed_password_hash_verifies() {
+        let seed_hash = "$argon2id$v=19$m=19456,t=2,p=1$FPFBTJ8GSMBbd/ALMKRKgw$Fm6+Zxh3IWC3i8nV4vPYigE9KuwJbIwZBR8Du1G8Ap0";
+        assert!(verify_password("Molushop-dev1", seed_hash).unwrap());
+        assert!(!verify_password("otra", seed_hash).unwrap());
+    }
+
+    #[test]
+    fn hash_then_verify() {
+        let hash = hash_password("Una-Clave-1").unwrap();
+        assert!(verify_password("Una-Clave-1", &hash).unwrap());
+    }
+}
