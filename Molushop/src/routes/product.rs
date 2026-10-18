@@ -19,6 +19,7 @@ use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
 use crate::services::servicesX::{check_session,get_user_2};
 use crate::middleware::auth::Auth;
+use crate::constants::urls::PRODUCT_URL_PREFIX;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
@@ -30,18 +31,22 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         )
         .route(
             "/{locale}/producto/{product_id}", 
-            web::get().to(get_product_locale).wrap(Auth::new())
+            web::get().to(get_product_locale)
         );
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
 
-/// La misma ficha con el locale delante. La ruta tiene dos parámetros, así que
-/// no puede usar el `web::Path<Uuid>` de `get_product`. El locale todavía no
-/// cambia nada: la ficha solo existe en español.
-async fn get_product_locale(path: web::Path<(String, Uuid)>, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
+/// La ficha con el locale delante. Mientras no haya traducciones (i18n, mejora
+/// futura) solo existe en español: se redirige a la URL sin locale para que no
+/// haya dos URLs con el mismo contenido. 302 y no 301: cuando haya idiomas esta
+/// ruta servirá la ficha traducida, y una 301 se quedaría guardada en navegadores
+/// y buscadores.
+async fn get_product_locale(path: web::Path<(String, Uuid)>)-> HttpResponse{
     let (_locale, product_id) = path.into_inner();
-    get_product(web::Path::from(product_id), pool_data, req, opt_session_data).await
+    HttpResponse::Found()
+        .insert_header((actix_web::http::header::LOCATION, format!("{}{}", PRODUCT_URL_PREFIX, product_id)))
+        .finish()
 }
 
 async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
