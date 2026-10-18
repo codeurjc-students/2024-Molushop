@@ -4,7 +4,6 @@ pub mod cart_page_model;
 pub mod about_us_page_model;
 pub mod ui_catalog_page_model;
 pub mod sandbox_page_model;
-pub mod sandbox_variations_page_model;
 pub mod checkout_page_model;
 pub mod order_page_model;
 pub mod orders_page_model;

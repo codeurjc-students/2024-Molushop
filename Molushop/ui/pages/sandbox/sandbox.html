@@ -3,7 +3,7 @@
    pasa a su componente real se borra su subpágina y su enlace de aquí. Lo ya
    decidido vive en /ui. #}
 {% block styles %}
-    <link rel="stylesheet" href="/static/pages/sandbox_variations/css/styles.css">
+    <link rel="stylesheet" href="/static/pages/sandbox/css/styles.css">
 {% endblock %}
 {% block content %}
 <div class="sbx">
@@ -11,11 +11,10 @@
         <h1>Sandbox</h1>
         <p>Pruebas de UI con el CSS y los datos de verdad, antes de tocar el componente real. Solo existe en desarrollo. Lo ya decidido está en <a href="/ui">/ui</a>.</p>
     </header>
+    {# Una tarjeta por prueba abierta:
+       <a href="/sandbox/<prueba>" class="m-card m-card--link"><strong>…</strong><span class="m-hint">…</span></a> #}
     <nav class="sbx-index">
-        <a href="/sandbox/variaciones" class="m-card m-card--link">
-            <strong>Variaciones en el listado del panel</strong>
-            <span class="m-hint">Resumen, tabla agrupada y matriz, con los productos de una tienda.</span>
-        </a>
+        <p class="m-hint">No hay pruebas abiertas. La última (variaciones del listado del panel) ya es el componente <code>variations_explorer</code>.</p>
     </nav>
 </div>
 {% endblock %}

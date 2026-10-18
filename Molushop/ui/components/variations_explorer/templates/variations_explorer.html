@@ -1,0 +1,93 @@
+{# Variaciones de un producto: filtros, tabla y matriz. Modelo en
+   src/models/components/variations_explorer.rs. Las filas llevan sus valores
+   en data-a0, data-a1…: el JS filtra la tabla y monta la matriz con ellas.
+   Necesita styles.html y scripts.html de este componente en la página. #}
+<div class="c-variations-explorer">
+    <div class="ve-toolbar">
+        {% for (i, title, values) in filters() %}
+        <label class="ve-field">
+            <span class="m-label">{{title}}</span>
+            <select class="m-input m-input--sm" data-filter-attr="{{i}}">
+                <option value="">Todos</option>
+                {% for value in values %}<option>{{value}}</option>{% endfor %}
+            </select>
+        </label>
+        {% endfor %}
+        <div class="ve-field">
+            <span class="m-label">Estado</span>
+            <div class="ve-states" role="group" aria-label="Filtrar por estado">
+                <button type="button" class="ve-state is-active" data-filter-state="is-active" aria-pressed="false">Con stock</button>
+                <button type="button" class="ve-state is-out" data-filter-state="is-out" aria-pressed="false">Sin stock</button>
+                <button type="button" class="ve-state is-draft" data-filter-state="is-draft" aria-pressed="false">Borrador</button>
+                <button type="button" class="ve-state is-inactive" data-filter-state="is-inactive" aria-pressed="false">Inactiva</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="ve-toolbar ve-toolbar--meta">
+        <p class="ve-count" aria-live="polite">Mostrando <strong data-count>{{total()}}</strong> de {{total()}}</p>
+        <button type="button" class="m-btn m-btn--ghost m-btn--sm" data-filter-reset>Quitar filtros</button>
+        {% if titles().len() >= 2 %}
+        <div class="ve-views" role="group" aria-label="Vista">
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-view="table" aria-pressed="true">Tabla</button>
+            <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-view="matrix" aria-pressed="false">Matriz</button>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="ve-scroll" data-panel="table">
+        <table class="ve-table">
+            <thead>
+                <tr>
+                    {% for title in titles() %}<th scope="col">{{title}}</th>{% endfor %}
+                    <th scope="col">Precio</th>
+                    <th scope="col" class="num">Stock</th>
+                    <th scope="col">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for pv in sorted_variations() %}
+                <tr class="{{state_class(pv)}}" data-state="{{state_class(pv)}}"
+                    data-stock="{{pv.stock}}" data-price="{{pv.price}}" data-symbol="{{pv.price_tag().symbol()}}"
+                    {% for value in all_values(pv) %} data-a{{loop.index0}}="{{value}}"{% endfor %}>
+                    {# data-label: en móvil, la etiqueta de cada valor en su tarjeta #}
+                    {% for value in all_values(pv) %}<td class="attr" data-label="{{title(loop.index0)}}">{{value}}</td>{% endfor %}
+                    <td data-label="Precio">{{pv.price_tag()}}</td>
+                    <td class="num" data-label="Stock">{{pv.stock}}</td>
+                    <td class="state"><span class="m-badge m-badge--{{status_variant(pv)}}">{{status_label(pv)}}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <p class="m-hint ve-empty" hidden>Ninguna variación cumple los filtros.</p>
+    </div>
+
+    {% if titles().len() >= 2 %}
+    <div class="ve-matrix-panel" data-panel="matrix" hidden>
+        <div class="ve-toolbar">
+            <label class="ve-field">
+                <span class="m-label">Filas</span>
+                <select class="m-input m-input--sm" data-axis="rows">
+                    {% for title in titles() %}<option value="{{loop.index0}}"{% if loop.first %} selected{% endif %}>{{title}}</option>{% endfor %}
+                </select>
+            </label>
+            <label class="ve-field">
+                <span class="m-label">Columnas</span>
+                <select class="m-input m-input--sm" data-axis="cols">
+                    {% for title in titles() %}<option value="{{loop.index0}}"{% if loop.index0 == 1 %} selected{% endif %}>{{title}}</option>{% endfor %}
+                </select>
+            </label>
+        </div>
+        <p class="m-hint">Cada celda es el stock. Los demás atributos se fijan con los filtros de arriba; si no, la celda suma las variaciones que junta (×N).</p>
+        <div class="ve-scroll" data-matrix></div>
+        <p class="ve-legend">
+            <span class="ve-swatch is-active"></span> Con stock
+            <span class="ve-swatch is-out"></span> Activa sin stock
+            <span class="ve-swatch is-draft"></span> Borrador
+            <span class="ve-swatch is-inactive"></span> Inactiva
+            <span class="ve-swatch is-missing"></span> No existe
+            <span class="ve-swatch is-filtered"></span> Oculta por los filtros
+        </p>
+    </div>
+    {% endif %}
+</div>

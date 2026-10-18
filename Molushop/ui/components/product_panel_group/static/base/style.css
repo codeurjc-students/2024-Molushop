@@ -82,24 +82,9 @@
     gap: 10px;
 }
 
-.variations {
+/* Las variaciones las pinta el componente variations_explorer */
+.product-variations {
     border-top: 1px solid var(--color-border);
-}
-
-.variation-item {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    padding: 10px 15px;
-    align-items: center;
-}
-
-.variation-item:nth-child(even) {
-    background-color: var(--color-bg-soft);
-}
-
-.variation-header {
-    font-weight: bold;
-    background-color: var(--color-border);
 }
 
 .toggle-variations {

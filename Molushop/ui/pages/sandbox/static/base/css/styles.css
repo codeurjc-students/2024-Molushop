@@ -1,0 +1,39 @@
+/* Estilos del sandbox (/sandbox y sus pruebas). No son átomos: si una prueba
+   sale adelante, lo que use pasa a su componente. */
+
+.sbx {
+    max-width: var(--content-max-width, 1100px);
+    margin: 0 auto;
+    padding: var(--space-5) var(--space-4) var(--space-7);
+    color: var(--color-text);
+    line-height: var(--line-height-base);
+}
+
+.sbx-header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    margin-bottom: var(--space-5);
+}
+
+.sbx-header h1 {
+    margin: 0;
+    font-size: var(--font-size-3xl);
+    line-height: var(--line-height-tight);
+}
+
+.sbx-header p {
+    margin: 0;
+}
+
+.sbx-index {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.sbx-index .m-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    text-decoration: none;
+}

@@ -5,6 +5,7 @@ use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::services::servicesX::get_variation_price;
 use crate::models::components::price::Price;
+use crate::models::components::variations_explorer::VariationsExplorer;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RoutesProductPanelGroup{
@@ -29,6 +30,13 @@ pub struct Product{
     pub store_id: Uuid,
     /// Imagen principal; `None` si el producto no tiene ninguna.
     pub image_url: Option<String>,
+}
+
+impl Product {
+    /// Filtros, tabla y matriz de sus variaciones (listado del panel).
+    pub fn variations_explorer(&self) -> VariationsExplorer<'_> {
+        VariationsExplorer { product: self }
+    }
 }
 
 

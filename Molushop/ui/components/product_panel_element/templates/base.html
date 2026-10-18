@@ -1,7 +1,3 @@
-<!--Hacer variable -->
-{% let variation_titles = product.variations_titles %}
-
-
 <div class="c-product-panel-element product-card" id="card-{{product.id}}">
     <div class="product-main">
         {% if let Some(image_url) = product.image_url %}
@@ -41,36 +37,12 @@
         </div>
     </div>
     
-    <button class="toggle-variations"
-        _="on click toggle .hidden on next .variations end"
-        >Mostrar variaciones {{product.variations.len()}}</button>
-    
-    <div class="variations hidden">
-        <div class="variation-item variation-header">
-            {% for cat_var in variation_titles %}
-                <div>{{cat_var}}</div>
-            {% endfor %}
-            <div>Precio</div>
-            <div>Stock</div>
-            <div>Estado</div>
-        </div>
-        {% for variation_elem in product.variations%}
-            <div class="variation-item">
-                {% for var in variation_elem.variation %}
-                    <div>{{var.value}}</div>
-                {% endfor %}
-                <div>{{ variation_elem.price_tag() }}</div>
-                <div>{{variation_elem.stock}}</div>
-                <div>
-                {% if variation_elem.status == 0 %}
-                        <span class="m-badge m-badge--neutral product-status">Draft</span>
-                {% else if variation_elem.status ==1 %}
-                        <span class="m-badge m-badge--success product-status">Activo</span>
-                {% else if variation_elem.status ==2 %}
-                        <span class="m-badge m-badge--danger product-status">Inactivo</span>
-                {% endif %}
-                </div>
-            </div>
-        {% endfor %}
+    <button type="button" class="toggle-variations"
+        _="on click toggle .hidden on next .product-variations end"
+        >Mostrar variaciones ({{product.variations.len()}})</button>
+
+    {# Filtros, tabla y matriz: componente variations_explorer #}
+    <div class="product-variations hidden">
+        {{ product.variations_explorer() }}
     </div>
 </div>
