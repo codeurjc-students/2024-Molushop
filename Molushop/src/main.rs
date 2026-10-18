@@ -106,6 +106,8 @@ async fn main() -> std::io::Result<()> {
                     Ok(res)
                 }
             })
+            // Contra CSRF: los POST/PUT/PATCH/DELETE tienen que venir de esta web.
+            .wrap(actix_web::middleware::from_fn(middleware::origin_check::origin_check))
             .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)

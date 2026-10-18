@@ -35,9 +35,15 @@
                 return;
             }
             // Mismo mensaje para "no existe" y "contraseña mal": no se dice cuál
-            showError(res.status === 401
-                ? "Usuario o contraseña incorrectos."
-                : "No se ha podido iniciar sesión. Inténtalo de nuevo.");
+            if (res.status === 401) {
+                showError("Usuario o contraseña incorrectos.");
+            } else if (res.status === 429) {
+                // Límite de intentos (middleware rate_limit); Retry-After en segundos
+                let minutes = Math.max(1, Math.ceil((parseInt(res.headers.get("Retry-After")) || 60) / 60));
+                showError(`Demasiados intentos seguidos. Espera ${minutes} ${minutes === 1 ? "minuto" : "minutos"} y vuelve a intentarlo.`);
+            } else {
+                showError("No se ha podido iniciar sesión. Inténtalo de nuevo.");
+            }
         } catch (e) {
             showError("No se ha podido conectar con el servidor.");
         }

@@ -12,7 +12,10 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::constants::urls::ACCOUNT_URL;
+use actix_web::middleware::from_fn;
+
 use crate::middleware::auth::{Auth, SessionData};
+use crate::middleware::rate_limit::limit_password_change;
 use crate::models::pages_models::account_page_model::AccountPage;
 use crate::services::account_service::{change_password, other_sessions_count, revoke_other_sessions};
 use crate::services::components::login_base_service;
@@ -24,7 +27,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::scope(ACCOUNT_URL)
             .wrap(Auth::new())
             .route("", web::get().to(account_page))
-            .route("/password", web::post().to(password_submit))
+            .route("/password", web::post().to(password_submit).wrap(from_fn(limit_password_change)))
             .route("/sessions", web::post().to(sessions_submit)),
     );
 }

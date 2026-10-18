@@ -12,7 +12,10 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
+use actix_web::middleware::from_fn;
+
 use crate::middleware::auth::{Auth, SessionData};
+use crate::middleware::rate_limit::{limit_password_change, limit_password_forgot};
 use crate::models::pages_models::password_forgot_page_model::PasswordForgotPage;
 use crate::models::pages_models::password_reset_page_model::PasswordResetPage;
 use crate::services::components::login_base_service;
@@ -29,13 +32,13 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::resource(FORGOT_URL)
             .wrap(Auth::new())
             .route(web::get().to(forgot_page))
-            .route(web::post().to(forgot_submit)),
+            .route(web::post().to(forgot_submit).wrap(from_fn(limit_password_forgot))),
     )
     .service(
         web::resource(RESET_URL)
             .wrap(Auth::new())
             .route(web::get().to(reset_page))
-            .route(web::post().to(reset_submit)),
+            .route(web::post().to(reset_submit).wrap(from_fn(limit_password_change))),
     );
 }
 

@@ -113,7 +113,7 @@ use crate::models::components::message_modal::MessageModal;
 use crate::services::auth::{hash_password,verify_password};
 use crate::models::error::ServiceError;
 
-#[post("/create-user")]
+#[post("/create-user", wrap = "actix_web::middleware::from_fn(crate::middleware::rate_limit::limit_register)")]
 async fn create_user(form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->HttpResponse{
     //reciba un json -->
     let form_register =form.into_inner();
@@ -162,7 +162,7 @@ async fn create_user(form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->
 
 use crate::services::session_service::start_session;
 
-#[post("/login")]
+#[post("/login", wrap = "actix_web::middleware::from_fn(crate::middleware::rate_limit::limit_login)")]
 async fn login(form:web::Json<FormLogin>,pool_data:web::Data<DbPool>,req:HttpRequest)->HttpResponse{
     //verificar que el ussuario y contraseña existen
     let form_login = form.into_inner();

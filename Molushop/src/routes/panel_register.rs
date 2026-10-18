@@ -13,7 +13,10 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
+use actix_web::middleware::from_fn;
+
 use crate::middleware::auth::{Auth, SessionData};
+use crate::middleware::rate_limit::limit_register;
 use crate::middleware::panel_guard::PANEL_LOGIN;
 use crate::models::components::login_base_model::FormRegister;
 use crate::models::pages_models::panel_register_page_model::PanelRegisterPage;
@@ -30,7 +33,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         web::resource(PANEL_REGISTER)
             .wrap(Auth::new())
             .route(web::get().to(register_page))
-            .route(web::post().to(register_submit)),
+            .route(web::post().to(register_submit).wrap(from_fn(limit_register))),
     );
 }
 
