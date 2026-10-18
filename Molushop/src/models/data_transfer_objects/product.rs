@@ -4,6 +4,7 @@ use crate::models::models_x;
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::services::servicesX::get_variation_price;
+use crate::models::components::price::Price;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RoutesProductPanelGroup{
@@ -34,6 +35,8 @@ pub struct Product{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductVariation{
     pub price: BigDecimal,
+    /// Código ISO ("EUR"), como en `prices`. Ver `price_tag()`.
+    pub currency: String,
     pub stock: i32,
     pub status: i16,
     pub variation: Vec<Variation>
@@ -50,10 +53,15 @@ impl ProductVariation{
         //let vars:Vec<Variation> =serde_json::from_value(otro.attributes).unwrap(); 
         ProductVariation{
             price: otro_p.price.clone(),
+            currency: otro_p.currency.trim().to_string(),
             stock: otro_pv.stock,
             status: otro_pv.status,
             variation: vars
         }
+    }
+
+    pub fn price_tag(&self) -> Price {
+        Price::new(&self.price, &self.currency)
     }
 }
 

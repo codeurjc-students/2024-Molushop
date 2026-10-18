@@ -33,7 +33,7 @@
                             {% endfor %}
                         </ul>
                     </td>
-                    <td>{{order.lines_total()}} {{order.currency_symbol()}}</td>
+                    <td>{{ order.lines_total_tag() }}</td>
                     <td><span class="m-badge m-badge--{{order.status_variant()}}">{{order.status_label()}}</span></td>
                 </tr>
                 {% endfor %}

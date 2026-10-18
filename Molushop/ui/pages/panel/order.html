@@ -51,8 +51,8 @@
                     </td>
                     {% if all_lines %}<td>{{line.store_name}}</td>{% endif %}
                     <td>{{line.quantity}}</td>
-                    <td>{{line.unit_price}} {{order.currency_symbol()}}</td>
-                    <td>{{line.line_total}} {{order.currency_symbol()}}</td>
+                    <td>{{ order.unit_price_tag(line) }}</td>
+                    <td>{{ order.line_total_tag(line) }}</td>
                     <td><span class="m-badge m-badge--{{line.status_variant()}}">{{line.status_label()}}</span></td>
                     <td>
                         {# 1 confirmado -> 3 enviado -> 4 entregado; 2 cancelado solo desde confirmado #}
@@ -73,6 +73,6 @@
                 {% endfor %}
             </tbody>
         </table>
-        <p class="panel-order-total">Importe de estos artículos: <strong>{{order.lines_total()}} {{order.currency_symbol()}}</strong></p>
+        <p class="panel-order-total">Importe de estos artículos: <strong>{{ order.lines_total_tag() }}</strong></p>
     </div>
 {% endblock %}

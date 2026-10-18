@@ -21,10 +21,10 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
-use crate::constants::money::symbol_of;
 use crate::models::components::order_detail_v1::{
     status_label, status_variant, ORDER_CANCELLED, ORDER_CONFIRMED, ORDER_DELIVERED, ORDER_SHIPPED,
 };
+use crate::models::components::price::Price;
 use crate::models::models_x::{Order, OrderItem};
 use crate::schema::{base_user, order_items, orders};
 
@@ -173,8 +173,17 @@ impl PanelOrder {
         }
     }
 
-    pub fn currency_symbol(&self) -> String {
-        symbol_of(&self.currency)
+    /// Las líneas no llevan moneda propia: es la del pedido.
+    pub fn unit_price_tag(&self, line: &PanelOrderLine) -> Price {
+        Price::new(&line.unit_price, &self.currency)
+    }
+
+    pub fn line_total_tag(&self, line: &PanelOrderLine) -> Price {
+        Price::new(&line.line_total, &self.currency)
+    }
+
+    pub fn lines_total_tag(&self) -> Price {
+        Price::new(&self.lines_total(), &self.currency)
     }
 
     /// Estado de las líneas que se ven. Con todas las líneas coincide con
