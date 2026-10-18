@@ -83,7 +83,13 @@ pub async fn get_checkout_object(
         }
     };
 
-    let mut items: Vec<CartItemData> = rows.into_iter().map(CartItemData::from).collect();
+    // Lo que ya no se vende no entra al checkout (el carrito lo enseña marcado).
+    // Así el enlace sin `?lines=` tampoco se topa con el rechazo del POST.
+    let mut items: Vec<CartItemData> = rows
+        .into_iter()
+        .map(CartItemData::from)
+        .filter(|it| it.available)
+        .collect();
 
     // El filtro se aplica sobre las líneas que YA son del usuario, así que un id
     // de otra persona no puede colarse por aquí

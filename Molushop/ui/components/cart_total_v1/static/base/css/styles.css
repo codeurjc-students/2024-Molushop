@@ -165,3 +165,13 @@
         padding-top: 2px;
     }
 }
+
+/* Línea que ya no se vende (CartItemData.available = false): apagada, sin
+   casilla, precio ni cantidad; solo se puede borrar. */
+.cart-total-1 .card.is-unavailable .image-cont,
+.cart-total-1 .card.is-unavailable .title {
+    opacity: 0.5;
+}
+.cart-total-1 .card.is-unavailable .unavailable-note {
+    margin: 0;
+}

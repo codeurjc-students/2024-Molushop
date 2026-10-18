@@ -16,6 +16,13 @@ const CART_TOTAL_V1 = {
         return document.getElementById("cart-total-1");
     },
 
+    // Las líneas que se pueden comprar. Las que ya no se venden (.is-unavailable)
+    // no tienen casilla ni cuentan en el resumen; para el enlace de "Continuar"
+    // sí cuentan, y así su presencia obliga a mandar `?lines=`.
+    cards: function(root) {
+        return root.querySelectorAll(".card:not(.is-unavailable)");
+    },
+
     init: function() {
         if (this.root() == null) { return; }
 
@@ -58,7 +65,7 @@ const CART_TOTAL_V1 = {
 
             if (all) {
                 let checked = event.target.checked;
-                root.querySelectorAll(".card").forEach(card => {
+                this.cards(root).forEach(card => {
                     let check = card.querySelector(".line-check");
                     if (check != null) { check.checked = checked; }
                     this.mark(card.dataset.lineId, checked);
@@ -86,7 +93,7 @@ const CART_TOTAL_V1 = {
         let root = this.root();
         if (root == null) { return []; }
 
-        return Array.from(root.querySelectorAll(".card"))
+        return Array.from(this.cards(root))
             .map(card => card.dataset.lineId)
             .filter(id => id && !this.unselected.has(id));
     },
@@ -99,7 +106,7 @@ const CART_TOTAL_V1 = {
         if (root == null) { return; }
 
         let ids = new Set();
-        root.querySelectorAll(".card").forEach(card => {
+        this.cards(root).forEach(card => {
             let id = card.dataset.lineId;
             if (!id) { return; }
             ids.add(id);
@@ -136,7 +143,7 @@ const CART_TOTAL_V1 = {
         // En céntimos, para no arrastrar los errores del coma flotante
         let cents = 0;
 
-        root.querySelectorAll(".card").forEach(card => {
+        this.cards(root).forEach(card => {
             let id = card.dataset.lineId;
             if (!id || this.unselected.has(id)) { return; }
 

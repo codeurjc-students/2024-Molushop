@@ -26,8 +26,11 @@
                 {% else %}
                 {% for item in cart_total.items %}
                 {# data-price lleva el decimal en crudo: el JS nunca parsea el texto visible #}
-                <div class="card" data-line-id="{{item.id}}" data-var-id="{{item.product_var_id}}" data-stock="{{item.stock}}" data-price="{{item.price}}">
+                {# Una línea que ya no se vende (is-unavailable) va sin casilla, sin precio
+                   y sin cantidad: no se puede elegir ni cuenta en el resumen. Solo se borra. #}
+                <div class="card{% if !item.available %} is-unavailable{% endif %}" data-line-id="{{item.id}}" data-var-id="{{item.product_var_id}}" data-stock="{{item.stock}}" data-price="{{item.price}}">
                     <div class="check-cont">
+                        {% if item.available %}
                         <label>
                             <span class="checkbox1">
                                 <span class="checkbox1-circle">
@@ -35,6 +38,7 @@
                             </span>
                             <input class="checkbox-input line-check" type="checkbox" checked>
                         </label>
+                        {% endif %}
                     </div>
                     <div class="card-content">
                         <div class="left-side">
@@ -50,7 +54,11 @@
                                 {% if !item.variation_label.is_empty() %}
                                 <div class="variations">{{item.variation_label}}</div>
                                 {% endif %}
+                                {% if item.available %}
                                 <div class="price">{{ item.price_tag() }}</div>
+                                {% else %}
+                                <p class="m-hint unavailable-note">Ya no está a la venta. Quítalo de la cesta.</p>
+                                {% endif %}
                                 {% if !item.store_name.is_empty() %}
                                 <div class="shop">
                                     <span>{{item.store_name}}</span>
@@ -58,7 +66,11 @@
                                 {% endif %}
                             </div>
                             <div class="quantity-product">
+                                {% if item.available %}
                                 {{ item.quantity_tag() }}
+                                {% else %}
+                                <span class="m-badge m-badge--neutral">No disponible</span>
+                                {% endif %}
                             </div>
                             <div class="buttons-extra">
                                 <div class="trash">
@@ -85,8 +97,10 @@
                 <h2 class="title-resume">Resumen</h2>
                 <div class="articles-images">
                     {% for item in cart_total.items %}
+                    {% if item.available %}
                     <div class="image-resume" data-line-id="{{item.id}}" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;">
                     </div>
+                    {% endif %}
                     {% endfor %}
                 </div>
                 {# data-discount para que el recálculo del navegador no dé por hecho que es 0 #}

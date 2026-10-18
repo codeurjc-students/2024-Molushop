@@ -67,7 +67,11 @@ pub struct CartItemData{
     pub currency: String,
     pub store_name: String,
     pub quantity: i32,
-    pub stock: i32
+    pub stock: i32,
+    /// False si ya no se puede comprar: sin tienda activa (tienda desactivada o
+    /// producto borrado) o sin precio. Son los mismos casos en que el checkout
+    /// rechaza el pedido; el carrito la marca, no la cuenta y no deja elegirla.
+    pub available: bool
 }
 
 impl Default for CartTotalData {
@@ -85,13 +89,15 @@ impl Default for CartTotalData {
 }
 
 impl CartTotalData {
+    /// Los totales solo cuentan las líneas disponibles.
     pub fn from_items(items: Vec<CartItemData>) -> Self {
         let default = CartTotalData::default();
 
         let total: BigDecimal = items
             .iter()
+            .filter(|it| it.available)
             .fold(BigDecimal::from(0), |acc, it| acc + it.subtotal.clone());
-        let total_units: i32 = items.iter().map(|it| it.quantity).sum();
+        let total_units: i32 = items.iter().filter(|it| it.available).map(|it| it.quantity).sum();
         let currency = items
             .first()
             .map(|it| it.currency.clone())
@@ -152,6 +158,7 @@ fn currency_code(code: Option<String>) -> String {
 
 impl From<CartItem1> for CartItemData {
     fn from(db: CartItem1) -> Self {
+        let available = db.store_name.is_some() && db.price.is_some();
         let price = db.price.unwrap_or_else(|| BigDecimal::from(0));
         // Si la consulta no pudo calcular el subtotal (producto sin precio) lo recalculamos aquí
         let subtotal = db.subtotal
@@ -169,7 +176,41 @@ impl From<CartItem1> for CartItemData {
             currency: currency_code(db.currency),
             store_name: db.store_name.unwrap_or_default(),
             quantity: db.quantity,
-            stock: db.stock
+            stock: db.stock,
+            available
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    fn line(price: &str, quantity: i32, available: bool) -> CartItemData {
+        let price = BigDecimal::from_str(price).unwrap();
+        CartItemData {
+            id: Uuid::new_v4(),
+            product_var_id: Uuid::new_v4(),
+            name: String::new(),
+            variation_label: String::new(),
+            image: String::new(),
+            url: String::new(),
+            subtotal: price.clone() * BigDecimal::from(quantity),
+            price,
+            currency: "EUR".to_string(),
+            store_name: String::new(),
+            quantity,
+            stock: 10,
+            available,
+        }
+    }
+
+    #[test]
+    fn totals_skip_unavailable_lines() {
+        let data = CartTotalData::from_items(vec![line("9.50", 2, true), line("100", 3, false)]);
+        assert_eq!(data.total, BigDecimal::from_str("19.00").unwrap());
+        assert_eq!(data.total_units, 2);
+        assert_eq!(data.items.len(), 2, "la línea sigue en la lista, solo no cuenta");
     }
 }
