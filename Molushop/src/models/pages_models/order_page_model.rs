@@ -5,7 +5,7 @@ use crate::models::components::order_detail_v1::OrderData;
 
 /// Página de un pedido confirmado.
 #[derive(Template,Clone,Debug)]
-#[template(path="pages/orders/order.html")]
+#[template(path="pages/order/order.html")]
 pub struct OrderPage{
     pub user_logged: bool,
     pub page_name:String,

@@ -15,7 +15,8 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::models::components::panel_nav::PanelNav;
-use crate::models::pages_models::panel_orders_page_model::{PanelOrderPage, PanelOrdersPage};
+use crate::models::pages_models::panel_orders_page_model::PanelOrdersPage;
+use crate::models::pages_models::panel_order_page_model::PanelOrderPage;
 use crate::routes::panel_orders::{back, error_message, ok_message, LineStatusForm, OrderQuery};
 use crate::routes::panel_products::html;
 use crate::services::panel_orders_service::{get_order, list_orders, set_line_status};

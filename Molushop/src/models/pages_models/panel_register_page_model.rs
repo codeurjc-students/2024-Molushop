@@ -3,7 +3,7 @@ use askama::Template;
 /// `/panel/register`: solicitar una tienda. Sin nav del panel: quien llega aquí
 /// aún no tiene acceso.
 #[derive(Template,Clone,Debug)]
-#[template(path="pages/panel/register.html")]
+#[template(path="pages/panel_register/panel_register.html")]
 pub struct PanelRegisterPage{
     pub user_logged: bool,
     pub page_name:String,
