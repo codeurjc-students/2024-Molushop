@@ -20,6 +20,9 @@ pub enum ServiceError {
     /// de objetos con `name`).
     #[error("Invalid variations")]
     InvalidVariations,
+    /// Alta de producto con `specs` que no es un objeto `{nombre: valor}`.
+    #[error("Invalid specs")]
+    InvalidSpecs,
 
     // --- Opiniones ---
     /// La estrella no está entre 1 y 5. La plantilla solo pinta cinco radios,

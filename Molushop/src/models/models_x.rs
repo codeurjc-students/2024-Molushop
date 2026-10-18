@@ -164,6 +164,9 @@ pub struct ProductForm{
     pub name: String,
     pub description: String,
     pub brand: String,
+    /// Opcionales: sin ningún campo de spec relleno, json-enc-custom no manda
+    /// la clave y queda `Null` (`clean_specs` lo guarda como `{}`).
+    #[serde(default)]
     pub specs: Value,
     pub variations: Option<Value>,
     pub images: Option<Value>,

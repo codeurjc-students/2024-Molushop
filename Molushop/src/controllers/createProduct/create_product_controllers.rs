@@ -17,6 +17,7 @@ use crate::services::panel_role_service::{resolve_store, PanelUser};
 
 use crate::services;
 use crate::models::models_x::{ProductForm,Category};
+use crate::models::extra::BaseSpecs;
 //use crate::models::product_variation::{VariationValue,Attribute};
 //use crate::models::get_product::ProductForm;
 
@@ -163,24 +164,19 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
     let category_result = services::category::get_category(&category_id);
     match category_result{
         Ok(category) => {
-            let specs_option = category.base_specs;
-            let name  = category.name;
-            match specs_option{
-                Some(specs) =>{
-                    let base_specs = serde_json::from_value(specs.clone()).unwrap();
-                    let base_product = BaseProducto::new(base_specs,category_id, &ROUTES,name);       
-                    let render  = base_product.render().unwrap();
-                    
-                    return HttpResponse::Ok().body(render)
-                },
-                None => {
-                    println!("Error loading specs");
-                    return HttpResponse::InternalServerError().body("Error loading specs");
-                }
-            }
-
-           
-
+            // Las specs son opcionales: una categoría sin plantilla (o con una
+            // que no se entiende) abre el formulario sin specs sugeridas.
+            let base_specs = category.base_specs
+                .and_then(|specs| match serde_json::from_value::<BaseSpecs>(specs) {
+                    Ok(base_specs) => Some(base_specs),
+                    Err(e) => {
+                        println!("base_specs de {} con formato no válido: {}", category_id, e);
+                        None
+                    }
+                })
+                .unwrap_or(BaseSpecs { specs: Vec::new() });
+            let base_product = BaseProducto::new(base_specs,category_id, &ROUTES,category.name);
+            HttpResponse::Ok().body(base_product.render().unwrap())
         },
         Err(e) => {
             println!("Error loading category: {}", e);
@@ -226,6 +222,9 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
         },
         Err(crate::models::error::ServiceError::InvalidVariations) => {
             HttpResponse::BadRequest().body("Las variaciones del producto no tienen un formato válido")
+        },
+        Err(crate::models::error::ServiceError::InvalidSpecs) => {
+            HttpResponse::BadRequest().body("Las specs del producto no tienen un formato válido")
         },
         Err(e) => {
             println!("Error al crear el producto (no se ha guardado nada): {}", e);

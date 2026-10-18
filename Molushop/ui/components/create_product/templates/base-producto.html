@@ -4,23 +4,24 @@
         hx-traget=".objetivo"
         hx-ext="json-enc-custom">
         <div class="specsContainer" _="on load set @z to 0">
-            <h4>Specs:</h4>
+            <h4>Specs</h4>
+            <p class="m-hint">Opcionales: las que dejes en blanco no se guardan.</p>
             {% for elem in specs %}
             <div class="m-field">
-                <label class="m-label" for="{{elem}}">{{elem}}</label>
-                <input class="m-input" type="text" id="{{elem}}" name="specs[{{elem}}]" required>
+                <label class="m-label" for="spec-{{elem}}">{{elem}}</label>
+                <input class="m-input" type="text" id="spec-{{elem}}" name="specs[{{elem}}]">
             </div>
             {% endfor %}
             <div class="extra"></div>
             <div class="btn-double-container">
-                <button class="m-btn m-btn--secondary"
+                <button type="button" class="m-btn m-btn--secondary"
                     hx-get="{{routes.add_specs}}"
                     hx-swap="beforebegin"
                     hx-target="closest .btn-double-container"
                     _="on htmx:afterRequest
                     set father to the closest .specsContainer
                     increment father's z
-                    log father's z">Add Specs</button>
+                    log father's z">+ Añadir spec</button>
                 <button type="button" class="m-btn m-btn--secondary"
                     _="on click
                     set father to the closest .specsContainer
@@ -29,7 +30,7 @@
                         set btnCont to the closest .btn-double-container
                         set lastSpec to the previous <div/> from btnCont
                         remove lastSpec" 
-                        >DeleteSpecs</button>
+                        >Quitar última spec</button>
             </div> 
         </div>
         

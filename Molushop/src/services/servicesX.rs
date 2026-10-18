@@ -223,9 +223,29 @@ struct FormTitulos {
     titulos: Vec<String>
 }
 
+/// Las specs son opcionales: se quitan las que llegan sin nombre o sin valor
+/// (y los espacios de los lados). Sin ninguna queda `{}`.
+pub fn clean_specs(raw: &Value) -> Result<Value, ServiceError> {
+    let map = match raw {
+        Value::Null => return Ok(json!({})),
+        Value::Object(map) => map,
+        _ => return Err(ServiceError::InvalidSpecs),
+    };
+    let mut cleaned = serde_json::Map::new();
+    for (key, value) in map {
+        let value = value.as_str().ok_or(ServiceError::InvalidSpecs)?.trim();
+        let key = key.trim();
+        if !key.is_empty() && !value.is_empty() {
+            cleaned.insert(key.to_string(), Value::String(value.to_string()));
+        }
+    }
+    Ok(Value::Object(cleaned))
+}
+
 pub async fn insert_new_product(form:&ProductForm,connection:&mut AsyncPgConnection) -> Result<Uuid, ServiceError> {
     use crate::schema::products::dsl::*;
     let new_id = Uuid::new_v4();
+    let cleaned_specs = clean_specs(&form.specs)?;
     //metodo para obtener los nombres de los titulos de las variaciones
     //obtenern ese jsson b y obtener los nombres de las keys
     // El JSON de variaciones lo escribe el navegador: si no es una lista de
@@ -250,7 +270,7 @@ pub async fn insert_new_product(form:&ProductForm,connection:&mut AsyncPgConnect
         name: &form.name,
         description: &form.description,
         brand: &form.brand,
-        specs: &form.specs,
+        specs: &cleaned_specs,
         variations: form.variations.as_ref(),
         variation_titles: titles.as_ref(), //de momento, cambiar
         images: form.images.as_ref(),
@@ -1230,4 +1250,27 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
     "#).bind::<diesel::sql_types::Uuid,_>(product_id)
         .get_result::<ProductForPage1>(connection).await?;
     Ok(results)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn clean_specs_quita_las_vacias() {
+        let raw = json!({"material": " algodón ", "size": "", "": "suelto", "  ": "x"});
+        assert_eq!(clean_specs(&raw).unwrap(), json!({"material": "algodón"}));
+    }
+
+    #[test]
+    fn clean_specs_sin_specs_es_objeto_vacio() {
+        assert_eq!(clean_specs(&Value::Null).unwrap(), json!({}));
+        assert_eq!(clean_specs(&json!({"size": "  "})).unwrap(), json!({}));
+    }
+
+    #[test]
+    fn clean_specs_rechaza_lo_que_no_es_nombre_valor() {
+        assert!(matches!(clean_specs(&json!(["a"])), Err(ServiceError::InvalidSpecs)));
+        assert!(matches!(clean_specs(&json!({"size": 3})), Err(ServiceError::InvalidSpecs)));
+    }
 }
