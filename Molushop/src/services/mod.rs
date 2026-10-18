@@ -14,3 +14,5 @@ pub mod panel_orders_service;
 pub mod store_request_service;
 pub mod session_service;
 pub mod account_service;
+pub mod mail_service;
+pub mod password_reset_service;

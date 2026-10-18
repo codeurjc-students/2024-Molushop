@@ -224,6 +224,18 @@ diesel::table! {
 }
 
 diesel::table! {
+    password_resets (id) {
+        id -> Uuid,
+        user_id -> Uuid,
+        #[max_length = 64]
+        token_hash -> Varchar,
+        created_at -> Timestamp,
+        expires_at -> Timestamp,
+        used_at -> Nullable<Timestamp>,
+    }
+}
+
+diesel::table! {
     price_history (id) {
         id -> Int4,
         variation_id -> Uuid,
@@ -387,6 +399,7 @@ diesel::joinable!(order_items -> seller (store_id));
 diesel::joinable!(orders -> base_user (user_id));
 diesel::joinable!(orders -> carts (cart_id));
 diesel::joinable!(orders -> customer_address (shipping_address_id));
+diesel::joinable!(password_resets -> base_user (user_id));
 diesel::joinable!(price_history -> product_variations (variation_id));
 diesel::joinable!(prices -> product_variations (variation_id));
 diesel::joinable!(product_base_indentifiers -> products (product_id));
@@ -418,6 +431,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     images_product_variations,
     order_items,
     orders,
+    password_resets,
     price_history,
     prices,
     product_attributes,
