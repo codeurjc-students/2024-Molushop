@@ -84,6 +84,19 @@
         border-top: 1px solid var(--color-border);
     }
 
+    /* Atributos de la variación (solo lectura) */
+    .variation-attributes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-3) var(--space-6);
+        margin: 0 0 var(--space-5);
+    }
+
+    .variation-attributes dd {
+        margin: 0;
+        font-weight: var(--font-weight-medium);
+    }
+
     /* Columna del botón "Editar" de cada variación */
     .ve-table .ve-action {
         text-align: right;

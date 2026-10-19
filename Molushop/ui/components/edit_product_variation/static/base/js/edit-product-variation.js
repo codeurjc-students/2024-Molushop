@@ -22,27 +22,28 @@ const edit_variation = {
         }); 
     },
     change_status(element,e){
-        let status_name = "";
-        if(e.detail.status==0){
-            status_name="Draft";
-        }else if(e.detail.status==1){
-            status_name="Active";
-        }else if(e.detail.status==2){
-            status_name="Inactive";
-        }
-        let tr_target = document.querySelector("tr#"+CSS.escape(element.id));
-        tr_target.children[1].textContent=status_name;
+        // Misma etiqueta y clase de fila que pinta edit_product.html
+        let states = {
+            0: ["Draft", "neutral", "is-draft"],
+            1: ["Activo", "success", "is-active"],
+            2: ["Inactivo", "danger", "is-inactive"],
+        };
+        let [status_name, variant, row_class] = states[e.detail.status] || states[2];
+        let tr_target = document.querySelector("tr#"+CSS.escape("var-row-"+element.id));
+        if(!tr_target) return;
+        tr_target.className = row_class;
+        tr_target.querySelector("td.state").innerHTML =
+            `<span class="m-badge m-badge--${variant}">${status_name}</span>`;
     },
-    add_identifier(element,endpoint){
-        element.addEventListener('click',()=>{
-            //verificar todos los identifier-row que hay --> luego alomejor hay que actualizar si se borra uno
-        });
+    // Casilla "Habilitar oferta": abre o cierra el precio de oferta de su formulario
+    toggle_sale(checkbox){
+        let form = checkbox.closest("form");
+        form.querySelector(".sale-active").value = checkbox.checked ? "true" : "false";
+        form.querySelector(".sale-price").readOnly = !checkbox.checked;
     },
     update_identifiers(element,form){
         element.addEventListener('click',(event)=>{
-            console.log("AAAA");
             event.preventDefault();
-            console.log("bbbbb");
             let identifiers_containers = form.querySelectorAll(".identifier-row");
             let identifiers={
                 identifiers:[]
@@ -109,38 +110,3 @@ function htmx_ajax_json(metodo,endpoint,target,swap,values ){
         }
     });
 }
-
-
-function init_edit_product(){
-    let navItems = document.querySelectorAll('.nav-item');
-    
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // Remover clase active de todas las pestañas
-            navItems.forEach(nav => nav.classList.remove('active'));
-            
-            // Remover clase active de todos los contenidos
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.classList.remove('active');
-            });
-            
-            // Agregar clase active a la pestaña seleccionada
-            this.classList.add('active');
-            
-            // Mostrar el contenido correspondiente
-            let tabId = this.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
-        });
-    }); 
-}
-/*
-document.addEventListener('DOMContentLoaded', function() {
-    edit_product.init_edit_product();
-});
-
-window.addEventListener('popstate', function(evt) { 
-    edit_product.init_edit_product();
-});
-
-document.addEventListener('htmx:afterSwap', () => edit_product.init_edit_product());
-*/

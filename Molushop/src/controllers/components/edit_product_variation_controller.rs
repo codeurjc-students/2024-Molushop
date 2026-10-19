@@ -149,7 +149,7 @@ let new_status:i16 =  form_general.status.parse().unwrap_or(0);
     let mut render:String=String::new();
     match result1{
         Ok(_)=>{
-            render = MessageModal::new("Identificador editado correctamente").render().unwrap();
+            render = MessageModal::new("Variación guardada").render().unwrap();
         },
         Err(e)=>{
             println!("Ha ocurrido un error: {}",e);
@@ -292,11 +292,12 @@ async fn edit_stock(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
         return resp;
     }
 let form = data.into_inner();
+    // 200 con el aviso: htmx no pinta las respuestas 4xx/5xx
     let new_stock= match form.stock.parse::<i32>(){
-        Ok(stock) => stock,
-        Err(e)=>{
-            let modal_respuesta = MessageModal::new("Ha ocurrido un error").render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_respuesta)
+        Ok(stock) if stock >= 0 => stock,
+        _ => {
+            let modal_respuesta = MessageModal::new("El stock debe ser un número entero, 0 o más").render().unwrap();
+            return HttpResponse::Ok().body(modal_respuesta)
         }
     };
 
@@ -304,7 +305,7 @@ let form = data.into_inner();
     let result_stock = set_stock_variation(&var_id, &new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
-            let modal_respuesta = MessageModal::new("Todo correcto").render().unwrap();
+            let modal_respuesta = MessageModal::new("Stock actualizado").render().unwrap();
             return HttpResponse::Ok().body(modal_respuesta)
         },
         Err(e)=>{

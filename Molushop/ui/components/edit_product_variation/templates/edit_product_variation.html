@@ -8,7 +8,7 @@
 {% let routes = routes_edit_product %}
 
 <div class="m-card variation-edit-container" id="{{id}}" 
-    _="on load log 'revisar'
+    _="on load
     js(me) 
         edit_variation.init_edit_variation(me);
     end 
@@ -29,46 +29,34 @@
     <!-- Pestañas -->
     <nav class="sidebar">
         <ul class="nav-list">
-            <li class="nav-item active" data-tab="general">General</li>
-            <li class="nav-item" data-tab="price">Precio</li>
-            <li class="nav-item" data-tab="identifiers">Identificadores</li>
-            <li class="nav-item" data-tab="inventory">Stock</li>
+            <li class="nav-item active" data-tab="ev-general">General</li>
+            <li class="nav-item" data-tab="ev-price">Precio</li>
+            <li class="nav-item" data-tab="ev-identifiers">Identificadores</li>
+            <li class="nav-item" data-tab="ev-inventory">Stock</li>
         </ul>
     </nav>
 
     <!-- Contenido de las pestañas -->
     <div class="tab-content">
         <!-- Pestaña General -->
-        <div class="tab-pane active" id="general">
+        <div class="tab-pane active" id="ev-general">
             <form hx-post="{{routes.edit_general}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
-                class="general-form" id="generalForm">
-                <div class="m-field form-group">
-                    <label class="m-label">Nombre</label>
-                    <p>{{general.name}}</p>
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Atributos</label>
-                    <div class="attributes-container">
-                        {%for attribute in general.attributes%}
-                        <div class="attribute-row">
-                            <!-- Campo oculto para enviar el nombre -->
-                            <input type="hidden" 
-                            name="attributes[{{loop.index0}}][name]" 
-                            value="{{attribute.name}}">
-                            
-                            <!-- Texto visible para mostrar el nombre -->
-                            <div class="attribute-label">{{attribute.name}}:</div> 
-                            <select name="attributes[{{loop.index0}}][value]" class="m-input">
-                                <option value="red">{{attribute.value}}</option>
-                                <!-- más opciones -->
-                            </select>
-                        </div>
-                        {%endfor%}
+                class="general-form">
+                {# Los atributos no se cambian una vez creada la variación: si uno está
+                   mal, se desactiva esta y se crea otra. #}
+                {% if !general.attributes.is_empty() %}
+                <dl class="variation-attributes">
+                    {% for attribute in general.attributes %}
+                    <div>
+                        <dt class="m-label">{{attribute.name}}</dt>
+                        <dd>{{attribute.value}}</dd>
                     </div>
-                </div>
+                    {% endfor %}
+                </dl>
+                {% endif %}
                 <div class="m-field form-group">
                     <label class="m-label">Estado</label>
                     <select class="m-input" name="status">
@@ -77,7 +65,6 @@
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
-                <!-- resto del formulario -->
                 <div class="form-actions">
                     <button type="submit" class="m-btn m-btn--primary">Guardar</button>
                 </div>
@@ -85,63 +72,35 @@
         </div>
 
         <!-- Pestaña Price -->
-        <div class="tab-pane" id="price">
-            <form class="price-form" id="priceForm"
+        <div class="tab-pane" id="ev-price">
+            <form class="price-form"
                 hx-post="{{routes.edit_price}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
+                _="on reset wait 0s js(me) edit_variation.toggle_sale(me.querySelector('.sale-toggle')) end"
                 >
                 <div class="m-field form-group">
-                    <label class="m-label">Precio</label>
-                    <input type="number" class="m-input" step="0.01" name="regular" value="{{prices.actual_price}}">
+                    <label class="m-label">Precio (€)</label>
+                    <input type="number" class="m-input" step="0.01" min="0" name="regular" value="{{prices.actual_price}}">
                 </div>
                 <div class="m-field form-group">
-                    <div>
-                        <label class="m-check">
-                        <input type="checkbox"  
-                        {% if prices.sale_active %}
-                            checked
-                        {%endif%} 
-                        _="on click  
-                            set container to the closest <div.form-group/>
-                            set objective to <input.discount/> in container
-                            set discountActive to the next <input/>
-                            if me.checked
-                                remove @readonly from objective
-                                set discountActive.value to 'true'
-                            else
-                                add @readonly to objective
-                                set discountActive.value to 'false'
-                        end">
+                    <label class="m-check">
+                        <input type="checkbox" class="sale-toggle"
+                            {% if prices.sale_active %}checked{% endif %}
+                            _="on change js(me) edit_variation.toggle_sale(me) end">
                         Habilitar oferta para el producto
-                        </label>
-                        <input 
-                        type="hidden" name="discount_active" 
-                        {% if prices.sale_active %}
-                            value="true"
-                        {%else%}
-                            value="false"
-                        {%endif%}
-                        >    
-                    </div>
-                    <label class="m-label">Precio de oferta</label>
+                    </label>
+                    <input type="hidden" class="sale-active" name="discount_active"
+                        value="{% if prices.sale_active %}true{% else %}false{% endif %}">
                     <input type="hidden" name="option" value="0">
-                    <input 
-                    {% if !prices.sale_active %}
-                        readonly
-                    {%endif%} 
-                    type="number" class="m-input discount" step="0.01" name="discount" value="{{prices.sale_price}}">
                 </div>
-                <!--
                 <div class="m-field form-group">
-                    <label class="m-label">Tax Class</label>
-                    <select class="m-input" name="tax_class">
-                        <option value="standard">Standard</option>
-                        <option value="reduced">Reduced Rate</option>
-                        <option value="zero">Zero Rate</option>
-                    </select>
-                </div> -->
+                    <label class="m-label">Precio de oferta (€)</label>
+                    <input type="number" class="m-input sale-price" step="0.01" min="0" name="discount"
+                        {% if !prices.sale_active %}readonly{% endif %}
+                        value="{{prices.sale_price}}">
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="m-btn m-btn--primary">Guardar precio</button>
                     <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
@@ -150,8 +109,8 @@
         </div>
 
         <!-- Pestaña Identifiers Para actualizar hay que hacerlo en forma de json-->
-        <div class="tab-pane" id="identifiers">
-            <form class="identifiers-form" id="identifiersForm"
+        <div class="tab-pane" id="ev-identifiers">
+            <form class="identifiers-form"
                 hx-post="{{routes.edit_identifiers}}/{{variation.id}}"
                 hx-target="body"
                 hx-swap="beforeend"
@@ -182,8 +141,8 @@
             </form>
         </div>
         <!-- Pestaña Inventory -->
-        <div class="tab-pane" id="inventory">
-            <form class="inventory-form" id="inventoryForm"
+        <div class="tab-pane" id="ev-inventory">
+            <form class="inventory-form"
                 hx-post="{{routes.edit_stock}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
@@ -191,22 +150,8 @@
             >
                 <div class="m-field form-group">
                     <label class="m-label">Unidades en stock</label>
-                    <input type="number" class="m-input" name="stock" value="{{stock.number}}">
+                    <input type="number" class="m-input" min="0" step="1" name="stock" value="{{stock.number}}">
                 </div>
-                <!--
-                <div class="m-field form-group">
-                    <label class="m-label">Stock Status</label>
-                    <select class="m-input" name="stock_status">
-                        <option value="in_stock">In stock</option>
-                        <option value="out_of_stock">Out of stock</option>
-                        <option value="on_backorder">On backorder</option>
-                    </select>
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Low Stock Threshold</label>
-                    <input type="number" class="m-input" name="low_stock_threshold">
-                </div> 
-                -->
                 <div class="form-actions">
                     <button type="submit" class="m-btn m-btn--primary">Guardar stock</button>
                     <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>

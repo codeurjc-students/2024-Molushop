@@ -75,14 +75,20 @@ async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,
         return resp;
     }
     let form_complete = form.into_inner();
+    let status = form_complete.status;
     let result = edit_product_general(&product_id,form_complete, pool_data.get_ref()).await;
 match result{
         Ok(_) => {
-            println!("Producto editado correctamente");
             let modal_render = MessageModal{
                 text:"Producto actualizado correctamente!".to_string()
             }.render().unwrap();
-            HttpResponse::Ok().body(modal_render)
+            // La cabecera del editor se actualiza con lo guardado (edit-product.js).
+            // Solo va el estado: el nombre y la marca los lee del formulario, y
+            // así la cabecera HTTP no lleva texto del vendedor.
+            let trigger = json!({ "product_update": { "status": status } });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal_render)
         },
         Err(e) => {
             println!("Error! -> {}",e);

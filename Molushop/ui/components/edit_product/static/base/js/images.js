@@ -15,7 +15,7 @@ const imageManager = {
         this.dropzone = elemento.querySelector('.dropzone');
         this.fileInput = this.dropzone.querySelector('input[type="file"]');
         this.imageGallery = elemento.querySelector(".image-gallery.new-images");
-        this.form = elemento.querySelector("#imagesForm");
+        this.form = elemento.querySelector(".images-form");
 
         // Prevenir el comportamiento por defecto del navegador para drag & drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {

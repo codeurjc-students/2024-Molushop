@@ -12,6 +12,10 @@
         js(me,event)
             imageManager.updateImageLocation(me,event);
         end
+        on product_update
+        js(me,event)
+            edit_product.update_header(me,event);
+        end
     end">
     {# Cabecera: la misma que la tarjeta del listado (product_panel_group) #}
     <div class="product-main">
@@ -41,16 +45,9 @@
     <!-- Pestañas -->
     <nav class="sidebar">
         <ul class="nav-list">
-            <li class="nav-item active" data-tab="general">General</li>
-            <li class="nav-item" data-tab="images">Imágenes</li>
-            <!--
-            <li class="nav-item" data-tab="categories">CATEGORIES, TAG & ATTRIBUTES</li>
-            <li class="nav-item" data-tab="prices">PRICES</li>
-            <li class="nav-item" data-tab="shipping">SHIPPING</li>
-            <li class="nav-item" data-tab="stock">STOCK</li>
-            -->
-            <li class="nav-item" data-tab="variations">Variaciones ({{variations.variations.len()}})</li>
-            <li class="nav-item" data-tab="advanced">Avanzado</li>
+            <li class="nav-item active" data-tab="pe-general">General</li>
+            <li class="nav-item" data-tab="pe-images">Imágenes</li>
+            <li class="nav-item" data-tab="pe-variations">Variaciones ({{variations.variations.len()}})</li>
         </ul>
     </nav>
     
@@ -58,18 +55,18 @@
     <div class="tab-content">
 
         <!-- Pestaña General -->
-        <div class="tab-pane active" id="general">
+        <div class="tab-pane active" id="pe-general">
             <form hx-post="{{routes.edit_general}}/{{product.id}}" 
                 hx-target = "body"
                 hx-swap="beforeend"
-                class="general-form" id="generalForm">
+                class="general-form">
                 <div class="m-field form-group">
                     <label class="m-label" for="product-title">Nombre</label>
                     <input id="product-title" name="name" type="text" class="m-input" value="{{general.name}}">
                 </div>
                 <div class="m-field form-group">
                     <label class="m-label" for="product-description">Descripción</label>
-                    <input id="product-description" name="description" type="text" class="m-input" value="{{general.description}}">
+                    <textarea id="product-description" name="description" class="m-input" rows="5">{{general.description}}</textarea>
                 </div>
                 <div class="m-field form-group">
                     <label class="m-label" for="product-brand">Marca</label>
@@ -83,17 +80,6 @@
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
-                <!--
-                <div class="m-field form-group">
-                    <label class="m-label" for="slug">SLUG</label>
-                    <div class="input-group">
-                        <select id="slug" class="m-input">
-                            <option value="set-new">Set new</option>
-                        </select>
-                        <input type="text" class="m-input" placeholder="Enter slug">
-                    </div>
-                </div>
-                -->
                 <div class="form-actions">
                     <button type="submit" class="m-btn m-btn--primary">Guardar</button>
                     <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
@@ -102,13 +88,13 @@
         </div>
     
         <!-- Pestaña Images -->
-        <div class="tab-pane" id="images">
+        <div class="tab-pane" id="pe-images">
             <form 
                 hx-post="{{routes.edit_images}}/{{product.id}}"
                 hx-target="body"
                 hx-swap="beforeend"
                 hx-encoding="multipart/form-data"
-                class="images-form" id="imagesForm">
+                class="images-form">
                 <div class="image-upload-section">
                     <h3>Imágenes del producto</h3>
                     <div class="dropzone">
@@ -143,100 +129,8 @@
             </form>
         </div>
     
-        <!-- Pestaña Categories -->
-        <div class="tab-pane" id="categories">
-            <form class="categories-form" id="categoriesForm">
-                <div class="categories-section">
-                    <h3>Categories</h3>
-                    <div class="category-tree">
-                        <!-- Árbol de categorías -->
-                    </div>
-                    <div class="tags-section">
-                        <h3>Tags</h3>
-                        <input type="text" class="m-input" placeholder="Add tags...">
-                        <div class="tags-list">
-                            <!-- Lista de tags -->
-                        </div>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Categories & Tags</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
-                </div>
-            </form>
-        </div>
-    
-        <!-- Pestaña Prices 
-        <div class="tab-pane" id="prices">
-            <form class="prices-form" id="pricesForm">
-                <div class="m-field form-group">
-                    <label class="m-label">Regular Price</label>
-                    <input type="number" class="m-input" step="0.01">
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Sale Price</label>
-                    <input type="number" class="m-input" step="0.01">
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Tax Status</label>
-                    <select class="m-input">
-                        <option>Taxable</option>
-                        <option>None</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
-                </div>
-            </form>
-        </div>
-        -->
-        <!-- Pestaña Shipping 
-        <div class="tab-pane" id="shipping">
-            <form class="prices-form" id="shippingForm">
-                <div class="m-field form-group">
-                    <label class="m-label">Weight (kg)</label>
-                    <input type="number" class="m-input" step="0.01">
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Dimensions (cm)</label>
-                    <div class="dimensions-group">
-                        <input type="number" placeholder="Length">
-                        <input type="number" placeholder="Width">
-                        <input type="number" placeholder="Height">
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
-                </div>
-            </form>
-        </div>
-        -->
-        <!-- Pestaña Stock 
-        <div class="tab-pane" id="stock">
-            <form class="stock-form" id="stockForm">
-                <div class="m-field form-group">
-                    <label class="m-label">Stock Quantity</label>
-                    <input type="number" class="m-input">
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Stock Status</label>
-                    <select class="m-input">
-                        <option>In stock</option>
-                        <option>Out of stock</option>
-                        <option>On backorder</option>
-                    </select>
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
-                </div>
-            </form>
-        </div>
-        -->
         <!-- Pestaña Variations -->
-        <div class="tab-pane" id="variations">
+        <div class="tab-pane" id="pe-variations">
             {# Mismo aspecto que la tabla del listado (variations_explorer):
                una columna por atributo y, en móvil, mini tarjetas (data-label). #}
             {% let titles = variations.titles() %}
@@ -251,7 +145,7 @@
                     </thead>
                     <tbody>
                     {% for var in variations.variations %}
-                        <tr id="{{var.id}}"
+                        <tr id="var-row-{{var.id}}"
                             class="{% if var.status == 0 %}is-draft{% else if var.status == 1 %}is-active{% else %}is-inactive{% endif %}">
                             {% for attribute in var.attributes %}
                                 <td class="attr" data-label="{{attribute.name}}">{{attribute.value}}</td>
@@ -278,24 +172,6 @@
                     </tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- Pestaña Advanced -->
-        <div class="tab-pane" id="advanced">
-            <form class="advanced-form" id="advancedForm">
-                <div class="m-field form-group">
-                    <label class="m-label">Purchase Note</label>
-                    <textarea class="m-input"></textarea>
-                </div>
-                <div class="m-field form-group">
-                    <label class="m-label">Menu Order</label>
-                    <input type="number" class="m-input">
-                </div>
-                <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
-                </div>
-            </form>
         </div>
     </div>
 </div>
