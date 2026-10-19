@@ -16,6 +16,7 @@ use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
+use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction};
 type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
@@ -38,6 +39,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
         edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        bulk_variations: Box::leak(format!("{}{}/bulk-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -51,6 +53,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
     cfg
         .service(edit_general)
+        .service(bulk_variations)
         .service(delete_all_imgs)
         .service(edit_images);
         //.service(delete_product_modal);
@@ -98,6 +101,59 @@ match result{
             return HttpResponse::InternalServerError().body(modal_render);}
         }
 }
+#[derive(Deserialize)]
+pub struct BulkForm{
+    pub action: String,
+    pub value: String,
+    /// Ids de las variaciones filtradas, separados por comas.
+    pub ids: String,
+}
+
+/// Edición en bloque desde el explorador de variaciones. Responde siempre 200
+/// con el aviso (htmx no pinta las respuestas 4xx/5xx) y, si ha ido bien, con
+/// `variations_bulk_update`: cómo ha quedado cada fila, para el JS del explorador.
+#[post("/bulk-variations/{product_id}")]
+async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<BulkForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
+    let product_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+    let modal = |text: &str| MessageModal::new(text).render().unwrap();
+
+    let action = match BulkAction::parse(&form.action, &form.value) {
+        Ok(action) => action,
+        Err(text) => return HttpResponse::Ok().body(modal(text)),
+    };
+    let ids: Result<Vec<Uuid>, _> = form.ids.split(',')
+        .filter(|id| !id.trim().is_empty())
+        .map(|id| Uuid::parse_str(id.trim()))
+        .collect();
+    let ids = match ids {
+        Ok(ids) if !ids.is_empty() => ids,
+        _ => return HttpResponse::Ok().body(modal("No hay variaciones seleccionadas")),
+    };
+
+    match bulk_update_variations(&product_id, &ids, &action, pool).await {
+        Ok(Some(rows)) => {
+            let text = if rows.len() == 1 {
+                "Se ha actualizado 1 variación".to_string()
+            } else {
+                format!("Se han actualizado {} variaciones", rows.len())
+            };
+            let trigger = json!({ "variations_bulk_update": { "rows": rows } });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal(&text))
+        }
+        Ok(None) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
+        Err(e) => {
+            println!("Panel: error en la edición en bloque de {}: {}", product_id, e);
+            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
+        }
+    }
+}
+
 /* 
 #[derive(Debug, MultipartForm)]
 struct UploadForm {

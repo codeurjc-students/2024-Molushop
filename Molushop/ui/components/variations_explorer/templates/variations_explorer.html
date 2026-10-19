@@ -35,6 +35,44 @@
         {% endif %}
     </div>
 
+    {% if let Some(url) = bulk_url %}
+    {# Edición en bloque: se aplica a las filas que dejan ver los filtros. El
+       JS (script.js) pide confirmación y manda los ids. #}
+    <form class="ve-bulk" data-bulk-url="{{url}}/{{product.id}}" novalidate>
+        <label class="ve-field">
+            <span class="m-label">Cambiar las filtradas</span>
+            <select class="m-input m-input--sm" data-bulk-action>
+                <option value="status">Estado</option>
+                <option value="set_stock">Fijar stock</option>
+                <option value="add_stock">Sumar o restar stock</option>
+                <option value="price">Fijar precio (€)</option>
+            </select>
+        </label>
+        <label class="ve-field" data-bulk-for="status">
+            <span class="m-label">Nuevo estado</span>
+            <select class="m-input m-input--sm">
+                <option value="1">Activo</option>
+                <option value="2">Inactivo</option>
+                <option value="0">Draft</option>
+            </select>
+        </label>
+        <label class="ve-field" data-bulk-for="set_stock" hidden>
+            <span class="m-label">Unidades</span>
+            <input type="number" class="m-input m-input--sm" min="0" step="1" inputmode="numeric">
+        </label>
+        <label class="ve-field" data-bulk-for="add_stock" hidden>
+            <span class="m-label">Unidades (+ o −)</span>
+            <input type="number" class="m-input m-input--sm" step="1" placeholder="5 o -3">
+        </label>
+        <label class="ve-field" data-bulk-for="price" hidden>
+            <span class="m-label">Precio (€)</span>
+            <input type="number" class="m-input m-input--sm" min="0" step="0.01" inputmode="decimal">
+        </label>
+        <button type="submit" class="m-btn m-btn--primary m-btn--sm">Aplicar a <span data-count>{{total()}}</span></button>
+        <p class="m-error ve-bulk__error" data-bulk-error hidden></p>
+    </form>
+    {% endif %}
+
     <div class="ve-scroll" data-panel="table">
         <table class="ve-table">
             <thead>
@@ -43,12 +81,12 @@
                     <th scope="col">Precio</th>
                     <th scope="col" class="num">Stock</th>
                     <th scope="col">Estado</th>
-                    {% if editable %}<th scope="col"></th>{% endif %}
+                    {% if bulk_url.is_some() %}<th scope="col"></th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for pv in sorted_variations() %}
-                <tr class="{{state_class(pv)}}" data-state="{{state_class(pv)}}"{% if editable %} id="var-row-{{pv.id}}"{% endif %}
+                <tr class="{{state_class(pv)}}" data-state="{{state_class(pv)}}"{% if bulk_url.is_some() %} id="var-row-{{pv.id}}"{% endif %}
                     data-status="{{pv.status}}" data-stock="{{pv.stock}}"
                     data-price="{% if let Some(price) = pv.price %}{{price}}{% endif %}" data-symbol="{{pv.price_tag().symbol()}}"
                     {% for value in all_values(pv) %} data-a{{loop.index0}}="{{value}}"{% endfor %}>
@@ -57,7 +95,7 @@
                     <td class="price" data-label="Precio">{{pv.price_tag()}}</td>
                     <td class="num" data-label="Stock">{{pv.stock}}</td>
                     <td class="state"><span class="m-badge m-badge--{{status_variant(pv)}}">{{status_label(pv)}}</span></td>
-                    {% if editable %}
+                    {% if bulk_url.is_some() %}
                     {# Abre el editor de la variación encima del de producto (variationSpawn.js) #}
                     <td class="ve-action">
                         <button type="button" class="m-btn m-btn--secondary m-btn--sm"

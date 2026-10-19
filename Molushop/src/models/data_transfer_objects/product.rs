@@ -35,12 +35,13 @@ pub struct Product{
 impl Product {
     /// Filtros, tabla y matriz de sus variaciones (listado del panel).
     pub fn variations_explorer(&self) -> VariationsExplorer<'_> {
-        VariationsExplorer { product: self, editable: false }
+        VariationsExplorer { product: self, bulk_url: None }
     }
 
-    /// Lo mismo con un botón "Editar" por variación (página de edición).
-    pub fn variations_explorer_editable(&self) -> VariationsExplorer<'_> {
-        VariationsExplorer { product: self, editable: true }
+    /// Lo mismo con un botón "Editar" por variación y la barra de edición en
+    /// bloque, que manda a `bulk_url`/{id del producto} (página de edición).
+    pub fn variations_explorer_editable<'b>(&'b self, bulk_url: &'b str) -> VariationsExplorer<'b> {
+        VariationsExplorer { product: self, bulk_url: Some(bulk_url) }
     }
 }
 

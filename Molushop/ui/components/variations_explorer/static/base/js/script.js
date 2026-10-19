@@ -9,13 +9,29 @@
     document.addEventListener('change', (event) => {
         const root = event.target.closest('.c-variations-explorer');
         if (root && event.target.matches('[data-filter-attr], [data-axis]')) refreshExplorer(root);
+        if (root && event.target.matches('[data-bulk-action]')) showBulkField(root);
     });
 
-    // Quien cambia los data-* de una fila (el editor de variación al guardar)
-    // lanza 've:refresh' desde ella para que se recalculen filtros y matriz.
-    document.addEventListener('ve:refresh', (event) => {
-        const root = event.target.closest('.c-variations-explorer');
-        if (root) refreshExplorer(root);
+    document.addEventListener('submit', (event) => {
+        const form = event.target.closest('.ve-bulk');
+        if (!form) return;
+        event.preventDefault();
+        submitBulk(form.closest('.c-variations-explorer'), form);
+    });
+
+    // Respuesta de la edición en bloque (HX-Trigger): salta en el explorador,
+    // que es el `source` de la petición.
+    document.addEventListener('variations_bulk_update', (event) => {
+        const root = event.target.closest?.('.c-variations-explorer');
+        if (!root) return;
+        event.detail.rows.forEach((data) => {
+            const row = root.querySelector('#' + CSS.escape('var-row-' + data.id));
+            if (row) updateRow(row, data);
+            // Un editor abierto de una de ellas ya no tiene los datos buenos
+            const editor = document.getElementById(data.id);
+            if (editor?.classList.contains('variation-edit-container')) editor.remove();
+        });
+        refreshExplorer(root);
     });
 
     document.addEventListener('click', (event) => {
@@ -62,7 +78,10 @@
         rows.forEach((row) => {
             row.querySelectorAll('td.attr').forEach((td, i) => td.classList.toggle('is-fixed', fixed.has(i)));
         });
-        root.querySelector('[data-count]').textContent = shown;
+        // El contador de arriba y el del botón de la edición en bloque
+        root.querySelectorAll('[data-count]').forEach((count) => { count.textContent = shown; });
+        const bulkButton = root.querySelector('.ve-bulk [type="submit"]');
+        if (bulkButton) bulkButton.disabled = shown === 0;
         root.querySelector('.ve-empty').hidden = shown > 0;
 
         renderMatrix(root, rows);
@@ -148,6 +167,135 @@
         if (text != null) node.textContent = text;
         if (title) node.title = title;
         return node;
+    }
+
+    // ---- Filas: lo que cambia al guardar ----
+
+    // Copia en la fila lo guardado (status, stock y/o price; el que no venga se
+    // queda) y recalcula su estado como VariationsExplorer::state_class. No
+    // refresca filtros ni matriz: quien llama hace refresh() al terminar.
+    function updateRow(row, data) {
+        if (data.status !== undefined) row.dataset.status = data.status;
+        if (data.stock !== undefined) {
+            row.dataset.stock = data.stock;
+            row.querySelector('td.num').textContent = data.stock;
+        }
+        if (data.price !== undefined) {
+            const hasPrice = data.price !== null && data.price !== '';
+            row.dataset.price = hasPrice ? data.price : '';
+            row.querySelector('td.price .m-price__amount').textContent = hasPrice ? MONEY.format(data.price) : 'No disponible';
+            row.querySelector('td.price .m-price__currency').hidden = !hasPrice;
+        }
+        const status = Number(row.dataset.status);
+        const stock = Number(row.dataset.stock);
+        const state = status === 1 ? (stock > 0 ? 'is-active' : 'is-out')
+            : status === 0 ? 'is-draft' : 'is-inactive';
+        const [label, variant] = { 1: ['Activo', 'success'], 0: ['Draft', 'neutral'] }[status] || ['Inactivo', 'danger'];
+        row.className = state;
+        row.dataset.state = state;
+        const badge = el('span', 'm-badge m-badge--' + variant, label);
+        row.querySelector('td.state').replaceChildren(badge);
+    }
+
+    // El editor de una variación (edit-product-variation.js) los usa al guardar.
+    window.variationsExplorer = { updateRow, refresh: refreshExplorer };
+
+    // ---- Edición en bloque (solo en la página de edición) ----
+
+    const BULK_STATUS = { 1: 'Activo', 2: 'Inactivo', 0: 'Draft' };
+
+    function showBulkField(root) {
+        const action = root.querySelector('[data-bulk-action]').value;
+        root.querySelectorAll('[data-bulk-for]').forEach((field) => {
+            field.hidden = field.dataset.bulkFor !== action;
+        });
+        root.querySelector('[data-bulk-error]').hidden = true;
+    }
+
+    function submitBulk(root, form) {
+        const action = form.querySelector('[data-bulk-action]').value;
+        const field = form.querySelector(`[data-bulk-for="${action}"]`);
+        const input = field.querySelector('select, input');
+        const value = input.value.trim();
+        const rows = [...root.querySelectorAll('.ve-table tbody tr')].filter((row) => !row.hidden);
+        const error = form.querySelector('[data-bulk-error]');
+
+        const problem = bulkProblem(action, value, input, rows.length);
+        error.hidden = !problem;
+        if (problem) {
+            error.textContent = problem;
+            input.focus();
+            return;
+        }
+
+        const n = rows.length === 1 ? '1 variación' : rows.length + ' variaciones';
+        const what = {
+            status: `Se pondrá en estado «${BULK_STATUS[value]}» ${n === '1 variación' ? 'la variación filtrada' : 'a ' + n}.`,
+            set_stock: `Se pondrán ${value} unidades de stock a ${n}.`,
+            add_stock: Number(value) > 0
+                ? `Se sumarán ${value} unidades al stock de ${n}.`
+                : `Se restarán ${-Number(value)} unidades al stock de ${n} (sin bajar de 0).`,
+            price: `Se pondrá el precio ${MONEY.format(value)} € a ${n}.`,
+        }[action];
+
+        confirmBulk(what, () => {
+            htmx.ajax('POST', form.dataset.bulkUrl, {
+                source: root,
+                target: 'body',
+                swap: 'beforeend',
+                values: { action, value, ids: rows.map((row) => row.id.replace('var-row-', '')).join(',') },
+            });
+        });
+    }
+
+    // Lo mismo que valida el servidor (BulkAction::parse), para avisar antes.
+    function bulkProblem(action, value, input, count) {
+        if (count === 0) return 'Ninguna variación cumple los filtros.';
+        if (action === 'status') return null;
+        if (value === '' || !input.checkValidity()) {
+            return {
+                set_stock: 'Indica las unidades: un número entero, 0 o más.',
+                add_stock: 'Indica cuántas unidades sumar (o restar, con un número negativo).',
+                price: 'Indica el precio: un número, 0 o más, con 2 decimales como mucho.',
+            }[action];
+        }
+        if (action === 'add_stock' && Number(value) === 0) return 'Sumar 0 unidades no cambia nada.';
+        return null;
+    }
+
+    // Modal de confirmación con el átomo m-modal (la misma estructura que
+    // ui/components/modal/templates/shell.html). Se monta aquí y no lo pinta el
+    // servidor porque el texto depende de los filtros.
+    function confirmBulk(text, onConfirm) {
+        const modal = el('div', 'm-modal');
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        const dialog = el('div', 'm-modal__dialog');
+        const closeButton = el('button', 'm-modal__close', '×');
+        closeButton.type = 'button';
+        closeButton.setAttribute('aria-label', 'Cerrar');
+        const body = el('div', 'm-modal__body');
+        body.append(el('p', null, text));
+        const actions = el('div', 'm-modal__actions');
+        const no = el('button', 'm-btn m-btn--secondary', 'Cancelar');
+        const yes = el('button', 'm-btn m-btn--primary', 'Sí, cambiar');
+        no.type = yes.type = 'button';
+        actions.append(no, yes);
+        dialog.append(closeButton, body, actions);
+        const backdrop = el('div', 'm-modal__backdrop');
+        modal.append(backdrop, dialog);
+
+        const onKey = (event) => { if (event.key === 'Escape') close(); };
+        function close() {
+            document.removeEventListener('keyup', onKey);
+            modal.classList.add('closing');
+            setTimeout(() => modal.remove(), 300);
+        }
+        [backdrop, closeButton, no].forEach((node) => node.addEventListener('click', close));
+        yes.addEventListener('click', () => { close(); onConfirm(); });
+        document.addEventListener('keyup', onKey);
+        document.body.append(modal);
+        no.focus();
     }
 
     // Al final: STATE_ORDER (const) tiene que existir ya cuando se monta la matriz.

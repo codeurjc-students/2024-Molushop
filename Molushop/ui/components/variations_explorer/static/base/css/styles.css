@@ -268,3 +268,25 @@
         margin-left: 0;
     }
 }
+
+/* ---- Edición en bloque (página de edición del producto) ---- */
+
+.ve-bulk {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+    padding: var(--space-3);
+    border: 1px dashed var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-soft);
+}
+
+.ve-bulk [hidden] {
+    display: none;
+}
+
+.ve-bulk__error {
+    flex-basis: 100%;
+    margin: 0;
+}

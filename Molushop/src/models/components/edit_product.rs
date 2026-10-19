@@ -18,6 +18,7 @@ pub struct EditProduct{
 pub struct Routes{
     pub edit_general: &'static str,
     pub edit_images: &'static str,
+    pub bulk_variations: &'static str,
     //pub delete_product_modal: &'static str,
     //images
 }
