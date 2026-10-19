@@ -7,7 +7,7 @@
 
 {% let routes = routes_edit_product %}
 
-<div class="m-card m-card--raised variation-edit-container" id="{{id}}" 
+<div class="m-card variation-edit-container" id="{{id}}" 
     _="on load log 'revisar'
     js(me) 
         edit_variation.init_edit_variation(me);
@@ -18,13 +18,21 @@
     end end"
     
     >
-    <!-- Sidebar de navegación -->
+    <div class="variation-head">
+        <h3 class="variation-head__title">Editando variación:
+            {% for attribute in general.attributes %}{% if !loop.first %} · {% endif %}{{attribute.value}}{% endfor %}
+        </h3>
+        <button type="button" class="m-btn m-btn--ghost m-btn--sm"
+            _="on click remove closest <div.variation-edit-container/>">Cerrar</button>
+    </div>
+
+    <!-- Pestañas -->
     <nav class="sidebar">
         <ul class="nav-list">
-            <li class="nav-item active" data-tab="general">GENERAL</li>
-            <li class="nav-item" data-tab="price">PRICE</li>
-            <li class="nav-item" data-tab="identifiers">IDENTIFIERS</li>
-            <li class="nav-item" data-tab="inventory">INVENTORY</li>
+            <li class="nav-item active" data-tab="general">General</li>
+            <li class="nav-item" data-tab="price">Precio</li>
+            <li class="nav-item" data-tab="identifiers">Identificadores</li>
+            <li class="nav-item" data-tab="inventory">Stock</li>
         </ul>
     </nav>
 
@@ -42,7 +50,7 @@
                     <p>{{general.name}}</p>
                 </div>
                 <div class="m-field form-group">
-                    <label class="m-label">Attributes</label>
+                    <label class="m-label">Atributos</label>
                     <div class="attributes-container">
                         {%for attribute in general.attributes%}
                         <div class="attribute-row">
@@ -62,16 +70,16 @@
                     </div>
                 </div>
                 <div class="m-field form-group">
-                    <label class="m-label">Status</label>
+                    <label class="m-label">Estado</label>
                     <select class="m-input" name="status">
-                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
-                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
+                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Activo</option>
+                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactivo</option>
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
                 <!-- resto del formulario -->
                 <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save General</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar</button>
                 </div>
             </form>
         </div>
@@ -85,7 +93,7 @@
                 hx-ext="json-enc-custom"
                 >
                 <div class="m-field form-group">
-                    <label class="m-label">Regular Price</label>
+                    <label class="m-label">Precio</label>
                     <input type="number" class="m-input" step="0.01" name="regular" value="{{prices.actual_price}}">
                 </div>
                 <div class="m-field form-group">
@@ -117,7 +125,7 @@
                         {%endif%}
                         >    
                     </div>
-                    <label class="m-label">Sale Price</label>
+                    <label class="m-label">Precio de oferta</label>
                     <input type="hidden" name="option" value="0">
                     <input 
                     {% if !prices.sale_active %}
@@ -135,8 +143,8 @@
                     </select>
                 </div> -->
                 <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Pricing</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar precio</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
                 </div>
             </form>
         </div>
@@ -165,11 +173,11 @@
                         js(myForm)
                             edit_variation.editNamesIdentifiers(myForm)
                         end end"
-                    >Add identifier</button>
+                    >Añadir identificador</button>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Identifiers</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar identificadores</button>
                 </div>
             </form>
         </div>
@@ -182,7 +190,7 @@
                 hx-ext="json-enc-custom"
             >
                 <div class="m-field form-group">
-                    <label class="m-label">Stock Quantity</label>
+                    <label class="m-label">Unidades en stock</label>
                     <input type="number" class="m-input" name="stock" value="{{stock.number}}">
                 </div>
                 <!--
@@ -200,8 +208,8 @@
                 </div> 
                 -->
                 <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Inventory</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar stock</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
                 </div>
             </form>
         </div>

@@ -1,75 +1,121 @@
-
-/* La caja es del átomo m-card; aquí la colocación de lo de dentro */
-.product-edit-container {
+/* Editor de producto y de variación. La caja es del átomo m-card; la cabecera
+   del producto reutiliza la de la tarjeta del listado (.product-main, en
+   product_panel_group) y la tabla de variaciones la de variations_explorer.
+   Aquí, las pestañas y la colocación de lo de dentro. */
+.product-edit-container,
+.variation-edit-container {
     display: flex;
-    gap: 2rem;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    margin-bottom: var(--space-4);
 
-
+    /* Pestañas en horizontal; en móvil se desplazan */
     .sidebar {
-        width: 250px;
-        border-radius: 4px;
+        border-bottom: 1px solid var(--color-border);
+        overflow-x: auto;
     }
 
     .nav-list {
+        display: flex;
         list-style: none;
-        padding: 0;
         margin: 0;
+        padding: 0 var(--space-2);
     }
 
     .nav-item {
-        padding: 1rem;
-        border-bottom: 1px solid var(--color-border);
+        padding: var(--space-3) var(--space-4);
+        border-bottom: 2px solid transparent;
+        color: var(--color-text-muted);
+        white-space: nowrap;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: color var(--transition-fast), border-color var(--transition-fast);
     }
 
     .nav-item:hover {
-        background: var(--color-bg-soft);
+        color: var(--color-text);
     }
 
     .nav-item.active {
-    background: var(--color-bg);
-    font-weight: bold;
-    border-left: 3px solid var(--color-primary-strong);
+        color: var(--color-text);
+        font-weight: var(--font-weight-bold);
+        border-bottom-color: var(--color-primary-strong);
     }
 
     .tab-content {
-    flex: 1;
+        flex: 1;
+        min-width: 0;
     }
 
     .tab-pane {
-    display: none;
-    padding: 1rem;
+        display: none;
+        padding: var(--space-4);
     }
 
     .tab-pane.active {
-    display: block;
+        display: block;
     }
 
     .form-group {
-    margin-bottom: 1.5rem;
+        margin-bottom: var(--space-5);
     }
 
     .input-group {
-    display: flex;
-    gap: 0.5rem;
+        display: flex;
+        gap: var(--space-2);
     }
 
     .dimensions-group {
-    display: flex;
-    gap: 1rem;
+        display: flex;
+        gap: var(--space-4);
     }
 
     .dimensions-group input {
-    flex: 1;
+        flex: 1;
     }
 
     .form-actions {
-        margin-top: 20px;
-        padding: 15px;
-        border-top: 1px solid var(--color-border);
         display: flex;
-        gap: 10px;
+        flex-wrap: wrap;
+        gap: var(--space-2);
         justify-content: flex-end;
+        margin-top: var(--space-4);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border);
+    }
+
+    /* Columna del botón "Editar" de cada variación */
+    .ve-table .ve-action {
+        text-align: right;
+    }
+}
+
+/* Cabecera del editor de variación: qué variación es y cerrar */
+.variation-edit-container .variation-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background-color: var(--color-bg-soft);
+}
+
+.variation-edit-container .variation-head__title {
+    margin: 0;
+    font-size: var(--font-size-md);
+}
+
+@media (max-width: 640px) {
+    .product-edit-container .product-main {
+        flex-direction: column;
+    }
+
+    .product-edit-container .ve-table .ve-action {
+        grid-column: 1 / -1;
+        text-align: left;
+    }
+
+    .product-edit-container .ve-table .ve-action::before {
+        content: none;
     }
 }

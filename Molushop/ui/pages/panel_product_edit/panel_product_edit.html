@@ -8,14 +8,14 @@
     {% include "components/product_panel_group/styles.html"%}
     {% include "components/edit_product/styles.html"%}
     {% include "components/edit_product_variation/styles.html"%}
+    {% include "components/variations_explorer/styles.html"%}
     {# Misma cabecera que la lista de productos: comparte su CSS. #}
     <link rel="stylesheet" href="/static/pages/panel_products/css/styles.css">
 {% endblock %}
 {% block content %}
     <div class="container">
         <div class="header">
-            <h1>Mis Productos</h1>
-            <input type="text" class="search-bar" placeholder="Buscar productos...">
+            <h1>Productos de {{store_name}}</h1>
             <a href="/panel/stores/{{store_id}}/products/create" class="m-btn m-btn--primary">+ Añadir Producto</a>
         </div>
     <!--Aqui se incluyen los componentes-->

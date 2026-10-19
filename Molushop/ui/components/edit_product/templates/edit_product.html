@@ -2,7 +2,7 @@
 {% let images = product.images %}
 {% let variations = product.variations %}
 {% let routes = routes_edit_product %}
-<div class="m-card m-card--raised product-edit-container" id="{{product.id}}"
+<div class="m-card product-edit-container" id="{{product.id}}"
     _="on load
         js(me) 
             imageManager.init(me);
@@ -13,19 +13,44 @@
             imageManager.updateImageLocation(me,event);
         end
     end">
-    <!-- Sidebar de navegación -->
+    {# Cabecera: la misma que la tarjeta del listado (product_panel_group) #}
+    <div class="product-main">
+        {% if let Some(image_url) = product.main_image() %}
+            <img src="{{image_url}}" alt="{{general.name}}" class="product-image" loading="lazy">
+        {% else %}
+            <div class="product-image product-image--empty" aria-hidden="true">Sin imagen</div>
+        {% endif %}
+        <div class="product-info">
+            {% if general.status == 0 %}
+                <span class="m-badge m-badge--neutral product-status">Draft</span>
+            {% else if general.status == 1 %}
+                <span class="m-badge m-badge--success product-status">Activo</span>
+            {% else if general.status == 2 %}
+                <span class="m-badge m-badge--danger product-status">Inactivo</span>
+            {% endif %}
+            <h3 class="product-title">{{general.name}}</h3>
+            {% if !general.brand.is_empty() %}
+                <p class="product-store">Marca: {{general.brand}}</p>
+            {% endif %}
+            <div class="product-actions">
+                <a href="/panel/stores/{{store_id}}/products" class="m-btn m-btn--secondary m-btn--sm">&larr; Volver a productos</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestañas -->
     <nav class="sidebar">
         <ul class="nav-list">
-            <li class="nav-item active" data-tab="general">GENERAL</li>
-            <li class="nav-item" data-tab="images">IMAGES</li>
+            <li class="nav-item active" data-tab="general">General</li>
+            <li class="nav-item" data-tab="images">Imágenes</li>
             <!--
             <li class="nav-item" data-tab="categories">CATEGORIES, TAG & ATTRIBUTES</li>
             <li class="nav-item" data-tab="prices">PRICES</li>
             <li class="nav-item" data-tab="shipping">SHIPPING</li>
             <li class="nav-item" data-tab="stock">STOCK</li>
             -->
-            <li class="nav-item" data-tab="variations">VARIATIONS</li>
-            <li class="nav-item" data-tab="advanced">ADVANCED</li>
+            <li class="nav-item" data-tab="variations">Variaciones ({{variations.variations.len()}})</li>
+            <li class="nav-item" data-tab="advanced">Avanzado</li>
         </ul>
     </nav>
     
@@ -39,22 +64,22 @@
                 hx-swap="beforeend"
                 class="general-form" id="generalForm">
                 <div class="m-field form-group">
-                    <label class="m-label" for="product-title">Product Title</label>
+                    <label class="m-label" for="product-title">Nombre</label>
                     <input id="product-title" name="name" type="text" class="m-input" value="{{general.name}}">
                 </div>
                 <div class="m-field form-group">
-                    <label class="m-label" for="product-description">Product Description</label>
+                    <label class="m-label" for="product-description">Descripción</label>
                     <input id="product-description" name="description" type="text" class="m-input" value="{{general.description}}">
                 </div>
                 <div class="m-field form-group">
-                    <label class="m-label" for="product-brand">Product Brand</label>
+                    <label class="m-label" for="product-brand">Marca</label>
                     <input id="product-brand" name="brand" type="text" class="m-input" value="{{general.brand}}">
                 </div>
                 <div class="m-field form-group">
-                    <label class="m-label">Status</label>
+                    <label class="m-label">Estado</label>
                     <select class="m-input" name="status">
-                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
-                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
+                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Activo</option>
+                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactivo</option>
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
@@ -70,8 +95,8 @@
                 </div>
                 -->
                 <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save General Info</button>
-                    <button type="reset" class="m-btn m-btn--secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
                 </div>
             </form>
         </div>
@@ -85,12 +110,12 @@
                 hx-encoding="multipart/form-data"
                 class="images-form" id="imagesForm">
                 <div class="image-upload-section">
-                    <h3>Product Images</h3>
+                    <h3>Imágenes del producto</h3>
                     <div class="dropzone">
                         <input type="file" name="file" multiple accept="image/*">
                         <div class="dropzone-content">
                             <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Drop images here or click to upload</p>
+                            <p>Arrastra aquí las imágenes o pulsa para subirlas</p>
                         </div>
                     </div>
                     <div class="image-gallery new-images">
@@ -113,7 +138,7 @@
                     </div>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="m-btn m-btn--primary">Save Images</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar imágenes</button>
                 </div>
             </form>
         </div>
@@ -212,46 +237,47 @@
         -->
         <!-- Pestaña Variations -->
         <div class="tab-pane" id="variations">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Attributes</th>
-                        <th>Status</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% for var in variations.variations %}
-                    <tr id="{{var.id}}">
-                        <td>
-                        {% for attribute in var.attributes%}
-                           <p>{{attribute.name}} :</p>
-                           <p>{{attribute.value}} </p> 
-                        {% endfor %}
-                        </td>
-                        
-                        {% if var.status == 0 %} 
-                        <td>Draft</td>
-                        {% else if var.status ==1 %}
-                        <td>Active</td>
-                        {% else if var.status ==2 %}
-                        <td>Inactive</td>
-                        {% endif %}
-                        <!--Aqui poner el botón editar con un htmx-->
-                        <td>
-                            <button class="m-btn m-btn--primary"
-                                _="
-                                    on click js(me)
-                                        edit_product_spawn_var.handleSwapClick(me,'/panel/components/edit-product-variation/spawn/{{var.id}}');
-                                    end end"
-                                >
-                                Editar Variacion
-                            </button>
-                        </td>
-                    </tr>    
-                {%endfor%}
-                </tbody>
-            </table>
+            {# Mismo aspecto que la tabla del listado (variations_explorer):
+               una columna por atributo y, en móvil, mini tarjetas (data-label). #}
+            {% let titles = variations.titles() %}
+            <div class="ve-scroll">
+                <table class="ve-table">
+                    <thead>
+                        <tr>
+                            {% for title in titles %}<th scope="col">{{title}}</th>{% endfor %}
+                            <th scope="col">Estado</th>
+                            <th scope="col"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for var in variations.variations %}
+                        <tr id="{{var.id}}"
+                            class="{% if var.status == 0 %}is-draft{% else if var.status == 1 %}is-active{% else %}is-inactive{% endif %}">
+                            {% for attribute in var.attributes %}
+                                <td class="attr" data-label="{{attribute.name}}">{{attribute.value}}</td>
+                            {% endfor %}
+                            <td class="state">
+                            {% if var.status == 0 %}
+                                <span class="m-badge m-badge--neutral">Draft</span>
+                            {% else if var.status == 1 %}
+                                <span class="m-badge m-badge--success">Activo</span>
+                            {% else %}
+                                <span class="m-badge m-badge--danger">Inactivo</span>
+                            {% endif %}
+                            </td>
+                            <td class="ve-action">
+                                <button type="button" class="m-btn m-btn--secondary m-btn--sm"
+                                    _="
+                                        on click js(me)
+                                            edit_product_spawn_var.handleSwapClick(me,'/panel/components/edit-product-variation/spawn/{{var.id}}');
+                                        end end"
+                                    >Editar</button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Pestaña Advanced -->

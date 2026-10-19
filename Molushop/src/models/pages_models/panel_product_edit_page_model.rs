@@ -15,4 +15,5 @@ pub struct PanelProductEditPage {
     pub page_name: String,
     pub panel_nav: PanelNav,
     pub store_id: Uuid,
+    pub store_name: String,
 }

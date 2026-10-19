@@ -150,16 +150,18 @@ async fn products_edit(
         let editor = EditProduct {
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,
+            store_id: store.id,
         }.render().unwrap();
-        format!("<title>Edit Product</title>{}", editor)
+        format!("<title>Editar producto</title>{}", editor)
     } else {
         PanelProductEditPage {
             user_logged: false,
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,
-            page_name: "Edit Product".to_string(),
+            page_name: "Editar producto".to_string(),
             panel_nav: PanelNav::new(&panel_user, "products").with_store(&store),
             store_id: store.id,
+            store_name: store.store_name.clone(),
         }.render().unwrap()
     };
     html(StatusCode::OK, page)

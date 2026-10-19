@@ -9,6 +9,7 @@ use uuid::Uuid;
 pub struct EditProduct{
     pub product: ProductEdit2,
     pub routes_edit_product: &'static Routes,
+    pub store_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -34,6 +35,17 @@ pub struct ProductEdit2{
     pub general: General,
     pub images: Vec<ImageCategories2>,
     pub variations: Variations
+}
+
+impl ProductEdit2 {
+    /// La imagen de la cabecera, como en la tarjeta del listado: la marcada
+    /// como principal y, si no hay, la primera.
+    pub fn main_image(&self) -> Option<&str> {
+        self.images.iter()
+            .find(|i| i.is_main)
+            .or_else(|| self.images.first())
+            .map(|i| i.image_url.as_str())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -90,6 +102,16 @@ pub struct Advanced{
 pub struct Variations{
     //
     pub variations: Vec<Variation>,
+}
+
+impl Variations {
+    /// Columnas de la tabla de variaciones: los atributos de la primera
+    /// (todas las de un producto llevan los mismos).
+    pub fn titles(&self) -> Vec<&str> {
+        self.variations.first()
+            .map(|v| v.attributes.iter().map(|a| a.name.as_str()).collect())
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
