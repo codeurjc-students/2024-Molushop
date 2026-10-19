@@ -272,7 +272,12 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
             let modal_respuesta = MessageModal {
                 text: "Precio actualizado correctamente".to_string()
             }.render().unwrap();
-            HttpResponse::Ok().body(modal_respuesta)
+            let trigger = json!({
+                "variation_update": { "target": ".variation-edit-container", "price": regular_price.to_string() }
+            });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal_respuesta)
         },
         Err(e) => {
             println!("Error al actualizar precio: {}", e);
@@ -306,7 +311,12 @@ let form = data.into_inner();
     match result_stock{
         Ok(_)=>{
             let modal_respuesta = MessageModal::new("Stock actualizado").render().unwrap();
-            return HttpResponse::Ok().body(modal_respuesta)
+            let trigger = json!({
+                "variation_update": { "target": ".variation-edit-container", "stock": new_stock }
+            });
+            return HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal_respuesta)
         },
         Err(e)=>{
             println!("{}",e);

@@ -3,6 +3,7 @@ use uuid::Uuid;
 use crate::models::components::panel_nav::PanelNav;
 use crate::models::components::edit_product::ProductEdit2;
 use crate::models::components::edit_product::Routes as Routes_edit_product;
+use crate::models::data_transfer_objects::product::Product;
 
 /// `/panel/stores/{id}/products/edit/{id}`: editar un producto. Desde la lista
 /// se llega por htmx; esta es la página entera, para cuando se entra por URL.
@@ -16,4 +17,5 @@ pub struct PanelProductEditPage {
     pub panel_nav: PanelNav,
     pub store_id: Uuid,
     pub store_name: String,
+    pub panel_product: Product,
 }

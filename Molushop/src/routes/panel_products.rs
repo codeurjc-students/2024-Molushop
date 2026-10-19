@@ -137,8 +137,13 @@ async fn products_edit(
         }
     }
 
-    let product_edit = match edit_product::get_product(&product_id, pool).await {
-        Ok(product_edit) => product_edit,
+    let loaded = match edit_product::get_product(&product_id, pool).await {
+        Ok(product_edit) => products_panel::get_product(&store.id, &product_id, pool).await
+            .map(|panel_product| (product_edit, panel_product)),
+        Err(e) => Err(e),
+    };
+    let (product_edit, panel_product) = match loaded {
+        Ok(loaded) => loaded,
         Err(e) => {
             println!("Panel: error cargando el producto {}: {}", product_id, e);
             return html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando el producto".to_string());
@@ -151,6 +156,7 @@ async fn products_edit(
             product: product_edit,
             routes_edit_product: &ROUTES_EDIT_PRODUCT,
             store_id: store.id,
+            panel_product,
         }.render().unwrap();
         format!("<title>Editar producto</title>{}", editor)
     } else {
@@ -162,6 +168,7 @@ async fn products_edit(
             panel_nav: PanelNav::new(&panel_user, "products").with_store(&store),
             store_id: store.id,
             store_name: store.store_name.clone(),
+            panel_product,
         }.render().unwrap()
     };
     html(StatusCode::OK, page)

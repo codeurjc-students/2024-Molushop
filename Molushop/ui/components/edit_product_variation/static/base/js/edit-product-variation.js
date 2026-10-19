@@ -21,19 +21,32 @@ const edit_variation = {
             });
         }); 
     },
-    change_status(element,e){
-        // Misma etiqueta y clase de fila que pinta edit_product.html
-        let states = {
-            0: ["Draft", "neutral", "is-draft"],
-            1: ["Activo", "success", "is-active"],
-            2: ["Inactivo", "danger", "is-inactive"],
-        };
-        let [status_name, variant, row_class] = states[e.detail.status] || states[2];
-        let tr_target = document.querySelector("tr#"+CSS.escape("var-row-"+element.id));
-        if(!tr_target) return;
-        tr_target.className = row_class;
-        tr_target.querySelector("td.state").innerHTML =
-            `<span class="m-badge m-badge--${variant}">${status_name}</span>`;
+    // Tras guardar estado, stock o precio (HX-Trigger variation_update): la
+    // fila del explorador toma el dato nuevo y se recalculan filtros y matriz.
+    // El estado de la fila sale como en VariationsExplorer::state_class.
+    update_row(element,e){
+        let row = document.querySelector("tr#"+CSS.escape("var-row-"+element.id));
+        if(!row) return;
+        let d = e.detail;
+        if(d.status !== undefined) row.dataset.status = d.status;
+        if(d.stock !== undefined){
+            row.dataset.stock = d.stock;
+            row.querySelector("td.num").textContent = d.stock;
+        }
+        if(d.price !== undefined){
+            row.dataset.price = d.price;
+            row.querySelector("td.price .m-price__amount").textContent = MONEY.format(d.price);
+            row.querySelector("td.price .m-price__currency").hidden = false;
+        }
+        let status = Number(row.dataset.status);
+        let stock = Number(row.dataset.stock);
+        let state = status == 1 ? (stock > 0 ? "is-active" : "is-out")
+            : status == 0 ? "is-draft" : "is-inactive";
+        let [label, variant] = {1: ["Activo", "success"], 0: ["Draft", "neutral"]}[status] || ["Inactivo", "danger"];
+        row.className = state;
+        row.dataset.state = state;
+        row.querySelector("td.state").innerHTML = `<span class="m-badge m-badge--${variant}">${label}</span>`;
+        row.dispatchEvent(new CustomEvent("ve:refresh", {bubbles: true}));
     },
     // Casilla "Habilitar oferta": abre o cierra el precio de oferta de su formulario
     toggle_sale(checkbox){

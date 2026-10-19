@@ -6,10 +6,11 @@ use diesel::result::Error;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use crate::models::data_transfer_objects::product::Product;
-use crate::models::models_x::{ProductVariation,Category,Price};
+use crate::models::models_x::{ProductVariation,Category,Price,Products};
 use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
 use uuid::Uuid;
+use crate::services::servicesX;
 use crate::services::servicesX::{
     get_panel_products,
     get_product_categories,
@@ -69,38 +70,57 @@ pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,E
     let mut products_final:Vec<Product> = Vec::new();
 
     for (product, _store_name) in products{
-        let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
-        let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
-        let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
-        let vars_price: Vec<(ProductVariation,Price)> = get_variations_with_prices(&product.id, &"EUR".to_string(), &pool).await?;
-        //let variations:Vec<product::ProductVariation> = Vec::new();
-        
-        let variation_titles:Vec<String> = match product.variation_titles{
-            Some(titles) =>{
-                let titles_aux:VariationTitles = serde_json::from_value(titles).unwrap();
-                titles_aux.titulos
-            },
-            None => Vec::new()     
-        };
-        //let variations: Vec<product::ProductVariation> = vars.iter().map(|v| product::ProductVariation::from(v)).collect();  
-        let variations: Vec<product::ProductVariation> = vars_price.iter().map(|(pv,p)| product::ProductVariation::from(pv,p)).collect();  
-
-        let product_final = Product{
-            variations: variations,
-            name: product.name,
-            status: product.status,
-            code: product.code,
-            variations_titles: variation_titles,
-            categories: categories_names,
-            id: product.id,
-            store_name: None,
-            store_id: *store_id,
-            image_url: images.remove(&product.id),
-        };
-        products_final.push(product_final);
+        let image_url = images.remove(&product.id);
+        products_final.push(to_panel_product(product, store_id, image_url, pool).await?);
     }
-        
+
     Ok(products_final)
+}
+
+/// Un producto para su página de edición, con las mismas variaciones que el
+/// listado. Quien llama ya ha comprobado que es de la tienda (`product_in_store`).
+pub async fn get_product(store_id:&Uuid, product_id:&Uuid, pool: &DbPool) -> Result<Product,Error>{
+    let product = servicesX::get_product(product_id, pool).await?;
+    let image_url = get_main_images(std::slice::from_ref(product_id), pool).await?.remove(product_id);
+    to_panel_product(product, store_id, image_url, pool).await
+}
+
+/// Un producto con todas sus variaciones, también las que no tienen precio en
+/// EUR (salen "No disponible"; antes el `inner_join` con `prices` las
+/// escondía y no había forma de arreglarlas desde el panel).
+async fn to_panel_product(product: Products, store_id:&Uuid, image_url: Option<String>, pool: &DbPool) -> Result<Product,Error>{
+    let currency = "EUR".to_string();
+    let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
+    let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
+    let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
+    let prices: HashMap<Uuid, Price> = get_variations_with_prices(&product.id, &currency, &pool).await?
+        .into_iter()
+        .map(|(pv, p)| (pv.id, p))
+        .collect();
+
+    let variation_titles:Vec<String> = match product.variation_titles{
+        Some(titles) =>{
+            let titles_aux:VariationTitles = serde_json::from_value(titles).unwrap();
+            titles_aux.titulos
+        },
+        None => Vec::new()
+    };
+    let variations: Vec<product::ProductVariation> = vars.iter()
+        .map(|pv| product::ProductVariation::from(pv, prices.get(&pv.id), &currency))
+        .collect();
+
+    Ok(Product{
+        variations: variations,
+        name: product.name,
+        status: product.status,
+        code: product.code,
+        variations_titles: variation_titles,
+        categories: categories_names,
+        id: product.id,
+        store_name: None,
+        store_id: *store_id,
+        image_url,
+    })
 }
 
 #[derive(diesel::QueryableByName)]

@@ -11,6 +11,13 @@
         if (root && event.target.matches('[data-filter-attr], [data-axis]')) refreshExplorer(root);
     });
 
+    // Quien cambia los data-* de una fila (el editor de variación al guardar)
+    // lanza 've:refresh' desde ella para que se recalculen filtros y matriz.
+    document.addEventListener('ve:refresh', (event) => {
+        const root = event.target.closest('.c-variations-explorer');
+        if (root) refreshExplorer(root);
+    });
+
     document.addEventListener('click', (event) => {
         const root = event.target.closest('.c-variations-explorer');
         if (!root) return;
@@ -120,7 +127,8 @@
             td.append(el('span', 've-cell__count', '×' + cellRows.length));
         } else if (cellRows[0].dataset.price !== usual) {
             const row = cellRows[0];
-            td.append(el('span', 've-cell__price', MONEY.format(row.dataset.price) + ' ' + row.dataset.symbol));
+            const label = row.dataset.price === '' ? 'Sin precio' : MONEY.format(row.dataset.price) + ' ' + row.dataset.symbol;
+            td.append(el('span', 've-cell__price', label));
         }
         return td;
     }

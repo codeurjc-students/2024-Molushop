@@ -10,6 +10,8 @@ pub struct EditProduct{
     pub product: ProductEdit2,
     pub routes_edit_product: &'static Routes,
     pub store_id: Uuid,
+    /// El producto como en el listado: la pestaña Variaciones usa su explorador.
+    pub panel_product: Product,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -102,16 +104,6 @@ pub struct Advanced{
 pub struct Variations{
     //
     pub variations: Vec<Variation>,
-}
-
-impl Variations {
-    /// Columnas de la tabla de variaciones: los atributos de la primera
-    /// (todas las de un producto llevan los mismos).
-    pub fn titles(&self) -> Vec<&str> {
-        self.variations.first()
-            .map(|v| v.attributes.iter().map(|a| a.name.as_str()).collect())
-            .unwrap_or_default()
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

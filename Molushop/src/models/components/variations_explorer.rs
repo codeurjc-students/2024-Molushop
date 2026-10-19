@@ -15,6 +15,9 @@ use crate::models::data_transfer_objects::product::{Product, ProductVariation};
 #[template(path = "components/variations_explorer/templates/variations_explorer.html")]
 pub struct VariationsExplorer<'a> {
     pub product: &'a Product,
+    /// Con columna "Editar" que abre el editor de la variación (página de
+    /// edición del producto). Las filas llevan entonces `id="var-row-{id}"`.
+    pub editable: bool,
 }
 
 impl<'a> VariationsExplorer<'a> {
@@ -122,7 +125,8 @@ mod tests {
 
     fn variation(attrs: &[(&str, &str)], status: i16, stock: i32) -> ProductVariation {
         ProductVariation {
-            price: BigDecimal::from(10),
+            id: Uuid::nil(),
+            price: Some(BigDecimal::from(10)),
             currency: "EUR".to_string(),
             stock,
             status,
@@ -177,6 +181,20 @@ mod tests {
         assert!(!html.contains("<b>Rojo</b>"), "un valor del vendedor no puede llegar como HTML");
         // Con dos atributos hay matriz
         assert!(html.contains(r#"data-panel="matrix""#));
+        // En el listado no hay botón de editar
+        assert!(!html.contains("var-row-"));
+    }
+
+    #[test]
+    fn editable_lleva_boton_y_sin_precio_no_disponible() {
+        let mut pv = variation(&[("Tamaño", "1"), ("Color", "Rojo")], PRODUCT_ACTIVE, 7);
+        pv.price = None;
+        let p = product(vec![pv]);
+        let html = p.variations_explorer_editable().render().unwrap();
+        assert!(html.contains(r#"id="var-row-00000000-0000-0000-0000-000000000000""#));
+        assert!(html.contains("edit-product-variation/spawn/00000000-0000-0000-0000-000000000000"));
+        assert!(html.contains(r#"data-price="" "#.trim_end()));
+        assert!(html.contains("No disponible"));
     }
 
     /// Como lo usa la tarjeta del panel: dentro de otra plantilla, sin `|safe`.

@@ -35,7 +35,12 @@ pub struct Product{
 impl Product {
     /// Filtros, tabla y matriz de sus variaciones (listado del panel).
     pub fn variations_explorer(&self) -> VariationsExplorer<'_> {
-        VariationsExplorer { product: self }
+        VariationsExplorer { product: self, editable: false }
+    }
+
+    /// Lo mismo con un botón "Editar" por variación (página de edición).
+    pub fn variations_explorer_editable(&self) -> VariationsExplorer<'_> {
+        VariationsExplorer { product: self, editable: true }
     }
 }
 
@@ -43,7 +48,9 @@ impl Product {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductVariation{
-    pub price: BigDecimal,
+    pub id: Uuid,
+    /// `None`: la variación no tiene fila en `prices` para esa moneda.
+    pub price: Option<BigDecimal>,
     /// Código ISO ("EUR"), como en `prices`. Ver `price_tag()`.
     pub currency: String,
     pub stock: i32,
@@ -53,7 +60,9 @@ pub struct ProductVariation{
 }
 
 impl ProductVariation{
-    pub fn from(otro_pv:&models_x::ProductVariation,otro_p:&models_x::Price)->Self{
+    /// `currency` es la que se ha pedido: la de `otro_p` o, si falta el
+    /// precio, la que se le pintará al lado de "No disponible".
+    pub fn from(otro_pv:&models_x::ProductVariation,otro_p:Option<&models_x::Price>,currency:&str)->Self{
         let vars: Vec<Variation> = match &otro_pv.attributes {
             Some(vars_xtra) => serde_json::from_value(vars_xtra.clone()).unwrap(),
             None => Vec::new()
@@ -61,8 +70,9 @@ impl ProductVariation{
         
         //let vars:Vec<Variation> =serde_json::from_value(otro.attributes).unwrap(); 
         ProductVariation{
-            price: otro_p.price.clone(),
-            currency: otro_p.currency.trim().to_string(),
+            id: otro_pv.id,
+            price: otro_p.map(|p| p.price.clone()),
+            currency: currency.to_string(),
             stock: otro_pv.stock,
             status: otro_pv.status,
             variation: vars
@@ -70,7 +80,7 @@ impl ProductVariation{
     }
 
     pub fn price_tag(&self) -> Price {
-        Price::new(&self.price, &self.currency)
+        Price::maybe(self.price.as_ref(), &self.currency)
     }
 }
 

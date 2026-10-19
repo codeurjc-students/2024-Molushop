@@ -1,6 +1,5 @@
 {% let general = product.general %}
 {% let images = product.images %}
-{% let variations = product.variations %}
 {% let routes = routes_edit_product %}
 <div class="m-card product-edit-container" id="{{product.id}}"
     _="on load
@@ -47,7 +46,7 @@
         <ul class="nav-list">
             <li class="nav-item active" data-tab="pe-general">General</li>
             <li class="nav-item" data-tab="pe-images">Imágenes</li>
-            <li class="nav-item" data-tab="pe-variations">Variaciones ({{variations.variations.len()}})</li>
+            <li class="nav-item" data-tab="pe-variations">Variaciones ({{panel_product.variations.len()}})</li>
         </ul>
     </nav>
     
@@ -131,47 +130,9 @@
     
         <!-- Pestaña Variations -->
         <div class="tab-pane" id="pe-variations">
-            {# Mismo aspecto que la tabla del listado (variations_explorer):
-               una columna por atributo y, en móvil, mini tarjetas (data-label). #}
-            {% let titles = variations.titles() %}
-            <div class="ve-scroll">
-                <table class="ve-table">
-                    <thead>
-                        <tr>
-                            {% for title in titles %}<th scope="col">{{title}}</th>{% endfor %}
-                            <th scope="col">Estado</th>
-                            <th scope="col"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for var in variations.variations %}
-                        <tr id="var-row-{{var.id}}"
-                            class="{% if var.status == 0 %}is-draft{% else if var.status == 1 %}is-active{% else %}is-inactive{% endif %}">
-                            {% for attribute in var.attributes %}
-                                <td class="attr" data-label="{{attribute.name}}">{{attribute.value}}</td>
-                            {% endfor %}
-                            <td class="state">
-                            {% if var.status == 0 %}
-                                <span class="m-badge m-badge--neutral">Draft</span>
-                            {% else if var.status == 1 %}
-                                <span class="m-badge m-badge--success">Activo</span>
-                            {% else %}
-                                <span class="m-badge m-badge--danger">Inactivo</span>
-                            {% endif %}
-                            </td>
-                            <td class="ve-action">
-                                <button type="button" class="m-btn m-btn--secondary m-btn--sm"
-                                    _="
-                                        on click js(me)
-                                            edit_product_spawn_var.handleSwapClick(me,'/panel/components/edit-product-variation/spawn/{{var.id}}');
-                                        end end"
-                                    >Editar</button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+            {# El mismo explorador que el listado (filtros, tabla, matriz) con
+               un botón "Editar" por variación. #}
+            {{ panel_product.variations_explorer_editable() }}
         </div>
     </div>
 </div>
