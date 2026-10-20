@@ -19,6 +19,8 @@ use super::panel_access::variation_access;
 use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{set_variation_identifiers,update_price_variation,set_stock_variation};
 use crate::services::sku_service::{normalize_sku, save_variation_general, SaveGeneral};
+use crate::utils::hx::error_modal;
+use actix_web::http::StatusCode as Status;
 
 use std::sync::Arc;
 use crate::services::aws::s3::client::Client;
@@ -94,10 +96,7 @@ async fn spawn(path: web::Path<Uuid>, panel_user: web::ReqData<PanelUser>, pool_
         },
         Err(e)=>{
             println!("Error: {}",e);
-            let modal_render = MessageModal{
-                text:"Ha ocurrido un error!".to_string()
-            }.render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_render)
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error al abrir la variación")
         }
     }
 }
@@ -146,12 +145,10 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
     if let Err(resp) = variation_access(&panel_user, &id_variation, pool).await {
         return resp;
     }
-    // Los avisos van con 200: htmx no pinta las respuestas 4xx/5xx.
-    let modal = |text: &str| HttpResponse::Ok().body(MessageModal::new(text).render().unwrap());
     let new_status:i16 =  form_general.status.parse().unwrap_or(0);
     let sku = match normalize_sku(&form_general.sku) {
         Ok(sku) => sku,
-        Err(text) => return modal(text),
+        Err(text) => return error_modal(Status::BAD_REQUEST, text),
     };
     match save_variation_general(&id_variation, new_status, sku.clone(), pool).await {
         Ok(SaveGeneral::Saved) => {
@@ -169,14 +166,14 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
                 .body(MessageModal::new("Variación guardada").render().unwrap())
         }
         Ok(SaveGeneral::SkuTaken(holder)) => {
-            modal(&format!("Ese SKU ya lo usa {}: no se ha guardado nada", holder))
+            error_modal(Status::CONFLICT, &format!("Ese SKU ya lo usa {}: no se ha guardado nada", holder))
         }
         Ok(SaveGeneral::NoPrice) => {
-            modal("Esta variación no tiene precio: pónselo en la pestaña Precio antes de activarla. No se ha guardado nada")
+            error_modal(Status::CONFLICT, "Esta variación no tiene precio: pónselo en la pestaña Precio antes de activarla. No se ha guardado nada")
         }
         Err(e) => {
             println!("Ha ocurrido un error: {}",e);
-            modal("Algo ha ido mal: no se ha guardado nada")
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Algo ha ido mal: no se ha guardado nada")
         }
     }
     //aqui añadir headers a la respuesta
@@ -218,11 +215,7 @@ let form_identifiers = data.into_inner();
         },
         Err(e)=>{
             println!("Ha ocurrido un error: {}",e);
-            let modal_respuesta = MessageModal{
-                text:"Ha habido un error al editar los identificadores".to_string()
-            }.render().unwrap();
-            println!("Todo incorrecto");
-            HttpResponse::Ok().body(modal_respuesta)
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha habido un error al editar los identificadores")
         }
     }
 
@@ -246,14 +239,14 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
         Ok(price) => price,
         Err(e) => {
             println!("Error al convertir precio regular: {}", e);
-            return HttpResponse::BadRequest().body("Precio regular inválido");
+            return error_modal(Status::BAD_REQUEST, "El precio no es válido: usa un número con punto, por ejemplo 12.50");
         }
     };
     let discounted_price = match form.discount.parse::<BigDecimal>() {
         Ok(price) => price,
         Err(e) => {
             println!("Error al convertir precio regular: {}", e);
-            return HttpResponse::BadRequest().body("Precio Descontado inválido");
+            return error_modal(Status::BAD_REQUEST, "El precio de oferta no es válido: usa un número con punto, por ejemplo 9.99");
         }
     };
     let is_active = match form.discount_active.parse::<bool>() {
@@ -291,10 +284,7 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
         },
         Err(e) => {
             println!("Error al actualizar precio: {}", e);
-            let modal_respuesta = MessageModal {
-                text: "Error al actualizar el precio".to_string()
-            }.render().unwrap();
-            HttpResponse::InternalServerError().body(modal_respuesta)
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Error al actualizar el precio")
         }
     }
 }
@@ -307,13 +297,9 @@ async fn edit_stock(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
         return resp;
     }
 let form = data.into_inner();
-    // 200 con el aviso: htmx no pinta las respuestas 4xx/5xx
     let new_stock= match form.stock.parse::<i32>(){
         Ok(stock) if stock >= 0 => stock,
-        _ => {
-            let modal_respuesta = MessageModal::new("El stock debe ser un número entero, 0 o más").render().unwrap();
-            return HttpResponse::Ok().body(modal_respuesta)
-        }
+        _ => return error_modal(Status::BAD_REQUEST, "El stock debe ser un número entero, 0 o más"),
     };
 
 
@@ -330,8 +316,7 @@ let form = data.into_inner();
         },
         Err(e)=>{
             println!("{}",e);
-            let modal_respuesta = MessageModal::new("Ha ocurrido un error").render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_respuesta)
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error al guardar el stock")
         }
     }
 

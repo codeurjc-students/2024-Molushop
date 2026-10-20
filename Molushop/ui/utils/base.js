@@ -81,3 +81,13 @@ const QUANTITY = {
     }
 };
 QUANTITY.init();
+
+// Errores de htmx: htmx 2 no pinta las respuestas 4xx/5xx. Las que el
+// servidor quiere enseñar (un aviso) llevan HX-Retarget (utils/hx.rs,
+// error_modal): esas se pintan. Las demás, como antes, no.
+document.addEventListener('htmx:beforeSwap', (event) => {
+    if (event.detail.isError && event.detail.xhr.getResponseHeader('HX-Retarget')) {
+        event.detail.shouldSwap = true;
+        event.detail.isError = false;
+    }
+});

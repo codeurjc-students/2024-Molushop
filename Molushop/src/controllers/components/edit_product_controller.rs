@@ -22,7 +22,8 @@ use crate::services::product_images_service::set_main_image;
 use crate::services::product_specs_service::save_specs;
 use crate::models::error::ServiceError;
 use crate::services::sku_service::{save_skus, SaveSkus};
-use crate::utils::hx::trigger_json;
+use crate::utils::hx::{error_modal, error_response, trigger_json};
+use actix_web::http::StatusCode as Status;
 type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
@@ -109,10 +110,7 @@ match result{
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            let modal_render = MessageModal{
-                text:"Ha ocurrido un error!".to_string()
-            }.render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_render);}
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
 }
 #[derive(Deserialize)]
@@ -123,8 +121,8 @@ pub struct BulkForm{
     pub ids: String,
 }
 
-/// Edición en bloque desde el explorador de variaciones. Responde siempre 200
-/// con el aviso (htmx no pinta las respuestas 4xx/5xx) y, si ha ido bien, con
+/// Edición en bloque desde el explorador de variaciones. Responde con el aviso
+/// (los errores con su código, `error_modal`) y, si ha ido bien, con
 /// `variations_bulk_update`: cómo ha quedado cada fila, para el JS del explorador.
 #[post("/bulk-variations/{product_id}")]
 async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<BulkForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -137,7 +135,7 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
 
     let action = match BulkAction::parse(&form.action, &form.value) {
         Ok(action) => action,
-        Err(text) => return HttpResponse::Ok().body(modal(text)),
+        Err(text) => return error_modal(Status::BAD_REQUEST, text),
     };
     let ids: Result<Vec<Uuid>, _> = form.ids.split(',')
         .filter(|id| !id.trim().is_empty())
@@ -145,7 +143,7 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
         .collect();
     let ids = match ids {
         Ok(ids) if !ids.is_empty() => ids,
-        _ => return HttpResponse::Ok().body(modal("No hay variaciones seleccionadas")),
+        _ => return error_modal(Status::BAD_REQUEST, "No hay variaciones seleccionadas"),
     };
 
     match bulk_update_variations(&product_id, &ids, &action, pool).await {
@@ -160,18 +158,18 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
                 .insert_header(("HX-Trigger", trigger.to_string()))
                 .body(modal(&text))
         }
-        Ok(BulkOutcome::NotOwned) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
+        Ok(BulkOutcome::NotOwned) => error_modal(Status::BAD_REQUEST, "Alguna variación no es de este producto: no se ha cambiado nada"),
         Ok(BulkOutcome::MissingPrice(n)) => {
             let text = if n == 1 {
                 "1 de las variaciones no tiene precio y no se puede activar. Ponle precio antes (Fijar precio) o quítala con los filtros: no se ha cambiado nada".to_string()
             } else {
                 format!("{} de las variaciones no tienen precio y no se pueden activar. Ponles precio antes (Fijar precio) o quítalas con los filtros: no se ha cambiado nada", n)
             };
-            HttpResponse::Ok().body(modal(&text))
+            error_modal(Status::CONFLICT, &text)
         }
         Err(e) => {
             println!("Panel: error en la edición en bloque de {}: {}", product_id, e);
-            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha cambiado nada")
         }
     }
 }
@@ -188,8 +186,8 @@ struct SkuChange{
     sku: String,
 }
 
-/// Los SKU editados en la tabla de variaciones, todos o ninguno. Siempre 200
-/// con el aviso (htmx no pinta 4xx/5xx) y un evento para el JS del explorador:
+/// Los SKU editados en la tabla de variaciones, todos o ninguno. Responde con
+/// el aviso (los errores con su código) y un evento para el JS del explorador:
 /// `variations_skus_saved` con las filas, o `variations_skus_problems` con lo
 /// que hay que marcar en cada una.
 #[post("/bulk-skus/{product_id}")]
@@ -203,7 +201,7 @@ async fn bulk_skus(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,for
 
     let changes: Vec<(Uuid, String)> = match serde_json::from_str::<Vec<SkuChange>>(&form.changes) {
         Ok(changes) if !changes.is_empty() => changes.into_iter().map(|c| (c.id, c.sku)).collect(),
-        _ => return HttpResponse::Ok().body(modal("No hay SKU que guardar")),
+        _ => return error_modal(Status::BAD_REQUEST, "No hay SKU que guardar"),
     };
 
     match save_skus(&product_id, &changes, pool).await {
@@ -226,14 +224,14 @@ async fn bulk_skus(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,for
             };
             // Los mensajes llevan el nombre del producto: cabecera en ASCII
             let trigger = json!({ "variations_skus_problems": { "problems": problems } });
-            HttpResponse::Ok()
+            error_response(Status::CONFLICT)
                 .insert_header(("HX-Trigger", trigger_json(&trigger)))
                 .body(modal(&text))
         }
-        Ok(SaveSkus::NotOwned) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
+        Ok(SaveSkus::NotOwned) => error_modal(Status::BAD_REQUEST, "Alguna variación no es de este producto: no se ha cambiado nada"),
         Err(e) => {
             println!("Panel: error al guardar los SKU de {}: {}", product_id, e);
-            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha guardado nada"))
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada")
         }
     }
 }
@@ -246,7 +244,7 @@ pub struct SpecsForm{
     pub specs: serde_json::Value,
 }
 
-/// Pestaña Especificaciones. Siempre 200 con el aviso (htmx no pinta 4xx/5xx).
+/// Pestaña Especificaciones. Responde con el aviso (los errores con su código).
 #[post("/edit-specs/{product_id}")]
 async fn edit_specs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Json<SpecsForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
     let product_id = path.into_inner();
@@ -257,10 +255,10 @@ async fn edit_specs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,fo
     let modal = |text: &str| HttpResponse::Ok().body(MessageModal::new(text).render().unwrap());
     match save_specs(&product_id, &form.specs, pool).await {
         Ok(()) => modal("Especificaciones guardadas"),
-        Err(ServiceError::InvalidSpecs) => modal("Las especificaciones no tienen un formato válido: no se ha guardado nada"),
+        Err(ServiceError::InvalidSpecs) => error_modal(Status::BAD_REQUEST, "Las especificaciones no tienen un formato válido: no se ha guardado nada"),
         Err(e) => {
             println!("Panel: error al guardar las specs de {}: {}", product_id, e);
-            modal("Ha ocurrido un error: no se ha guardado nada")
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada")
         }
     }
 }
@@ -270,8 +268,8 @@ pub struct MainImageForm{
     pub image_id: Uuid,
 }
 
-/// "Hacer principal" en la pestaña Imágenes. Siempre 200 con el aviso y, si ha
-/// ido bien, `main_image_update` para que la galería y la cabecera del editor
+/// "Hacer principal" en la pestaña Imágenes. Responde con el aviso (los errores
+/// con su código) y, si ha ido bien, `main_image_update` para que la galería y la cabecera del editor
 /// cambien sin recargar (main-image.js).
 #[post("/main-image/{product_id}")]
 async fn main_image(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<MainImageForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -288,10 +286,10 @@ async fn main_image(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,fo
                 .insert_header(("HX-Trigger", trigger.to_string()))
                 .body(modal("Imagen principal cambiada"))
         }
-        Ok(false) => HttpResponse::Ok().body(modal("Esa imagen no es de este producto: no se ha cambiado nada")),
+        Ok(false) => error_modal(Status::BAD_REQUEST, "Esa imagen no es de este producto: no se ha cambiado nada"),
         Err(e) => {
             println!("Panel: error al cambiar la imagen principal de {}: {}", product_id, e);
-            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha cambiado nada")
         }
     }
 }
@@ -304,7 +302,7 @@ pub struct ImageVariationsForm{
 }
 
 /// En qué variaciones sale una imagen (pestaña Imágenes). Como la edición en
-/// bloque: siempre 200 con el aviso y, si ha ido bien, `image_variations_update`
+/// bloque: el aviso (los errores con su código) y, si ha ido bien, `image_variations_update`
 /// con los ids guardados para el JS de la galería (image-variations.js).
 #[post("/image-variations/{product_id}")]
 async fn image_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<ImageVariationsForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -320,7 +318,7 @@ async fn image_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUs
         .map(|id| Uuid::parse_str(id.trim()))
         .collect();
     let Ok(ids) = ids else {
-        return HttpResponse::Ok().body(modal("Variaciones no válidas: no se ha cambiado nada"));
+        return error_modal(Status::BAD_REQUEST, "Variaciones no válidas: no se ha cambiado nada");
     };
 
     match set_image_variations(&product_id, &form.image_id, &ids, pool).await {
@@ -335,10 +333,10 @@ async fn image_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUs
                 .insert_header(("HX-Trigger", trigger.to_string()))
                 .body(modal(&text))
         }
-        Ok(false) => HttpResponse::Ok().body(modal("La imagen o alguna variación no son de este producto: no se ha cambiado nada")),
+        Ok(false) => error_modal(Status::BAD_REQUEST, "La imagen o alguna variación no son de este producto: no se ha cambiado nada"),
         Err(e) => {
             println!("Panel: error al asignar variaciones a la imagen {}: {}", form.image_id, e);
-            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha cambiado nada")
         }
     }
 }
@@ -437,10 +435,7 @@ let client_data_x = client_data.get_ref().as_ref();
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            let modal_render = MessageModal{
-                text:"Ha ocurrido un error!".to_string()
-            }.render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_render);}
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
     /* Prueba */
 
@@ -456,10 +451,7 @@ let client_data_x = client_data.get_ref().as_ref();
         },
         Err(e) => {
             println!("Error! -> {}",e);
-            let modal_render = MessageModal{
-                text:"Ha ocurrido un error!".to_string()
-            }.render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_render);}
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
     */
 }

@@ -3,28 +3,26 @@
 //! Todos cuelgan del scope `/panel`, así que `PanelGuard` ya ha dejado un
 //! `PanelUser`; aquí solo se mira si el producto/variación es suyo. Ajeno o
 //! inexistente -> 404 (no se revela qué existe), error de BD -> 500. Las dos
-//! respuestas llevan el modal de siempre para que htmx pueda mostrarlo.
+//! llevan el aviso con `error_modal`, que htmx sí pinta.
 
+use actix_web::http::StatusCode;
 use actix_web::HttpResponse;
-use askama::Template;
 use uuid::Uuid;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-use crate::models::components::message_modal::MessageModal;
+use crate::utils::hx::error_modal;
 use crate::services::panel_role_service::{can_edit_product, can_edit_variation, PanelUser};
 
 fn to_response(result: Result<bool, String>) -> Result<(), HttpResponse> {
     match result {
         Ok(true) => Ok(()),
-        Ok(false) => Err(HttpResponse::NotFound()
-            .body(MessageModal::new("Producto no encontrado").render().unwrap())),
+        Ok(false) => Err(error_modal(StatusCode::NOT_FOUND, "Producto no encontrado")),
         Err(e) => {
             println!("Panel: {}", e);
-            Err(HttpResponse::InternalServerError()
-                .body(MessageModal::new("Ha ocurrido un error!").render().unwrap()))
+            Err(error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Ha ocurrido un error"))
         }
     }
 }
