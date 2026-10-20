@@ -7,9 +7,12 @@ const edit_product = {
                 // Remover clase active de todas las pestañas
                 navItems.forEach(nav => nav.classList.remove('active'));
 
-                // Remover clase active de todos los contenidos
+                // Remover clase active de todos los contenidos (solo los del producto:
+                // el editor de variación abierto va dentro, en la tabla de variaciones)
                 element.querySelectorAll('.tab-pane').forEach(pane => {
-                    pane.classList.remove('active');
+                    if(pane.closest('.product-edit-container, .variation-edit-container') === element){
+                        pane.classList.remove('active');
+                    }
                 });
 
                 // Agregar clase active a la pestaña seleccionada

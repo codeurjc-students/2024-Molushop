@@ -28,8 +28,7 @@
             const row = root.querySelector('#' + CSS.escape('var-row-' + data.id));
             if (row) updateRow(row, data);
             // Un editor abierto de una de ellas ya no tiene los datos buenos
-            const editor = document.getElementById(data.id);
-            if (editor?.classList.contains('variation-edit-container')) editor.remove();
+            if (row?.classList.contains('is-editing')) closeEditor(root);
         });
         refreshExplorer(root);
     });
@@ -64,7 +63,7 @@
         const states = [...root.querySelectorAll('[data-filter-state][aria-pressed="true"]')]
             .map((b) => b.dataset.filterState);
 
-        const rows = [...root.querySelectorAll('.ve-table tbody tr')];
+        const rows = variationRows(root);
         let shown = 0;
         rows.forEach((row) => {
             const visible = attrs.every(([i, value]) => row.dataset['a' + i] === value)
@@ -72,6 +71,9 @@
             row.hidden = !visible;
             if (visible) shown++;
         });
+        // El editor abierto se esconde con su fila (sin cerrarlo: no se pierde lo escrito)
+        const editorRow = root.querySelector('.ve-editor-row');
+        if (editorRow) editorRow.hidden = editorRow.previousElementSibling.hidden;
         // Los atributos fijados por un filtro son iguales en todas las filas: en
         // las tarjetas de móvil se esconden (CSS), en la tabla se quedan.
         const fixed = new Set(attrs.map(([i]) => Number(i)));
@@ -191,14 +193,52 @@
         const state = status === 1 ? (stock > 0 ? 'is-active' : 'is-out')
             : status === 0 ? 'is-draft' : 'is-inactive';
         const [label, variant] = { 1: ['Activo', 'success'], 0: ['Draft', 'neutral'] }[status] || ['Inactivo', 'danger'];
-        row.className = state;
+        // Sin pisar is-editing
+        row.classList.remove(...STATE_ORDER);
+        row.classList.add(state);
         row.dataset.state = state;
         const badge = el('span', 'm-badge m-badge--' + variant, label);
         row.querySelector('td.state').replaceChildren(badge);
     }
 
-    // El editor de una variación (edit-product-variation.js) los usa al guardar.
-    window.variationsExplorer = { updateRow, refresh: refreshExplorer };
+    // Las filas de variación, sin la del editor abierto
+    function variationRows(root) {
+        return [...root.querySelectorAll('.ve-table tbody tr:not(.ve-editor-row)')];
+    }
+
+    // ---- Editor de una variación (solo en la página de edición) ----
+
+    // "Editar": el editor se carga en una fila nueva justo debajo de la suya, que
+    // queda resaltada. Solo hay uno abierto; pulsar otra vez en la misma lo cierra.
+    function openEditor(button, url) {
+        const row = button.closest('tr');
+        const root = row.closest('.c-variations-explorer');
+        const wasOpen = row.classList.contains('is-editing');
+        closeEditor(root);
+        if (wasOpen) return;
+
+        const editorRow = el('tr', 've-editor-row');
+        const cell = editorRow.insertCell();
+        cell.colSpan = row.cells.length;
+        row.after(editorRow);
+        row.classList.add('is-editing');
+        button.setAttribute('aria-expanded', 'true');
+        htmx.ajax('GET', url, { target: cell, swap: 'innerHTML' });
+    }
+
+    // Vale cualquier elemento del explorador (también el botón "Cerrar" del editor)
+    function closeEditor(element) {
+        const root = element.closest('.c-variations-explorer');
+        root.querySelector('.ve-editor-row')?.remove();
+        root.querySelectorAll('tr.is-editing').forEach((row) => {
+            row.classList.remove('is-editing');
+            row.querySelector('[aria-expanded]')?.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    // El editor de una variación (edit-product-variation.js) los usa al guardar y
+    // al cerrar; el botón "Editar" de cada fila, openEditor.
+    window.variationsExplorer = { updateRow, refresh: refreshExplorer, openEditor, closeEditor };
 
     // ---- Edición en bloque (solo en la página de edición) ----
 
@@ -217,7 +257,7 @@
         const field = form.querySelector(`[data-bulk-for="${action}"]`);
         const input = field.querySelector('select, input');
         const value = input.value.trim();
-        const rows = [...root.querySelectorAll('.ve-table tbody tr')].filter((row) => !row.hidden);
+        const rows = variationRows(root).filter((row) => !row.hidden);
         const error = form.querySelector('[data-bulk-error]');
 
         const problem = bulkProblem(action, value, input, rows.length);

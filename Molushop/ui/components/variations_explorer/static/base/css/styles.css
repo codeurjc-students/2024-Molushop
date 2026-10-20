@@ -114,6 +114,25 @@
     margin: var(--space-3) 0 0;
 }
 
+/* Variación en edición: su fila resaltada y el editor en la fila de debajo */
+.ve-table tr.is-editing td {
+    background-color: var(--color-primary-soft);
+}
+
+.ve-table tr.is-editing td:first-child {
+    box-shadow: inset 4px 0 0 var(--color-primary);
+}
+
+.ve-table .ve-editor-row > td {
+    padding: var(--space-2) 0 var(--space-4);
+    font-size: var(--font-size-md);
+}
+
+.ve-editor-row .variation-edit-container {
+    margin: 0;
+    border-color: var(--color-primary);
+}
+
 /* ---- Matriz ---- */
 
 .ve-matrix-panel {
@@ -261,6 +280,35 @@
     }
 
     .ve-table td.state::before {
+        content: none;
+    }
+
+    /* En móvil la tarjeta en edición lleva el color del estado a la izquierda:
+       se resalta con el fondo y un borde verde alrededor */
+    .ve-table tr.is-editing {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-soft);
+    }
+
+    .ve-table tr.is-editing td,
+    .ve-table tr.is-editing td:first-child {
+        background-color: transparent;
+        box-shadow: none;
+    }
+
+    .ve-table tr.ve-editor-row:not([hidden]) {
+        display: block;
+        padding: 0;
+        border: 0;
+        background: none;
+    }
+
+    .ve-table tr.ve-editor-row > td {
+        display: block;
+        padding: 0;
+    }
+
+    .ve-table tr.ve-editor-row > td::before {
         content: none;
     }
 

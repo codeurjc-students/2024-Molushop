@@ -96,11 +96,11 @@
                     <td class="num" data-label="Stock">{{pv.stock}}</td>
                     <td class="state"><span class="m-badge m-badge--{{status_variant(pv)}}">{{status_label(pv)}}</span></td>
                     {% if bulk_url.is_some() %}
-                    {# Abre el editor de la variación encima del de producto (variationSpawn.js) #}
+                    {# Abre el editor de la variación en una fila debajo de esta (openEditor, script.js) #}
                     <td class="ve-action">
-                        <button type="button" class="m-btn m-btn--secondary m-btn--sm"
+                        <button type="button" class="m-btn m-btn--secondary m-btn--sm" aria-expanded="false"
                             _="on click js(me)
-                                edit_product_spawn_var.handleSwapClick(me,'/panel/components/edit-product-variation/spawn/{{pv.id}}');
+                                variationsExplorer.openEditor(me,'/panel/components/edit-product-variation/spawn/{{pv.id}}');
                             end end">Editar</button>
                     </td>
                     {% endif %}

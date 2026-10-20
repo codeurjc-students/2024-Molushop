@@ -23,7 +23,7 @@
             {% for attribute in general.attributes %}{% if !loop.first %} · {% endif %}{{attribute.value}}{% endfor %}
         </h3>
         <button type="button" class="m-btn m-btn--ghost m-btn--sm"
-            _="on click remove closest <div.variation-edit-container/>">Cerrar</button>
+            _="on click js(me) variationsExplorer.closeEditor(me) end">Cerrar</button>
     </div>
 
     <!-- Pestañas -->
