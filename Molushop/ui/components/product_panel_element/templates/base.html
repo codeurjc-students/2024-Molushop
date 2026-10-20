@@ -39,12 +39,19 @@
         </div>
     </div>
     
-    <button type="button" class="toggle-variations"
-        _="on click toggle .hidden on next .product-variations end"
+    {# El explorador (filtros, tabla y matriz: variations_explorer) se pide la
+       primera vez que se abre; si falla, el siguiente clic lo vuelve a pedir.
+       El hyperscript solo pliega y despliega. #}
+    <button type="button" class="toggle-variations" aria-expanded="false"
+        hx-get="{{routes.variations}}/{{product.id}}"
+        hx-target="next .product-variations"
+        hx-trigger="click[this.dataset.loaded !== 'true']"
+        hx-on::after-request="if (event.detail.successful) this.dataset.loaded = 'true'"
+        _="on click toggle .hidden on next .product-variations
+            then js(me) me.setAttribute('aria-expanded', String(!me.nextElementSibling.classList.contains('hidden'))) end end"
         >Mostrar variaciones ({{product.variations.len()}})</button>
 
-    {# Filtros, tabla y matriz: componente variations_explorer #}
     <div class="product-variations hidden">
-        {{ product.variations_explorer() }}
+        <p class="m-hint">Cargando variaciones…</p>
     </div>
 </div>

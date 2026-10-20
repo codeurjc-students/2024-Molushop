@@ -11,6 +11,8 @@ use crate::models::components::variations_explorer::{EditUrls, VariationsExplore
 pub struct RoutesProductPanelGroup{
     pub delete_product: &'static str,
     pub delete_product_modal: &'static str,
+    /// El explorador de variaciones de una tarjeta, al abrirla por primera vez.
+    pub variations: &'static str,
     //images
 }
 
