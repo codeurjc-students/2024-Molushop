@@ -107,13 +107,17 @@
                     </div>
                     {# data-image-variations-url: a dónde manda image-variations.js en qué
                        variaciones sale cada imagen #}
-                    <div class="image-gallery base-images" data-image-variations-url="{{routes.image_variations}}/{{product.id}}">
+                    <div class="image-gallery base-images" data-image-variations-url="{{routes.image_variations}}/{{product.id}}"
+                        data-main-image-url="{{routes.main_image}}/{{product.id}}">
                         {% if images.len()==0 %}
                             <p class="no-images">No hay imágenes disponibles</p>
                         {% else %}
                             {% for image in images %}
                                 <div class="image-container" data-image-id="{{image.id}}" data-variations="{{image.variation_ids_csv()}}">
                                     <img src="{{image.image_url}}" alt="Imagen del producto">
+                                    {# La principal lleva la etiqueta; las demás, el botón (main-image.js) #}
+                                    <span class="m-badge m-badge--success image-main-badge" data-main-badge{% if !image.is_main %} hidden{% endif %}>Principal</span>
+                                    <button type="button" class="image-main-btn" data-make-main{% if image.is_main %} hidden{% endif %}>Hacer principal</button>
                                     <div class="image-overlay">
                                         <button class="delete-btn" type="button">
                                             <i class="fas fa-trash"></i>

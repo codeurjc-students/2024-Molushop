@@ -22,6 +22,7 @@ pub struct Routes{
     pub bulk_variations: &'static str,
     pub bulk_skus: &'static str,
     pub image_variations: &'static str,
+    pub main_image: &'static str,
     //pub delete_product_modal: &'static str,
     //images
 }

@@ -6,6 +6,7 @@ pub mod create_product_variations;
 pub mod products_panel;
 pub mod variations_bulk_service;
 pub mod image_variations_service;
+pub mod product_images_service;
 pub mod sku_service;
 pub mod components;
 pub mod auth;

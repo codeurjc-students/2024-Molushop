@@ -18,6 +18,7 @@ use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction};
 use crate::services::image_variations_service::set_image_variations;
+use crate::services::product_images_service::set_main_image;
 use crate::services::sku_service::{save_skus, SaveSkus};
 use crate::utils::hx::trigger_json;
 type DbPool = Pool<AsyncPgConnection>;
@@ -45,6 +46,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         bulk_variations: Box::leak(format!("{}{}/bulk-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         bulk_skus: Box::leak(format!("{}{}/bulk-skus",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         image_variations: Box::leak(format!("{}{}/image-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        main_image: Box::leak(format!("{}{}/main-image",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -60,6 +62,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(edit_general)
         .service(bulk_variations)
         .service(image_variations)
+        .service(main_image)
         .service(bulk_skus)
         .service(delete_all_imgs)
         .service(edit_images);
@@ -219,6 +222,37 @@ async fn bulk_skus(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,for
         Err(e) => {
             println!("Panel: error al guardar los SKU de {}: {}", product_id, e);
             HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha guardado nada"))
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct MainImageForm{
+    pub image_id: Uuid,
+}
+
+/// "Hacer principal" en la pestaña Imágenes. Siempre 200 con el aviso y, si ha
+/// ido bien, `main_image_update` para que la galería y la cabecera del editor
+/// cambien sin recargar (main-image.js).
+#[post("/main-image/{product_id}")]
+async fn main_image(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<MainImageForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
+    let product_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+    let modal = |text: &str| MessageModal::new(text).render().unwrap();
+    match set_main_image(&product_id, &form.image_id, pool).await {
+        Ok(true) => {
+            let trigger = json!({ "main_image_update": { "image_id": form.image_id } });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal("Imagen principal cambiada"))
+        }
+        Ok(false) => HttpResponse::Ok().body(modal("Esa imagen no es de este producto: no se ha cambiado nada")),
+        Err(e) => {
+            println!("Panel: error al cambiar la imagen principal de {}: {}", product_id, e);
+            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
         }
     }
 }

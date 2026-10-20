@@ -1129,7 +1129,7 @@ pub async fn get_product_with_images1(product_id: &Uuid, pool:&DbPool)->Result<P
                 'variation_ids', COALESCE(
                     (SELECT json_agg(ipv.variation_id) FROM images_product_variations ipv WHERE ipv.image_id = i.id),
                     '[]'::json)
-            )) FILTER (WHERE i.id IS NOT NULL) as images_product
+            ) ORDER BY i.is_main IS TRUE DESC, i.display_order) FILTER (WHERE i.id IS NOT NULL) as images_product
         FROM products p
         LEFT JOIN images_product i on p.id = i.product_id
         WHERE p.id = $1

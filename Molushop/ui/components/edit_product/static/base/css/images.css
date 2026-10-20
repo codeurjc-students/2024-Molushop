@@ -114,6 +114,35 @@
         background: var(--color-danger-hover);
     }
 
+    /* Principal (main-image.js): arriba a la izquierda, por encima de la capa
+       del hover. El botón se ve siempre: en móvil no hay hover. */
+    .image-main-badge,
+    .image-main-btn {
+        position: absolute;
+        top: var(--space-2);
+        left: var(--space-2);
+        z-index: 1;
+    }
+
+    .image-main-badge[hidden],
+    .image-main-btn[hidden] {
+        display: none;
+    }
+
+    .image-main-btn {
+        padding: var(--space-1) var(--space-2);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background-color: var(--color-bg);
+        color: var(--color-text);
+        font-size: var(--font-size-xs);
+        cursor: pointer;
+    }
+
+    .image-main-btn:hover {
+        border-color: var(--color-primary);
+    }
+
     /* En qué variaciones sale (image-variations.js): siempre a la vista, por
        encima de la capa del hover */
     .image-variations-btn {
