@@ -2,9 +2,15 @@
 // modificación reemplaza el nodo #cart-total-1 entero con el HTML que
 // devuelve el servidor: si se bindease sobre los botones, se perderían.
 const CART_TOTAL_V1 = {
-    // Evita que dos peticiones se pisen mientras el usuario aporrea el "+"
+    // Una petición cada vez, como hx-sync="queue last" de htmx (el carrito va
+    // con fetch, no con htmx): lo que llega mientras hay una en curso espera en
+    // `queue`, que guarda lo último de cada línea (un borrado le gana a un
+    // cambio de cantidad de la misma). Antes se descartaba y se perdían clics.
     pending: false,
-    debounce: null,
+    queue: new Map(),
+    // Un temporizador por línea: con uno solo, cambiar dos líneas seguidas
+    // dejaba la primera sin mandar.
+    timers: new Map(),
 
     // Ids de línea DESmarcados. Se guarda lo desmarcado y no lo marcado para que
     // una línea nueva entre seleccionada sin que haya que tocar nada.
@@ -35,13 +41,12 @@ const CART_TOTAL_V1 = {
         });
 
         // − y + del selector (átomo QUANTITY, base.js): ya ha cambiado el
-        // input sin salirse de 0..stock; aquí solo se manda.
+        // input sin salirse de 0..stock. Varios clics seguidos van en una sola
+        // petición con el valor final.
         document.addEventListener("m-qty-change", (event) => {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
-
-            clearTimeout(this.debounce);
-            this.applyQuantity(event.target.closest(".card"));
+            this.later(event.target.closest(".card"), 300);
         });
 
         // Cantidad escrita a mano: se espera a que el usuario deje de teclear
@@ -49,10 +54,7 @@ const CART_TOTAL_V1 = {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
             if (!event.target.classList.contains("m-qty__input")) { return; }
-
-            let card = event.target.closest(".card");
-            clearTimeout(this.debounce);
-            this.debounce = setTimeout(() => this.applyQuantity(card), 500);
+            this.later(event.target.closest(".card"), 500);
         });
 
         document.addEventListener("change", (event) => {
@@ -193,6 +195,17 @@ const CART_TOTAL_V1 = {
         if (off) { link.removeAttribute("href"); }
     },
 
+    // Manda la cantidad de la línea cuando lleve `ms` sin cambiar
+    later: function(card, ms) {
+        if (card == null) { return; }
+        let id = card.dataset.lineId;
+        clearTimeout(this.timers.get(id));
+        this.timers.set(id, setTimeout(() => {
+            this.timers.delete(id);
+            this.applyQuantity(card);
+        }, ms));
+    },
+
     applyQuantity: function(card) {
         if (card == null) { return; }
         let input = card.querySelector(".m-qty__input");
@@ -210,7 +223,7 @@ const CART_TOTAL_V1 = {
             quantity = 0;
         }
 
-        this.send(this.root().dataset.updateUrl, {
+        this.send(card.dataset.lineId, this.root().dataset.updateUrl, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -223,17 +236,25 @@ const CART_TOTAL_V1 = {
     remove: function(card) {
         if (card == null) { return; }
         let url = `${this.root().dataset.removeUrl}/${card.dataset.lineId}`;
-        this.send(url, { method: "DELETE" });
+        clearTimeout(this.timers.get(card.dataset.lineId));
+        this.timers.delete(card.dataset.lineId);
+        this.send(card.dataset.lineId, url, { method: "DELETE" });
     },
 
-    send: function(url, options) {
-        if (this.pending) { return; }
+    // `key`: la línea. Si hay una petición en curso, espera en la cola.
+    send: function(key, url, options) {
+        if (this.pending) {
+            this.queue.set(key, { url, options });
+            return;
+        }
         this.pending = true;
 
         fetch(url, options)
             .then(response => {
                 if (response.status === 401) {
-                    // Lo recoge el login_modal y abre el login
+                    // Lo recoge el login_modal y abre el login. Lo que esperaba
+                    // en la cola también daría 401: se descarta.
+                    this.queue.clear();
                     document.dispatchEvent(new CustomEvent("auth-required"));
                     return null;
                 }
@@ -247,7 +268,11 @@ const CART_TOTAL_V1 = {
             .then(data => {
                 if (data === null) { return; }
 
-                if (data.ok) {
+                // Con algo en cola, esta respuesta ya está vieja: repintar
+                // devolvería el número de antes de los últimos clics.
+                if (data.ok && this.queue.size > 0) {
+                    this.updateBadge(data.cartCount);
+                } else if (data.ok) {
                     this.root().outerHTML = data.html;
                     this.updateBadge(data.cartCount);
                     // El HTML nuevo viene con todo marcado: hay que devolverle
@@ -263,6 +288,12 @@ const CART_TOTAL_V1 = {
             })
             .finally(() => {
                 this.pending = false;
+                let next = this.queue.entries().next().value;
+                if (next) {
+                    let [key, request] = next;
+                    this.queue.delete(key);
+                    this.send(key, request.url, request.options);
+                }
             });
     },
 
