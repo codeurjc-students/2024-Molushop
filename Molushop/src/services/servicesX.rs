@@ -1236,11 +1236,16 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
             (SELECT COUNT(*) FROM ratings r WHERE r.product_id = p.id) AS rating_count
         FROM Products p
         LEFT JOIN LATERAL (
+            -- En el orden del carrito: la principal y después display_order.
+            -- variation_ids: en qué variaciones sale (vacío: en todas).
             SELECT jsonb_agg(jsonb_build_object(
                 'image_url', img.image_url,
                 'is_main', img.is_main,
-                'display_order', img.display_order
-            )) as lista_imagenes
+                'display_order', img.display_order,
+                'variation_ids', COALESCE(
+                    (SELECT jsonb_agg(ipv.variation_id) FROM images_product_variations ipv WHERE ipv.image_id = img.id),
+                    '[]'::jsonb)
+            ) ORDER BY img.is_main IS TRUE DESC, img.display_order ASC) as lista_imagenes
             FROM images_product img
             WHERE img.product_id = p.id
         ) img_agg ON true

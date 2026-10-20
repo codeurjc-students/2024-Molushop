@@ -100,6 +100,35 @@ const PRODUCT_DETAIL = {
             this.updatePrice(selectedAttrs);
         }
         this.refreshAvailability();
+        this.refreshGallery(this.findVariantByAttrs(this.getSelectedAttrs()));
+    },
+
+    // La galería de la variación elegida, con la misma regla que
+    // ProductDetailPrincipalData::gallery_for: primero sus imágenes, luego las
+    // del producto entero (data-variations vacío) y, escondidas, las de otras
+    // variaciones; sin propias ni generales, todas. La grande pasa a la primera.
+    // Si la combinación no existe, se queda como estaba.
+    refreshGallery: function(variant) {
+        if (variant == null) { return; }
+        let gallery = this.element.querySelector(".all-images");
+        let thumbs = [...gallery.querySelectorAll(".image-s")];
+        if (thumbs.length === 0) { return; }
+
+        let linkedTo = (thumb) => thumb.dataset.variations ? thumb.dataset.variations.split(",") : [];
+        let own = thumbs.filter(thumb => linkedTo(thumb).includes(variant.id));
+        let general = thumbs.filter(thumb => linkedTo(thumb).length === 0);
+        let showAll = own.length === 0 && general.length === 0;
+        let others = thumbs.filter(thumb => !own.includes(thumb) && !general.includes(thumb));
+
+        let order = showAll ? thumbs : [...own, ...general, ...others];
+        order.forEach(thumb => {
+            thumb.hidden = !showAll && others.includes(thumb);
+            gallery.appendChild(thumb);
+        });
+        gallery.scrollTop = 0;
+        gallery.scrollLeft = 0;
+        let first = order.find(thumb => !thumb.hidden);
+        this.element.querySelector(".image-principal").src = first.querySelector(".image-mini").src;
     },
 
     // Tacha (sin apagar: se puede pulsar para cambiar de combinación) los
@@ -290,6 +319,7 @@ const PRODUCT_DETAIL = {
             if (input) { input.checked = true; }
         });
         this.updatePrice(this.getSelectedAttrs());
+        this.refreshGallery(variant);
         let quantityInput = this.element.querySelector(".quantity-product .m-qty__input");
         if (quantityInput) {
             quantityInput.value = pending.quantity;

@@ -2,17 +2,19 @@
     <div class="image-display">
         <div class="container-image-display">
             <div class="all-images-container">
+                {# Ya ordenada y filtrada para la variación de entrada (gallery);
+                   al elegir otra, refreshGallery la recoloca con data-variations #}
                 <div class="all-images">
-                {% for image in product_data.images_product %}
-                    <div class="image-s">
+                {% for (image, visible) in product_data.gallery() %}
+                    <div class="image-s" data-variations="{{image.variation_ids_csv()}}"{% if !visible %} hidden{% endif %}>
                         <img class="image-mini" src="{{image.image_url}}" alt="mini">
                     </div>
                 {% endfor %}
                 </div>
             </div>
             <div class="main-image-container">
-                {% if product_data.images_product.len() > 0 %}
-                    <img class="image-principal" src="{{product_data.images_product[0].image_url}}" alt="{{product_data.name}}">
+                {% if let Some(image_url) = product_data.main_image_url() %}
+                    <img class="image-principal" src="{{image_url}}" alt="{{product_data.name}}">
                 {% else %}
                     <img class="image-principal" src="https://tfg-vik.s3.eu-north-1.amazonaws.com/1752443059deadpool-funko.jpg" alt="Nothing">
                 {% endif %}

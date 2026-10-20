@@ -36,7 +36,18 @@ pub struct ProductDetailPrincipalData{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ImageProduct{
     pub is_main : bool,
-    pub image_url : String
+    pub image_url : String,
+    /// Las variaciones en las que sale (`images_product_variations`); vacío:
+    /// es del producto entero y sale en todas.
+    #[serde(default)]
+    pub variation_ids : Vec<Uuid>,
+}
+
+impl ImageProduct {
+    /// Para `data-variations` de la galería: el JS la recoloca al elegir variación.
+    pub fn variation_ids_csv(&self) -> String {
+        self.variation_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",")
+    }
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Variation{
@@ -71,6 +82,7 @@ impl Default for ImageProduct {
         Self {
             is_main: true,
             image_url: "https://via.placeholder.com/500".to_string(),
+            variation_ids: Vec::new(),
         }
     }
 }
@@ -166,6 +178,37 @@ impl ProductDetailPrincipalData {
         Quantity::new(1, 1, Some(99))
     }
 
+    /// La galería para una variación, en el orden en que se enseña y si se ve:
+    /// primero las imágenes de esa variación, después las del producto entero
+    /// (sin enlaces) y al final, escondidas, las de otras variaciones. Si no
+    /// tiene propias ni hay generales se ven todas: mejor eso que una galería
+    /// vacía. El JS (`refreshGallery`) repite la regla al elegir otra.
+    pub fn gallery_for(&self, variant_id: Option<&Uuid>) -> Vec<(&ImageProduct, bool)> {
+        let is_own = |i: &ImageProduct| variant_id.is_some_and(|id| i.variation_ids.contains(id));
+        let own: Vec<&ImageProduct> = self.images_product.iter().filter(|i| is_own(i)).collect();
+        let general: Vec<&ImageProduct> = self.images_product.iter()
+            .filter(|i| i.variation_ids.is_empty())
+            .collect();
+        if own.is_empty() && general.is_empty() {
+            return self.images_product.iter().map(|i| (i, true)).collect();
+        }
+        let others = self.images_product.iter()
+            .filter(|i| !i.variation_ids.is_empty() && !is_own(i));
+        own.into_iter().chain(general).map(|i| (i, true))
+            .chain(others.map(|i| (i, false)))
+            .collect()
+    }
+
+    /// La galería al entrar: la de la variación que sale seleccionada.
+    pub fn gallery(&self) -> Vec<(&ImageProduct, bool)> {
+        self.gallery_for(self.initial_variant().map(|v| &v.id))
+    }
+
+    /// La imagen grande al entrar: la primera que se ve de la galería.
+    pub fn main_image_url(&self) -> Option<&str> {
+        self.gallery().into_iter().find(|(_, visible)| *visible).map(|(i, _)| i.image_url.as_str())
+    }
+
     pub fn variant_map_json(&self) -> String {
         serde_json::to_string(&self.variant_map).unwrap_or_else(|_| "[]".to_string())
     }
@@ -216,5 +259,44 @@ fn parse_json<T: serde::de::DeserializeOwned>(value: Option<Value>, field: &str,
             println!("Ficha {}: no se pudo leer `{}`: {}", product_id, field, e);
             None
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn image(url: &str, variation_ids: &[Uuid]) -> ImageProduct {
+        ImageProduct { is_main: false, image_url: url.to_string(), variation_ids: variation_ids.to_vec() }
+    }
+
+    fn urls(gallery: Vec<(&ImageProduct, bool)>) -> Vec<(String, bool)> {
+        gallery.into_iter().map(|(i, visible)| (i.image_url.clone(), visible)).collect()
+    }
+
+    #[test]
+    fn galeria_primero_las_de_la_variacion() {
+        let (red, blue) = (Uuid::new_v4(), Uuid::new_v4());
+        let data = ProductDetailPrincipalData {
+            images_product: vec![image("general", &[]), image("azul", &[blue]), image("roja", &[red])],
+            ..Default::default()
+        };
+        assert_eq!(urls(data.gallery_for(Some(&red))),
+            vec![("roja".into(), true), ("general".into(), true), ("azul".into(), false)]);
+        // Sin propias: las generales, y las de otras escondidas
+        assert_eq!(urls(data.gallery_for(Some(&Uuid::new_v4()))),
+            vec![("general".into(), true), ("azul".into(), false), ("roja".into(), false)]);
+    }
+
+    #[test]
+    fn galeria_sin_propias_ni_generales_las_ensena_todas() {
+        let (red, blue) = (Uuid::new_v4(), Uuid::new_v4());
+        let data = ProductDetailPrincipalData {
+            images_product: vec![image("azul", &[blue]), image("roja", &[red])],
+            ..Default::default()
+        };
+        assert_eq!(urls(data.gallery_for(Some(&Uuid::new_v4()))),
+            vec![("azul".into(), true), ("roja".into(), true)]);
+        assert_eq!(data.main_image_url(), Some("azul"));
     }
 }
