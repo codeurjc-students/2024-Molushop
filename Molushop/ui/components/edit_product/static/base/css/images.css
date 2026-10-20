@@ -113,6 +113,32 @@
     .delete-btn:hover {
         background: var(--color-danger-hover);
     }
+
+    /* En qué variaciones sale (image-variations.js): siempre a la vista, por
+       encima de la capa del hover */
+    .image-variations-btn {
+        position: absolute;
+        left: var(--space-2);
+        bottom: var(--space-2);
+        z-index: 1;
+        max-width: calc(100% - 2 * var(--space-2));
+        padding: var(--space-1) var(--space-2);
+        overflow: hidden;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-md);
+        background-color: var(--color-bg);
+        color: var(--color-text);
+        font-size: var(--font-size-xs);
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+
+    .image-variations-btn.is-linked {
+        border-color: var(--color-primary);
+        background-color: var(--color-primary-soft);
+        font-weight: var(--font-weight-medium);
+    }
         
     .no-images {
         grid-column: 1 / -1;
@@ -144,4 +170,28 @@
             transform: translateY(0);
         }
     }
+}
+
+/* Diálogo de image-variations.js: va en <body>, fuera del editor */
+.image-variations-dialog {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.image-variations-dialog__title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+}
+
+.image-variations-dialog__img {
+    width: 96px;
+    height: 96px;
+    object-fit: cover;
+    border-radius: var(--radius-md);
+}
+
+.image-variations-dialog__summary {
+    margin: 0;
+    font-weight: var(--font-weight-medium);
 }

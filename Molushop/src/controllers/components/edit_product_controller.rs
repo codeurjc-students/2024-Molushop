@@ -17,6 +17,7 @@ use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction};
+use crate::services::image_variations_service::set_image_variations;
 type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
@@ -40,6 +41,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         bulk_variations: Box::leak(format!("{}{}/bulk-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        image_variations: Box::leak(format!("{}{}/image-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -54,6 +56,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
         .service(edit_general)
         .service(bulk_variations)
+        .service(image_variations)
         .service(delete_all_imgs)
         .service(edit_images);
         //.service(delete_product_modal);
@@ -149,6 +152,53 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
         Ok(None) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
         Err(e) => {
             println!("Panel: error en la edición en bloque de {}: {}", product_id, e);
+            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct ImageVariationsForm{
+    pub image_id: Uuid,
+    /// Ids de las variaciones en las que sale, separados por comas; vacío: en todas.
+    pub ids: String,
+}
+
+/// En qué variaciones sale una imagen (pestaña Imágenes). Como la edición en
+/// bloque: siempre 200 con el aviso y, si ha ido bien, `image_variations_update`
+/// con los ids guardados para el JS de la galería (image-variations.js).
+#[post("/image-variations/{product_id}")]
+async fn image_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<ImageVariationsForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
+    let product_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+    let modal = |text: &str| MessageModal::new(text).render().unwrap();
+
+    let ids: Result<Vec<Uuid>, _> = form.ids.split(',')
+        .filter(|id| !id.trim().is_empty())
+        .map(|id| Uuid::parse_str(id.trim()))
+        .collect();
+    let Ok(ids) = ids else {
+        return HttpResponse::Ok().body(modal("Variaciones no válidas: no se ha cambiado nada"));
+    };
+
+    match set_image_variations(&product_id, &form.image_id, &ids, pool).await {
+        Ok(true) => {
+            let text = match ids.len() {
+                0 => "La imagen sale ahora en todas las variaciones".to_string(),
+                1 => "La imagen sale ahora en 1 variación".to_string(),
+                n => format!("La imagen sale ahora en {} variaciones", n),
+            };
+            let trigger = json!({ "image_variations_update": { "image_id": form.image_id, "ids": ids } });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal(&text))
+        }
+        Ok(false) => HttpResponse::Ok().body(modal("La imagen o alguna variación no son de este producto: no se ha cambiado nada")),
+        Err(e) => {
+            println!("Panel: error al asignar variaciones a la imagen {}: {}", form.image_id, e);
             HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
         }
     }

@@ -19,6 +19,7 @@ pub struct Routes{
     pub edit_general: &'static str,
     pub edit_images: &'static str,
     pub bulk_variations: &'static str,
+    pub image_variations: &'static str,
     //pub delete_product_modal: &'static str,
     //images
 }
@@ -73,9 +74,20 @@ pub struct ImageCategories{
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ImageCategories2{
+    pub id: Uuid,
     pub image_url: String,
     pub is_main: bool,
-    pub display_order: i32
+    pub display_order: i32,
+    /// Las variaciones en las que sale; vacío: en todas.
+    #[serde(default)]
+    pub variation_ids: Vec<Uuid>,
+}
+
+impl ImageCategories2 {
+    /// Para `data-variations` de la galería (image-variations.js).
+    pub fn variation_ids_csv(&self) -> String {
+        self.variation_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",")
+    }
 }
 
 

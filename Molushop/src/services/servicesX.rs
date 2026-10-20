@@ -1134,9 +1134,14 @@ pub async fn get_product_with_images1(product_id: &Uuid, pool:&DbPool)->Result<P
     let results = sql_query(r#"
         select p.*,
             json_agg(json_build_object(
+                'id', i.id,
                 'image_url', i.image_url,
                 'is_main', i.is_main,
-                'display_order', i.display_order
+                'display_order', i.display_order,
+                -- Las variaciones en las que sale (ninguna: en todas)
+                'variation_ids', COALESCE(
+                    (SELECT json_agg(ipv.variation_id) FROM images_product_variations ipv WHERE ipv.image_id = i.id),
+                    '[]'::json)
             )) FILTER (WHERE i.id IS NOT NULL) as images_product
         FROM products p
         LEFT JOIN images_product i on p.id = i.product_id
