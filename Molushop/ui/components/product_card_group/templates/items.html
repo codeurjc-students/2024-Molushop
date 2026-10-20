@@ -1,0 +1,16 @@
+{# Las tarjetas del grupo. "Cargar más" sustituye su propio hueco por la
+   tanda siguiente (ProductCardGroupPage), que trae a su vez el botón de la
+   siguiente si quedan más. #}
+{% for product in products %}
+    <div class="product-card-container">
+        {% include "components/product_card/templates/product_card.html" %}
+    </div>
+{% endfor %}
+{% if let Some(url) = more_url %}
+<div class="product-card-more">
+    <button type="button" class="m-btn m-btn--secondary"
+        hx-get="{{url}}"
+        hx-target="closest .product-card-more"
+        hx-swap="outerHTML">Cargar más productos</button>
+</div>
+{% endif %}

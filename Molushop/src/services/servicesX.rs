@@ -1071,7 +1071,8 @@ pub async fn revoke_session(jti_x:&String, user_id_x:&Uuid, pool:&DbPool)-> Resu
         .execute(connection).await
 }
 
-pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
+/// Las tarjetas de la portada, de `limit` en `limit` ("Cargar más").
+pub async fn get_product_cards1(limit: i64, offset: i64, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
     let connection = &mut pool.get().await.unwrap();
     let results = sql_query(r#"
         select p.id,
@@ -1108,8 +1109,13 @@ pub async fn get_product_cards1(pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
         join product_seller ps on p.id=ps.product_id
         join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
-        order by p.name;
+        -- p.id desempata: sin él, dos productos con el mismo nombre podrían
+        -- salir en dos tandas o en ninguna.
+        order by p.name, p.id
+        limit $1 offset $2;
     "#)
+        .bind::<diesel::sql_types::BigInt, _>(limit)
+        .bind::<diesel::sql_types::BigInt, _>(offset)
         .load::<ProductCard1>(connection).await?;
     Ok(results)
 }
