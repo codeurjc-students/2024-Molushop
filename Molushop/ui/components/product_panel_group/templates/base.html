@@ -1,5 +1,19 @@
 <div class="c-product-panel-group products-list">
+    {# Buscador: filtra las tarjetas en el navegador por nombre y por SKU
+       (script.js). Va dentro del grupo para que se vaya con él al abrir
+       "Editar", que sustituye el grupo por el editor. #}
+    {% if products.len() > 0 %}
+    <div class="ppg-search">
+        <label class="m-field ppg-search__field">
+            <span class="m-label">Buscar</span>
+            <input type="search" class="m-input" data-product-search autocomplete="off"
+                placeholder="Nombre o SKU" aria-describedby="ppg-search-count">
+        </label>
+        <p class="m-hint ppg-search__count" id="ppg-search-count" aria-live="polite" data-search-count></p>
+    </div>
+    {% endif %}
     {% for product in products %}
         {% include "components/product_panel_element/templates/base.html" %}
     {% endfor %}
+    <p class="m-hint ppg-search__empty" data-search-empty hidden>Ningún producto coincide con la búsqueda.</p>
 </div>

@@ -1,4 +1,5 @@
-<div class="c-product-panel-element product-card" id="card-{{product.id}}">
+<div class="c-product-panel-element product-card" id="card-{{product.id}}"
+    data-search-name="{{product.name}}" data-search-skus="{{product.skus()}}">
     <div class="product-main">
         {% if let Some(image_url) = product.image_url %}
             <img src="{{image_url}}" alt="{{product.name}}" class="product-image" loading="lazy">
@@ -17,7 +18,8 @@
             {% if let Some(store) = product.store_name %}
                 <p class="product-store">Tienda: {{store}}</p>
             {% endif %}
-            <!-- <p>SKU: CAM-001</p> -->
+            {# Si la búsqueda encaja por SKU, cuáles (script.js de product_panel_group) #}
+            <p class="m-hint product-sku-match" data-sku-match hidden></p>
             {% for cat in product.categories %}
                 <p>{{cat}}</p>
             {% endfor %}

@@ -103,3 +103,34 @@
 .hidden{
     display: none;
 }
+
+/* Buscador del listado */
+.ppg-search {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-2) var(--space-4);
+}
+
+.ppg-search__field {
+    flex: 1 1 280px;
+    max-width: 420px;
+}
+
+.ppg-search__count {
+    margin: 0 0 var(--space-2);
+}
+
+.ppg-search__empty {
+    padding: var(--space-4) 0;
+}
+
+/* Las tarjetas que no encajan: [hidden] pierde contra un display propio */
+.c-product-panel-element[hidden] {
+    display: none;
+}
+
+.product-sku-match {
+    margin: var(--space-1) 0;
+    font-family: ui-monospace, monospace;
+}

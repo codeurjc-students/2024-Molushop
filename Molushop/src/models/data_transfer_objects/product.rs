@@ -34,6 +34,16 @@ pub struct Product{
 
 impl Product {
     /// Filtros, tabla y matriz de sus variaciones (listado del panel).
+    /// Los SKU de sus variaciones separados por espacios (un SKU no lleva
+    /// ninguno), para el buscador del listado.
+    pub fn skus(&self) -> String {
+        self.variations.iter()
+            .filter(|v| !v.sku.is_empty())
+            .map(|v| v.sku.as_str())
+            .collect::<Vec<_>>()
+            .join(" ")
+    }
+
     pub fn variations_explorer(&self) -> VariationsExplorer<'_> {
         VariationsExplorer { product: self, edit: None }
     }
