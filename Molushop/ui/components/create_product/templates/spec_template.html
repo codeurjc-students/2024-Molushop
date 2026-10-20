@@ -1,0 +1,11 @@
+{# Fila de una spec propia, para "+ Añadir spec" (create_product/js/functions.js).
+   La usan el alta y la pestaña Especificaciones de Editar producto. El valor no
+   lleva `name` hasta que la spec tiene nombre: sin él, el navegador no lo manda
+   y no llega una spec sin nombre. #}
+<template class="tpl-spec">
+    <div class="cp-row spec-custom">
+        <input class="m-input" type="text" data-field="spec-key" placeholder="Nombre (p. ej. Peso)" aria-label="Nombre de la spec">
+        <input class="m-input" type="text" data-field="spec-value" placeholder="Valor" aria-label="Valor de la spec">
+        <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-specs="remove-spec" aria-label="Quitar spec">×</button>
+    </div>
+</template>

@@ -19,6 +19,8 @@ use crate::services::servicesX::{edit_product_general,update_image, update_multi
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction};
 use crate::services::image_variations_service::set_image_variations;
 use crate::services::product_images_service::set_main_image;
+use crate::services::product_specs_service::save_specs;
+use crate::models::error::ServiceError;
 use crate::services::sku_service::{save_skus, SaveSkus};
 use crate::utils::hx::trigger_json;
 type DbPool = Pool<AsyncPgConnection>;
@@ -47,6 +49,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         bulk_skus: Box::leak(format!("{}{}/bulk-skus",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         image_variations: Box::leak(format!("{}{}/image-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         main_image: Box::leak(format!("{}{}/main-image",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_specs: Box::leak(format!("{}{}/edit-specs",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -63,6 +66,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(bulk_variations)
         .service(image_variations)
         .service(main_image)
+        .service(edit_specs)
         .service(bulk_skus)
         .service(delete_all_imgs)
         .service(edit_images);
@@ -222,6 +226,33 @@ async fn bulk_skus(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,for
         Err(e) => {
             println!("Panel: error al guardar los SKU de {}: {}", product_id, e);
             HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha guardado nada"))
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct SpecsForm{
+    /// `specs[Peso]=...` del formulario (json-enc-custom). Sin ninguna, el
+    /// formulario no manda la clave: se quedan todas borradas.
+    #[serde(default)]
+    pub specs: serde_json::Value,
+}
+
+/// Pestaña Especificaciones. Siempre 200 con el aviso (htmx no pinta 4xx/5xx).
+#[post("/edit-specs/{product_id}")]
+async fn edit_specs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Json<SpecsForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
+    let product_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+    let modal = |text: &str| HttpResponse::Ok().body(MessageModal::new(text).render().unwrap());
+    match save_specs(&product_id, &form.specs, pool).await {
+        Ok(()) => modal("Especificaciones guardadas"),
+        Err(ServiceError::InvalidSpecs) => modal("Las especificaciones no tienen un formato válido: no se ha guardado nada"),
+        Err(e) => {
+            println!("Panel: error al guardar las specs de {}: {}", product_id, e);
+            modal("Ha ocurrido un error: no se ha guardado nada")
         }
     }
 }

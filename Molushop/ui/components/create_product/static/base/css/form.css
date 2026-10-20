@@ -17,13 +17,15 @@ margin-top: var(--space-5);
 }
 
 /* ---- Secciones del alta (Specs, Variaciones) ----
+   También en la pestaña Especificaciones de Editar producto (por eso no van
+   dentro de .select-cat): solo las usan esas dos pantallas.
    cp-section   caja gris con título (legend) y ayuda (m-hint)
    cp-item      caja blanca dentro de una sección
    cp-list      columna de cajas o de filas
    cp-row       fila "campo(s) + ×"
    cp-actions   fila de botones */
 
-.select-cat .cp-section {
+.cp-section {
 margin-left: 0;
 margin-right: 0;
 padding: var(--space-5);
@@ -36,7 +38,7 @@ min-width: 0;
 
 /* Flotando, la leyenda deja de ir encima del borde y se coloca dentro del
    relleno, como cualquier otro título. */
-.select-cat .cp-section__title {
+.cp-section__title {
 float: left;
 width: 100%;
 padding: 0;
@@ -45,19 +47,19 @@ font-size: var(--font-size-xl);
 font-weight: var(--font-weight-bold);
 }
 
-.select-cat .cp-section__title + * {
+.cp-section__title + * {
 clear: both;
 }
 
-.select-cat .cp-section > * + * {
+.cp-section > * + * {
 margin-top: var(--space-4);
 }
 
-.select-cat .cp-section > .m-hint {
+.cp-section > .m-hint {
 margin-top: var(--space-1);
 }
 
-.select-cat .cp-item {
+.cp-item {
 display: flex;
 flex-direction: column;
 gap: var(--space-4);
@@ -71,11 +73,11 @@ animation: fadeIn 0.3s ease;
 }
 
 /* Sin specs de la categoría ni propias no se pinta la caja vacía */
-.select-cat .cp-item:not(:has(*)) {
+.cp-item:not(:has(*)) {
 display: none;
 }
 
-.select-cat .cp-list {
+.cp-list {
 display: flex;
 flex-direction: column;
 gap: var(--space-2);
@@ -86,22 +88,22 @@ gap: var(--space-4);
 }
 
 /* La lista de variaciones vacía no deja hueco antes del botón */
-.select-cat .cp-list:empty {
+.cp-list:empty {
 display: none;
 }
 
-.select-cat .cp-row {
+.cp-row {
 display: flex;
 gap: var(--space-2);
 animation: fadeIn 0.3s ease;
 }
 
-.select-cat .cp-row .m-input {
+.cp-row .m-input {
 flex: 1;
 min-width: 0;
 }
 
-.select-cat .cp-actions {
+.cp-actions {
 display: flex;
 flex-wrap: wrap;
 gap: var(--space-2);
@@ -113,7 +115,7 @@ gap: var(--space-2);
     padding: 1rem;
 }
 
-.select-cat .cp-actions {
+.cp-actions {
     flex-direction: column;
 }
 }

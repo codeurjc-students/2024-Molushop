@@ -21,15 +21,7 @@
                 <button type="button" class="m-btn m-btn--secondary" data-specs="add-spec">+ Añadir spec</button>
             </div>
 
-            {# El valor no lleva `name` hasta que la spec tiene nombre (js/functions.js):
-               sin él, el navegador no lo manda y no llega una spec sin nombre. #}
-            <template class="tpl-spec">
-                <div class="cp-row spec-custom">
-                    <input class="m-input" type="text" data-field="spec-key" placeholder="Nombre (p. ej. Peso)" aria-label="Nombre de la spec">
-                    <input class="m-input" type="text" data-field="spec-value" placeholder="Valor" aria-label="Valor de la spec">
-                    <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-specs="remove-spec" aria-label="Quitar spec">×</button>
-                </div>
-            </template>
+            {% include "components/create_product/templates/spec_template.html" %}
         </fieldset>
 
         <div class="m-field">

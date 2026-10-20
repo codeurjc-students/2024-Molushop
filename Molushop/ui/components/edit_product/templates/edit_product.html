@@ -45,6 +45,7 @@
     <nav class="sidebar">
         <ul class="nav-list">
             <li class="nav-item active" data-tab="pe-general">General</li>
+            <li class="nav-item" data-tab="pe-specs">Especificaciones</li>
             <li class="nav-item" data-tab="pe-images">Imágenes</li>
             <li class="nav-item" data-tab="pe-variations">Variaciones ({{panel_product.variations.len()}})</li>
         </ul>
@@ -86,6 +87,45 @@
             </form>
         </div>
     
+        <!-- Pestaña Especificaciones: las secciones cp-* y el JS de las specs
+             son los del alta (create_product: form.css, functions.js) -->
+        <div class="tab-pane" id="pe-specs">
+            <form class="specs-form"
+                hx-post="{{routes.edit_specs}}/{{product.id}}"
+                hx-target="body"
+                hx-swap="beforeend"
+                hx-ext="json-enc-custom">
+                <fieldset class="cp-section specs">
+                    <legend class="cp-section__title">Especificaciones</legend>
+                    <p class="m-hint">Opcionales: las que dejes en blanco se quitan al guardar.</p>
+                    <div class="cp-item specs-list">
+                        {% for (key, value) in product.specs.category %}
+                        <div class="m-field">
+                            <label class="m-label" for="pe-spec-{{loop.index0}}">{{key}}</label>
+                            <input class="m-input" type="text" id="pe-spec-{{loop.index0}}" name="specs[{{key}}]" value="{{value}}">
+                        </div>
+                        {% endfor %}
+                        {# Las propias: el nombre se puede cambiar (functions.js le pone
+                           al valor el `name` nuevo al escribirlo) #}
+                        {% for (key, value) in product.specs.custom %}
+                        <div class="cp-row spec-custom">
+                            <input class="m-input" type="text" data-field="spec-key" value="{{key}}" aria-label="Nombre de la spec">
+                            <input class="m-input" type="text" data-field="spec-value" name="specs[{{key}}]" value="{{value}}" aria-label="Valor de {{key}}">
+                            <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-specs="remove-spec" aria-label="Quitar {{key}}">×</button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="cp-actions">
+                        <button type="button" class="m-btn m-btn--secondary" data-specs="add-spec">+ Añadir spec</button>
+                    </div>
+                    {% include "components/create_product/templates/spec_template.html" %}
+                </fieldset>
+                <div class="form-actions">
+                    <button type="submit" class="m-btn m-btn--primary">Guardar especificaciones</button>
+                </div>
+            </form>
+        </div>
+
         <!-- Pestaña Images -->
         <div class="tab-pane" id="pe-images">
             <form 

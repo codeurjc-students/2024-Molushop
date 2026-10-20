@@ -63,11 +63,14 @@ pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,
         }
     };*/
 
+    let specs = crate::services::product_specs_service::get_specs(product_id, pool).await?;
+
     let product_edit = ProductEdit2{
         id: product_id.clone(),
         general,
         images,
-        variations: variations_x
+        variations: variations_x,
+        specs,
     };
 
     Ok(product_edit)

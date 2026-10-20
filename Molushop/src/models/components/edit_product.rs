@@ -23,6 +23,7 @@ pub struct Routes{
     pub bulk_skus: &'static str,
     pub image_variations: &'static str,
     pub main_image: &'static str,
+    pub edit_specs: &'static str,
     //pub delete_product_modal: &'static str,
     //images
 }
@@ -41,7 +42,17 @@ pub struct ProductEdit2{
     pub id: Uuid,
     pub general: General,
     pub images: Vec<ImageCategories2>,
-    pub variations: Variations
+    pub variations: Variations,
+    pub specs: Specs,
+}
+
+/// Especificaciones para la pestaña: (nombre, valor; vacío si no tiene).
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Specs{
+    /// Las que propone la categoría, en su orden: campo con etiqueta.
+    pub category: Vec<(String, String)>,
+    /// Las demás: fila con nombre y valor, que se puede renombrar o quitar.
+    pub custom: Vec<(String, String)>,
 }
 
 impl Routes {
