@@ -173,11 +173,17 @@
 
     // ---- Filas: lo que cambia al guardar ----
 
-    // Copia en la fila lo guardado (status, stock y/o price; el que no venga se
+    // Copia en la fila lo guardado (status, stock, price y/o sku; el que no venga se
     // queda) y recalcula su estado como VariationsExplorer::state_class. No
     // refresca filtros ni matriz: quien llama hace refresh() al terminar.
     function updateRow(row, data) {
         if (data.status !== undefined) row.dataset.status = data.status;
+        if (data.sku !== undefined) {
+            row.dataset.sku = data.sku;
+            const cell = row.querySelector('td.sku');
+            if (data.sku) cell.textContent = data.sku;
+            else cell.replaceChildren(el('span', 've-none', '—'));
+        }
         if (data.stock !== undefined) {
             row.dataset.stock = data.stock;
             row.querySelector('td.num').textContent = data.stock;

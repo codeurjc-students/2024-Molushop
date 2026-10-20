@@ -37,7 +37,8 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
         //el nombre tiene que ser la combianción de atributos
         name,
         attributes,
-        status : product_var.status
+        status : product_var.status,
+        sku: product_var.sku.unwrap_or_default(),
     };
     //obtener el precio actual de la variación a partir de el id de la variación y de su moneda, en este caso EUR
     let currency = String::from("EUR");

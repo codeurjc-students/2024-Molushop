@@ -730,19 +730,6 @@ pub async fn delete_variation_identifier(var_id:&Uuid,name:&String,pool:&DbPool)
     Ok(99)
 }
 
-pub async fn update_variation_status(var_id:&Uuid,status_value:&i16,pool:&DbPool)-> Result<usize,Error>{
-    use crate::schema::product_variations::dsl::*;
-
-    let connection = &mut pool.get().await.unwrap();
-
-    let result = update(product_variations)
-        .filter(id.eq(var_id))
-        .set(status.eq(status_value))
-        .execute(connection)
-        .await;
-    result
-    
-}
 use crate::models::components::edit_product_variation_model::PriceData;
 use crate::models::models_x::{NewDiscount,NewDiscountHistory};
 pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: &BigDecimal,currency_insert: &String,pool:&DbPool)-> Result<usize,Error>{

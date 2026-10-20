@@ -17,7 +17,8 @@ type DbPool = Pool<AsyncPgConnection>;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::variation_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{set_variation_identifiers,update_variation_status,update_price_variation,set_stock_variation};
+use crate::services::servicesX::{set_variation_identifiers,update_price_variation,set_stock_variation};
+use crate::services::sku_service::{normalize_sku, save_variation_general, SaveGeneral};
 
 use std::sync::Arc;
 use crate::services::aws::s3::client::Client;
@@ -126,7 +127,9 @@ pub struct GeneralForm{
     // formulario no manda ningún `attributes[...]` y la clave ni aparece en el JSON.
     #[serde(default)]
     pub attributes: Vec<AttributeForm>,
-    pub status: String 
+    pub status: String,
+    #[serde(default)]
+    pub sku: String,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AttributeForm{
@@ -143,32 +146,36 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
     if let Err(resp) = variation_access(&panel_user, &id_variation, pool).await {
         return resp;
     }
-let new_status:i16 =  form_general.status.parse().unwrap_or(0);
-    println!("{}",new_status);
-    let result1 = update_variation_status(&id_variation,&new_status,&pool).await;
-    let mut render:String=String::new();
-    match result1{
-        Ok(_)=>{
-            render = MessageModal::new("Variación guardada").render().unwrap();
-        },
-        Err(e)=>{
+    // Los avisos van con 200: htmx no pinta las respuestas 4xx/5xx.
+    let modal = |text: &str| HttpResponse::Ok().body(MessageModal::new(text).render().unwrap());
+    let new_status:i16 =  form_general.status.parse().unwrap_or(0);
+    let sku = match normalize_sku(&form_general.sku) {
+        Ok(sku) => sku,
+        Err(text) => return modal(text),
+    };
+    match save_variation_general(&id_variation, new_status, sku.clone(), pool).await {
+        Ok(SaveGeneral::Saved) => {
+            let trigger_value = json!(
+                {
+                    "variation_update": {
+                        "target": ".variation-edit-container",
+                        "status": form_general.status,
+                        "sku": sku.unwrap_or_default()
+                    }
+                }
+            );
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger",trigger_value.to_string()))
+                .body(MessageModal::new("Variación guardada").render().unwrap())
+        }
+        Ok(SaveGeneral::SkuTaken(holder)) => {
+            modal(&format!("Ese SKU ya lo usa {}: no se ha guardado nada", holder))
+        }
+        Err(e) => {
             println!("Ha ocurrido un error: {}",e);
-            render = MessageModal::new("Algo ha ido mal").render().unwrap();
+            modal("Algo ha ido mal: no se ha guardado nada")
         }
     }
-    let status_value = form_general.status;
-    let trigger_value = json!(
-        {
-            "variation_update": {
-                "target": ".variation-edit-container",
-                "status": status_value
-            }
-        }
-    );
-
-    HttpResponse::Ok()
-        .insert_header(("HX-Trigger",trigger_value.to_string()))
-        .body(render)
     //aqui añadir headers a la respuesta
     /* 
     println!("{:?}",form_general);

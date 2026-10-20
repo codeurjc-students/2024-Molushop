@@ -99,6 +99,15 @@
     font-variant-numeric: tabular-nums;
 }
 
+.ve-table td.sku {
+    font-family: ui-monospace, monospace;
+    white-space: nowrap;
+}
+
+.ve-none {
+    color: var(--color-text-muted);
+}
+
 /* Lo que no se vende se atenúa; activa sin stock, el stock en ámbar */
 .ve-table tr.is-draft td,
 .ve-table tr.is-inactive td {

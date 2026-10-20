@@ -65,6 +65,15 @@
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
+                {# Las reglas las comprueba el servidor (sku_service::normalize_sku);
+                   pattern y maxlength solo avisan antes de mandar #}
+                <div class="m-field form-group">
+                    <label class="m-label" for="ev-sku-{{variation.id}}">SKU</label>
+                    <input id="ev-sku-{{variation.id}}" class="m-input" name="sku" type="text" value="{{general.sku}}"
+                        maxlength="64" pattern="[A-Za-z0-9._\-]*" autocomplete="off" spellcheck="false"
+                        placeholder="CORT-VER-S">
+                    <p class="m-hint">Opcional. El código interno de tu tienda para esta variación; no se puede repetir en la tienda. Letras sin tilde, números, - _ y .</p>
+                </div>
                 <div class="form-actions">
                     <button type="submit" class="m-btn m-btn--primary">Guardar</button>
                 </div>

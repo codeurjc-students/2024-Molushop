@@ -34,7 +34,8 @@ impl IdentifierBase{
                 delete_identifier:""
 
             },
-            name_options: vec!["SKU".to_string(), "EAN".to_string(), "UPC".to_string(), 
+            // Sin "SKU": tiene su propio campo en la pestaña General
+            name_options: vec!["EAN".to_string(), "UPC".to_string(),
             "ISBN".to_string(), "MPN".to_string(), "GTIN".to_string()]
         }
     }
@@ -52,7 +53,7 @@ impl IdentifierBase{
 
             },
             name_options: get_identifier_options_var(pool).await.unwrap_or_else(|_| vec![
-                "SKU".to_string(), "EAN".to_string(), "UPC".to_string()])
+                "EAN".to_string(), "UPC".to_string()])
         }
     }
 }

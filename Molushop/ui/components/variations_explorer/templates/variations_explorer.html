@@ -78,6 +78,7 @@
             <thead>
                 <tr>
                     {% for title in titles() %}<th scope="col">{{title}}</th>{% endfor %}
+                    <th scope="col">SKU</th>
                     <th scope="col">Precio</th>
                     <th scope="col" class="num">Stock</th>
                     <th scope="col">Estado</th>
@@ -87,11 +88,12 @@
             <tbody>
                 {% for pv in sorted_variations() %}
                 <tr class="{{state_class(pv)}}" data-state="{{state_class(pv)}}"{% if bulk_url.is_some() %} id="var-row-{{pv.id}}"{% endif %}
-                    data-status="{{pv.status}}" data-stock="{{pv.stock}}"
+                    data-status="{{pv.status}}" data-stock="{{pv.stock}}" data-sku="{{pv.sku}}"
                     data-price="{% if let Some(price) = pv.price %}{{price}}{% endif %}" data-symbol="{{pv.price_tag().symbol()}}"
                     {% for value in all_values(pv) %} data-a{{loop.index0}}="{{value}}"{% endfor %}>
                     {# data-label: en móvil, la etiqueta de cada valor en su tarjeta #}
                     {% for value in all_values(pv) %}<td class="attr" data-label="{{title(loop.index0)}}">{{value}}</td>{% endfor %}
+                    <td class="sku" data-label="SKU">{% if pv.sku.is_empty() %}<span class="ve-none">—</span>{% else %}{{pv.sku}}{% endif %}</td>
                     <td class="price" data-label="Precio">{{pv.price_tag()}}</td>
                     <td class="num" data-label="Stock">{{pv.stock}}</td>
                     <td class="state"><span class="m-badge m-badge--{{status_variant(pv)}}">{{status_label(pv)}}</span></td>

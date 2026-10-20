@@ -46,6 +46,8 @@ pub struct General{
     pub name: String,
     pub attributes: Vec<Attribute>,
     pub status: i16,
+    /// Vacío si no tiene.
+    pub sku: String,
     //images
 }
 

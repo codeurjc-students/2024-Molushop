@@ -131,6 +131,7 @@ mod tests {
             currency: "EUR".to_string(),
             stock,
             status,
+            sku: String::new(),
             variation: attrs.iter()
                 .map(|(n, v)| Variation { name: n.to_string(), value: v.to_string() })
                 .collect(),

@@ -56,6 +56,8 @@ pub struct ProductVariation{
     pub currency: String,
     pub stock: i32,
     pub status: i16,
+    /// Vacío si no tiene.
+    pub sku: String,
     pub variation: Vec<Variation>
     //images
 }
@@ -76,6 +78,7 @@ impl ProductVariation{
             currency: currency.to_string(),
             stock: otro_pv.stock,
             status: otro_pv.status,
+            sku: otro_pv.sku.clone().unwrap_or_default(),
             variation: vars
         }
     }
