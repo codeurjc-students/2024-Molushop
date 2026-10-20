@@ -408,10 +408,19 @@
             field.hidden = field.dataset.bulkFor !== action;
         });
         root.querySelector('[data-bulk-error]').hidden = true;
+        // El prefijo propuesto sale del nombre del producto (CORT para Cortina)
+        const prefix = root.querySelector('[data-sku-prefix]');
+        if (action === 'generate_sku' && prefix && !prefix.value) {
+            prefix.value = skuPart(prefix.dataset.productName).slice(0, 4);
+        }
     }
 
     function submitBulk(root, form) {
         const action = form.querySelector('[data-bulk-action]').value;
+        if (action === 'generate_sku') {
+            generateSkus(root, form);
+            return;
+        }
         const field = form.querySelector(`[data-bulk-for="${action}"]`);
         const input = field.querySelector('select, input');
         const value = input.value.trim();
@@ -461,10 +470,121 @@
         return null;
     }
 
+    // ---- Generar SKU (barra de edición en bloque) ----
+    // PREFIJO-VALOR-VALOR… con cada valor abreviado. Se guardan con el mismo
+    // endpoint que la columna SKU, que vuelve a comprobarlo todo y además mira
+    // los demás productos de la tienda.
+
+    // Sin tildes, en mayúsculas y solo letras y números
+    function skuPart(value) {
+        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    }
+
+    function cleanPrefix(value) {
+        return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9._-]/g, '');
+    }
+
+    // Abreviatura de cada valor de un atributo: los que llevan números van
+    // enteros (256GB, 42); los demás, 3 letras, o más si dos valores darían lo
+    // mismo (Marrón y Marino: MARR y MARI).
+    function abbreviations(values) {
+        const parts = values.map(skuPart);
+        const longest = Math.max(0, ...parts.map((part) => part.length));
+        for (let n = 3; ; n++) {
+            const cut = parts.map((part) => /\d/.test(part) ? part : part.slice(0, n));
+            if (new Set(cut).size === cut.length || n >= longest) {
+                return new Map(values.map((value, i) => [value, cut[i]]));
+            }
+        }
+    }
+
+    function generateSkus(root, form) {
+        const error = form.querySelector('[data-bulk-error]');
+        const fail = (message, focus) => {
+            error.textContent = message;
+            error.hidden = false;
+            focus?.focus();
+        };
+        error.hidden = true;
+        if (root.classList.contains('is-editing-skus')) {
+            return fail('Guarda o cancela antes los SKU que estás editando en la tabla.');
+        }
+        const prefixInput = form.querySelector('[data-sku-prefix]');
+        const prefix = cleanPrefix(prefixInput.value);
+        prefixInput.value = prefix;
+        if (!prefix) return fail('Indica un prefijo, por ejemplo las primeras letras del producto.', prefixInput);
+
+        const onlyEmpty = form.querySelector('[data-sku-only-empty]').checked;
+        const rows = variationRows(root).filter((row) => !row.hidden && (!onlyEmpty || !row.dataset.sku));
+        if (rows.length === 0) {
+            return fail(onlyEmpty ? 'Todas las variaciones filtradas ya tienen SKU.' : 'Ninguna variación cumple los filtros.');
+        }
+
+        // Los valores de cada atributo salen de su filtro: así la abreviatura
+        // tiene en cuenta todos, no solo los de las filas filtradas.
+        const attrs = [...root.querySelectorAll('[data-filter-attr]')].map((select) => ({
+            index: select.dataset.filterAttr,
+            abbr: abbreviations([...select.options].slice(1).map((option) => option.value)),
+        }));
+        const plan = rows.map((row) => ({
+            row,
+            old: row.dataset.sku,
+            sku: [prefix, ...attrs.map((attr) => attr.abbr.get(row.dataset['a' + attr.index]))].filter(Boolean).join('-'),
+        }));
+
+        // Choques que ya se ven aquí: dentro de lo generado y con las demás
+        // filas de la tabla, que conservan su SKU.
+        const kept = new Set(variationRows(root).filter((row) => !rows.includes(row)).map((row) => row.dataset.sku).filter(Boolean));
+        const count = new Map();
+        plan.forEach(({ sku }) => count.set(sku, (count.get(sku) || 0) + 1));
+        plan.forEach((item) => {
+            if (item.sku.length > 64) item.problem = 'Pasa de 64 caracteres';
+            else if (count.get(item.sku) > 1) item.problem = 'Sale repetido';
+            else if (kept.has(item.sku)) item.problem = 'Ya lo tiene otra variación';
+        });
+        previewSkus(root, plan);
+    }
+
+    function previewSkus(root, plan) {
+        const problems = plan.filter((item) => item.problem).length;
+        const n = plan.length === 1 ? '1 variación' : plan.length + ' variaciones';
+        const content = el('div', 've-sku-preview');
+        content.append(el('p', null, problems === 0
+            ? `Se pondrá SKU a ${n}. Al guardar se comprueba también contra los demás productos de la tienda.`
+            : `Hay ${problems} SKU que chocan (en rojo): cambia el prefijo o los filtros y vuelve a generar.`));
+
+        const table = el('table', 've-table ve-sku-preview__table');
+        const head = table.createTHead().insertRow();
+        ['Variación', 'SKU actual', 'SKU nuevo'].forEach((title) => head.append(el('th', null, title)));
+        const body = table.createTBody();
+        plan.forEach((item) => {
+            const tr = body.insertRow();
+            if (item.problem) tr.className = 'is-problem';
+            tr.append(el('td', null, rowLabel(item.row)));
+            tr.append(el('td', 'sku', item.old || '—'));
+            const cell = el('td', 'sku', item.sku);
+            if (item.problem) cell.append(el('span', 've-sku-preview__problem', item.problem));
+            tr.append(cell);
+        });
+        const scroll = el('div', 've-scroll ve-sku-preview__scroll');
+        scroll.append(table);
+        content.append(scroll);
+
+        confirmBulk(content, () => {
+            htmx.ajax('POST', root.querySelector('.ve-sku-bar').dataset.skuUrl, {
+                source: root,
+                target: 'body',
+                swap: 'beforeend',
+                values: { changes: JSON.stringify(plan.map(({ row, sku }) => ({ id: row.id.replace('var-row-', ''), sku }))) },
+            });
+        }, { yes: plan.length === 1 ? 'Guardar 1 SKU' : `Guardar ${plan.length} SKU`, disabled: problems > 0 });
+    }
+
     // Modal de confirmación con el átomo m-modal (la misma estructura que
     // ui/components/modal/templates/shell.html). Se monta aquí y no lo pinta el
-    // servidor porque el texto depende de los filtros.
-    function confirmBulk(text, onConfirm) {
+    // servidor porque el texto depende de los filtros. `content`: un texto o
+    // un nodo ya montado (la vista previa de Generar SKU).
+    function confirmBulk(content, onConfirm, options = {}) {
         const modal = el('div', 'm-modal');
         modal.setAttribute('role', 'dialog');
         modal.setAttribute('aria-modal', 'true');
@@ -473,10 +593,11 @@
         closeButton.type = 'button';
         closeButton.setAttribute('aria-label', 'Cerrar');
         const body = el('div', 'm-modal__body');
-        body.append(el('p', null, text));
+        body.append(typeof content === 'string' ? el('p', null, content) : content);
         const actions = el('div', 'm-modal__actions');
         const no = el('button', 'm-btn m-btn--secondary', 'Cancelar');
-        const yes = el('button', 'm-btn m-btn--primary', 'Sí, cambiar');
+        const yes = el('button', 'm-btn m-btn--primary', options.yes || 'Sí, cambiar');
+        yes.disabled = Boolean(options.disabled);
         no.type = yes.type = 'button';
         actions.append(no, yes);
         dialog.append(closeButton, body, actions);

@@ -46,6 +46,7 @@
                 <option value="set_stock">Fijar stock</option>
                 <option value="add_stock">Sumar o restar stock</option>
                 <option value="price">Fijar precio (€)</option>
+                <option value="generate_sku">Generar SKU</option>
             </select>
         </label>
         <label class="ve-field" data-bulk-for="status">
@@ -67,6 +68,17 @@
         <label class="ve-field" data-bulk-for="price" hidden>
             <span class="m-label">Precio (€)</span>
             <input type="number" class="m-input m-input--sm" min="0" step="0.01" inputmode="decimal">
+        </label>
+        {# Generar SKU: no va al endpoint de la edición en bloque; el JS los
+           calcula, enseña la vista previa y los guarda como la columna SKU #}
+        <label class="ve-field" data-bulk-for="generate_sku" hidden>
+            <span class="m-label">Prefijo</span>
+            <input type="text" class="m-input m-input--sm" maxlength="20" autocomplete="off" spellcheck="false"
+                data-sku-prefix data-product-name="{{product.name}}">
+        </label>
+        <label class="m-check ve-field" data-bulk-for="generate_sku" hidden>
+            <input type="checkbox" data-sku-only-empty checked>
+            Solo las que no tienen SKU
         </label>
         <button type="submit" class="m-btn m-btn--primary m-btn--sm">Aplicar a <span data-count>{{total()}}</span></button>
         <p class="m-error ve-bulk__error" data-bulk-error hidden></p>

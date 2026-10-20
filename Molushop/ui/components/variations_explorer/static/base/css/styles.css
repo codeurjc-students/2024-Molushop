@@ -385,3 +385,28 @@
 .c-variations-explorer.is-editing-skus .ve-action .m-btn {
     visibility: hidden;
 }
+
+/* Vista previa de Generar SKU (va en el modal, fuera del explorador) */
+.ve-sku-preview p {
+    margin: 0 0 var(--space-3);
+}
+
+.ve-sku-preview__scroll {
+    max-height: 50vh;
+    overflow-y: auto;
+}
+
+.ve-sku-preview__table td.sku {
+    font-family: ui-monospace, monospace;
+    white-space: nowrap;
+}
+
+.ve-sku-preview__table tr.is-problem td {
+    color: var(--color-danger);
+}
+
+.ve-sku-preview__problem {
+    display: block;
+    font-family: inherit;
+    font-size: var(--font-size-xs);
+}
