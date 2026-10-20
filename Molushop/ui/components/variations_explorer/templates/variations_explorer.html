@@ -36,6 +36,12 @@
     </div>
 
     {% if let Some(urls) = edit %}
+    {# Cuántas no tienen SKU: lo cuenta el JS con las filas (cambia al guardar)
+       y "Generar" abre el generador para todas las que faltan #}
+    <p class="m-alert m-alert--info ve-sku-missing" role="status" data-sku-missing hidden>
+        <span data-sku-missing-text></span>
+        <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-sku-generate>Generar</button>
+    </p>
     {# Edición en bloque: se aplica a las filas que dejan ver los filtros. El
        JS (script.js) pide confirmación y manda los ids. #}
     <form class="ve-bulk" data-bulk-url="{{urls.bulk}}/{{product.id}}" novalidate>

@@ -85,6 +85,7 @@
         const bulkButton = root.querySelector('.ve-bulk [type="submit"]');
         if (bulkButton) bulkButton.disabled = shown === 0;
         root.querySelector('.ve-empty').hidden = shown > 0;
+        updateSkuMissing(root);
 
         renderMatrix(root, rows);
     }
@@ -280,7 +281,33 @@
             if (row) row.dataset.sku = data.sku;
         });
         stopSkuEdit(root);
+        refreshExplorer(root);
     });
+
+    // El aviso "N variaciones sin SKU · Generar": abre el generador para todas
+    // las que faltan (quita los filtros y marca "Solo las que no tienen SKU").
+    document.addEventListener('click', (event) => {
+        if (!event.target.closest('[data-sku-generate]')) return;
+        const root = event.target.closest('.c-variations-explorer');
+        root.querySelectorAll('[data-filter-attr]').forEach((select) => { select.value = ''; });
+        root.querySelectorAll('[data-filter-state]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+        refreshExplorer(root);
+        const form = root.querySelector('.ve-bulk');
+        form.querySelector('[data-bulk-action]').value = 'generate_sku';
+        showBulkField(root);
+        form.querySelector('[data-sku-only-empty]').checked = true;
+        form.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        form.querySelector('[data-sku-prefix]').focus();
+    });
+
+    function updateSkuMissing(root) {
+        const notice = root.querySelector('[data-sku-missing]');
+        if (!notice) return;
+        const n = variationRows(root).filter((row) => !row.dataset.sku).length;
+        notice.hidden = n === 0;
+        notice.querySelector('[data-sku-missing-text]').textContent =
+            n === 1 ? '1 variación no tiene SKU.' : `${n} variaciones no tienen SKU.`;
+    }
 
     document.addEventListener('variations_skus_problems', (event) => {
         const root = event.target.closest?.('.c-variations-explorer');
