@@ -294,6 +294,7 @@ diesel::table! {
         status -> Int2,
         stock -> Int4,
         images -> Nullable<Jsonb>,
+        store_id -> Nullable<Uuid>,
     }
 }
 
@@ -406,6 +407,7 @@ diesel::joinable!(product_base_indentifiers -> products (product_id));
 diesel::joinable!(product_seller -> products (product_id));
 diesel::joinable!(product_seller -> seller (seller_id));
 diesel::joinable!(product_variations -> products (product_id));
+diesel::joinable!(product_variations -> seller (store_id));
 diesel::joinable!(product_variations_identifiers -> product_variations (product_variation_id));
 diesel::joinable!(ratings -> base_user (user_id));
 diesel::joinable!(ratings -> products (product_id));

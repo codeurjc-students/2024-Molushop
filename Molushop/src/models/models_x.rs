@@ -198,6 +198,9 @@ pub struct ProductVariation {
     pub status: i16,
     pub stock: i32,
     pub images: Option<Value>,
+    /// La tienda de su producto (la pone un trigger al insertar): el SKU es
+    /// único por tienda.
+    pub store_id: Option<Uuid>,
 } 
 
 #[derive(Insertable)]

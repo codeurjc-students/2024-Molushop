@@ -29,7 +29,7 @@ use crate::constants::product_status::PRODUCT_DELETED;
 /// "Eliminar" del panel. No borra la fila (los pedidos y las opiniones apuntan
 /// a sus variaciones): la marca como `PRODUCT_DELETED` y, en la misma
 /// transacción, la quita de los carritos activos, para que nadie se quede con
-/// una línea que ya no puede comprar.
+/// una línea que ya no puede comprar, y libera los SKU de sus variaciones.
 ///
 /// `store_ids`: `None` (el admin) cualquier producto; `Some(tiendas)` solo si
 /// es de una de ellas. `Ok(false)` si no existe, ya estaba borrado o es ajeno.
@@ -53,6 +53,13 @@ pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool:
         sql_query(
             "DELETE FROM cart_products cp              USING carts c, product_variations pv              WHERE c.id = cp.cart_id AND c.status = 1                AND pv.id = cp.product_var_id AND pv.product_id = $1"
         )
+            .bind::<SqlUuid, _>(product_id)
+            .execute(conn)
+            .await?;
+
+        // Su SKU queda libre para otra variación de la tienda (los pedidos
+        // guardan su propia copia).
+        sql_query("UPDATE product_variations SET sku = NULL WHERE product_id = $1 AND sku IS NOT NULL")
             .bind::<SqlUuid, _>(product_id)
             .execute(conn)
             .await?;
