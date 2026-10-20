@@ -180,9 +180,7 @@
         if (data.status !== undefined) row.dataset.status = data.status;
         if (data.sku !== undefined) {
             row.dataset.sku = data.sku;
-            const cell = row.querySelector('td.sku');
-            if (data.sku) cell.textContent = data.sku;
-            else cell.replaceChildren(el('span', 've-none', '—'));
+            renderSkuCell(row);
         }
         if (data.stock !== undefined) {
             row.dataset.stock = data.stock;
@@ -245,6 +243,160 @@
     // El editor de una variación (edit-product-variation.js) los usa al guardar y
     // al cerrar; el botón "Editar" de cada fila, openEditor.
     window.variationsExplorer = { updateRow, refresh: refreshExplorer, openEditor, closeEditor };
+
+    // ---- SKU en la tabla (solo en la página de edición) ----
+    // "Editar SKU" cambia la columna por campos; "Guardar SKU" manda los que
+    // han cambiado (estén o no a la vista) y el servidor guarda todos o ninguno.
+
+    document.addEventListener('click', (event) => {
+        const bar = event.target.closest('.ve-sku-bar');
+        if (!bar) return;
+        const root = bar.closest('.c-variations-explorer');
+        if (event.target.closest('[data-sku-edit]')) startSkuEdit(root);
+        else if (event.target.closest('[data-sku-cancel]')) stopSkuEdit(root);
+        else if (event.target.closest('[data-sku-save]')) saveSkus(root);
+    });
+
+    document.addEventListener('input', (event) => {
+        if (!event.target.matches('.ve-sku-input')) return;
+        event.target.removeAttribute('aria-invalid');
+        event.target.removeAttribute('title');
+        updateSkuCount(event.target.closest('.c-variations-explorer'));
+    });
+
+    // Intro en un campo guarda; Tab pasa a la fila siguiente (orden normal)
+    document.addEventListener('keydown', (event) => {
+        if (event.key !== 'Enter' || !event.target.matches('.ve-sku-input')) return;
+        event.preventDefault();
+        saveSkus(event.target.closest('.c-variations-explorer'));
+    });
+
+    // Respuestas del servidor (HX-Trigger): saltan en el explorador, el `source`.
+    document.addEventListener('variations_skus_saved', (event) => {
+        const root = event.target.closest?.('.c-variations-explorer');
+        if (!root) return;
+        event.detail.rows.forEach((data) => {
+            const row = root.querySelector('#' + CSS.escape('var-row-' + data.id));
+            if (row) row.dataset.sku = data.sku;
+        });
+        stopSkuEdit(root);
+    });
+
+    document.addEventListener('variations_skus_problems', (event) => {
+        const root = event.target.closest?.('.c-variations-explorer');
+        if (!root) return;
+        showSkuProblems(root, event.detail.problems.map((problem) => ({
+            row: root.querySelector('#' + CSS.escape('var-row-' + problem.id)),
+            message: problem.message,
+        })));
+    });
+
+    function renderSkuCell(row) {
+        const cell = row.querySelector('td.sku');
+        if (row.dataset.sku) cell.textContent = row.dataset.sku;
+        else cell.replaceChildren(el('span', 've-none', '—'));
+    }
+
+    // "Verde · S · Tela": para los avisos y la etiqueta de cada campo
+    function rowLabel(row) {
+        return [...row.querySelectorAll('td.attr')].map((td) => td.textContent).join(' · ') || 'Variación única';
+    }
+
+    function startSkuEdit(root) {
+        closeEditor(root);
+        root.classList.add('is-editing-skus');
+        variationRows(root).forEach((row) => {
+            const input = el('input', 'm-input m-input--sm ve-sku-input');
+            input.type = 'text';
+            input.value = row.dataset.sku;
+            input.maxLength = 64;
+            input.autocomplete = 'off';
+            input.spellcheck = false;
+            input.setAttribute('aria-label', 'SKU de ' + rowLabel(row));
+            row.querySelector('td.sku').replaceChildren(input);
+        });
+        setSkuBar(root, true);
+        updateSkuCount(root);
+        variationRows(root).find((row) => !row.hidden)?.querySelector('.ve-sku-input').focus();
+    }
+
+    // Sale sin guardar: cada celda vuelve a lo que tiene la fila (data-sku)
+    function stopSkuEdit(root) {
+        root.classList.remove('is-editing-skus');
+        variationRows(root).forEach(renderSkuCell);
+        setSkuBar(root, false);
+    }
+
+    function setSkuBar(root, editing) {
+        const bar = root.querySelector('.ve-sku-bar');
+        bar.querySelector('[data-sku-edit]').hidden = editing;
+        bar.querySelectorAll('[data-sku-save], [data-sku-cancel], [data-sku-changed]').forEach((node) => { node.hidden = !editing; });
+        bar.querySelector('[data-sku-error]').hidden = true;
+    }
+
+    function changedSkus(root) {
+        return variationRows(root)
+            .map((row) => ({ row, value: row.querySelector('.ve-sku-input')?.value.trim() }))
+            .filter(({ row, value }) => value !== undefined && value !== row.dataset.sku);
+    }
+
+    function updateSkuCount(root) {
+        const n = changedSkus(root).length;
+        const bar = root.querySelector('.ve-sku-bar');
+        bar.querySelector('[data-sku-changed]').textContent = n === 0 ? 'Sin cambios' : n === 1 ? '1 cambio' : n + ' cambios';
+        bar.querySelector('[data-sku-save]').disabled = n === 0;
+    }
+
+    // Marca los campos con problema (sale el motivo al pasar por encima) y
+    // los lista bajo la barra.
+    function showSkuProblems(root, problems) {
+        root.querySelectorAll('.ve-sku-input[aria-invalid]').forEach((input) => {
+            input.removeAttribute('aria-invalid');
+            input.removeAttribute('title');
+        });
+        const error = root.querySelector('[data-sku-error]');
+        error.replaceChildren();
+        problems.forEach(({ row, message }) => {
+            const input = row?.querySelector('.ve-sku-input');
+            if (input) {
+                input.setAttribute('aria-invalid', 'true');
+                input.title = message;
+            }
+            error.append(el('span', null, (row ? rowLabel(row) + ': ' : '') + message));
+        });
+        error.hidden = problems.length === 0;
+    }
+
+    // Lo mismo que comprueba el servidor (sku_service::check_sku_batch), para
+    // avisar antes. Los repetidos se buscan en toda la tabla, no solo en los cambiados.
+    function saveSkus(root) {
+        const changes = changedSkus(root);
+        if (changes.length === 0) return;
+
+        const problems = [];
+        changes.forEach(({ row, value }) => {
+            if (!/^[A-Za-z0-9._-]*$/.test(value)) {
+                problems.push({ row, message: 'Solo letras sin tilde, números, guiones (-), guiones bajos (_) y puntos (.)' });
+            }
+        });
+        const byValue = new Map();
+        variationRows(root).forEach((row) => {
+            const value = row.querySelector('.ve-sku-input').value.trim();
+            if (value) byValue.set(value, [...(byValue.get(value) || []), row]);
+        });
+        byValue.forEach((rows, value) => {
+            if (rows.length > 1) rows.forEach((row) => problems.push({ row, message: value + ' está repetido en la tabla' }));
+        });
+        showSkuProblems(root, problems);
+        if (problems.length > 0) return;
+
+        htmx.ajax('POST', root.querySelector('.ve-sku-bar').dataset.skuUrl, {
+            source: root,
+            target: 'body',
+            swap: 'beforeend',
+            values: { changes: JSON.stringify(changes.map(({ row, value }) => ({ id: row.id.replace('var-row-', ''), sku: value }))) },
+        });
+    }
 
     // ---- Edición en bloque (solo en la página de edición) ----
 

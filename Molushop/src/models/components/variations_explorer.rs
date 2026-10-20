@@ -16,9 +16,16 @@ use crate::models::data_transfer_objects::product::{Product, ProductVariation};
 pub struct VariationsExplorer<'a> {
     pub product: &'a Product,
     /// `Some`: página de edición del producto. Columna "Editar" que abre el
-    /// editor de la variación (las filas llevan `id="var-row-{id}"`) y barra
-    /// de edición en bloque que manda aquí (+ "/{id del producto}").
-    pub bulk_url: Option<&'a str>,
+    /// editor de la variación (las filas llevan `id="var-row-{id}"`), barra
+    /// de edición en bloque y edición de los SKU en la tabla.
+    pub edit: Option<EditUrls<'a>>,
+}
+
+/// A dónde mandan la edición en bloque y la de los SKU (+ "/{id del producto}").
+#[derive(Clone, Copy)]
+pub struct EditUrls<'a> {
+    pub bulk: &'a str,
+    pub skus: &'a str,
 }
 
 impl<'a> VariationsExplorer<'a> {
@@ -186,6 +193,7 @@ mod tests {
         // En el listado no hay botón de editar ni edición en bloque
         assert!(!html.contains("var-row-"));
         assert!(!html.contains("data-bulk-url"));
+        assert!(!html.contains("data-sku-url"));
     }
 
     #[test]
@@ -193,11 +201,12 @@ mod tests {
         let mut pv = variation(&[("Tamaño", "1"), ("Color", "Rojo")], PRODUCT_ACTIVE, 7);
         pv.price = None;
         let p = product(vec![pv]);
-        let html = p.variations_explorer_editable("/bulk").render().unwrap();
+        let html = p.variations_explorer_editable(EditUrls { bulk: "/bulk", skus: "/skus" }).render().unwrap();
         assert!(html.contains(r#"id="var-row-00000000-0000-0000-0000-000000000000""#));
         assert!(html.contains("edit-product-variation/spawn/00000000-0000-0000-0000-000000000000"));
         assert!(html.contains(r#"data-price="" "#.trim_end()));
         assert!(html.contains("No disponible"));
+        assert!(html.contains(r#"data-sku-url="/skus/"#));
         assert!(html.contains(r#"data-bulk-url="/bulk/00000000-0000-0000-0000-000000000000""#));
     }
 

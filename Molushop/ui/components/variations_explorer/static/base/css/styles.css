@@ -347,3 +347,41 @@
     flex-basis: 100%;
     margin: 0;
 }
+
+/* ---- SKU en la tabla (página de edición) ---- */
+
+.ve-sku-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    margin-bottom: var(--space-3);
+}
+
+.ve-sku-bar__error {
+    flex-basis: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin: 0;
+}
+
+.ve-sku-bar__error[hidden] {
+    display: none;
+}
+
+.ve-sku-input {
+    width: 16ch;
+    font-family: ui-monospace, monospace;
+}
+
+.ve-sku-input[aria-invalid="true"] {
+    border-color: var(--color-danger);
+    box-shadow: 0 0 0 1px var(--color-danger);
+}
+
+/* Mientras se editan los SKU no se abre el editor de una variación: al
+   guardar en él se perdería lo escrito en la tabla */
+.c-variations-explorer.is-editing-skus .ve-action .m-btn {
+    visibility: hidden;
+}

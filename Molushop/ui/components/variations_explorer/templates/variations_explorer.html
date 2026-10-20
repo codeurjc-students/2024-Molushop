@@ -35,10 +35,10 @@
         {% endif %}
     </div>
 
-    {% if let Some(url) = bulk_url %}
+    {% if let Some(urls) = edit %}
     {# Edición en bloque: se aplica a las filas que dejan ver los filtros. El
        JS (script.js) pide confirmación y manda los ids. #}
-    <form class="ve-bulk" data-bulk-url="{{url}}/{{product.id}}" novalidate>
+    <form class="ve-bulk" data-bulk-url="{{urls.bulk}}/{{product.id}}" novalidate>
         <label class="ve-field">
             <span class="m-label">Cambiar las filtradas</span>
             <select class="m-input m-input--sm" data-bulk-action>
@@ -71,6 +71,16 @@
         <button type="submit" class="m-btn m-btn--primary m-btn--sm">Aplicar a <span data-count>{{total()}}</span></button>
         <p class="m-error ve-bulk__error" data-bulk-error hidden></p>
     </form>
+
+    {# SKU en la tabla (script.js): "Editar SKU" cambia la columna por campos
+       y "Guardar SKU" manda los cambiados, todos o ninguno. #}
+    <div class="ve-sku-bar" data-sku-url="{{urls.skus}}/{{product.id}}">
+        <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-sku-edit>Editar SKU</button>
+        <span class="m-hint" data-sku-changed hidden></span>
+        <button type="button" class="m-btn m-btn--primary m-btn--sm" data-sku-save hidden>Guardar SKU</button>
+        <button type="button" class="m-btn m-btn--ghost m-btn--sm" data-sku-cancel hidden>Cancelar</button>
+        <p class="m-error ve-sku-bar__error" data-sku-error hidden></p>
+    </div>
     {% endif %}
 
     <div class="ve-scroll" data-panel="table">
@@ -82,12 +92,12 @@
                     <th scope="col">Precio</th>
                     <th scope="col" class="num">Stock</th>
                     <th scope="col">Estado</th>
-                    {% if bulk_url.is_some() %}<th scope="col"></th>{% endif %}
+                    {% if edit.is_some() %}<th scope="col"></th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for pv in sorted_variations() %}
-                <tr class="{{state_class(pv)}}" data-state="{{state_class(pv)}}"{% if bulk_url.is_some() %} id="var-row-{{pv.id}}"{% endif %}
+                <tr class="{{state_class(pv)}}" data-state="{{state_class(pv)}}"{% if edit.is_some() %} id="var-row-{{pv.id}}"{% endif %}
                     data-status="{{pv.status}}" data-stock="{{pv.stock}}" data-sku="{{pv.sku}}"
                     data-price="{% if let Some(price) = pv.price %}{{price}}{% endif %}" data-symbol="{{pv.price_tag().symbol()}}"
                     {% for value in all_values(pv) %} data-a{{loop.index0}}="{{value}}"{% endfor %}>
@@ -97,7 +107,7 @@
                     <td class="price" data-label="Precio">{{pv.price_tag()}}</td>
                     <td class="num" data-label="Stock">{{pv.stock}}</td>
                     <td class="state"><span class="m-badge m-badge--{{status_variant(pv)}}">{{status_label(pv)}}</span></td>
-                    {% if bulk_url.is_some() %}
+                    {% if edit.is_some() %}
                     {# Abre el editor de la variación en una fila debajo de esta (openEditor, script.js) #}
                     <td class="ve-action">
                         <button type="button" class="m-btn m-btn--secondary m-btn--sm" aria-expanded="false"

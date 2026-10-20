@@ -1,5 +1,6 @@
 use askama::Template;
 use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
+use crate::models::components::variations_explorer::EditUrls;
 
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
@@ -19,6 +20,7 @@ pub struct Routes{
     pub edit_general: &'static str,
     pub edit_images: &'static str,
     pub bulk_variations: &'static str,
+    pub bulk_skus: &'static str,
     pub image_variations: &'static str,
     //pub delete_product_modal: &'static str,
     //images
@@ -39,6 +41,13 @@ pub struct ProductEdit2{
     pub general: General,
     pub images: Vec<ImageCategories2>,
     pub variations: Variations
+}
+
+impl Routes {
+    /// Las del explorador de la pestaña Variaciones.
+    pub fn explorer_urls(&self) -> EditUrls<'static> {
+        EditUrls { bulk: self.bulk_variations, skus: self.bulk_skus }
+    }
 }
 
 impl ProductEdit2 {

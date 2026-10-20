@@ -5,7 +5,7 @@ use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::services::servicesX::get_variation_price;
 use crate::models::components::price::Price;
-use crate::models::components::variations_explorer::VariationsExplorer;
+use crate::models::components::variations_explorer::{EditUrls, VariationsExplorer};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RoutesProductPanelGroup{
@@ -35,13 +35,13 @@ pub struct Product{
 impl Product {
     /// Filtros, tabla y matriz de sus variaciones (listado del panel).
     pub fn variations_explorer(&self) -> VariationsExplorer<'_> {
-        VariationsExplorer { product: self, bulk_url: None }
+        VariationsExplorer { product: self, edit: None }
     }
 
-    /// Lo mismo con un botón "Editar" por variación y la barra de edición en
-    /// bloque, que manda a `bulk_url`/{id del producto} (página de edición).
-    pub fn variations_explorer_editable<'b>(&'b self, bulk_url: &'b str) -> VariationsExplorer<'b> {
-        VariationsExplorer { product: self, bulk_url: Some(bulk_url) }
+    /// Lo mismo con un botón "Editar" por variación, la barra de edición en
+    /// bloque y los SKU editables en la tabla (página de edición).
+    pub fn variations_explorer_editable<'b>(&'b self, urls: EditUrls<'b>) -> VariationsExplorer<'b> {
+        VariationsExplorer { product: self, edit: Some(urls) }
     }
 }
 

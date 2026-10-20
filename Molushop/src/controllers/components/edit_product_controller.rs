@@ -18,6 +18,8 @@ use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction};
 use crate::services::image_variations_service::set_image_variations;
+use crate::services::sku_service::{save_skus, SaveSkus};
+use crate::utils::hx::trigger_json;
 type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
@@ -41,6 +43,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         bulk_variations: Box::leak(format!("{}{}/bulk-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        bulk_skus: Box::leak(format!("{}{}/bulk-skus",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         image_variations: Box::leak(format!("{}{}/image-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
@@ -57,6 +60,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(edit_general)
         .service(bulk_variations)
         .service(image_variations)
+        .service(bulk_skus)
         .service(delete_all_imgs)
         .service(edit_images);
         //.service(delete_product_modal);
@@ -153,6 +157,68 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
         Err(e) => {
             println!("Panel: error en la edición en bloque de {}: {}", product_id, e);
             HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct SkusForm{
+    /// JSON: `[{"id": "...", "sku": "..."}]`, solo las variaciones cambiadas.
+    pub changes: String,
+}
+
+#[derive(Deserialize)]
+struct SkuChange{
+    id: Uuid,
+    sku: String,
+}
+
+/// Los SKU editados en la tabla de variaciones, todos o ninguno. Siempre 200
+/// con el aviso (htmx no pinta 4xx/5xx) y un evento para el JS del explorador:
+/// `variations_skus_saved` con las filas, o `variations_skus_problems` con lo
+/// que hay que marcar en cada una.
+#[post("/bulk-skus/{product_id}")]
+async fn bulk_skus(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form:web::Form<SkusForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
+    let product_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
+        return resp;
+    }
+    let modal = |text: &str| MessageModal::new(text).render().unwrap();
+
+    let changes: Vec<(Uuid, String)> = match serde_json::from_str::<Vec<SkuChange>>(&form.changes) {
+        Ok(changes) if !changes.is_empty() => changes.into_iter().map(|c| (c.id, c.sku)).collect(),
+        _ => return HttpResponse::Ok().body(modal("No hay SKU que guardar")),
+    };
+
+    match save_skus(&product_id, &changes, pool).await {
+        Ok(SaveSkus::Saved(rows)) => {
+            let text = if rows.len() == 1 {
+                "Se ha guardado 1 SKU".to_string()
+            } else {
+                format!("Se han guardado {} SKU", rows.len())
+            };
+            let trigger = json!({ "variations_skus_saved": { "rows": rows } });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger_json(&trigger)))
+                .body(modal(&text))
+        }
+        Ok(SaveSkus::Problems(problems)) => {
+            let text = match problems.len() {
+                0 => "Algún SKU lo acaba de coger otra variación: no se ha guardado nada. Vuelve a intentarlo".to_string(),
+                1 => "Hay 1 SKU que no se puede guardar (marcado en la tabla): no se ha guardado nada".to_string(),
+                n => format!("Hay {} SKU que no se pueden guardar (marcados en la tabla): no se ha guardado nada", n),
+            };
+            // Los mensajes llevan el nombre del producto: cabecera en ASCII
+            let trigger = json!({ "variations_skus_problems": { "problems": problems } });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger_json(&trigger)))
+                .body(modal(&text))
+        }
+        Ok(SaveSkus::NotOwned) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
+        Err(e) => {
+            println!("Panel: error al guardar los SKU de {}: {}", product_id, e);
+            HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha guardado nada"))
         }
     }
 }

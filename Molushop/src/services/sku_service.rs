@@ -5,11 +5,13 @@
 use diesel::result::{DatabaseErrorKind, Error};
 use diesel::sql_query;
 use diesel::OptionalExtension;
-use diesel::sql_types::{Nullable, SmallInt, Text, Uuid as SqlUuid};
+use diesel::sql_types::{Array, BigInt, Nullable, SmallInt, Text, Uuid as SqlUuid};
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
+use serde::Serialize;
+use std::collections::HashMap;
 use uuid::Uuid;
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -97,6 +99,153 @@ pub async fn save_variation_general(
     }
 }
 
+/// Un SKU del lote que no se puede guardar: de qué variación y por qué.
+#[derive(Debug, Serialize, PartialEq)]
+pub struct SkuProblem {
+    pub id: Uuid,
+    pub message: String,
+}
+
+/// Cómo queda una variación: el JS del explorador lo copia en su fila.
+#[derive(Debug, Serialize)]
+pub struct SkuRow {
+    pub id: Uuid,
+    /// Vacío si se queda sin SKU.
+    pub sku: String,
+}
+
+#[derive(Debug)]
+pub enum SaveSkus {
+    Saved(Vec<SkuRow>),
+    /// Alguna variación no es del producto: no se ha cambiado nada.
+    NotOwned,
+    /// Ninguno guardado. Vacío: otro guardado a la vez cogió alguno (lo paró el
+    /// índice único) y no se sabe cuál.
+    Problems(Vec<SkuProblem>),
+}
+
+/// Lo que se comprueba sin la base de datos: el formato de cada uno y que no
+/// se repitan dentro del lote. `Ok` con los SKU ya normalizados.
+pub fn check_sku_batch(changes: &[(Uuid, String)]) -> Result<Vec<(Uuid, Option<String>)>, Vec<SkuProblem>> {
+    let mut problems = Vec::new();
+    let mut checked = Vec::new();
+    for (id, raw) in changes {
+        match normalize_sku(raw) {
+            Ok(sku) => checked.push((*id, sku)),
+            Err(message) => problems.push(SkuProblem { id: *id, message: message.to_string() }),
+        }
+    }
+    let mut seen: HashMap<&str, usize> = HashMap::new();
+    for (_, sku) in &checked {
+        if let Some(sku) = sku {
+            *seen.entry(sku.as_str()).or_default() += 1;
+        }
+    }
+    for (id, sku) in &checked {
+        if let Some(sku) = sku {
+            if seen[sku.as_str()] > 1 {
+                problems.push(SkuProblem { id: *id, message: format!("{} está repetido en estos cambios", sku) });
+            }
+        }
+    }
+    if problems.is_empty() { Ok(checked) } else { Err(problems) }
+}
+
+#[derive(diesel::QueryableByName)]
+struct Count {
+    #[diesel(sql_type = BigInt)]
+    n: i64,
+}
+
+#[derive(diesel::QueryableByName)]
+struct Taken {
+    #[diesel(sql_type = Text)]
+    sku: String,
+    #[diesel(sql_type = Text)]
+    label: String,
+}
+
+/// Los SKU de varias variaciones del producto a la vez (tabla de Editar
+/// producto), todos o ninguno. Quien llama ya ha comprobado que el producto es
+/// del usuario (`product_access`).
+pub async fn save_skus(
+    product_id: &Uuid,
+    changes: &[(Uuid, String)],
+    pool: &DbPool,
+) -> Result<SaveSkus, Error> {
+    let checked = match check_sku_batch(changes) {
+        Ok(checked) => checked,
+        Err(problems) => return Ok(SaveSkus::Problems(problems)),
+    };
+    let ids: Vec<Uuid> = checked.iter().map(|(id, _)| *id).collect();
+    let skus: Vec<Option<String>> = checked.iter().map(|(_, sku)| sku.clone()).collect();
+    let product_id = *product_id;
+    let mut conn = pool.get().await.unwrap();
+
+    let result = conn.transaction::<SaveSkus, Error, _>(|conn| async move {
+        let owned = sql_query(
+            "SELECT count(DISTINCT id) AS n FROM product_variations WHERE product_id = $1 AND id = ANY($2)"
+        )
+            .bind::<SqlUuid, _>(product_id)
+            .bind::<Array<SqlUuid>, _>(&ids)
+            .get_result::<Count>(conn)
+            .await?;
+        if ids.is_empty() || owned.n != ids.len() as i64 {
+            return Ok(SaveSkus::NotOwned);
+        }
+
+        // Los que ya tiene otra variación de la tienda que no está en el lote
+        // (las del lote pueden intercambiarse los SKU entre ellas).
+        let taken = sql_query(
+            "SELECT v.sku, p.name || COALESCE(' · ' || (
+                    SELECT string_agg(attr->>'value', ' · ')
+                    FROM jsonb_array_elements(v.attributes) AS attr), '') AS label
+             FROM product_variations v
+             JOIN products p ON p.id = v.product_id
+             WHERE v.sku = ANY($3) AND v.id <> ALL($2)
+               AND v.store_id = (SELECT store_id FROM product_variations WHERE product_id = $1 LIMIT 1)"
+        )
+            .bind::<SqlUuid, _>(product_id)
+            .bind::<Array<SqlUuid>, _>(&ids)
+            .bind::<Array<Nullable<Text>>, _>(&skus)
+            .load::<Taken>(conn)
+            .await?;
+        if !taken.is_empty() {
+            let problems = checked.iter()
+                .filter_map(|(id, sku)| {
+                    let holder = taken.iter().find(|t| Some(&t.sku) == sku.as_ref())?;
+                    Some(SkuProblem { id: *id, message: format!("Ya lo usa {}", holder.label) })
+                })
+                .collect();
+            return Ok(SaveSkus::Problems(problems));
+        }
+
+        // Primero a NULL: si dos del lote se intercambian el SKU, el índice
+        // no ve un duplicado a medias.
+        sql_query("UPDATE product_variations SET sku = NULL WHERE id = ANY($1)")
+            .bind::<Array<SqlUuid>, _>(&ids)
+            .execute(conn).await?;
+        sql_query(
+            "UPDATE product_variations v SET sku = c.sku
+             FROM unnest($1::uuid[], $2::text[]) AS c(id, sku)
+             WHERE v.id = c.id"
+        )
+            .bind::<Array<SqlUuid>, _>(&ids)
+            .bind::<Array<Nullable<Text>>, _>(&skus)
+            .execute(conn).await?;
+
+        let rows = checked.into_iter()
+            .map(|(id, sku)| SkuRow { id, sku: sku.unwrap_or_default() })
+            .collect();
+        Ok(SaveSkus::Saved(rows))
+    }.scope_boxed()).await;
+
+    match result {
+        Err(Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _)) => Ok(SaveSkus::Problems(Vec::new())),
+        other => other,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -110,5 +259,17 @@ mod tests {
         assert!(normalize_sku("CAÑA").is_err(), "sin eñes ni tildes");
         assert!(normalize_sku(&"A".repeat(64)).is_ok());
         assert!(normalize_sku(&"A".repeat(65)).is_err());
+    }
+
+    #[test]
+    fn el_lote_no_repite_ni_deja_formatos_malos() {
+        let (a, b, c) = (Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4());
+        assert_eq!(
+            check_sku_batch(&[(a, " X-1 ".into()), (b, "".into()), (c, "".into())]),
+            Ok(vec![(a, Some("X-1".into())), (b, None), (c, None)]),
+            "varias sin SKU no se repiten"
+        );
+        let problems = check_sku_batch(&[(a, "X-1".into()), (b, "X-1".into()), (c, "MAL SKU".into())]).unwrap_err();
+        assert_eq!(problems.iter().map(|p| p.id).collect::<Vec<_>>(), vec![c, a, b]);
     }
 }
