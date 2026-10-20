@@ -78,8 +78,19 @@ struct Count {
     n: i64,
 }
 
+#[derive(Debug)]
+pub enum BulkOutcome {
+    /// Cómo han quedado todas.
+    Updated(Vec<BulkRow>),
+    /// Alguna no es del producto: no se ha cambiado nada.
+    NotOwned,
+    /// Se querían activar y estas no tienen precio (no se ha cambiado nada):
+    /// saldrían a la venta sin poder comprarse.
+    MissingPrice(i64),
+}
+
 /// Aplica `action` a las variaciones `ids` del producto, en una transacción.
-/// `Ok(None)` (sin cambiar nada) si alguna no es de ese producto: quien llama
+/// `NotOwned` (sin cambiar nada) si alguna no es de ese producto: quien llama
 /// ya ha comprobado que el producto es del usuario (`product_access`), y así
 /// no se cuela una variación de otro.
 pub async fn bulk_update_variations(
@@ -87,7 +98,7 @@ pub async fn bulk_update_variations(
     ids: &[Uuid],
     action: &BulkAction,
     pool: &DbPool,
-) -> Result<Option<Vec<BulkRow>>, Error> {
+) -> Result<BulkOutcome, Error> {
     let mut ids = ids.to_vec();
     ids.sort();
     ids.dedup();
@@ -95,7 +106,7 @@ pub async fn bulk_update_variations(
     let action = action.clone();
     let mut conn = pool.get().await.unwrap();
 
-    conn.transaction::<Option<Vec<BulkRow>>, Error, _>(|conn| async move {
+    conn.transaction::<BulkOutcome, Error, _>(|conn| async move {
         let owned = sql_query(
             "SELECT count(*) AS n FROM product_variations WHERE product_id = $1 AND id = ANY($2)"
         )
@@ -104,7 +115,25 @@ pub async fn bulk_update_variations(
             .get_result::<Count>(conn)
             .await?;
         if ids.is_empty() || owned.n != ids.len() as i64 {
-            return Ok(None);
+            return Ok(BulkOutcome::NotOwned);
+        }
+
+        // Activar: ninguna que pase a activa puede quedarse sin precio (las que
+        // ya lo estaban, de antes de esta regla, no cuentan).
+        if action == BulkAction::Status(PRODUCT_ACTIVE) {
+            let missing = sql_query(
+                "SELECT count(*) AS n FROM product_variations v
+                 WHERE v.id = ANY($1) AND v.status <> $2
+                   AND NOT EXISTS (SELECT 1 FROM prices pr WHERE pr.variation_id = v.id AND pr.currency = $3)"
+            )
+                .bind::<Array<SqlUuid>, _>(&ids)
+                .bind::<SmallInt, _>(PRODUCT_ACTIVE)
+                .bind::<Text, _>(CURRENCY)
+                .get_result::<Count>(conn)
+                .await?;
+            if missing.n > 0 {
+                return Ok(BulkOutcome::MissingPrice(missing.n));
+            }
         }
 
         match &action {
@@ -155,7 +184,7 @@ pub async fn bulk_update_variations(
             .bind::<Text, _>(CURRENCY)
             .load::<BulkRow>(conn)
             .await?;
-        Ok(Some(rows))
+        Ok(BulkOutcome::Updated(rows))
     }.scope_boxed()).await
 }
 

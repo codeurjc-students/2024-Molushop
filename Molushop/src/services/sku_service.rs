@@ -11,12 +11,16 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use serde::Serialize;
+use crate::constants::product_status::PRODUCT_ACTIVE;
 use std::collections::HashMap;
 use uuid::Uuid;
 
 type DbPool = Pool<AsyncPgConnection>;
 
 pub const SKU_MAX_LEN: usize = 64;
+
+/// La moneda de los precios del panel (como en `edit_price`).
+const PANEL_CURRENCY: &str = "EUR";
 
 /// Lo que escribe el vendedor, listo para guardar: sin espacios en los lados,
 /// `None` si queda vacío. `Err` con el texto que se le enseña.
@@ -40,6 +44,14 @@ pub enum SaveGeneral {
     Saved,
     /// El SKU ya lo tiene otra variación de la tienda: cuál ("Cortina · Verde · S").
     SkuTaken(String),
+    /// Se quería activar y no tiene precio: saldría a la venta sin poder comprarse.
+    NoPrice,
+}
+
+#[derive(diesel::QueryableByName)]
+struct Blocked {
+    #[diesel(sql_type = diesel::sql_types::Bool)]
+    blocked: bool,
 }
 
 #[derive(diesel::QueryableByName)]
@@ -60,6 +72,23 @@ pub async fn save_variation_general(
     let mut conn = pool.get().await.unwrap();
 
     let result = conn.transaction::<SaveGeneral, Error, _>(|conn| async move {
+        // Solo al pasar a activa: una que ya lo estaba sin precio (de antes de
+        // esta regla) se puede seguir editando.
+        if status == PRODUCT_ACTIVE {
+            let check = sql_query(
+                "SELECT (v.status <> $2 AND NOT EXISTS (
+                        SELECT 1 FROM prices pr WHERE pr.variation_id = v.id AND pr.currency = $3)) AS blocked
+                 FROM product_variations v WHERE v.id = $1"
+            )
+                .bind::<SqlUuid, _>(variation_id)
+                .bind::<SmallInt, _>(PRODUCT_ACTIVE)
+                .bind::<Text, _>(PANEL_CURRENCY)
+                .get_result::<Blocked>(conn)
+                .await?;
+            if check.blocked {
+                return Ok(SaveGeneral::NoPrice);
+            }
+        }
         if let Some(sku) = &sku {
             let holder = sql_query(
                 "SELECT p.name || COALESCE(' · ' || (

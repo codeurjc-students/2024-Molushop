@@ -16,7 +16,7 @@ use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
-use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction};
+use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction, BulkOutcome};
 use crate::services::image_variations_service::set_image_variations;
 use crate::services::product_images_service::set_main_image;
 use crate::services::product_specs_service::save_specs;
@@ -149,7 +149,7 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
     };
 
     match bulk_update_variations(&product_id, &ids, &action, pool).await {
-        Ok(Some(rows)) => {
+        Ok(BulkOutcome::Updated(rows)) => {
             let text = if rows.len() == 1 {
                 "Se ha actualizado 1 variación".to_string()
             } else {
@@ -160,7 +160,15 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
                 .insert_header(("HX-Trigger", trigger.to_string()))
                 .body(modal(&text))
         }
-        Ok(None) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
+        Ok(BulkOutcome::NotOwned) => HttpResponse::Ok().body(modal("Alguna variación no es de este producto: no se ha cambiado nada")),
+        Ok(BulkOutcome::MissingPrice(n)) => {
+            let text = if n == 1 {
+                "1 de las variaciones no tiene precio y no se puede activar. Ponle precio antes (Fijar precio) o quítala con los filtros: no se ha cambiado nada".to_string()
+            } else {
+                format!("{} de las variaciones no tienen precio y no se pueden activar. Ponles precio antes (Fijar precio) o quítalas con los filtros: no se ha cambiado nada", n)
+            };
+            HttpResponse::Ok().body(modal(&text))
+        }
         Err(e) => {
             println!("Panel: error en la edición en bloque de {}: {}", product_id, e);
             HttpResponse::Ok().body(modal("Ha ocurrido un error: no se ha cambiado nada"))

@@ -171,6 +171,9 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
         Ok(SaveGeneral::SkuTaken(holder)) => {
             modal(&format!("Ese SKU ya lo usa {}: no se ha guardado nada", holder))
         }
+        Ok(SaveGeneral::NoPrice) => {
+            modal("Esta variación no tiene precio: pónselo en la pestaña Precio antes de activarla. No se ha guardado nada")
+        }
         Err(e) => {
             println!("Ha ocurrido un error: {}",e);
             modal("Algo ha ido mal: no se ha guardado nada")

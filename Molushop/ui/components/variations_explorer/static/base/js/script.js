@@ -454,7 +454,7 @@
         const rows = variationRows(root).filter((row) => !row.hidden);
         const error = form.querySelector('[data-bulk-error]');
 
-        const problem = bulkProblem(action, value, input, rows.length);
+        const problem = bulkProblem(action, value, input, rows.length, rows);
         error.hidden = !problem;
         if (problem) {
             error.textContent = problem;
@@ -482,10 +482,18 @@
         });
     }
 
-    // Lo mismo que valida el servidor (BulkAction::parse), para avisar antes.
-    function bulkProblem(action, value, input, count) {
+    // Lo mismo que valida el servidor (BulkAction::parse y que no se active
+    // nada sin precio), para avisar antes.
+    function bulkProblem(action, value, input, count, rows) {
         if (count === 0) return 'Ninguna variación cumple los filtros.';
-        if (action === 'status') return null;
+        if (action === 'status') {
+            const noPrice = value === '1'
+                ? rows.filter((row) => row.dataset.status !== '1' && row.dataset.price === '').length
+                : 0;
+            if (noPrice === 0) return null;
+            return (noPrice === 1 ? '1 variación no tiene precio y no se puede activar.' : `${noPrice} variaciones no tienen precio y no se pueden activar.`)
+                + ' Ponles precio antes (Fijar precio) o quítalas con los filtros.';
+        }
         if (value === '' || !input.checkValidity()) {
             return {
                 set_stock: 'Indica las unidades: un número entero, 0 o más.',
