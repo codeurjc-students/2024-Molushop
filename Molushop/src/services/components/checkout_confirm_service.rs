@@ -48,9 +48,15 @@ pub async fn confirm_order(
 
     conn.transaction::<OrderConfirmation, ServiceError, _>(|conn| async move {
         // 1. El carrito ACTIVO del usuario. Si no hay, no hay nada que comprar.
+        // FOR UPDATE: dos "Confirmar pedido" casi a la vez (doble clic, dos
+        // pestañas) no pueden comprar el mismo carrito. El segundo espera aquí
+        // a que acabe el primero y entonces el carrito ya no está activo
+        // (EmptyCart). Sin esto, comprando el carrito entero (sin líneas que
+        // mudar a uno nuevo) salían dos pedidos.
         let cart: Cart = carts::table
             .filter(carts::user_id.eq(user_id))
             .filter(carts::status.eq(1_i16))
+            .for_update()
             .first::<Cart>(conn)
             .await
             .map_err(|_| ServiceError::EmptyCart)?;

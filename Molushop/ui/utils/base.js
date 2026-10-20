@@ -91,3 +91,32 @@ document.addEventListener('htmx:beforeSwap', (event) => {
         event.detail.isError = false;
     }
 });
+
+// Mientras dura una petición de htmx, el botón que la lanza (o los de envío
+// de su formulario) se apaga y lleva spinner (aria-busy, button.css): sin
+// esto, un doble clic manda dos veces. Para las que salen de htmx.ajax con un
+// `source` que no es ni botón ni formulario (el explorador de variaciones),
+// los botones marcados con data-busy-disable dentro de ese `source`.
+const BUSY = {
+    buttons(elt) {
+        if (elt.matches('form')) return [...elt.querySelectorAll('[type="submit"]')];
+        if (elt.matches('button')) return [elt];
+        return [...elt.querySelectorAll('[data-busy-disable]')];
+    },
+};
+
+document.addEventListener('htmx:beforeRequest', (event) => {
+    BUSY.buttons(event.detail.elt).forEach((button) => {
+        if (button.disabled) return;   // ya estaba apagado: no es nuestro
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+    });
+});
+
+document.addEventListener('htmx:afterRequest', (event) => {
+    BUSY.buttons(event.detail.elt).forEach((button) => {
+        if (button.getAttribute('aria-busy') !== 'true') return;
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+    });
+});

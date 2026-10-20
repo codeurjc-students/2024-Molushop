@@ -86,7 +86,7 @@
             <input type="checkbox" data-sku-only-empty checked>
             Solo las que no tienen SKU
         </label>
-        <button type="submit" class="m-btn m-btn--primary m-btn--sm">Aplicar a <span data-count>{{total()}}</span></button>
+        <button type="submit" class="m-btn m-btn--primary m-btn--sm" data-busy-disable>Aplicar a <span data-count>{{total()}}</span></button>
         <p class="m-error ve-bulk__error" data-bulk-error hidden></p>
     </form>
 
@@ -95,7 +95,7 @@
     <div class="ve-sku-bar" data-sku-url="{{urls.skus}}/{{product.id}}">
         <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-sku-edit>Editar SKU</button>
         <span class="m-hint" data-sku-changed hidden></span>
-        <button type="button" class="m-btn m-btn--primary m-btn--sm" data-sku-save hidden>Guardar SKU</button>
+        <button type="button" class="m-btn m-btn--primary m-btn--sm" data-sku-save data-busy-disable hidden>Guardar SKU</button>
         <button type="button" class="m-btn m-btn--ghost m-btn--sm" data-sku-cancel hidden>Cancelar</button>
         <p class="m-error ve-sku-bar__error" data-sku-error hidden></p>
     </div>

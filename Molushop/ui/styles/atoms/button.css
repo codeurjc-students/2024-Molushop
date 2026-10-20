@@ -128,3 +128,32 @@
 .m-btn.is-disabled {
     pointer-events: none;
 }
+
+/* ---- Ocupado ----
+   aria-busy="true" mientras dura su petición (lo ponen ui/utils/base.js para
+   htmx y el checkout): spinner a la derecha del texto. */
+
+.m-btn[aria-busy="true"] {
+    cursor: progress;
+}
+
+.m-btn[aria-busy="true"]::after {
+    content: "";
+    width: 0.9em;
+    height: 0.9em;
+    margin-left: var(--space-2);
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: m-btn-spin 0.7s linear infinite;
+}
+
+@keyframes m-btn-spin {
+    to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .m-btn[aria-busy="true"]::after {
+        animation-duration: 2s;
+    }
+}
