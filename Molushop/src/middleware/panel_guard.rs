@@ -3,7 +3,7 @@ use std::rc::Rc;
 use actix_web::{
     body::EitherBody,
     dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform},
-    http::header,
+    http::{header, StatusCode},
     web, Error, HttpMessage, HttpResponse,
 };
 use futures_util::future::LocalBoxFuture;
@@ -13,6 +13,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::middleware::auth::SessionData;
 use crate::services::panel_role_service::get_panel_user;
+use crate::utils::hx::error_modal;
 
 /// A donde se manda a quien entra al panel sin sesión.
 pub static PANEL_LOGIN: &str = "/panel/login";
@@ -111,9 +112,14 @@ where
             };
 
             if !allowed {
-                let res = HttpResponse::Forbidden()
-                    .content_type("text/html; charset=utf-8")
-                    .body("<h1>403</h1><p>No tienes acceso a esta sección.</p>");
+                // Con htmx, el aviso: htmx no pintaría la página de error
+                let res = if req.headers().contains_key("HX-Request") {
+                    error_modal(StatusCode::FORBIDDEN, "No tienes acceso a esta sección.")
+                } else {
+                    HttpResponse::Forbidden()
+                        .content_type("text/html; charset=utf-8")
+                        .body("<h1>403</h1><p>No tienes acceso a esta sección.</p>")
+                };
                 return Ok(req.into_response(res).map_into_right_body());
             }
 

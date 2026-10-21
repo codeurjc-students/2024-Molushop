@@ -81,7 +81,7 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
     } else {
         let store_ids = panel_user.manageable_store_ids();
         if store_ids.is_empty() {
-            return HttpResponse::NotFound().finish();
+            return error_modal(StatusCode::NOT_FOUND, "Ese producto ya no existe o no es de tus tiendas");
         }
         Some(store_ids)
     };
@@ -91,11 +91,12 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
         Ok(true) => {
             HttpResponse::Ok().finish()
         },
-        Ok(false) => HttpResponse::NotFound().finish(),
+        Ok(false) => error_modal(StatusCode::NOT_FOUND, "Ese producto ya no existe o no es de tus tiendas"),
         Err(e) => {
             println!("Error! -> {}",e);
-            return HttpResponse::InternalServerError().json("Error al eliminar el producto");}
+            error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se ha podido eliminar el producto")
         }
+    }
 }
 
 #[get("/delete-product-modal/{id}")]

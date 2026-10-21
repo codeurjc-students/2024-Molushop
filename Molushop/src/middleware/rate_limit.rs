@@ -19,13 +19,14 @@ use std::time::{Duration, Instant};
 
 use actix_web::body::{BoxBody, MessageBody};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::http::header;
+use actix_web::http::{header, StatusCode};
 use actix_web::middleware::Next;
 use actix_web::{Error, HttpResponse};
 use askama::Template;
 use lazy_static::lazy_static;
 
 use crate::models::components::message_modal::MessageModal;
+use crate::utils::hx::error_response;
 
 pub struct RateLimiter {
     max: u32,
@@ -81,14 +82,16 @@ fn minutes_label(secs: u64) -> String {
     if minutes <= 1 { "1 minuto".to_string() } else { format!("{} minutos", minutes) }
 }
 
-/// 429. Con htmx (login de la tienda) va el modal, que es lo que esa página
-/// pinta; si no, una página mínima. El login del panel mira solo el código.
+/// 429. Con htmx va el aviso (con HX-Retarget, como error_modal: se pinta
+/// también donde no hay response-targets); si no, una página mínima. El login
+/// del panel mira solo el código.
 fn too_many(req: &ServiceRequest, wait_secs: u64) -> HttpResponse {
     let message = format!(
         "Demasiados intentos seguidos. Espera {} y vuelve a intentarlo.",
         minutes_label(wait_secs)
     );
-    let body = if req.headers().contains_key("HX-Request") {
+    let htmx = req.headers().contains_key("HX-Request");
+    let body = if htmx {
         MessageModal::new(&message).render().unwrap_or(message)
     } else {
         format!(
@@ -98,7 +101,12 @@ fn too_many(req: &ServiceRequest, wait_secs: u64) -> HttpResponse {
             message
         )
     };
-    HttpResponse::TooManyRequests()
+    let mut builder = if htmx {
+        error_response(StatusCode::TOO_MANY_REQUESTS)
+    } else {
+        HttpResponse::TooManyRequests()
+    };
+    builder
         .insert_header((header::RETRY_AFTER, wait_secs.to_string()))
         .content_type("text/html; charset=utf-8")
         .body(body)

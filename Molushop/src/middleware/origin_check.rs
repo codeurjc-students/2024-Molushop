@@ -16,9 +16,11 @@ use std::env;
 
 use actix_web::body::{BoxBody, MessageBody};
 use actix_web::dev::{ServiceRequest, ServiceResponse};
-use actix_web::http::{header, Method};
+use actix_web::http::{header, Method, StatusCode};
 use actix_web::middleware::Next;
 use actix_web::{Error, HttpResponse};
+
+use crate::utils::hx::error_modal;
 
 /// "http://127.0.0.1:8080/ruta" -> "127.0.0.1:8080". `None` si no es una URL
 /// http(s) (p. ej. el `Origin: null` de un iframe sin origen).
@@ -63,9 +65,14 @@ pub async fn origin_check(
             let host = req.connection_info().host().to_string();
             if !same_site(&source, &host, &allowed_origins()) {
                 println!("Origin rechazado: {} {} desde {}", req.method(), req.path(), source);
-                let res = HttpResponse::Forbidden()
-                    .content_type("text/html; charset=utf-8")
-                    .body("<h1>403</h1><p>Petición rechazada: no viene de esta web.</p>");
+                // Con htmx, el aviso: htmx no pintaría la página de error
+                let res = if req.headers().contains_key("HX-Request") {
+                    error_modal(StatusCode::FORBIDDEN, "Petición rechazada: no viene de esta web.")
+                } else {
+                    HttpResponse::Forbidden()
+                        .content_type("text/html; charset=utf-8")
+                        .body("<h1>403</h1><p>Petición rechazada: no viene de esta web.</p>")
+                };
                 return Ok(req.into_response(res));
             }
         }

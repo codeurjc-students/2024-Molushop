@@ -1,4 +1,4 @@
-use actix_web::{delete, post, web, HttpMessage, HttpRequest, HttpResponse, Scope};
+use actix_web::{delete, post, web, http::StatusCode, HttpMessage, HttpRequest, HttpResponse, Scope};
 use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
 use serde::Deserialize;
 use uuid::Uuid;
@@ -11,6 +11,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::message_modal::MessageModal;
+use crate::utils::hx::error_modal;
 use crate::models::components::cart_total_v1::CartRoutes;
 use crate::constants::urls::CHECKOUT_URL;
 use super::scope::SCOPE_COMPONENTS;
@@ -71,8 +72,7 @@ async fn add_to_cart(
     let pool = pool_data.get_ref();
 
     if form_data.quantity <= 0 {
-        let modal_render = MessageModal::new("La cantidad debe ser mayor a 0").render().unwrap();
-        return HttpResponse::BadRequest().body(modal_render);
+        return error_modal(StatusCode::BAD_REQUEST, "La cantidad debe ser mayor a 0");
     }
 
     match cart_add_service::add_to_cart(&user_id, &form_data.product_var_id, form_data.quantity, pool).await {
@@ -84,17 +84,14 @@ async fn add_to_cart(
                 .body(modal_render)
         }
         Err(ServiceError::VariationNotFound) => {
-            let modal_render = MessageModal::new("Variación no encontrada").render().unwrap();
-            HttpResponse::BadRequest().body(modal_render)
+            error_modal(StatusCode::BAD_REQUEST, "Variación no encontrada")
         }
         Err(ServiceError::NotEnoughStock) => {
-            let modal_render = MessageModal::new("No hay suficiente stock").render().unwrap();
-            HttpResponse::BadRequest().body(modal_render)
+            error_modal(StatusCode::BAD_REQUEST, "No hay suficiente stock")
         }
         Err(e) => {
             println!("Error al añadir al carrito: {}", e);
-            let modal_render = MessageModal::new("Error al añadir al carrito").render().unwrap();
-            HttpResponse::InternalServerError().body(modal_render)
+            error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al añadir al carrito")
         }
     }
 }
@@ -118,21 +115,17 @@ async fn cart_body_response(user_id: &Uuid, pool: &DbPool) -> HttpResponse {
 fn cart_error_response(e: ServiceError) -> HttpResponse {
     match e {
         ServiceError::CartItemNotFound => {
-            let modal_render = MessageModal::new("El producto ya no está en tu cesta").render().unwrap();
-            HttpResponse::NotFound().body(modal_render)
+            error_modal(StatusCode::NOT_FOUND, "El producto ya no está en tu cesta")
         }
         ServiceError::VariationNotFound => {
-            let modal_render = MessageModal::new("Variación no encontrada").render().unwrap();
-            HttpResponse::BadRequest().body(modal_render)
+            error_modal(StatusCode::BAD_REQUEST, "Variación no encontrada")
         }
         ServiceError::NotEnoughStock => {
-            let modal_render = MessageModal::new("No hay suficiente stock").render().unwrap();
-            HttpResponse::BadRequest().body(modal_render)
+            error_modal(StatusCode::BAD_REQUEST, "No hay suficiente stock")
         }
         e => {
             println!("Error al modificar el carrito: {}", e);
-            let modal_render = MessageModal::new("Error al modificar el carrito").render().unwrap();
-            HttpResponse::InternalServerError().body(modal_render)
+            error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al modificar el carrito")
         }
     }
 }

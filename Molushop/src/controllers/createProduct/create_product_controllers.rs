@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 use crate::services::servicesX::*;
 use crate::services::panel_role_service::{resolve_store, PanelUser};
+use crate::utils::hx::error_modal;
 
 use crate::services;
 use crate::models::models_x::{ProductForm,Category};
@@ -122,16 +123,16 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
         },
         (Err(e), Ok(_)) => {
             println!("Error loading categories: {}", e);
-            return HttpResponse::InternalServerError().body("Error loading categories");
+            return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         },
         (Ok(_), Err(e)) => {
             println!("Error loading ancestors: {}", e);
-            return HttpResponse::InternalServerError().body("Error loading ancestors");
+            return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         },
         (Err(e1), Err(e2)) => {
             println!("Error loading categories: {}", e1);
             println!("Error loading ancestors: {}", e2);
-            return HttpResponse::InternalServerError().body("Error loading categories and ancestors");
+            return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         }
     }
 }
@@ -148,7 +149,7 @@ async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
         },
         Err(e) => {
             println!("Error loading categories: {}", e);
-            return HttpResponse::InternalServerError().body("Error loading categories");
+            return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         }
     }
 }
@@ -178,7 +179,7 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
         },
         Err(e) => {
             println!("Error loading category: {}", e);
-            return HttpResponse::InternalServerError().body("Error loading category");
+            return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         }
     }
 }
@@ -194,13 +195,13 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
     let seller_id = match store_id {
         Some(store_id) => match resolve_store(&panel_user, &store_id, pool_data.get_ref()).await {
             Ok(Some(store)) => store.id,
-            Ok(None) => return HttpResponse::Forbidden().body(SIN_TIENDA),
+            Ok(None) => return error_modal(StatusCode::FORBIDDEN, SIN_TIENDA),
             Err(e) => {
                 println!("Panel: {}", e);
-                return HttpResponse::InternalServerError().body("Error al crear el producto");
+                return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al crear el producto");
             }
         },
-        None => return HttpResponse::Forbidden().body(SIN_TIENDA),
+        None => return error_modal(StatusCode::FORBIDDEN, SIN_TIENDA),
     };
 
     let category_id= path.into_inner();
@@ -216,17 +217,21 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
     match insert_new_product_complete(seller_id,&datox,&category_id,pool).await{
         Ok(new_id) => {
             println!("Producto creado con sus variaciones: {:?}",&new_id);
-            HttpResponse::Ok().body("Producto creado")
+            // A su página de edición: el formulario ya no sirve (enviarlo otra
+            // vez crearía otro producto) y allí se siguen sus imágenes y stock.
+            HttpResponse::Ok()
+                .insert_header(("HX-Redirect", format!("/panel/stores/{}/products/edit/{}", seller_id, new_id)))
+                .finish()
         },
         Err(crate::models::error::ServiceError::InvalidVariations) => {
-            HttpResponse::BadRequest().body("Las variaciones del producto no tienen un formato válido")
+            error_modal(StatusCode::BAD_REQUEST, "Las variaciones del producto no tienen un formato válido")
         },
         Err(crate::models::error::ServiceError::InvalidSpecs) => {
-            HttpResponse::BadRequest().body("Las specs del producto no tienen un formato válido")
+            error_modal(StatusCode::BAD_REQUEST, "Las specs del producto no tienen un formato válido")
         },
         Err(e) => {
             println!("Error al crear el producto (no se ha guardado nada): {}", e);
-            HttpResponse::InternalServerError().body("Error al crear el producto")
+            error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al crear el producto")
         }
     }
 }
