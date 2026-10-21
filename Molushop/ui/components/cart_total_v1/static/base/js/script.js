@@ -29,9 +29,10 @@ const CART_TOTAL_V1 = {
         return root.querySelectorAll(".card:not(.is-unavailable)");
     },
 
+    // Los oyentes, una sola vez al cargar el fichero: buscan el carrito en
+    // cada evento, así que valen para el que haya (con hx-boost, uno nuevo
+    // cada vez que se entra).
     init: function() {
-        if (this.root() == null) { return; }
-
         document.addEventListener("click", (event) => {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
@@ -79,7 +80,12 @@ const CART_TOTAL_V1 = {
 
             this.refreshSelection();
         });
+    },
 
+    // Una vez por carrito (COMPONENT.mount, base.js). El servidor lo pinta
+    // todo marcado: se olvida lo desmarcado en una visita anterior.
+    mount: function() {
+        this.unselected.clear();
         this.refreshSelection();
     },
 
@@ -315,6 +321,5 @@ const CART_TOTAL_V1 = {
     }
 };
 
-window.addEventListener("load", () => {
-    CART_TOTAL_V1.init();
-});
+CART_TOTAL_V1.init();
+COMPONENT.mount("#cart-total-1", () => CART_TOTAL_V1.mount());

@@ -72,9 +72,7 @@ const UI_CATALOG = {
     }
 };
 
-window.addEventListener("load", () => {
-    UI_CATALOG.init();
-});
+COMPONENT.mount(".ui-catalog", () => UI_CATALOG.init());
 
 // Modales de ejemplo: se abren igual que en la tienda, añadiendo su HTML al
 // final del body y procesando su hyperscript.

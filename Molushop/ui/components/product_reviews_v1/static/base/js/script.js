@@ -13,15 +13,6 @@ const PRODUCT_REVIEWS = {
     DRAFT_KEY: "pending_review",
     DRAFT_MAX_AGE_MS: 10 * 60 * 1000,
 
-    init: function() {
-        // Los oyentes van en document y no en el formulario: la sección se
-        // sustituye entera y se los llevaría por delante.
-        document.addEventListener("htmx:responseError", (event) => this.onResponseError(event));
-        document.addEventListener("click", (event) => this.onClick(event));
-        document.addEventListener("auth-cancelled", () => this.clearDraft());
-        this.resumeDraft();
-    },
-
     // Delegado en document a propósito: el botón de identificarse puede venir
     // en un fragmento pintado después de la carga (el "ver más" de un visitante
     // sin sesión), y un oyente puesto en el botón no habría existido entonces.
@@ -88,6 +79,12 @@ const PRODUCT_REVIEWS = {
     }
 };
 
-window.addEventListener("load", () => {
-    PRODUCT_REVIEWS.init();
-});
+// Los oyentes van en document y no en el formulario: la sección se sustituye
+// entera y se los llevaría por delante. Una sola vez, al cargar el fichero.
+document.addEventListener("htmx:responseError", (event) => PRODUCT_REVIEWS.onResponseError(event));
+document.addEventListener("click", (event) => PRODUCT_REVIEWS.onClick(event));
+document.addEventListener("auth-cancelled", () => PRODUCT_REVIEWS.clearDraft());
+
+// El borrador vuelve con la ficha (COMPONENT.mount, base.js). También salta
+// cuando htmx sustituye la sección, pero entonces ya no queda borrador.
+COMPONENT.mount(".product-reviews-1", () => PRODUCT_REVIEWS.resumeDraft());

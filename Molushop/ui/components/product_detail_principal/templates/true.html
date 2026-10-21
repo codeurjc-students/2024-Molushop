@@ -83,7 +83,7 @@
             <p class="m-error add-to-cart-error" role="alert" hidden></p>
         </div>
     </div>
+    {# Datos y no código: lo lee el JS (PRODUCT_DETAIL.init). Un `const` en un
+       <script> fallaría al llegar a otra ficha con hx-boost (ya declarado). #}
+    <script type="application/json" class="variant-map">{{ product_data.variant_map_json()|safe }}</script>
 </div>
-<script>
-    const variantMap = {{ product_data.variant_map_json()|safe }};
-</script>

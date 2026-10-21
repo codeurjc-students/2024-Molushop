@@ -120,3 +120,32 @@ document.addEventListener('htmx:afterRequest', (event) => {
         button.removeAttribute('aria-busy');
     });
 });
+
+// Arranque de los componentes. No vale "load" ni "DOMContentLoaded": solo
+// saltan con la carga normal, y con hx-boost la tienda cambia de página sin
+// recargar (htmx sustituye el <body>). mount() llama a init(elemento) una vez
+// por cada elemento que encaje con `selector`:
+// - los de la carga normal y los que htmx meta después (hx-boost, volver
+//   atrás con el historial, fragmentos), con htmx.onLoad;
+// - los que ya estén en la página cuando llega el script: con hx-boost, el
+//   <script src> de la página nueva puede cargarse después del cambio.
+// Va por elemento y no por página: lo que restaura el historial son
+// elementos nuevos, sin los oyentes de antes, y hay que arrancarlos otra vez.
+// Lo que vaya sobre document se pone una sola vez, fuera de init.
+const COMPONENT = {
+    mount: function(selector, init) {
+        let started = new WeakSet();
+        let run = (root) => {
+            let elements = root.matches?.(selector) ? [root] : root.querySelectorAll(selector);
+            elements.forEach((element) => {
+                if (started.has(element)) { return; }
+                started.add(element);
+                init(element);
+            });
+        };
+        htmx.onLoad(run);
+        // Mientras se lee el HTML la página está a medias: espera al htmx:load
+        // que htmx lanza sobre el body al terminar.
+        if (document.readyState !== "loading") { run(document.body); }
+    }
+};

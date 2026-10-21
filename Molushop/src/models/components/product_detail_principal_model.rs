@@ -210,7 +210,11 @@ impl ProductDetailPrincipalData {
     }
 
     pub fn variant_map_json(&self) -> String {
-        serde_json::to_string(&self.variant_map).unwrap_or_else(|_| "[]".to_string())
+        // Va dentro de un <script> con |safe: "<\/" para que un valor con
+        // "</script>" no cierre la etiqueta (en JSON es la misma cadena).
+        serde_json::to_string(&self.variant_map)
+            .unwrap_or_else(|_| "[]".to_string())
+            .replace("</", "<\\/")
     }
 
     /// URL del endpoint de "añadir al carrito". No es un dato del producto,

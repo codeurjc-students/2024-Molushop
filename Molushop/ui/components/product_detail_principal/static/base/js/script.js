@@ -1,20 +1,22 @@
 const PRODUCT_DETAIL = {
+    // La ficha que se ve y sus variaciones (JSON de la plantilla): con hx-boost
+    // se pasa de una ficha a otra sin recargar.
     element: null,
-    init: function() {
-        let principal = document.querySelector(".product-detail-principal");
-        if (principal == null) { return; }
+    variantMap: [],
+
+    // Una vez por ficha (COMPONENT.mount, base.js)
+    init: function(principal) {
         this.element = principal;
+        this.variantMap = JSON.parse(principal.querySelector(".variant-map").textContent);
 
         let main_image_container = principal.querySelector(".main-image-container");
         let more_images_container = principal.querySelector(".all-images");
-
-        more_images_container.style.height = `${main_image_container.offsetHeight}px`;
-
-        window.addEventListener("resize", () => {
-            more_images_container.style.height = `${main_image_container.offsetHeight}px`;
-        });
+        this.fitThumbnails();
 
         let main_image = main_image_container.querySelector(".image-principal");
+        // Arranca antes de que carguen las imágenes: se mide otra vez con cada
+        // imagen grande que llega (también al cambiarla con las miniaturas).
+        main_image.addEventListener("load", () => this.fitThumbnails());
         let mini_images = more_images_container.querySelectorAll('.image-s');
         mini_images.forEach((image_cont) => {
             image_cont.addEventListener("mouseenter", () => {
@@ -28,9 +30,15 @@ const PRODUCT_DETAIL = {
         this.init_product_selection();
         this.refreshAvailability();
         this.element.addEventListener("m-qty-change", () => this.showError(null));
-
-        document.addEventListener("auth-cancelled", () => this.clearPendingAdd());
         this.resumePendingAdd();
+    },
+
+    // La columna de miniaturas mide lo mismo que la imagen grande
+    fitThumbnails: function() {
+        if (this.element == null || !this.element.isConnected) { return; }
+        let main_image_container = this.element.querySelector(".main-image-container");
+        let more_images_container = this.element.querySelector(".all-images");
+        more_images_container.style.height = `${main_image_container.offsetHeight}px`;
     },
 
     // Devuelve { attrName: value } de los radios actualmente marcados
@@ -46,7 +54,7 @@ const PRODUCT_DETAIL = {
     // Devuelve las variaciones de variantMap que contienen el atributo name=attrName con value=attrValue,
     // primero las que tienen stock: al saltar de combinación se elige una que se pueda comprar.
     getVariantsByAttr: function(attrName, attrValue) {
-        return variantMap
+        return this.variantMap
             .filter(variant => variant.attributes.some(a => a.name === attrName && a.value === attrValue))
             .sort((a, b) => (b.stock > 0) - (a.stock > 0));
     },
@@ -55,7 +63,7 @@ const PRODUCT_DETAIL = {
     // seleccionado, dan una variación CON stock (para tachar los que no).
     getAvailableValues: function(selectedAttrs, targetAttrName) {
         let available = new Set();
-        variantMap.forEach(variant => {
+        this.variantMap.forEach(variant => {
             if (variant.stock <= 0) return;
 
             let matches = Object.entries(selectedAttrs).every(([name, value]) => {
@@ -165,7 +173,7 @@ const PRODUCT_DETAIL = {
       let attrs = (typeof attrsJson === "string") ? JSON.parse(attrsJson) : attrsJson;
       let attrNames = Object.keys(attrs);
 
-      return variantMap.find(variant =>
+      return this.variantMap.find(variant =>
           attrNames.length === variant.attributes.length &&
           attrNames.every(name => {
               let attr = variant.attributes.find(a => a.name === name);
@@ -178,7 +186,7 @@ const PRODUCT_DETAIL = {
         let attrNames = Object.keys(selectedAttrs);
         if (attrNames.length === 0) return;
 
-        let match = variantMap.find(variant =>
+        let match = this.variantMap.find(variant =>
             attrNames.every(name => {
                 let attr = variant.attributes.find(a => a.name === name);
                 return attr && attr.value === selectedAttrs[name];
@@ -310,7 +318,7 @@ const PRODUCT_DETAIL = {
         if (pending.path !== location.pathname) { return; }
         if (Date.now() - pending.saved_at > this.PENDING_ADD_MAX_AGE_MS) { return; }
 
-        let variant = variantMap.find(v => v.id === pending.product_var_id);
+        let variant = this.variantMap.find(v => v.id === pending.product_var_id);
         if (!variant) { return; }
 
         // Se deja la ficha como estaba al pulsar, para que lo que se añade sea lo que se ve
@@ -343,6 +351,8 @@ const PRODUCT_DETAIL = {
     }
 };
 
-window.addEventListener("load", () => {
-    PRODUCT_DETAIL.init();
-});
+// Sobre window y document, una sola vez: valen para la ficha que se vea.
+window.addEventListener("resize", () => PRODUCT_DETAIL.fitThumbnails());
+document.addEventListener("auth-cancelled", () => PRODUCT_DETAIL.clearPendingAdd());
+
+COMPONENT.mount(".product-detail-principal", (principal) => PRODUCT_DETAIL.init(principal));
