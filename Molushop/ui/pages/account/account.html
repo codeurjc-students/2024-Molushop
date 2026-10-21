@@ -32,7 +32,7 @@
         <section class="m-card account-box">
             <h2>Cambiar contraseña</h2>
             {# Formulario clásico: el POST redirige aquí con ?ok= o ?error= #}
-            <form method="post" action="/account/password" class="account-form">
+            <form hx-boost="false" method="post" action="/account/password" class="account-form">
                 <label class="m-field">
                     <span class="m-label">Contraseña actual</span>
                     <input class="m-input" type="password" name="current" autocomplete="current-password" required>
@@ -57,7 +57,7 @@
             <p>No tienes la sesión abierta en ningún otro dispositivo.</p>
             {% else %}
             <p>Tienes la sesión abierta en {{other_sessions}} {% if other_sessions == 1 %}dispositivo más{% else %}dispositivos más{% endif %}.</p>
-            <form method="post" action="/account/sessions">
+            <form hx-boost="false" method="post" action="/account/sessions">
                 <button type="submit" class="m-btn m-btn--danger-outline">Cerrar sesión en todos los demás dispositivos</button>
             </form>
             {% endif %}

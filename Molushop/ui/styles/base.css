@@ -62,3 +62,12 @@ button:disabled {
   width:1em;
   fill:currentColor;
 }
+/* Cambio de página con hx-boost (base.js, BOOST): la transición por defecto
+   del navegador (fundido). Sin ella si el sistema pide menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}

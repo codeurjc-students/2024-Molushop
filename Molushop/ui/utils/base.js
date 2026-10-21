@@ -82,11 +82,79 @@ const QUANTITY = {
 };
 QUANTITY.init();
 
+// hx-boost en la tienda (layout1). Con él, los enlaces piden la página con
+// htmx y sustituyen el body, así que hay que cuidar lo que una recarga daba
+// hecho:
+// - Scripts: htmx ejecuta los <script> que trae lo que pinta, y los
+//   componentes cargan su JS en el body. Un fichero ya cargado no se vuelve
+//   a ejecutar (declararía otra vez sus const y duplicaría sus oyentes): se
+//   quita de la respuesta, también de lo que restaura el historial. Y
+//   head-support no quita los del <head>: lo que ya se ejecutó sigue vivo.
+// - Lo que no es tienda (panel, admin) va recargando: tiene otro layout.
+// - Si la página falla (404, 500...) o no hay red, también recargando, para
+//   que se vea la página de error del servidor o la del navegador.
+// - Transición suave entre páginas (View Transitions), solo al navegar.
+// El historial de la tienda no guarda copias (hx-history="false", layout1):
+// al volver atrás llega la página del servidor. El del panel sí, y también
+// se le quitan los scripts ya cargados.
+const BOOST = {
+    loaded: new Set(),
+    outside: /^\/(panel|admin)(\/|$)/,
+
+    stripLoadedScripts: function(html) {
+        document.querySelectorAll('script[src]').forEach((script) => this.loaded.add(script.src));
+        return html.replace(/<script\b[^>]*\ssrc="([^"]+)"[^>]*>\s*<\/script>/gi, (tag, src) =>
+            this.loaded.has(new URL(src, location.href).href) ? '' : tag);
+    },
+
+    reload: function(event) {
+        event.preventDefault();
+        location.assign(event.detail.requestConfig?.path ?? event.detail.pathInfo.requestPath);
+    },
+};
+
+document.addEventListener('htmx:beforeRequest', (event) => {
+    if (event.detail.boosted && BOOST.outside.test(new URL(event.detail.requestConfig.path, location.href).pathname)) {
+        BOOST.reload(event);
+    }
+});
+
+document.addEventListener('htmx:beforeSwap', (event) => {
+    if (event.detail.boosted && event.detail.isError) {
+        event.detail.shouldSwap = false;
+        location.assign(event.detail.xhr.responseURL || event.detail.pathInfo.requestPath);
+        return;
+    }
+    if (typeof event.detail.serverResponse === 'string') {
+        event.detail.serverResponse = BOOST.stripLoadedScripts(event.detail.serverResponse);
+    }
+    // Con la pestaña oculta el navegador aborta la transición (y lo apunta como error)
+    if (event.detail.boosted && !document.hidden) {
+        event.detail.swapOverride = 'innerHTML transition:true';
+    }
+});
+
+document.addEventListener('htmx:sendError', (event) => {
+    if (event.detail.boosted) { location.assign(event.detail.pathInfo.requestPath); }
+});
+
+document.addEventListener('htmx:historyCacheHit', (event) => {
+    event.detail.item.content = BOOST.stripLoadedScripts(event.detail.item.content);
+});
+
+document.addEventListener('htmx:historyCacheMissLoad', (event) => {
+    event.detail.response = BOOST.stripLoadedScripts(event.detail.response);
+});
+
+document.addEventListener('htmx:removingHeadElement', (event) => {
+    if (event.detail.headElement.tagName === 'SCRIPT') { event.preventDefault(); }
+});
+
 // Errores de htmx: htmx 2 no pinta las respuestas 4xx/5xx. Las que el
 // servidor quiere enseñar (un aviso) llevan HX-Retarget (utils/hx.rs,
 // error_modal): esas se pintan. Las demás, como antes, no.
 document.addEventListener('htmx:beforeSwap', (event) => {
-    if (event.detail.isError && event.detail.xhr.getResponseHeader('HX-Retarget')) {
+    if (event.detail.isError && !event.detail.boosted && event.detail.xhr.getResponseHeader('HX-Retarget')) {
         event.detail.shouldSwap = true;
         event.detail.isError = false;
     }

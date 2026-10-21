@@ -12,7 +12,7 @@
        pierde la dirección recién tecleada, que es lo que más duele reescribir. #}
     <div class="m-alert m-alert--danger checkout-error" role="alert">{{error.message}}</div>
     {% endif %}
-    <form class="checkout-body" method="post" action="{{checkout.routes.confirm}}">
+    <form hx-boost="false" class="checkout-body" method="post" action="{{checkout.routes.confirm}}">
         <input type="hidden" name="lines" value="{{checkout.line_ids}}">
 
         <div class="checkout-main m-card">

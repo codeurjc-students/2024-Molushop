@@ -1,5 +1,7 @@
 {% extends "layouts/layout1.html" %}
 {# Layout del panel: layout1 + la barra de navegación. La página necesita un campo `panel_nav`. #}
+{# Sin hx-boost: el panel navega recargando, como siempre. #}
+{% block boost %}{% endblock %}
 {% block header %}
     {% include "components/panel_nav/styles.html" %}
     {% include "components/panel_nav/templates/panel_nav.html" %}

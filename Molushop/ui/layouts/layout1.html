@@ -27,7 +27,15 @@
     {% block scripts %}{% endblock %}
     {% block styles %}{% endblock %}
 </head>
-<body hx-ext="head-support,response-targets"
+{# hx-boost: los enlaces de la tienda cambian de página sin recargar (htmx
+   sustituye el body; head-support junta los <head>). El panel lo deja vacío.
+   Los formularios normales (POST sin htmx: checkout, cuenta, contraseña)
+   llevan hx-boost="false" y se envían como siempre. Lo que necesita para
+   funcionar está en ui/utils/base.js (BOOST).
+   hx-history="false": al volver atrás la página se pide otra vez al
+   servidor, en vez de sacar la copia que htmx guarda al salir (saldrían el
+   carrito o el stock de entonces). #}
+<body {% block boost %}hx-boost="true" hx-history="false"{% endblock %} hx-ext="head-support,response-targets"
     style="margin:0"
     data-user_logged={{user_logged}}
 >
