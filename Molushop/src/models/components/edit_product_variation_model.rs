@@ -21,8 +21,16 @@ pub struct Routes{
     pub new_identifier: &'static str,
     pub edit_identifiers: &'static str,
     pub warning: &'static str,
-    pub delete_identifier: &'static str
-    
+    pub delete_identifier: &'static str,
+    pub sku_check: &'static str,
+}
+
+/// El aviso bajo el campo SKU mientras se escribe (pestaña General): vacío si
+/// se puede guardar.
+#[derive(Template)]
+#[template(path = "components/edit_product_variation/templates/sku_check.html")]
+pub struct SkuCheck {
+    pub problem: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

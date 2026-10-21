@@ -18,7 +18,7 @@ use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::variation_access;
 use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{set_variation_identifiers,update_price_variation,set_stock_variation};
-use crate::services::sku_service::{normalize_sku, save_variation_general, SaveGeneral};
+use crate::services::sku_service::{check_variation_sku, normalize_sku, save_variation_general, SaveGeneral};
 use crate::utils::hx::error_modal;
 use actix_web::http::StatusCode as Status;
 
@@ -47,6 +47,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         edit_identifiers: Box::leak(format!("{}{}/edit-identifiers",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         warning: Box::leak(format!("{}{}/pop-warning",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         delete_identifier: Box::leak(format!("{}{}/delete-identifier",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        sku_check: Box::leak(format!("{}{}/sku-check",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         //edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
@@ -65,6 +66,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(pop_warning)
         .service(new_identifier)
         .service(edit_general)
+        .service(sku_check)
         .service(edit_price)
         .service(edit_stock)
         .service(delete_identifier);
@@ -72,7 +74,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
-use crate::models::components::edit_product_variation_model::EditProductVariation;
+use crate::models::components::edit_product_variation_model::{EditProductVariation, SkuCheck};
 use crate::services::components::edit_product_variation_service::start;
 use crate::models::components::message_modal::MessageModal;
 
@@ -183,6 +185,32 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
         text:"Prueba de edit_general, hecha correctamente".to_string()
     }.render().unwrap();
     HttpResponse::Ok().body(modal_respuesta)*/
+}
+
+#[derive(Deserialize)]
+pub struct SkuQuery {
+    #[serde(default)]
+    pub sku: String,
+}
+
+/// El SKU mientras se escribe en la pestaña General: devuelve el aviso que va
+/// bajo el campo, o nada si se puede guardar. No guarda; al guardar se vuelve
+/// a comprobar todo.
+#[get("/sku-check/{variation_id}")]
+async fn sku_check(path: web::Path<Uuid>, query: web::Query<SkuQuery>, panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
+    let variation_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = variation_access(&panel_user, &variation_id, pool).await {
+        return resp;
+    }
+    match check_variation_sku(&variation_id, &query.sku, pool).await {
+        Ok(problem) => HttpResponse::Ok().body(SkuCheck { problem }.render().unwrap()),
+        // Es solo una ayuda: sin aviso, y al guardar se comprueba igual
+        Err(e) => {
+            println!("Error al comprobar el SKU: {}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }
 
 use crate::models::components::edit_product_variation_model::Identifier;

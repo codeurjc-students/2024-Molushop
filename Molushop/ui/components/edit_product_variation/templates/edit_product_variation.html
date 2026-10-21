@@ -66,12 +66,22 @@
                     </select>
                 </div>
                 {# Las reglas las comprueba el servidor (sku_service::normalize_sku);
-                   pattern y maxlength solo avisan antes de mandar #}
+                   pattern y maxlength solo avisan antes de mandar. Mientras se
+                   escribe, el servidor dice si vale o si ya lo tiene otra
+                   variación (sku-check, SkuCheck) en el hueco de debajo:
+                   400 ms sin teclear, y una respuesta vieja no pisa a la nueva. #}
                 <div class="m-field form-group">
                     <label class="m-label" for="ev-sku-{{variation.id}}">SKU</label>
                     <input id="ev-sku-{{variation.id}}" class="m-input" name="sku" type="text" value="{{general.sku}}"
                         maxlength="64" pattern="[A-Za-z0-9._\-]*" autocomplete="off" spellcheck="false"
-                        placeholder="CORT-VER-S">
+                        placeholder="CORT-VER-S"
+                        aria-describedby="ev-sku-check-{{variation.id}}"
+                        hx-get="{{routes.sku_check}}/{{variation.id}}"
+                        hx-trigger="input changed delay:400ms"
+                        hx-sync="this:replace"
+                        hx-target="#ev-sku-check-{{variation.id}}"
+                        hx-swap="innerHTML">
+                    <div id="ev-sku-check-{{variation.id}}" aria-live="polite"></div>
                     <p class="m-hint">Opcional. El código interno de tu tienda para esta variación; no se puede repetir en la tienda. Letras sin tilde, números, - _ y .</p>
                 </div>
                 <div class="form-actions">

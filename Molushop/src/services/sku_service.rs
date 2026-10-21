@@ -60,6 +60,41 @@ struct Holder {
     label: String,
 }
 
+/// La otra variación de la tienda que ya tiene este SKU ("Cortina · Verde · S"),
+/// si la hay.
+async fn sku_holder(conn: &mut AsyncPgConnection, variation_id: Uuid, sku: &str) -> Result<Option<String>, Error> {
+    let holder = sql_query(
+        "SELECT p.name || COALESCE(' · ' || (
+                SELECT string_agg(attr->>'value', ' · ')
+                FROM jsonb_array_elements(v.attributes) AS attr), '') AS label
+         FROM product_variations v
+         JOIN products p ON p.id = v.product_id
+         WHERE v.sku = $2 AND v.id <> $1
+           AND v.store_id = (SELECT store_id FROM product_variations WHERE id = $1)
+         LIMIT 1"
+    )
+        .bind::<SqlUuid, _>(variation_id)
+        .bind::<Text, _>(sku)
+        .get_result::<Holder>(conn)
+        .await
+        .optional()?;
+    Ok(holder.map(|holder| holder.label))
+}
+
+/// El SKU mientras se escribe (no guarda nada): el problema que tiene, con
+/// el texto que se le enseña, o `None` si se puede guardar. Las mismas reglas
+/// que al guardar. Quien llama ya ha comprobado que la variación es del usuario.
+pub async fn check_variation_sku(variation_id: &Uuid, raw: &str, pool: &DbPool) -> Result<Option<String>, Error> {
+    let sku = match normalize_sku(raw) {
+        Ok(Some(sku)) => sku,
+        Ok(None) => return Ok(None),
+        Err(text) => return Ok(Some(text.to_string())),
+    };
+    let mut conn = pool.get().await.unwrap();
+    let holder = sku_holder(&mut conn, *variation_id, &sku).await?;
+    Ok(holder.map(|holder| format!("Ya lo usa {}", holder)))
+}
+
 /// Estado y SKU de una variación, juntos: si el SKU está cogido no se guarda
 /// nada. Quien llama ya ha comprobado que la variación es del usuario.
 pub async fn save_variation_general(
@@ -90,23 +125,8 @@ pub async fn save_variation_general(
             }
         }
         if let Some(sku) = &sku {
-            let holder = sql_query(
-                "SELECT p.name || COALESCE(' · ' || (
-                        SELECT string_agg(attr->>'value', ' · ')
-                        FROM jsonb_array_elements(v.attributes) AS attr), '') AS label
-                 FROM product_variations v
-                 JOIN products p ON p.id = v.product_id
-                 WHERE v.sku = $2 AND v.id <> $1
-                   AND v.store_id = (SELECT store_id FROM product_variations WHERE id = $1)
-                 LIMIT 1"
-            )
-                .bind::<SqlUuid, _>(variation_id)
-                .bind::<Text, _>(sku)
-                .get_result::<Holder>(conn)
-                .await
-                .optional()?;
-            if let Some(holder) = holder {
-                return Ok(SaveGeneral::SkuTaken(holder.label));
+            if let Some(holder) = sku_holder(conn, variation_id, sku).await? {
+                return Ok(SaveGeneral::SkuTaken(holder));
             }
         }
         sql_query("UPDATE product_variations SET status = $2, sku = $3 WHERE id = $1")
