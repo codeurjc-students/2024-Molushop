@@ -1,0 +1,7 @@
+{# Respuesta de subir imágenes, después del aviso: las nuevas, al final de la
+   galería de guardadas (fuera de banda: la petición apunta al body). #}
+<div hx-swap-oob="beforeend:.product-edit-container .base-images">
+    {% for image in images %}
+    {% include "components/edit_product/templates/image_tile.html" %}
+    {% endfor %}
+</div>

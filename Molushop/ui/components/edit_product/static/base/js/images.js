@@ -39,22 +39,16 @@ const imageManager = {
         this.fileInput.addEventListener('change', this.handleFiles.bind(this), false);
     },
 
+    // Subida guardada (HX-Trigger image_update): las imágenes de verdad, con
+    // sus botones, llegan del servidor fuera de banda (uploaded_images.html);
+    // aquí se quitan las vistas previas y se vacía la selección.
     updateImageLocation(element,event){
-        //cambiar de lugar la imagen
-        if(event.detail.id_value==element.id){
-            console.log(event.detail.id_value);
-            //seleccionar la
-            let new_image_container = element.querySelector(".image-gallery.new-images");
-            let new_images = new_image_container.querySelectorAll(".image-container");
-            //mover los elementos de lugar
-            let image_container = element.querySelector(".image-gallery.base-images");
-            if( new_images.length==0){
-                return;
-            }
-            new_images.forEach(image =>{
-                image_container.appendChild(image);
-            });
+        if(event.detail.id_value!=element.id){
+            return;
         }
+        element.querySelector(".image-gallery.new-images").replaceChildren();
+        element.querySelector(".image-gallery.base-images .no-images")?.remove();
+        element.querySelector('.dropzone input[type="file"]').value = '';
     },
 
     preventDefaults(e) {

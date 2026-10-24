@@ -152,26 +152,10 @@
                         {% if images.len()==0 %}
                             <p class="no-images">No hay imágenes disponibles</p>
                         {% else %}
+                            {% let product_id = product.id %}
+                            {% let has_variations = panel_product.variations_titles.len() > 0 %}
                             {% for image in images %}
-                                <div class="image-container" data-image-id="{{image.id}}" data-variations="{{image.variation_ids_csv()}}">
-                                    <img src="{{image.image_url}}" alt="Imagen del producto">
-                                    {# La principal lleva la etiqueta; las demás, el botón (main-image.js) #}
-                                    <span class="m-badge m-badge--success image-main-badge" data-main-badge{% if !image.is_main %} hidden{% endif %}>Principal</span>
-                                    <button type="button" class="image-main-btn" data-make-main{% if image.is_main %} hidden{% endif %}>Hacer principal</button>
-                                    <div class="image-overlay">
-                                        {# Pide la confirmación; el "Sí" la borra (images.js quita la imagen) #}
-                                        <button class="delete-btn" type="button" aria-label="Borrar imagen"
-                                            hx-get="{{routes.delete_image_modal}}/{{product.id}}?image_id={{image.id}}"
-                                            hx-target="body" hx-swap="beforeend">
-                                            <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-trash" /></svg>
-                                        </button>
-                                    </div>
-                                    {# El texto lo pone el JS: "Todas", "Color: Red"… #}
-                                    {% if panel_product.variations_titles.len() > 0 %}
-                                    <button type="button" class="image-variations-btn" data-image-variations
-                                        title="En qué variaciones sale esta imagen">Variaciones</button>
-                                    {% endif %}
-                                </div>
+                                {% include "components/edit_product/templates/image_tile.html" %}
                             {% endfor %}
                         {% endif %}
                     </div>

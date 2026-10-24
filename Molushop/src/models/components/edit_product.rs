@@ -5,6 +5,17 @@ use crate::models::components::variations_explorer::EditUrls;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
+/// Las imágenes recién subidas, para añadirlas a la galería sin recargar
+/// (va detrás del aviso en la respuesta de `edit_images`).
+#[derive(Template)]
+#[template(path = "components/edit_product/templates/uploaded_images.html")]
+pub struct UploadedImages{
+    pub images: Vec<ImageCategories2>,
+    pub routes: &'static Routes,
+    pub product_id: Uuid,
+    pub has_variations: bool,
+}
+
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/edit_product/templates/edit_product.html")]
 pub struct EditProduct{

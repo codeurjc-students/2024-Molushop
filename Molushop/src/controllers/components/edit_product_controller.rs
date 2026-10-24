@@ -8,7 +8,7 @@ use serde_json::json;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
 use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
-use crate::models::components::edit_product::Routes;
+use crate::models::components::edit_product::{Routes, UploadedImages, ImageCategories2};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 
@@ -18,7 +18,7 @@ use crate::services::panel_role_service::PanelUser;
 use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2};
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction, BulkOutcome};
 use crate::services::image_variations_service::set_image_variations;
-use crate::services::product_images_service::{set_main_image, delete_image as delete_product_image};
+use crate::services::product_images_service::{set_main_image, delete_image as delete_product_image, product_has_variations};
 use crate::services::product_specs_service::save_specs;
 use crate::models::error::ServiceError;
 use crate::services::sku_service::{save_skus, SaveSkus};
@@ -415,12 +415,30 @@ let client_data_x = client_data.get_ref().as_ref();
         },
     ];
     */
+    // Las nuevas, para pintarlas en la galería con sus botones (uploaded_images.html)
+    let new_images: Vec<ImageCategories2> = vec_images2.iter().map(|img| ImageCategories2{
+        id: img.id,
+        image_url: img.image_url.clone(),
+        is_main: img.is_main,
+        display_order: img.display_order,
+        variation_ids: Vec::new(),
+    }).collect();
+
     let result_multiple = update_multiple_images_2(vec_images2, pool).await;
     match result_multiple{
         Ok(_) => {
-            println!("Producto editado correctamente");
+            let has_variations = product_has_variations(&product_id, pool).await.unwrap_or_else(|e| {
+                println!("Panel: error al mirar las variaciones de {}: {}", product_id, e);
+                true
+            });
             let modal_render = MessageModal{
                 text:"Imagen actualizada correctamente!".to_string()
+            }.render().unwrap();
+            let tiles = UploadedImages{
+                images: new_images,
+                routes: &ROUTES,
+                product_id,
+                has_variations,
             }.render().unwrap();
 
             let trigger_value = json!(
@@ -434,7 +452,7 @@ let client_data_x = client_data.get_ref().as_ref();
 
             HttpResponse::Ok()
                 .insert_header(("HX-Trigger",trigger_value.to_string()))
-                .body(modal_render)
+                .body(modal_render + &tiles)
         },
         Err(e) => {
             println!("Error! -> {}",e);

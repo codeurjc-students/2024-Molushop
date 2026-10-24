@@ -116,3 +116,16 @@ pub async fn delete_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -> 
         Ok(Some(DeletedImage { image_url: deleted.image_url, new_main, file_unused: !in_use.in_use }))
     }.scope_boxed()).await
 }
+
+/// Si el producto tiene atributos de variación (Color, Talla…): sin ellos, la
+/// galería no lleva el botón "Variaciones" (como `variations_titles` en la página).
+pub async fn product_has_variations(product_id: &Uuid, pool: &DbPool) -> Result<bool, Error> {
+    let mut conn = pool.get().await.unwrap();
+    let row: InUse = sql_query("SELECT COALESCE(jsonb_typeof(variation_titles->'titulos') = 'array'
+            AND jsonb_array_length(variation_titles->'titulos') > 0, false) AS in_use
+            FROM products WHERE id = $1")
+        .bind::<SqlUuid, _>(*product_id)
+        .get_result(&mut conn)
+        .await?;
+    Ok(row.in_use)
+}
