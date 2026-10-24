@@ -36,7 +36,13 @@
                 <p class="product-store">Marca: {{general.brand}}</p>
             {% endif %}
             <div class="product-actions">
-                <a href="/panel/stores/{{store_id}}/products" class="m-btn m-btn--secondary m-btn--sm">&larr; Volver a productos</a>
+                {# Lo contrario de "Editar" en el listado: cambia el editor por el
+                   listado sin recargar. El href queda para abrirlo en otra pestaña. #}
+                <a href="/panel/stores/{{store_id}}/products" class="m-btn m-btn--secondary m-btn--sm"
+                    hx-get="/panel/stores/{{store_id}}/products"
+                    hx-target="closest .product-edit-container"
+                    hx-swap="outerHTML"
+                    hx-push-url="true">&larr; Volver a productos</a>
             </div>
         </div>
     </div>

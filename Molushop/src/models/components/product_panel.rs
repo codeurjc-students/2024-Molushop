@@ -5,8 +5,8 @@ use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGr
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_panel_group/templates/base.html")]
 pub struct ProductPanelGroup{
-    products: Vec<Product>,
-    routes: &'static RoutesProductPanelGroup,
+    pub products: Vec<Product>,
+    pub routes: &'static RoutesProductPanelGroup,
 }
 
 //hace falta la logica para implementar el template

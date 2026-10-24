@@ -15,6 +15,7 @@ use crate::controllers::components::edit_product_controller::ROUTES as ROUTES_ED
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
 use crate::controllers::createProduct::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
 use crate::models::components::edit_product::EditProduct;
+use crate::models::components::product_panel::ProductPanelGroup;
 use crate::models::components::panel_nav::PanelNav;
 use crate::models::pages_models::panel_products_page_model::PanelProductsPage;
 use crate::models::pages_models::panel_product_edit_page_model::PanelProductEditPage;
@@ -54,10 +55,18 @@ pub async fn store_or_response(
     }
 }
 
+/// Para meter texto del usuario (el nombre de la tienda) en HTML hecho a mano.
+fn escape_text(text: &str) -> String {
+    text.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;")
+}
+
+/// Desde "Volver a productos" del editor llega por htmx: solo el título y el
+/// listado (como `products_edit` al revés).
 async fn products_list(
     path: web::Path<Uuid>,
     panel_user: web::ReqData<PanelUser>,
     pool_data: web::Data<DbPool>,
+    req: HttpRequest,
 ) -> HttpResponse {
     let pool = pool_data.get_ref();
     let store = match store_or_response(&panel_user, &path, pool).await {
@@ -66,6 +75,13 @@ async fn products_list(
     };
 
     match products_panel::get_products(&store.id, pool).await {
+        Ok(products) if req.headers().contains_key("HX-Request") => {
+            let group = ProductPanelGroup {
+                products,
+                routes: &ROUTES_PRODUCT_PANEL_GROUP,
+            }.render().unwrap();
+            html(StatusCode::OK, format!("<title>Productos - {}</title>{}", escape_text(&store.store_name), group))
+        }
         Ok(products) => {
             let page = PanelProductsPage {
                 user_logged: false,
