@@ -57,8 +57,8 @@
         showAsMain(gallery, image);
     });
 
-    // Borrar imagen: salta en el "Sí" del modal, fuera de la galería, así que
-    // la imagen se busca por su id. `new_main`: la que el servidor ha hecho
+    // Borrar imagen: salta en el body (el modal ya se ha cerrado), así que la
+    // imagen se busca por su id. `new_main`: la que el servidor ha hecho
     // principal si la borrada lo era.
     document.addEventListener('image_deleted', (event) => {
         const { image_id, new_main } = event.detail;

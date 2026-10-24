@@ -465,8 +465,9 @@ pub struct DeleteImageQuery{
 }
 
 /// Papelera de una imagen guardada: primero esta confirmación, cuyo "Sí" lanza
-/// `delete_image`. La respuesta salta en el botón del modal, así que el JS
-/// (images.js) busca la imagen por el id que va en `image_deleted`.
+/// `delete_image`. El modal se cierra al pulsar "Sí", así que la respuesta no
+/// puede saltar en su botón: `image_deleted` va al body (`target`) y el JS
+/// (main-image.js) busca la imagen por su id.
 #[get("/delete-image-modal/{product_id}")]
 async fn delete_image_modal(path: web::Path<Uuid>,query: web::Query<DeleteImageQuery>) -> HttpResponse {
     let modal = ConfirmModal{
@@ -512,7 +513,7 @@ async fn delete_image(path: web::Path<Uuid>,query: web::Query<DeleteImageQuery>,
         }
     }
 
-    let trigger = json!({ "image_deleted": { "image_id": query.image_id, "new_main": deleted.new_main } });
+    let trigger = json!({ "image_deleted": { "target": "body", "image_id": query.image_id, "new_main": deleted.new_main } });
     HttpResponse::Ok()
         .insert_header(("HX-Trigger", trigger.to_string()))
         .body(MessageModal::new("Imagen borrada").render().unwrap())
