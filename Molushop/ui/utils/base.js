@@ -189,6 +189,16 @@ document.addEventListener('htmx:afterRequest', (event) => {
     });
 });
 
+// Con hx-push-url ("Editar" del listado) htmx guarda la página en el historial
+// mientras el botón está ocupado; al volver atrás la restaura así y ya no hay
+// petición que lo encienda. Tras restaurar no queda ninguna en marcha.
+document.addEventListener('htmx:historyRestore', () => {
+    document.querySelectorAll('button[aria-busy="true"]').forEach((button) => {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+    });
+});
+
 // Arranque de los componentes. No vale "load" ni "DOMContentLoaded": solo
 // saltan con la carga normal, y con hx-boost la tienda cambia de página sin
 // recargar (htmx sustituye el <body>). mount() llama a init(elemento) una vez
