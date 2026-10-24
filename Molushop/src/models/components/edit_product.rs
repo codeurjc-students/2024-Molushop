@@ -24,6 +24,8 @@ pub struct Routes{
     pub image_variations: &'static str,
     pub main_image: &'static str,
     pub edit_specs: &'static str,
+    pub delete_image_modal: &'static str,
+    pub delete_image: &'static str,
     //pub delete_product_modal: &'static str,
     //images
 }

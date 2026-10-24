@@ -505,24 +505,6 @@ pub async fn update_multiple_images_2(image_products:Vec<NewImageProduct2>, pool
 
 //pub async fn get_product_cards() -> Rersult<>
 
-pub async fn delete_all_images(id_producto: &Uuid, pool: &DbPool) -> Result<usize, Error> {
-    let connection = &mut pool.get().await.unwrap();
-    
-    let result = sql_query(r#"
-    UPDATE products 
-    SET images = jsonb_set(
-        images,
-        '{images}',
-        '[]'::jsonb
-    )
-    WHERE id = $1
-    "#)
-    .bind::<diesel::sql_types::Uuid, _>(id_producto)
-    .execute(connection)
-    .await;
-    
-    result
-}
 /* 
 pub async fn get_images(id_producto: &Uuid, pool: &DbPool) -> Result<Vec<ImageData>, Error> {
     let connection = &mut pool.get().await.unwrap();

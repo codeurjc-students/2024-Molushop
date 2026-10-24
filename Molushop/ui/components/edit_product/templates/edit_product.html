@@ -139,7 +139,7 @@
                     <div class="dropzone">
                         <input type="file" name="file" multiple accept="image/*">
                         <div class="dropzone-content">
-                            <i class="fas fa-cloud-upload-alt"></i>
+                            <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-upload" /></svg>
                             <p>Arrastra aquí las imágenes o pulsa para subirlas</p>
                         </div>
                     </div>
@@ -159,8 +159,11 @@
                                     <span class="m-badge m-badge--success image-main-badge" data-main-badge{% if !image.is_main %} hidden{% endif %}>Principal</span>
                                     <button type="button" class="image-main-btn" data-make-main{% if image.is_main %} hidden{% endif %}>Hacer principal</button>
                                     <div class="image-overlay">
-                                        <button class="delete-btn" type="button">
-                                            <i class="fas fa-trash"></i>
+                                        {# Pide la confirmación; el "Sí" la borra (images.js quita la imagen) #}
+                                        <button class="delete-btn" type="button" aria-label="Borrar imagen"
+                                            hx-get="{{routes.delete_image_modal}}/{{product.id}}?image_id={{image.id}}"
+                                            hx-target="body" hx-swap="beforeend">
+                                            <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-trash" /></svg>
                                         </button>
                                     </div>
                                     {# El texto lo pone el JS: "Todas", "Color: Red"… #}

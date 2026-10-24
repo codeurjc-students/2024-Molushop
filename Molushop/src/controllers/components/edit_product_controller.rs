@@ -15,10 +15,10 @@ use diesel_async::pg::AsyncPgConnection;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2,delete_all_images};
+use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2};
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction, BulkOutcome};
 use crate::services::image_variations_service::set_image_variations;
-use crate::services::product_images_service::set_main_image;
+use crate::services::product_images_service::{set_main_image, delete_image as delete_product_image};
 use crate::services::product_specs_service::save_specs;
 use crate::models::error::ServiceError;
 use crate::services::sku_service::{save_skus, SaveSkus};
@@ -51,6 +51,8 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         image_variations: Box::leak(format!("{}{}/image-variations",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         main_image: Box::leak(format!("{}{}/main-image",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
         edit_specs: Box::leak(format!("{}{}/edit-specs",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        delete_image_modal: Box::leak(format!("{}{}/delete-image-modal",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        delete_image: Box::leak(format!("{}{}/delete-image",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -69,7 +71,8 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(main_image)
         .service(edit_specs)
         .service(bulk_skus)
-        .service(delete_all_imgs)
+        .service(delete_image_modal)
+        .service(delete_image)
         .service(edit_images);
         //.service(delete_product_modal);
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
@@ -456,28 +459,61 @@ let client_data_x = client_data.get_ref().as_ref();
     */
 }
 
-#[delete("/delete-all-images/{product_id}")]
-async fn delete_all_imgs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,client_data: web::Data<Arc<Client>>,pool_data: web::Data<DbPool>) -> HttpResponse {
+#[derive(Deserialize)]
+pub struct DeleteImageQuery{
+    pub image_id: Uuid,
+}
+
+/// Papelera de una imagen guardada: primero esta confirmación, cuyo "Sí" lanza
+/// `delete_image`. La respuesta salta en el botón del modal, así que el JS
+/// (images.js) busca la imagen por el id que va en `image_deleted`.
+#[get("/delete-image-modal/{product_id}")]
+async fn delete_image_modal(path: web::Path<Uuid>,query: web::Query<DeleteImageQuery>) -> HttpResponse {
+    let modal = ConfirmModal{
+        method: "hx-delete".to_string(),
+        message: "¿Borrar esta imagen? No se puede deshacer.".to_string(),
+        endpoint: format!("{}/{}?image_id={}", ROUTES.delete_image, path.into_inner(), query.image_id),
+        target: "body".to_string(),
+        swap: "beforeend".to_string(),
+        hyperscript_action: String::new(),
+        htmx_active: true,
+    };
+    HttpResponse::Ok().body(modal.render().unwrap())
+}
+
+/// Borra la imagen de la BD y, si nadie más usa la URL (ni otra imagen ni un
+/// pedido), su fichero de S3. S3 va después de guardar: si falla, la imagen ya
+/// no sale en la tienda y el fichero queda huérfano (se apunta en el log).
+#[delete("/delete-image/{product_id}")]
+async fn delete_image(path: web::Path<Uuid>,query: web::Query<DeleteImageQuery>,panel_user: web::ReqData<PanelUser>,
+    client_data: web::Data<Arc<Client>>,pool_data: web::Data<DbPool>) -> HttpResponse {
     let product_id = path.into_inner();
     let pool = pool_data.get_ref();
     if let Err(resp) = product_access(&panel_user, &product_id, pool).await {
         return resp;
     }
-//let client_data_x = client_data.get_ref().as_ref();
-    //let uploaded_file = client_data_x.upload(&form.file,"").await;
-  
-    let result_delete = delete_all_images(&product_id, pool).await;
-    match result_delete{
-        Ok(num)=>{
-            let resp = format!("Imagenes eliminadas correctamente: {}",num);
-            HttpResponse::Ok().body(resp) 
-        },
+
+    let deleted = match delete_product_image(&product_id, &query.image_id, pool).await {
+        Ok(Some(deleted)) => deleted,
+        Ok(None) => return error_modal(Status::NOT_FOUND, "Esa imagen ya no existe o no es de este producto"),
         Err(e) => {
-            println!("Error! -> {}",e);
-            /*let modal_render = MessageModal{
-            text:"Ha ocurrido un error!".to_string()
-            }.render().unwrap();*/
-            HttpResponse::InternalServerError().body("Algo ha ido mal")
+            println!("Panel: error al borrar la imagen {}: {}", query.image_id, e);
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha borrado nada");
         }
-    }    
+    };
+
+    if deleted.file_unused {
+        let client = client_data.get_ref().as_ref();
+        match client.key_from_url(&deleted.image_url) {
+            Some(key) => if !client.delete_file(&key).await {
+                println!("Panel: no se ha podido borrar de S3 {} (queda huérfano)", key);
+            },
+            None => println!("Panel: {} no es del bucket, no se borra de S3", deleted.image_url),
+        }
+    }
+
+    let trigger = json!({ "image_deleted": { "image_id": query.image_id, "new_main": deleted.new_main } });
+    HttpResponse::Ok()
+        .insert_header(("HX-Trigger", trigger.to_string()))
+        .body(MessageModal::new("Imagen borrada").render().unwrap())
 }

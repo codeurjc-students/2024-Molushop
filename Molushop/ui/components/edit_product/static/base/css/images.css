@@ -42,7 +42,7 @@
     pointer-events: none;
     }
     
-    .dropzone-content i {
+    .dropzone-content .icn-svg {
     font-size: 48px;
     color: var(--color-primary-strong);
     margin-bottom: 10px;
@@ -110,6 +110,11 @@
         transition: background-color 0.3s ease;
     }
         
+    .delete-btn .icn-svg {
+        font-size: 18px;
+        vertical-align: middle;
+    }
+
     .delete-btn:hover {
         background: var(--color-danger-hover);
     }

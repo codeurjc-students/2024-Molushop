@@ -139,7 +139,9 @@ const imageManager = {
             
             let deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.type = 'button';
+            deleteBtn.setAttribute('aria-label', 'Quitar imagen');
+            deleteBtn.innerHTML = '<svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-trash" /></svg>';
             deleteBtn.onclick = () => {
                 let dataTransfer = new DataTransfer();
                 let files = Array.from(this.fileInput.files);
