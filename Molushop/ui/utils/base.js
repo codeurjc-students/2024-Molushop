@@ -138,12 +138,22 @@ document.addEventListener('htmx:sendError', (event) => {
     if (event.detail.boosted) { location.assign(event.detail.pathInfo.requestPath); }
 });
 
+// Atrás/adelante: el mismo fundido que al cambiar de página con el boost.
+// Solo en la tienda (body con hx-boost); el panel sigue sin transición.
+function historyTransition(event) {
+    if (document.body.hasAttribute('hx-boost') && !document.hidden) {
+        event.detail.swapSpec.transition = true;
+    }
+}
+
 document.addEventListener('htmx:historyCacheHit', (event) => {
     event.detail.item.content = BOOST.stripLoadedScripts(event.detail.item.content);
+    historyTransition(event);
 });
 
 document.addEventListener('htmx:historyCacheMissLoad', (event) => {
     event.detail.response = BOOST.stripLoadedScripts(event.detail.response);
+    historyTransition(event);
 });
 
 document.addEventListener('htmx:removingHeadElement', (event) => {
