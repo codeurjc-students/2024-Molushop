@@ -14,6 +14,7 @@ pub mod admin_orders;
 pub mod panel_register;
 pub mod account;
 pub mod password_reset;
+pub mod not_found;
 
 use actix_web::web;
 use crate::middleware::auth::Auth;

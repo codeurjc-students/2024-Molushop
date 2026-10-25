@@ -8,7 +8,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 
 use crate::models::pages_models::product_page_model::*;
-use crate::models::pages_models::not_found_page_model::NotFoundPage;
+use crate::routes::not_found::not_found_page;
 use crate::services::components::{
     product_card_service::*,
     product_card_group_service::*,
@@ -90,17 +90,13 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
     let product_data = match get_product_object(&product_id,&pool).await {
         Ok(Some(product_data)) => product_data,
         // No está a la venta (no existe, desactivado o tienda inactiva)
-        Ok(None) => {
-            let not_found_render = NotFoundPage{
-                user_logged,
-                page_name:"Producto no disponible".to_string(),
-                nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-                login_base_data:login_base_service::get_login_base_model_data(),
-                title:"Este producto no está disponible".to_string(),
-                message:"Puede que ya no esté a la venta o que el enlace no sea correcto.".to_string()
-            }.render().unwrap();
-            return HttpResponse::NotFound().content_type("text/html; charset=utf-8").body(not_found_render);
-        }
+        Ok(None) => return not_found_page(
+            "Producto no disponible",
+            "Este producto no está disponible",
+            "Puede que ya no esté a la venta o que el enlace no sea correcto.",
+            user_id_opt.as_ref(),
+            pool
+        ).await,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
 

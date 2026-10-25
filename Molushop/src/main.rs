@@ -115,6 +115,8 @@ async fn main() -> std::io::Result<()> {
             
             //create_product
 .service(components::scope::scope_components())
+            // Cualquier URL que no exista: la 404 de la tienda, con la sesión
+            .default_service(web::to(routes::not_found::default_not_found).wrap(middleware::auth::Auth::new()))
             // Static files
             //.service(fs::Files::new("/assets", "assets").show_files_listing())
             
