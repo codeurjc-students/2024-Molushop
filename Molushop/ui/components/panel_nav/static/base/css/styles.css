@@ -1,12 +1,17 @@
+/* Barra del panel, mobile-first.
+   Móvil: arriba "Panel" y el botón Menú; debajo, los enlaces en una fila que
+   se desliza de lado; el bloque de la derecha (usuario, Solicitar tienda,
+   Ver tienda, Cerrar sesión) va plegado y lo abre el botón Menú.
+   Desde 900px: todo en una fila, como siempre, y sin botón Menú. */
 .panel-nav {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 24px;
-    padding: 0 24px;
+    column-gap: 24px;
+    padding: 0 var(--space-3);
     min-height: 56px;
     background: var(--color-bg-inverse);
     color: var(--color-text-invert);
-    flex-wrap: wrap;
 }
 
 .panel-nav a {
@@ -21,23 +26,80 @@
 .panel-nav-brand {
     font-weight: 700;
     font-size: 1.1rem;
+    line-height: 56px;
     color: var(--color-text-invert) !important;
 }
 
-.panel-nav-links {
+/* Botón Menú (solo móvil): tres rayas dibujadas con bordes */
+.panel-nav-menu {
     display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+    padding: 6px 10px;
+    border: 1px solid var(--color-border-inverse);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-invert);
+    font: inherit;
+    cursor: pointer;
+}
+
+.panel-nav-menu-icon,
+.panel-nav-menu-icon::before,
+.panel-nav-menu-icon::after {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+}
+
+.panel-nav-menu-icon {
+    position: relative;
+}
+
+.panel-nav-menu-icon::before,
+.panel-nav-menu-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+}
+
+.panel-nav-menu-icon::before { top: -5px; }
+.panel-nav-menu-icon::after  { top: 5px; }
+
+.panel-nav-menu[aria-expanded="true"] {
+    border-color: var(--color-text-invert-muted);
+}
+
+/* Enlaces: en móvil, una fila a todo el ancho que se desliza de lado */
+.panel-nav-links {
+    order: 3;
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
     gap: 4px;
     list-style: none;
-    margin: 0;
-    padding: 0;
-    flex: 1;
-    flex-wrap: wrap;
+    margin: 0 calc(-1 * var(--space-3));
+    padding: 0 var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-top: 1px solid var(--color-border-inverse);
+}
+
+.panel-nav-links::-webkit-scrollbar {
+    display: none;
+}
+
+.panel-nav-links li {
+    flex-shrink: 0;
 }
 
 .panel-nav-links a {
     display: block;
-    padding: 18px 12px;
+    padding: 12px 10px;
     border-bottom: 3px solid transparent;
+    white-space: nowrap;
 }
 
 .panel-nav-links a.active {
@@ -45,13 +107,55 @@
     border-bottom-color: var(--color-primary);
 }
 
+.panel-nav-store {
+    padding: 12px 10px 12px 0;
+    margin-right: 4px;
+    border-right: 1px solid var(--color-border-inverse);
+    color: var(--color-text-invert);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Desplegable de tiendas, cuando hay más de una: sobre la barra oscura */
+.panel-nav-store-select {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border-inverse);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-inverse);
+    color: var(--color-text-invert);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.panel-nav-store-select:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.panel-nav-store:has(.panel-nav-store-select) {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Bloque de la derecha: en móvil, plegado debajo de todo hasta pulsar Menú */
 .panel-nav-right {
-    display: flex;
+    order: 4;
+    flex-basis: 100%;
+    display: none;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 16px;
+    gap: 12px 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--color-border-inverse);
+}
+
+.panel-nav:has(.panel-nav-menu[aria-expanded="true"]) .panel-nav-right {
+    display: flex;
 }
 
 .panel-nav-user {
+    flex-basis: 100%;
     color: var(--color-text-invert);
     font-weight: 600;
 }
@@ -82,11 +186,64 @@
     border-color: var(--color-text-invert-muted);
 }
 
+@media (min-width: 900px) {
+    .panel-nav {
+        flex-wrap: nowrap;
+        padding: 0 24px;
+    }
+
+    .panel-nav-menu {
+        display: none;
+    }
+
+    .panel-nav-links {
+        order: 0;
+        flex: 1;
+        flex-basis: auto;
+        flex-wrap: wrap;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+        border-top: 0;
+    }
+
+    .panel-nav-links a {
+        padding: 18px 12px;
+    }
+
+    .panel-nav-store {
+        padding: 18px 12px 18px 16px;
+        margin: 0 0 0 8px;
+        border-right: 0;
+        border-left: 1px solid var(--color-border-inverse);
+    }
+
+    .panel-nav-store:has(.panel-nav-store-select) {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .panel-nav-right,
+    .panel-nav:has(.panel-nav-menu[aria-expanded="true"]) .panel-nav-right {
+        order: 0;
+        flex-basis: auto;
+        display: flex;
+        flex-wrap: nowrap;
+        padding: 0;
+        border-top: 0;
+        white-space: nowrap;
+    }
+
+    .panel-nav-user {
+        flex-basis: auto;
+    }
+}
+
 /* Portadas de /panel y /admin */
 .panel-home {
     max-width: 960px;
-    margin: 32px auto;
-    padding: 0 24px;
+    margin: 24px auto;
+    padding: 0 var(--space-4);
 }
 
 .panel-home-cards {
@@ -105,36 +262,6 @@
 .panel-home-card p {
     margin: 0;
     color: var(--color-text-muted);
-}
-
-.panel-nav-store {
-    padding: 18px 12px 18px 16px;
-    margin-left: 8px;
-    border-left: 1px solid var(--color-border-inverse);
-    color: var(--color-text-invert);
-    font-weight: 600;
-}
-
-/* Desplegable de tiendas, cuando hay más de una: sobre la barra oscura */
-.panel-nav-store-select {
-    padding: 4px 8px;
-    border: 1px solid var(--color-border-inverse);
-    border-radius: var(--radius-sm);
-    background: var(--color-bg-inverse);
-    color: var(--color-text-invert);
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.panel-nav-store-select:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
-.panel-nav-store:has(.panel-nav-store-select) {
-    padding-top: 12px;
-    padding-bottom: 12px;
 }
 
 .m-card.panel-home-card-disabled {
@@ -193,7 +320,11 @@
     margin: 16px 0;
 }
 
+/* En móvil la tabla no cabe: se desliza de lado dentro de su caja (como
+   bloque) en vez de ensanchar la página. Desde 900px, tabla normal. */
 .admin-table {
+    display: block;
+    overflow-x: auto;
     width: 100%;
     border-collapse: collapse;
     background: var(--color-bg);
@@ -246,4 +377,17 @@
 .panel-order-total {
     margin-top: 16px;
     text-align: right;
+}
+
+@media (min-width: 600px) {
+    .panel-home {
+        margin: 32px auto;
+        padding: 0 24px;
+    }
+}
+
+@media (min-width: 900px) {
+    .admin-table {
+        display: table;
+    }
 }

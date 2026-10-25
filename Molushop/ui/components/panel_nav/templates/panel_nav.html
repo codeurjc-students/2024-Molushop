@@ -1,5 +1,12 @@
 <nav class="panel-nav" aria-label="Panel">
     <a class="panel-nav-brand" href="/panel">Panel</a>
+    {# Solo en móvil (el CSS lo esconde desde 900px): abre y cierra el bloque de
+       la derecha (usuario, enlaces y cerrar sesión), que en móvil va plegado. #}
+    <button type="button" class="panel-nav-menu" aria-expanded="false" aria-controls="panel-nav-right"
+        _="on click if @aria-expanded is 'true' set @aria-expanded to 'false' else set @aria-expanded to 'true' end">
+        <span class="panel-nav-menu-icon" aria-hidden="true"></span>
+        <span class="panel-nav-menu-label">Menú</span>
+    </button>
     <ul class="panel-nav-links">
         <li><a href="/panel" {% if panel_nav.active == "home" %}class="active" aria-current="page"{% endif %}>Mis tiendas</a></li>
         {% if let Some(store) = panel_nav.store %}
@@ -25,7 +32,7 @@
         <li><a href="/admin/orders" {% if panel_nav.active == "admin_orders" %}class="active" aria-current="page"{% endif %}>Todos los pedidos</a></li>
         {% endif %}
     </ul>
-    <div class="panel-nav-right">
+    <div class="panel-nav-right" id="panel-nav-right">
         <span class="panel-nav-user">{{panel_nav.username}}{% if panel_nav.is_admin %} <span class="panel-nav-role">admin</span>{% endif %}</span>
         <a href="/panel/register">Solicitar tienda</a>
         <a href="/home">Ver tienda</a>

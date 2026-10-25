@@ -3,32 +3,6 @@
     transition: opacity 1s ease-out;
 }
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-.container {
-    padding: 20px;
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.search-bar {
-    padding: 10px;
-    width: 100%;
-    border: 1px solid var(--color-border);
-    border-radius: 4px;
-}
-
 .products-list {
     display: flex;
     flex-direction: column;
@@ -42,19 +16,20 @@
     overflow: hidden;
 }
 
-/* Mobile-first: en móvil, una cosa debajo de otra; desde 600px, en fila */
+/* Cabecera de la tarjeta (y de Editar producto): imagen y datos en fila.
+   Mobile-first: en móvil la imagen es pequeña; desde 600px, de 150px. */
 .product-main {
     display: flex;
-    flex-direction: column;
-    padding: 15px;
-    gap: 20px;
+    align-items: flex-start;
+    padding: var(--space-3);
+    gap: var(--space-3);
     background-color: var(--color-bg-soft);
 }
 
 .product-image {
     flex-shrink: 0;
-    width: 150px;
-    height: 150px;
+    width: 80px;
+    height: 80px;
     object-fit: cover;
     border-radius: 4px;
 }
@@ -72,6 +47,7 @@
 
 .product-info {
     flex: 1;
+    min-width: 0;
 }
 
 /* El aspecto es del átomo m-badge; aquí solo la separación en la tarjeta */
@@ -81,7 +57,9 @@
 
 .product-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 10px;
+    margin-top: var(--space-2);
 }
 
 /* Las variaciones las pinta el componente variations_explorer */
@@ -139,9 +117,11 @@
 
 @media (min-width: 600px) {
     .product-main {
-        flex-direction: row;
+        padding: 15px;
+        gap: 20px;
     }
-    .search-bar {
-        width: 300px;
+    .product-image {
+        width: 150px;
+        height: 150px;
     }
 }

@@ -54,10 +54,11 @@
     font-size: 16px;
     }
     
+    /* Mobile-first: en móvil, dos fotos por fila; desde 600px, de 200px */
     .image-gallery {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: var(--space-3);
     margin-top: 30px;
     }
     
@@ -228,4 +229,11 @@
 .image-variations-dialog__summary {
     margin: 0;
     font-weight: var(--font-weight-medium);
+}
+
+@media (min-width: 600px) {
+    .product-edit-container .image-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+    }
 }
