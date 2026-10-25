@@ -1187,6 +1187,9 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
                             SELECT jsonb_agg(
                                 jsonb_build_object(
                                     'value', val->>'value',
+                                    -- Lo lleva alguna variación activa (aunque esté
+                                    -- agotada): si no, no hay nada que enseñar.
+                                    'exists', sa.attr_value IS NOT NULL,
                                     'in_stock', COALESCE(sa.total_stock, 0) > 0,
                                     'is_default', EXISTS (
                                         SELECT 1 FROM variacion_prioritaria vp,

@@ -59,9 +59,10 @@ const PRODUCT_DETAIL = {
             .sort((a, b) => (b.stock > 0) - (a.stock > 0));
     },
 
-    // Al elegir un valor: si la combinación existe y tiene stock, se queda; si
-    // no, se salta a la primera con stock que lleve ese valor (o, si no hay
-    // ninguna, a la primera que exista). Después se repintan precio, píldoras y botón.
+    // Al elegir un valor: si la combinación existe, se queda aunque esté agotada
+    // (se ve su precio y el botón dice "Agotado"); si no existe, se salta a la
+    // primera con stock que lleve ese valor (o, si no hay ninguna, a la primera
+    // que exista). Después se repintan precio, píldoras y botón.
     updateAvailableOptions: function(event) {
         let target = event.currentTarget;
         let selectedAttrs = this.getSelectedAttrs();
@@ -72,7 +73,7 @@ const PRODUCT_DETAIL = {
 
         let current = this.findVariantByAttrs(selectedAttrs);
 
-        if (current && current.stock > 0) {
+        if (current) {
             this.updatePrice(selectedAttrs);
         } else if (availableValues && availableValues.length > 0) {
             let firstVariant = availableValues[0];
@@ -118,11 +119,11 @@ const PRODUCT_DETAIL = {
         this.element.querySelector(".image-principal").src = first.querySelector(".image-mini").src;
     },
 
-    // Tacha (sin apagar: se puede pulsar para cambiar de combinación) los
-    // valores que, con lo demás elegido, dan una variación que existe y está
-    // agotada. Si la combinación no existe no se tacha: al pulsarlo se salta a
-    // una con stock que lleve ese valor (updateAvailableOptions).
-    // Los que no tienen stock en ninguna combinación ya vienen `disabled` del servidor.
+    // Tacha (sin apagar: se puede elegir y ver agotada) los valores que, con lo
+    // demás elegido, dan una variación que existe y está agotada. Si la
+    // combinación no existe no se tacha: al pulsarlo se salta a una que lleve
+    // ese valor (updateAvailableOptions). Los que no lleva ninguna variación
+    // activa ya vienen `disabled` del servidor.
     refreshAvailability: function() {
         this.showError(null);
         let selectedAttrs = this.getSelectedAttrs();
@@ -136,7 +137,8 @@ const PRODUCT_DETAIL = {
         this.refreshAddButton();
     },
 
-    // "Agotado" y apagado si la combinación elegida no existe o no tiene stock.
+    // "Agotado" y apagado si la combinación elegida no existe o no tiene stock;
+    // si existe y está agotada, además el aviso bajo el botón.
     refreshAddButton: function() {
         let btn = this.element.querySelector(".add-to-cart-btn");
         if (btn == null) { return; }
@@ -145,6 +147,8 @@ const PRODUCT_DETAIL = {
         btn.disabled = soldOut;
         let text = btn.querySelector("span");
         if (text) { text.textContent = soldOut ? "Agotado" : "Añadir al carrito"; }
+        let msg = this.element.querySelector(".sold-out-msg");
+        if (msg) { msg.hidden = !(variant != null && variant.stock <= 0); }
     },
     // Sin atributos seleccionados solo encaja la variación única de un producto
     // sin variaciones (attributes = []); en uno con variaciones no encaja ninguna.

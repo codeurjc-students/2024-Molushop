@@ -56,9 +56,9 @@
                             value="{{ element.value }}"
                             class="variation-input"
                             {% if element.is_default %}checked{% endif %}
-                            {% if !element.in_stock %}disabled{% endif %}
+                            {% if !element.exists %}disabled{% endif %}
                         >
-                        <label for="{{ input_id }}" class="variation-name-cont" {% if !element.in_stock %}disabled{% endif %}>
+                        <label for="{{ input_id }}" class="variation-name-cont" {% if !element.exists %}disabled{% endif %}>
                             <span>{{element.value}}</span>
                         </label>
                     </div>
@@ -79,6 +79,10 @@
                     </button>
                 </div>
             </div>
+            {# La variación elegida existe pero no tiene stock (refreshAddButton) #}
+            <p class="m-alert m-alert--warning sold-out-msg" role="status" hidden>
+                Esta variación está agotada ahora mismo. Elige otra o vuelve más tarde.
+            </p>
             {# Errores de "Añadir al carrito" que se ven antes de pedir nada al servidor (showError) #}
             <p class="m-error add-to-cart-error" role="alert" hidden></p>
         </div>

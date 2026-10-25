@@ -57,6 +57,10 @@ pub struct Variation{
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct VariationValue{
     pub value : String,
+    /// Lo lleva alguna variación activa. Si no, sale apagado: no hay nada que elegir.
+    pub exists : bool,
+    /// Alguna de esas variaciones tiene stock. Sin stock se puede elegir igual
+    /// (se ve agotada y el botón no deja añadirla).
     pub in_stock : bool,
     pub is_default : bool
 }
@@ -92,6 +96,7 @@ impl Default for VariationValue {
     fn default() -> Self {
         Self {
             value: "Talla".to_string(),
+            exists: false,
             in_stock: false,
             is_default: false,
         }
