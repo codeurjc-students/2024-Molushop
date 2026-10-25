@@ -9,6 +9,9 @@ use crate::models::components::stars::Stars;
 use crate::models::components::price::Price;
 use crate::constants::money::DEFAULT_CURRENCY;
 
+/// La imagen de los productos que no tienen ninguna.
+pub const NO_IMAGE: &str = "/assets/imgs/no-image.svg";
+
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card/templates/product_card.html")]
 pub struct ProductCard{
@@ -44,7 +47,7 @@ impl Default for ProductCardData {
     fn default() -> Self {
         Self {
             name: "Producto no disponible".to_string(),
-            image: "/static/images/no-image.png".to_string(),
+            image: NO_IMAGE.to_string(),
             price: None,
             currency: DEFAULT_CURRENCY.to_string(),
             url : "javascript:void(0)".to_string(),
@@ -62,7 +65,7 @@ impl From<ProductCard1> for ProductCardData {
             name: db.name.unwrap_or_else(|| "Producto sin nombre".to_string()),
             
             // Mapeamos image_url a image
-            image: db.image_url.unwrap_or_else(|| "/images/default-placeholder.png".to_string()),
+            image: db.image_url.unwrap_or_else(|| NO_IMAGE.to_string()),
             
             // Sin precio se pinta "No disponible", no "0 €".
             price: db.price,

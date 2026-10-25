@@ -81,18 +81,9 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
     // y colocas los componentes que quieras 
     //renderizar la pagina HOME
     
-    let id = Uuid::parse_str("6b495c7c-a550-4e78-b961-2169e31a6158").unwrap();
-    let id2 = Uuid::parse_str("1ec06324-aa8d-45d8-acb2-91b7c32b3954").unwrap();
-    let id3 = Uuid::parse_str("45d7a6d2-ecf3-479e-974e-f15bc158810e").unwrap();
-    let vector_refs: Vec<&Uuid> = vec![&id, &id2, &id3];
-
-    //hacer el render directamente o 
-
     let home_render = Home{
         user_logged,
         page_name:"Home".to_string(),
-        product:get_product_card_object(&id, &pool).await,
-        pcard1:get_product_card_group_render(vector_refs, &pool).await,
         group_cards2:get_product_card_group_render_all(&pool).await,
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data()

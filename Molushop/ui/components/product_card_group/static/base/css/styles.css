@@ -1,24 +1,43 @@
 
+/* Rejilla: tantas columnas como quepan (4 en escritorio, alineadas a la
+   izquierda) y 2 en móvil. Todas las tarjetas de una fila, igual de altas. */
 .product-card-multiple{
-    display:flex;
-    align-items: center;
-    justify-content: center;
-    margin: 1em 0;
-    flex-wrap: wrap;
-    gap: 1em;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+    max-width: 70em;
+    margin: var(--space-5) auto;
+    padding: 0 var(--space-4);
 
-    .product-card-container{
-        width: 20%;
-        aspect-ratio: 1/1.55;
-        .product-card{
-            height: 100%;
+    .product-card-container .product-card{
+        height: 100%;
+        max-width: none;
+    }
+}
+
+@media (max-width: 600px) {
+    .product-card-multiple{
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--space-3);
+        padding: 0 var(--space-3);
+
+        .product-card .producto-info{
+            padding: var(--space-3);
+        }
+        .product-card .producto-titulo{
+            font-size: 1em;
+        }
+        .product-card .m-btn{
+            padding-left: var(--space-2);
+            padding-right: var(--space-2);
+            font-size: var(--font-size-sm);
         }
     }
 }
 
 /* "Cargar más": ocupa una fila entera al final de la rejilla */
 .product-card-more {
-    flex-basis: 100%;
+    grid-column: 1 / -1;
     display: flex;
     justify-content: center;
     padding: 1em 0;

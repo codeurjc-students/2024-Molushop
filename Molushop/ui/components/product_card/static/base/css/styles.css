@@ -27,11 +27,14 @@
 }
 
 /* Estilos para la imagen del producto */
+/* Cuadrada y entera (contain): las fotos de producto no se recortan, y la
+   tarjeta no depende del alto de su contenedor. */
 .product-card img {
-    min-height: 60%;
-    height: 60%; /* La imagen ocupa todo el ancho del contenedor */
-    /*height: 200px;  Altura fija para las imágenes, puedes ajustarla */
-    object-fit: cover; /* Recorta la imagen para que cubra el área sin distorsionarse */
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background-color: var(--color-bg);
     border-bottom: 1px solid var(--color-border); /* Borde inferior para separar de la info */
 }
 
