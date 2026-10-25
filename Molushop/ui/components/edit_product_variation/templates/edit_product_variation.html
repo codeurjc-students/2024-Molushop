@@ -9,7 +9,8 @@
 
 <div class="m-card variation-edit-container" id="{{id}}" 
     _="on load
-    js(me) 
+    js(me,event)
+        if (event.target !== me) return;
         edit_variation.init_edit_variation(me);
     end 
     on variation_update 
@@ -23,7 +24,7 @@
             {% for attribute in general.attributes %}{% if !loop.first %} · {% endif %}{{attribute.value}}{% endfor %}
         </h3>
         <button type="button" class="m-btn m-btn--ghost m-btn--sm"
-            _="on click js(me) variationsExplorer.closeEditor(me) end">Cerrar</button>
+            _="on click js(me) variationsExplorer.closeEditor(me) end end">Cerrar</button>
     </div>
 
     <!-- Pestañas -->

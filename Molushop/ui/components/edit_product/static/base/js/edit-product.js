@@ -1,6 +1,9 @@
 const edit_product = {
     init_edit_product(element){
-        let navItems = element.querySelectorAll('.nav-item');
+        // Solo las pestañas del producto: las del editor de variación abierto
+        // (dentro, en la tabla de variaciones) son suyas
+        let own = (node) => node.closest('.product-edit-container, .variation-edit-container') === element;
+        let navItems = [...element.querySelectorAll('.nav-item')].filter(own);
 
         navItems.forEach(item => {
             item.addEventListener('click', function() {
@@ -10,9 +13,7 @@ const edit_product = {
                 // Remover clase active de todos los contenidos (solo los del producto:
                 // el editor de variación abierto va dentro, en la tabla de variaciones)
                 element.querySelectorAll('.tab-pane').forEach(pane => {
-                    if(pane.closest('.product-edit-container, .variation-edit-container') === element){
-                        pane.classList.remove('active');
-                    }
+                    if(own(pane)) pane.classList.remove('active');
                 });
 
                 // Agregar clase active a la pestaña seleccionada

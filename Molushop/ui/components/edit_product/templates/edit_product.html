@@ -1,9 +1,12 @@
 {% let general = product.general %}
 {% let images = product.images %}
 {% let routes = routes_edit_product %}
+{# "on load" solo del propio contenedor: el load del editor de variación (va dentro,
+   en la tabla de variaciones) sube hasta aquí y volvía a montar las pestañas con las suyas. #}
 <div class="m-card product-edit-container" id="{{product.id}}"
     _="on load
-        js(me) 
+        js(me,event)
+            if (event.target !== me) return;
             imageManager.init(me);
             edit_product.init_edit_product(me);
         end 
