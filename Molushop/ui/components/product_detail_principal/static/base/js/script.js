@@ -52,24 +52,45 @@ const PRODUCT_DETAIL = {
     },
 
     // Devuelve las variaciones de variantMap que contienen el atributo name=attrName con value=attrValue,
-    // primero las que tienen stock: al saltar de combinación se elige una que se pueda comprar.
-    getVariantsByAttr: function(attrName, attrValue) {
+    // de la más parecida a lo elegido (selectedAttrs) a la menos: al saltar de
+    // combinación se cambia lo mínimo. Por orden:
+    // 1. cuántos valores comparten con lo elegido (sin contar el que se acaba de pulsar);
+    // 2. las que tienen stock;
+    // 3. las que conservan los primeros atributos de la ficha (Color antes que Altura...).
+    getVariantsByAttr: function(attrName, attrValue, selectedAttrs = {}) {
+        let order = [...new Set([...this.element.querySelectorAll(".variation-input")]
+            .map(input => input.name.replace("variation-", "")))]
+            .filter(name => name !== attrName);
+        let keeps = (variant, name) => variant.attributes.some(a => a.name === name && a.value === selectedAttrs[name]);
+        let shared = (variant) => order.filter(name => keeps(variant, name)).length;
+
         return this.variantMap
             .filter(variant => variant.attributes.some(a => a.name === attrName && a.value === attrValue))
-            .sort((a, b) => (b.stock > 0) - (a.stock > 0));
+            .sort((a, b) => {
+                let byShared = shared(b) - shared(a);
+                if (byShared !== 0) { return byShared; }
+                let byStock = (b.stock > 0) - (a.stock > 0);
+                if (byStock !== 0) { return byStock; }
+                for (let name of order) {
+                    let byName = keeps(b, name) - keeps(a, name);
+                    if (byName !== 0) { return byName; }
+                }
+                return 0;
+            });
     },
 
     // Al elegir un valor: si la combinación existe, se queda aunque esté agotada
     // (se ve su precio y el botón dice "Agotado"); si no existe, se salta a la
     // primera con stock que lleve ese valor (o, si no hay ninguna, a la primera
-    // que exista). Después se repintan precio, píldoras y botón.
+    // que exista), la más parecida a lo elegido (getVariantsByAttr). Después se
+    // repintan precio, píldoras y botón.
     updateAvailableOptions: function(event) {
         let target = event.currentTarget;
         let selectedAttrs = this.getSelectedAttrs();
         let variation = target.name.replace("variation-", "");
         let variationValue = target.value;
 
-        let availableValues = this.getVariantsByAttr(variation, variationValue);
+        let availableValues = this.getVariantsByAttr(variation, variationValue, selectedAttrs);
 
         let current = this.findVariantByAttrs(selectedAttrs);
 
