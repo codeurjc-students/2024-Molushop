@@ -1,0 +1,8 @@
+{% extends "layouts/layout1.html" %}
+{# Layout de acceso al panel (entrar, solicitar tienda): layout1 sin barra de navegación.
+   Sin hx-boost: navega recargando, como el panel. La caja centrada (.panel-login-1,
+   .cont-1) es la de panel_login_v1, que comparten las dos páginas. #}
+{% block boost %}{% endblock %}
+{% block layout_styles %}
+    {% include "components/panel_login_v1/styles.html" %}
+{% endblock %}
