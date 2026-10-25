@@ -117,7 +117,7 @@
 
     {% if reviews.has_more() %}
     <!-- Repinta la sección entera con una página más: el fragmento que devuelve
-         el controlador es este mismo div, sin el <link> del wrapper. -->
+         el controlador es este mismo div, sin el script del wrapper. -->
     <button type="button" class="m-btn m-btn--secondary more-reviews"
         hx-get="{{reviews.next_page_url()}}"
         hx-target="#product-reviews-1"

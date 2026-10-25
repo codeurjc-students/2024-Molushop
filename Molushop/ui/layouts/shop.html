@@ -1,8 +1,28 @@
 {% extends "layouts/layout1.html" %}
 {# Layout de la tienda: layout1 + la cabecera nav1 y el pie footer1. La página necesita un campo `nav1`. #}
+{# Todo el CSS de la tienda, en todas sus páginas. Al ir atrás/adelante (y con
+   hx-boost), htmx cambia el body y head-support añade DESPUÉS los <link> que
+   traiga la página nueva: una hoja que la anterior no tenía llegaría tarde y la
+   página se pintaría un instante sin ella. Con el mismo CSS en todas, nunca
+   falta ninguno. Son pocos KB, con nombres de clase propios de cada componente.
+   Un componente o página nueva de la tienda pone aquí su styles.html, no en la
+   página ni dentro del componente (un <link> en el body tiene el mismo problema). #}
 {% block layout_styles %}
     {% include "components/nav1/styles.html" %}
     {% include "components/footer1/styles.html" %}
+    {% include "components/login_modal/styles.html" %}
+    {% include "components/product_card/styles.html" %}
+    {% include "components/product_card_group/styles.html" %}
+    {% include "components/product_detail_principal/styles.html" %}
+    {% include "components/product_reviews_v1/styles.html" %}
+    {% include "components/cart_total_v1/styles.html" %}
+    {% include "components/checkout_v1/styles.html" %}
+    {% include "components/order_list_v1/styles.html" %}
+    {% include "components/order_detail_v1/styles.html" %}
+    {% include "components/about_us_text/styles.html" %}
+    {% include "pages/home/styles.html" %}
+    {# "Mi cuenta" y las páginas de contraseña #}
+    <link rel="stylesheet" href="/static/pages/account/account.css">
 {% endblock %}
 {% block layout_scripts %}
     {% include "components/nav1/scripts.html" %}
