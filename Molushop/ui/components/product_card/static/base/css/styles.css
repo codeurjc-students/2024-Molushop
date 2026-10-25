@@ -1,3 +1,6 @@
+/* Tarjeta de producto, mobile-first: en móvil van dos por fila, así que
+   la información y el botón son más compactos; desde 600px, a tamaño normal. */
+
 /* Estilos generales para la tarjeta del producto */
 .product-card {
     border: 1px solid var(--color-border); /* Borde suave alrededor de la tarjeta */
@@ -40,7 +43,7 @@
 
 /* Estilos para el contenedor de información del producto */
 .product-card .producto-info {
-    padding: 15px; /* Espaciado interno */
+    padding: var(--space-3); /* Espaciado interno */
     flex-grow: 1; /* Permite que este contenedor crezca y ocupe el espacio disponible */
     display: flex;
     flex-direction: column;
@@ -49,7 +52,7 @@
 
 /* Estilos para el título del producto */
 .product-card .producto-titulo {
-    font-size: 1.2em; /* Tamaño de fuente del título */
+    font-size: 1em; /* Tamaño de fuente del título */
     margin-top: 0; /* Elimina margen superior por defecto */
     margin-bottom: 10px; /* Margen inferior para separar del precio */
     font-weight: 600; /* Texto más negrita */
@@ -90,5 +93,25 @@
     text-align: center; /* Centra el botón */
 }
 
-/* Estilos para el botón de añadir al carrito */
+/* Estilos para el botón de añadir al carrito: en móvil, el texto no cabe
+   con el relleno normal del átomo */
+.product-card .producto-acciones .m-btn {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+@media (min-width: 600px) {
+    .product-card .producto-info {
+        padding: 15px;
+    }
+    .product-card .producto-titulo {
+        font-size: 1.2em;
+    }
+    .product-card .producto-acciones .m-btn {
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+        font-size: var(--font-size-md);
+    }
+}
 

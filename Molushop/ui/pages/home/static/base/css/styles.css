@@ -1,4 +1,6 @@
-/* Portada: hero y título de la sección de productos, con el ancho de la rejilla (70rem: em cambiaría con el tamaño de letra del h2). */
+/* Portada, mobile-first: hero y título de la sección de productos, con el
+   ancho de la rejilla (70rem: em cambiaría con el tamaño de letra del h2).
+   Desde 600px, más aire y letra más grande. */
 .home-hero{
     background: var(--color-primary-soft);
     border-bottom: 1px solid var(--color-border);
@@ -6,43 +8,43 @@
 .home-hero-inner{
     max-width: 70rem;
     margin: 0 auto;
-    padding: var(--space-7) var(--space-4);
+    padding: var(--space-6) var(--space-3);
     box-sizing: border-box;
 }
 .home-hero h1{
     margin: 0;
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-2xl);
     line-height: var(--line-height-tight);
     color: var(--color-text);
 }
 .home-hero p{
     margin: var(--space-3) 0 var(--space-5);
     max-width: 32em;
-    font-size: var(--font-size-lg);
+    font-size: var(--font-size-md);
     color: var(--gray-700);
 }
 
 .home-section-title{
     max-width: 70rem;
-    margin: var(--space-6) auto calc(-1 * var(--space-2));
-    padding: 0 var(--space-4);
+    margin: var(--space-5) auto calc(-1 * var(--space-2));
+    padding: 0 var(--space-3);
     box-sizing: border-box;
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-xl);
 }
 
-@media (max-width: 600px) {
+@media (min-width: 600px) {
     .home-hero-inner{
-        padding: var(--space-6) var(--space-3);
+        padding: var(--space-7) var(--space-4);
     }
     .home-hero h1{
-        font-size: var(--font-size-2xl);
+        font-size: var(--font-size-3xl);
     }
     .home-hero p{
-        font-size: var(--font-size-md);
+        font-size: var(--font-size-lg);
     }
     .home-section-title{
-        margin-top: var(--space-5);
-        padding: 0 var(--space-3);
-        font-size: var(--font-size-xl);
+        margin-top: var(--space-6);
+        padding: 0 var(--space-4);
+        font-size: var(--font-size-2xl);
     }
 }

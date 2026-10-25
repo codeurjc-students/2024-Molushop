@@ -1,7 +1,12 @@
+/* Checkout, mobile-first.
+   Móvil: todo en una columna y los campos de la dirección uno debajo de otro.
+   Desde 600px: los campos emparejados van en fila.
+   Desde 900px: el resumen en una columna a la derecha. */
 .checkout-1{
-    display: flex;
-    justify-content: center;
-    margin-top: 1.5em;
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-3);
+    box-sizing: border-box;
     .checkout-empty{
         display: flex;
         flex-direction: column;
@@ -11,18 +16,20 @@
     }
     .checkout-body{
         display: flex;
+        flex-direction: column;
         gap: 1em;
-        align-items: flex-start;
     }
     .checkout-main{
         display: flex;
         flex-direction: column;
         gap: 1em;
-        width: 600px;
+        min-width: 0;
         .header-container{
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
+            gap: var(--space-2);
             h1{
                 margin: 0;
             }
@@ -42,6 +49,7 @@
         /* El aspecto de los campos es del átomo m-field; aquí solo la colocación */
         .field-row{
             display: flex;
+            flex-direction: column;
             gap: 0.75em;
         }
         .field-row .m-field{
@@ -72,6 +80,7 @@
             flex-direction: column;
             gap: 0.15em;
             flex-grow: 1;
+            min-width: 0;
         }
         .variations,
         .shop,
@@ -86,7 +95,6 @@
         }
     }
     .checkout-side{
-        width: 16em;
         .title-resume{
             margin: 0 0 1em 0;
         }
@@ -120,5 +128,31 @@
         border: 1px solid var(--color-danger);
         border-radius: var(--radius-md);
         background-color: var(--color-danger-soft);
+    }
+}
+
+@media (min-width: 600px) {
+    .checkout-1{
+        padding: var(--space-5) var(--space-4);
+        .address-form .field-row{
+            flex-direction: row;
+        }
+    }
+}
+
+@media (min-width: 900px) {
+    .checkout-1{
+        .checkout-body{
+            flex-direction: row;
+            align-items: flex-start;
+        }
+        .checkout-main{
+            flex: 1;
+        }
+        .checkout-side{
+            flex: 0 0 18em;
+            position: sticky;
+            top: var(--space-4);
+        }
     }
 }

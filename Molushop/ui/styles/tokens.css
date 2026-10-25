@@ -134,5 +134,8 @@
 
     /* Puntos de corte. Una variable no sirve dentro de @media, así que van
        escritos en cada @media; estos son los valores acordados:
-       móvil hasta 600px, tablet hasta 900px, escritorio a partir de ahí. */
+       móvil hasta 600px, tablet hasta 900px, escritorio a partir de ahí.
+       Todo el CSS es mobile-first: los estilos base son los del móvil y lo
+       demás se añade con @media (min-width: 600px) y (min-width: 900px).
+       Nunca max-width en una media query. */
 }

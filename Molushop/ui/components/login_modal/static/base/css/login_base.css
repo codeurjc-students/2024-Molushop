@@ -74,21 +74,25 @@ dialog.login_modal{
     .container-ext.disabled{
         display: none;
     }
-    /* The "Forgot password" text */
+    /* "Forgot password" y "Cancel", mobile-first: en pantallas muy
+       estrechas, uno debajo de otro y el botón a todo el ancho. */
     span.psw {
-        float: right;
+        display: block;
         padding-top: 16px;
     }
+    .cancelbtn {
+        display: flex;
+        width: 100%;
+    }
 
-    /* Change styles for span and cancel button on extra small screens */
-    @media screen and (max-width: 300px) {
+    @media (min-width: 300px) {
         span.psw {
-            display: block;
-            float: none;
+            display: inline;
+            float: right;
         }
         .cancelbtn {
-            display: flex;
-            width: 100%;
+            display: inline-flex;
+            width: auto;
         }
-    } 
+    }
 }

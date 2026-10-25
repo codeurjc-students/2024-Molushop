@@ -7,9 +7,12 @@ font-size: 2.5rem;
 }
 
 /* La caja es del átomo m-card; aquí solo el ancho y la separación entre bloques */
+/* Mobile-first: en móvil el formulario lleva relleno y los botones de
+   .cp-actions van uno debajo de otro; desde 900px, sin relleno y en fila. */
 .select-cat form {
 max-width: 800px;
 margin: 0 auto;
+padding: 1rem;
 }
 
 .select-cat form > * + * {
@@ -105,18 +108,18 @@ min-width: 0;
 
 .cp-actions {
 display: flex;
+flex-direction: column;
 flex-wrap: wrap;
 gap: var(--space-2);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .select-cat form {
-    padding: 1rem;
+@media (min-width: 900px) {
+.select-cat form {
+    padding: 0;
 }
 
 .cp-actions {
-    flex-direction: column;
+    flex-direction: row;
 }
 }
 

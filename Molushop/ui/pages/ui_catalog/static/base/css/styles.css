@@ -90,19 +90,20 @@
 
 /* ---- Tipografía y espaciado ---- */
 
+/* Mobile-first: en móvil la etiqueta va encima del ejemplo; desde 600px, al lado */
 .ui-type-row,
 .ui-space-row {
     display: flex;
-    align-items: baseline;
-    gap: var(--space-4);
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
     padding: var(--space-2) 0;
     border-bottom: 1px solid var(--color-border);
 }
 
-.ui-space-row { align-items: center; }
 
 .ui-label {
-    flex: 0 0 220px;
+    flex: none;
     font-family: ui-monospace, Consolas, monospace;
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-regular);
@@ -176,12 +177,14 @@
     overflow-x: auto;
 }
 
-@media (max-width: 600px) {
+@media (min-width: 600px) {
     .ui-type-row,
     .ui-space-row {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: var(--space-1);
+        flex-direction: row;
+        align-items: baseline;
+        gap: var(--space-4);
     }
-    .ui-label { flex: none; }
+    .ui-space-row { align-items: center; }
+    .ui-label { flex: 0 0 220px; }
+    .ui-box .ui-label { flex: none; }
 }

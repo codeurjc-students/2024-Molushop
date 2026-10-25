@@ -1,14 +1,19 @@
+/* Carrito, mobile-first.
+   Móvil: la cesta y el resumen uno encima de otro; en cada línea, la cantidad
+   y los botones van en una fila debajo de los datos.
+   Desde 600px: cantidad y botones a la derecha de los datos.
+   Desde 900px: el resumen en una columna a la derecha que se queda a la vista. */
 .cart-total-1{
-    display:flex;
-    justify-content: center;
-    margin-top: 1.5em;
-    .checkbox1-circle{   
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-3);
+    box-sizing: border-box;
+
+    .checkbox1-circle{
         display: inline-block;
         width: 20px;
         height: 20px;
-        
         border: 1px solid var(--color-border-strong);
-        /* border: 1px solid var(--color-grey-3, "rgba(204,204,204,1)"); */
         border-radius: 50%;
     }
 
@@ -26,31 +31,34 @@
         height: 0;
         width: 0;
     }
-    .cart-main{
-        display:flex;
+    .cart-body{
+        display: flex;
         flex-direction: column;
-        gap:1em;
-        width:600px;
+        gap: 1em;
+    }
+    .cart-main{
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        min-width: 0;
     }
     .header-container{
         display: flex;
         flex-direction: column;
+        h1{
+            margin: 0 0 var(--space-3);
+        }
         .header-container-bottom{
             .checkbox-select{
                 .initial-check{
-                    gap:0.5em;
+                    gap: 0.5em;
                     display: flex;
                     align-items: center;
                 }
             }
         }
     }
-    .cart-body{
-        display: flex;
-        gap:1em;
-    }
     .cart-side{
-        width:16em;
         .total-items{
             display: flex;
             flex-direction: column;
@@ -60,7 +68,8 @@
             }
             .articles-images{
                 display: flex;
-                gap:10px;
+                flex-wrap: wrap;
+                gap: 10px;
                 .image-resume{
                     width: 3em;
                     height: 3em;
@@ -71,7 +80,7 @@
             .data-resume{
                 display: flex;
                 flex-direction: column;
-                gap:0.7em;
+                gap: 0.7em;
                 .iva{
                     display: flex;
                     flex-direction: row-reverse;
@@ -81,6 +90,7 @@
             .space{
                 display: flex;
                 justify-content: space-between;
+                gap: var(--space-3);
             }
         }
     }
@@ -88,7 +98,7 @@
     .products-container{
         display: flex;
         flex-direction: column;
-        gap: 0.5em;
+        gap: var(--space-4);
         .empty-cart{
             display: flex;
             justify-content: center;
@@ -99,35 +109,38 @@
             display: flex;
             align-items: center;
             gap: 0.5em;
-            .check-cont{
-
-            }
             .card-content{
-                width: 100%;
+                flex: 1;
+                min-width: 0;
                 display: flex;
-                gap: 0.5em;
+                gap: var(--space-3);
                 .left-side{
+                    flex-shrink: 0;
                     .image-cont{
                         border-radius: 10px;
                         background-color: var(--color-bg-soft);
-                        height: 7em;
-                        width: 7em;
+                        height: 5em;
+                        width: 5em;
                     }
                 }
                 .right-side{
-                    width: 100%;
-                    position: relative;
-                    display: flex;
+                    flex: 1;
+                    min-width: 0;
+                    display: grid;
+                    grid-template-columns: 1fr auto;
+                    grid-template-areas:
+                        "data data"
+                        "qty  extra";
+                    align-items: center;
+                    gap: var(--space-2) var(--space-3);
                     .element-data{
+                        grid-area: data;
                         display: flex;
                         flex-direction: column;
-                        width: 100%;
-                        gap: 0.5em;
-                        
+                        min-width: 0;
+                        gap: 0.3em;
                         font-size: 15px;
                         .title{
-                            width: 25em;
-                            height: 1em;
                             white-space: nowrap;
                             overflow: hidden;
                             text-overflow: ellipsis;
@@ -144,18 +157,13 @@
                         }
                     }
                     .quantity-product{
-                        position: absolute;
-                        right: 0;
-                        top:30%;
+                        grid-area: qty;
+                        justify-self: start;
                     }
                     .buttons-extra{
-                        position: absolute;
-                        right: 5%;
-                        top:60%;
+                        grid-area: extra;
                         display: flex;
-                        gap:0.5em;
-                        width: 2.6em;
-                        justify-content: space-between;
+                        gap: var(--space-3);
                     }
                 }
             }
@@ -174,4 +182,43 @@
 }
 .cart-total-1 .card.is-unavailable .unavailable-note {
     margin: 0;
+}
+
+@media (min-width: 600px) {
+    .cart-total-1{
+        padding: var(--space-5) var(--space-4);
+
+        .products-container .card .card-content{
+            .left-side .image-cont{
+                height: 7em;
+                width: 7em;
+            }
+            .right-side{
+                grid-template-areas:
+                    "data qty"
+                    "data extra";
+                .quantity-product,
+                .buttons-extra{
+                    justify-self: end;
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 900px) {
+    .cart-total-1{
+        .cart-body{
+            flex-direction: row;
+            align-items: flex-start;
+        }
+        .cart-main{
+            flex: 1;
+        }
+        .cart-side{
+            flex: 0 0 18em;
+            position: sticky;
+            top: var(--space-4);
+        }
+    }
 }

@@ -11,12 +11,8 @@ const PRODUCT_DETAIL = {
 
         let main_image_container = principal.querySelector(".main-image-container");
         let more_images_container = principal.querySelector(".all-images");
-        this.fitThumbnails();
 
         let main_image = main_image_container.querySelector(".image-principal");
-        // Arranca antes de que carguen las imágenes: se mide otra vez con cada
-        // imagen grande que llega (también al cambiarla con las miniaturas).
-        main_image.addEventListener("load", () => this.fitThumbnails());
         let mini_images = more_images_container.querySelectorAll('.image-s');
         mini_images.forEach((image_cont) => {
             image_cont.addEventListener("mouseenter", () => {
@@ -31,14 +27,6 @@ const PRODUCT_DETAIL = {
         this.refreshAvailability();
         this.element.addEventListener("m-qty-change", () => this.showError(null));
         this.resumePendingAdd();
-    },
-
-    // La columna de miniaturas mide lo mismo que la imagen grande
-    fitThumbnails: function() {
-        if (this.element == null || !this.element.isConnected) { return; }
-        let main_image_container = this.element.querySelector(".main-image-container");
-        let more_images_container = this.element.querySelector(".all-images");
-        more_images_container.style.height = `${main_image_container.offsetHeight}px`;
     },
 
     // Devuelve { attrName: value } de los radios actualmente marcados
@@ -355,8 +343,7 @@ const PRODUCT_DETAIL = {
     }
 };
 
-// Sobre window y document, una sola vez: valen para la ficha que se vea.
-window.addEventListener("resize", () => PRODUCT_DETAIL.fitThumbnails());
+// Sobre document, una sola vez: vale para la ficha que se vea.
 document.addEventListener("auth-cancelled", () => PRODUCT_DETAIL.clearPendingAdd());
 
 COMPONENT.mount(".product-detail-principal", (principal) => PRODUCT_DETAIL.init(principal));

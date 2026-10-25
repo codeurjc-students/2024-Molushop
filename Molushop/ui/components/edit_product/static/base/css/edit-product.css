@@ -97,9 +97,15 @@
         font-weight: var(--font-weight-medium);
     }
 
-    /* Columna del botón "Editar" de cada variación */
+    /* Botón "Editar" de cada variación: en móvil (tarjetas) ocupa toda la
+       fila y no lleva etiqueta; desde 600px (tabla), a la derecha */
     .ve-table .ve-action {
-        text-align: right;
+        grid-column: 1 / -1;
+        text-align: left;
+    }
+
+    .ve-table .ve-action::before {
+        content: none;
     }
 }
 
@@ -118,17 +124,8 @@
     font-size: var(--font-size-md);
 }
 
-@media (max-width: 640px) {
-    .product-edit-container .product-main {
-        flex-direction: column;
-    }
-
+@media (min-width: 600px) {
     .product-edit-container .ve-table .ve-action {
-        grid-column: 1 / -1;
-        text-align: left;
-    }
-
-    .product-edit-container .ve-table .ve-action::before {
-        content: none;
+        text-align: right;
     }
 }

@@ -1,12 +1,14 @@
+/* Mobile-first: en móvil, menos relleno y letra más pequeña; desde 900px,
+   los tamaños grandes. */
 .cont-base {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: 1rem;
 }
     
     .cont-base h2 {
     color: var(--color-text);
-    font-size: 2.5rem;
+    font-size: 2rem;
     margin-bottom: 2rem;
     text-align: center;
     font-weight: 300;
@@ -67,7 +69,7 @@
     }
     
     .list li {
-    padding: 1rem 1.5rem;
+    padding: 0.8rem 1rem;
     margin: 0.5rem 0;
     border-radius: 6px;
     background: var(--color-bg-soft);
@@ -97,16 +99,16 @@
     }
     
     /* Responsive */
-    @media (max-width: 768px) {
+    @media (min-width: 900px) {
     .cont-base {
-        padding: 1rem;
+        padding: 2rem;
     }
     
     .cont-base h2 {
-        font-size: 2rem;
+        font-size: 2.5rem;
     }
     
     .list li {
-        padding: 0.8rem 1rem;
+        padding: 1rem 1.5rem;
     }
     }

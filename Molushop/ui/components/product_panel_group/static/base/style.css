@@ -24,7 +24,7 @@
 
 .search-bar {
     padding: 10px;
-    width: 300px;
+    width: 100%;
     border: 1px solid var(--color-border);
     border-radius: 4px;
 }
@@ -42,8 +42,10 @@
     overflow: hidden;
 }
 
+/* Mobile-first: en móvil, una cosa debajo de otra; desde 600px, en fila */
 .product-main {
     display: flex;
+    flex-direction: column;
     padding: 15px;
     gap: 20px;
     background-color: var(--color-bg-soft);
@@ -133,4 +135,13 @@
 .product-sku-match {
     margin: var(--space-1) 0;
     font-family: ui-monospace, monospace;
+}
+
+@media (min-width: 600px) {
+    .product-main {
+        flex-direction: row;
+    }
+    .search-bar {
+        width: 300px;
+    }
 }

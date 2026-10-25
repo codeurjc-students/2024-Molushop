@@ -1,5 +1,7 @@
-/* Pie de la tienda: fondo oscuro, mismo ancho que la barra (70rem; em
-   cambiaría con el tamaño de letra del pie). */
+/* Pie de la tienda, mobile-first: fondo oscuro, mismo ancho que la barra
+   (70rem; em cambiaría con el tamaño de letra del pie).
+   Móvil: la marca arriba y las dos columnas de enlaces debajo.
+   Desde 600px: las tres en una fila. */
 
 /* Si la página es corta, el pie se queda abajo del todo. */
 body:has(.footer1){
@@ -19,14 +21,17 @@ body:has(.footer1) > .content-wrapper{
 
 .footer1-container{
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: var(--space-6);
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-5);
     max-width: 70rem;
     margin: 0 auto;
-    padding: var(--space-7) var(--space-4) var(--space-6);
+    padding: var(--space-6) var(--space-4) var(--space-5);
     box-sizing: border-box;
 }
 
+.footer1-brand{
+    grid-column: 1 / -1;
+}
 .footer1-brand img{
     height: 2em;
 }
@@ -65,13 +70,13 @@ body:has(.footer1) > .content-wrapper{
     font-size: var(--font-size-xs);
 }
 
-@media (max-width: 600px) {
+@media (min-width: 600px) {
     .footer1-container{
-        grid-template-columns: 1fr 1fr;
-        gap: var(--space-5);
-        padding: var(--space-6) var(--space-4) var(--space-5);
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: var(--space-6);
+        padding: var(--space-7) var(--space-4) var(--space-6);
     }
     .footer1-brand{
-        grid-column: 1 / -1;
+        grid-column: auto;
     }
 }
