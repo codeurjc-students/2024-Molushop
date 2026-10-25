@@ -24,6 +24,10 @@
     <link rel="stylesheet" href="/static/styles/atoms/price.css">
     <link rel="stylesheet" href="/static/styles/atoms/quantity.css">
     <script src="/static/utils/base.js"></script>
+    {# Estilos del layout que hereda (panel). Van en el <head> y no en el
+       <header>: lo del <body> lo sustituye htmx al volver atrás con el
+       historial, y un <link> nuevo se pinta un instante sin estilos. #}
+    {% block layout_styles %}{% endblock %}
     {% block scripts %}{% endblock %}
     {% block styles %}{% endblock %}
 </head>
