@@ -19,16 +19,16 @@
       <form>
         <div class="search-box-container">
           <input type="text" placeholder="Busca">
-          <button class="search-icon">
-            <img src="/assets/logos/lupa.png" alt="Buscar">
+          <button class="search-icon" aria-label="Buscar">
+            <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
           </button>
         </div>
       </form>
     </div>
     <div class="right-block">
       <div class="cart">
-        <a class="cart-icon" href="{{nav1.routes.cart}}">
-          <img src="/assets/logos/carrito.png"/>
+        <a class="cart-icon" href="{{nav1.routes.cart}}" aria-label="Carrito">
+          <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
           {% if nav1.cart_count > 0 %}
           <span id="cart-badge" class="cart-badge">{{nav1.cart_count}}</span>
           {% else %}
@@ -37,9 +37,9 @@
         </a>
       </div>
       <div class="profile">
-        <button type="button" class="user-icon" aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu">
+        <button type="button" class="user-icon" aria-label="Perfil" aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu">
           <p>{{nav1.name}}</p>
-          <img src="/assets/logos/user.png" alt="Perfil"/>
+          <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-user" /></svg>
         </button>
         <div id="profile-menu" class="profile-menu" hidden>
           {% if nav1.logged %}

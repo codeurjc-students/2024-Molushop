@@ -26,4 +26,23 @@
     <symbol id="link" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" xml:space="preserve">
         <path d="M115.182 106.648c-2.7 0-5.2-1-7.1-2.9-.8-.8-.8-2 0-2.8.8-.8 2-.8 2.8 0 2.3 2.3 6.2 2.3 8.5 0l19.8-19.8c2.3-2.3 2.3-6.1 0-8.5l-11.3-11.3c-2.3-2.3-6.1-2.3-8.5 0l-19.8 19.7c-2.3 2.3-2.3 6.1 0 8.5.8.8.8 2 0 2.8-.8.8-2 .8-2.8 0-3.9-3.9-3.9-10.2 0-14.1l19.8-19.8c3.9-3.9 10.3-3.9 14.2 0l11.3 11.3c3.9 3.9 3.9 10.2 0 14.1l-19.8 19.9c-1.9 1.9-4.4 2.9-7.1 2.9zM76.982 144.848c-2.6 0-5.1-1-7.1-2.9l-11.3-11.4c-3.9-3.8-3.9-10.2 0-14.1l19.8-19.8c3.8-3.8 10.4-3.8 14.1 0 .8.8.8 2 0 2.8-.8.8-2 .8-2.8 0-2.3-2.3-6.2-2.3-8.5 0l-19.7 19.8c-2.3 2.3-2.3 6.1 0 8.5l11.3 11.3c2.3 2.3 6.1 2.3 8.5 0l19.8-19.8c2.3-2.3 2.3-6.1 0-8.5-.8-.8-.8-2 0-2.8.8-.8 2-.8 2.8 0 3.9 3.9 3.9 10.2 0 14.1l-19.8 19.9c-2 1.9-4.5 2.9-7.1 2.9z"/><path fill="#282828" d="M76.982 125.548c-.5 0-1-.2-1.4-.6-.8-.8-.8-2 0-2.8l45.3-45.3c.8-.8 2-.8 2.8 0 .8.8.8 2 0 2.8l-45.3 45.3c-.4.4-.9.6-1.4.6z"/>
     </symbol>
+
+    <!-- Iconos de la barra de la tienda (nav1). De trazo, no de relleno: cada
+         trazo lleva fill="none" y stroke="currentColor", así que toman el color
+         del texto como los demás (.icn-svg). -->
+    <symbol id="icon-cart" viewBox="0 0 24 24">
+        <path d="M2 3h3l2.4 11.2a1.5 1.5 0 0 0 1.5 1.3h9.2a1.5 1.5 0 0 0 1.5-1.2L21 7H6.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="9.5" cy="20" r="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="17.5" cy="20" r="1.5" fill="none" stroke="currentColor" stroke-width="2"/>
+    </symbol>
+
+    <symbol id="icon-user" viewBox="0 0 24 24">
+        <circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
+
+    <symbol id="icon-search" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M20 20l-4.2-4.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </symbol>
 </svg>
