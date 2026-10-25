@@ -2,8 +2,17 @@
 {% block styles %}
     {% include "components/product_card/styles.html"%}
     {% include "components/product_card_group/styles.html"%}
+    {% include "pages/home/styles.html"%}
 {% endblock %}
 {% block content %}
     {% include "components/login_modal/login_modal.html"%}
+    <section class="home-hero">
+        <div class="home-hero-inner">
+            <h1>Todo lo que buscas, de tiendas independientes</h1>
+            <p>Compra a varias tiendas a la vez y paga en un solo carrito.</p>
+            <a href="#productos" class="m-btn m-btn--primary">Ver productos</a>
+        </div>
+    </section>
+    <h2 id="productos" class="home-section-title">Todos los productos</h2>
     {{group_cards2|safe}}
 {% endblock %}

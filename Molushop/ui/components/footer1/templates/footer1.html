@@ -1,0 +1,25 @@
+{# Pie de la tienda (layout shop). Usa las rutas de `nav1`, que tienen todas las páginas de la tienda. #}
+<div class="footer1">
+  <div class="footer1-container">
+    <div class="footer1-brand">
+      <img src="/assets/logos/molushop.svg" alt="Molushop" />
+      <p>Productos de tiendas independientes, en un solo carrito.</p>
+    </div>
+    <nav class="footer1-col" aria-label="Tienda">
+      <h2>Tienda</h2>
+      <ul>
+        <li><a href="{{nav1.routes.home}}">Inicio</a></li>
+        <li><a href="{{nav1.routes.cart}}">Carrito</a></li>
+        <li><a href="{{nav1.routes.orders}}">Mis pedidos</a></li>
+      </ul>
+    </nav>
+    <nav class="footer1-col" aria-label="Molushop">
+      <h2>Molushop</h2>
+      <ul>
+        <li><a href="/about-us">Sobre nosotros</a></li>
+        <li><a href="/panel/register" hx-boost="false">Vende en Molushop</a></li>
+      </ul>
+    </nav>
+  </div>
+  <p class="footer1-copy">&copy; 2026 Molushop</p>
+</div>
