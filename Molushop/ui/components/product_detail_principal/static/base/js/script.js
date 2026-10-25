@@ -59,27 +59,6 @@ const PRODUCT_DETAIL = {
             .sort((a, b) => (b.stock > 0) - (a.stock > 0));
     },
 
-    // Devuelve un Set con los valores de targetAttrName que, con el resto de lo
-    // seleccionado, dan una variación CON stock (para tachar los que no).
-    getAvailableValues: function(selectedAttrs, targetAttrName) {
-        let available = new Set();
-        this.variantMap.forEach(variant => {
-            if (variant.stock <= 0) return;
-
-            let matches = Object.entries(selectedAttrs).every(([name, value]) => {
-                if (name === targetAttrName) return true;
-                let attr = variant.attributes.find(a => a.name === name);
-                return attr && attr.value === value;
-            });
-
-            if (matches) {
-                let targetAttr = variant.attributes.find(a => a.name === targetAttrName);
-                if (targetAttr) available.add(targetAttr.value);
-            }
-        });
-        return available;
-    },
-
     // Al elegir un valor: si la combinación existe y tiene stock, se queda; si
     // no, se salta a la primera con stock que lleve ese valor (o, si no hay
     // ninguna, a la primera que exista). Después se repintan precio, píldoras y botón.
@@ -140,19 +119,19 @@ const PRODUCT_DETAIL = {
     },
 
     // Tacha (sin apagar: se puede pulsar para cambiar de combinación) los
-    // valores que, con lo demás elegido, solo llevan a variaciones agotadas.
+    // valores que, con lo demás elegido, dan una variación que existe y está
+    // agotada. Si la combinación no existe no se tacha: al pulsarlo se salta a
+    // una con stock que lleve ese valor (updateAvailableOptions).
     // Los que no tienen stock en ninguna combinación ya vienen `disabled` del servidor.
     refreshAvailability: function() {
         this.showError(null);
         let selectedAttrs = this.getSelectedAttrs();
-        let byAttr = {};
         this.element.querySelectorAll(".variation-input").forEach(input => {
             let attrName = input.name.replace("variation-", "");
-            if (!(attrName in byAttr)) {
-                byAttr[attrName] = this.getAvailableValues(selectedAttrs, attrName);
-            }
+            let variant = this.findVariantByAttrs({ ...selectedAttrs, [attrName]: input.value });
+            let soldOut = variant != null && variant.stock <= 0;
             let label = this.element.querySelector(`label[for="${CSS.escape(input.id)}"]`);
-            if (label) { label.classList.toggle("is-out-of-stock", !byAttr[attrName].has(input.value)); }
+            if (label) { label.classList.toggle("is-out-of-stock", soldOut); }
         });
         this.refreshAddButton();
     },

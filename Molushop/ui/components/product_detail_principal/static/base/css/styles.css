@@ -107,8 +107,8 @@
                             border-color: var(--color-primary-strong);
                             background-color: var(--color-primary-soft);
                         }
-                        /* Con lo demás elegido, este valor solo da combinaciones
-                           agotadas. Se puede pulsar: salta a una que tenga stock. */
+                        /* Con lo demás elegido, este valor da una combinación
+                           agotada. Se puede pulsar: salta a una que tenga stock. */
                         .variation-name-cont.is-out-of-stock span{
                             text-decoration: line-through;
                             color: var(--color-text-muted);
