@@ -19,3 +19,4 @@ pub mod panel_register_page_model;
 pub mod panel_products_page_model;
 pub mod panel_product_edit_page_model;
 pub mod panel_product_create_page_model;
+pub mod not_found_page_model;

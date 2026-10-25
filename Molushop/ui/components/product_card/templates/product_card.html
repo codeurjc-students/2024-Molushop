@@ -17,17 +17,18 @@
                 <span class="producto-valoracion-total">({{product.rating_count}})</span>
                 {% endif %}
             </div>
+            {# Sin precio no se puede comprar: solo "No disponible", en gris y sin
+               botón (el clic en la tarjeta sigue llevando a la ficha). #}
+            {% if product.price.is_some() %}
             <p class="producto-precio">{{ product.price_tag() }}</p>
             <div class="producto-acciones">
                 {# Un <span> y no un <button>: va dentro del enlace a la ficha, que es
-                   donde se elige la variación. Sin precio, apagado (el clic sigue
-                   llevando a la ficha). #}
-                {% if product.price.is_some() %}
+                   donde se elige la variación. #}
                 <span class="m-btn m-btn--primary m-btn--block boton-agregar-carrito">Añadir al carrito</span>
-                {% else %}
-                <span class="m-btn m-btn--primary m-btn--block boton-agregar-carrito is-disabled" aria-disabled="true">Añadir al carrito</span>
-                {% endif %}
             </div>
+            {% else %}
+            <p class="producto-precio is-unavailable">No disponible</p>
+            {% endif %}
         </div>
     </a>
 </div>

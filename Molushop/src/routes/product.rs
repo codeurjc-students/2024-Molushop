@@ -8,6 +8,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 
 use crate::models::pages_models::product_page_model::*;
+use crate::models::pages_models::not_found_page_model::NotFoundPage;
 use crate::services::components::{
     product_card_service::*,
     product_card_group_service::*,
@@ -86,12 +87,29 @@ async fn get_product(path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: Htt
 
     //hacer el render directamente o 
 
+    let product_data = match get_product_object(&product_id,&pool).await {
+        Ok(Some(product_data)) => product_data,
+        // No está a la venta (no existe, desactivado o tienda inactiva)
+        Ok(None) => {
+            let not_found_render = NotFoundPage{
+                user_logged,
+                page_name:"Producto no disponible".to_string(),
+                nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
+                login_base_data:login_base_service::get_login_base_model_data(),
+                title:"Este producto no está disponible".to_string(),
+                message:"Puede que ya no esté a la venta o que el enlace no sea correcto.".to_string()
+            }.render().unwrap();
+            return HttpResponse::NotFound().content_type("text/html; charset=utf-8").body(not_found_render);
+        }
+        Err(_) => return HttpResponse::InternalServerError().finish(),
+    };
+
     let home_render = ProductPage{
         user_logged,    
         page_name:"Product".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data(),
-        product_data: get_product_object(&product_id,&pool).await,
+        product_data,
         // Primera página de opiniones; el "ver más" pide las siguientes por HTMX.
         reviews: get_product_reviews_object(&product_id, 1, user_id_opt.as_ref(), &pool).await
     }.render().unwrap();

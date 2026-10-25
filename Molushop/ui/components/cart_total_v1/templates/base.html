@@ -5,6 +5,7 @@
                 <div class="header-container-title">
                     <h1>Cesta</h1>
                 </div>
+                {% if !cart_total.items.is_empty() %}
                 <div class="header-container-bottom">
                     <div class="checkbox-select">
                         <label class="initial-check">
@@ -17,11 +18,15 @@
                         </label>
                     </div>
                 </div>
+                {% endif %}
             </div>
             <div class="products-container m-card">
                 {% if cart_total.items.is_empty() %}
                 <div class="empty-cart">
-                    <span>Tu cesta está vacía</span>
+                    <svg class="icn-svg empty-cart__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
+                    <p class="empty-cart__title">Tu cesta está vacía</p>
+                    <p class="m-hint">Añade productos desde la tienda y aparecerán aquí.</p>
+                    <a href="{{cart_total.home_url()}}" class="m-btn m-btn--primary">Ver productos</a>
                 </div>
                 {% else %}
                 {% for item in cart_total.items %}

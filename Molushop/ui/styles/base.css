@@ -71,3 +71,24 @@ button:disabled {
     animation: none !important;
   }
 }
+
+/* Barra de carga arriba (base.js, NAV_PROGRESS pone .is-navigating en <html>).
+   Sale a los 150 ms: si la página llega antes, no se ve. Avanza deprisa al
+   principio y cada vez más despacio, sin llegar al final hasta que llega. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 0;
+  height: 3px;
+  background-color: var(--color-primary-strong);
+  opacity: 0;
+  pointer-events: none;
+}
+html.is-navigating body::before {
+  width: 90%;
+  opacity: 1;
+  transition: width 10s cubic-bezier(0.1, 0.8, 0.2, 1) 150ms, opacity 0s 150ms;
+}

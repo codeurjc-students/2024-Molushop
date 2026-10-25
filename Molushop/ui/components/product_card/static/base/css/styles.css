@@ -87,6 +87,14 @@
     margin-bottom: 15px; /* Margen inferior para separar de las acciones */
 }
 
+/* Sin precio: no se vende; en gris y sin botón debajo. El margen automático
+   lo deja a la altura del precio de las demás tarjetas, no abajo del todo. */
+.product-card .producto-precio.is-unavailable {
+    margin-bottom: auto;
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+}
+
 /* Estilos para el contenedor de acciones (botón) */
 .product-card .producto-acciones {
     margin-top: auto; /* Empuja las acciones al final del contenedor */

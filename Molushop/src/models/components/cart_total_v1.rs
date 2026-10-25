@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
 use crate::models::models_x::CartItem1;
-use crate::constants::urls::PRODUCT_URL_PREFIX;
+use crate::constants::urls::{HOME_URL, PRODUCT_URL_PREFIX};
 use crate::constants::money::DEFAULT_CURRENCY;
 use crate::models::components::price::Price;
 use crate::models::components::quantity::Quantity;
@@ -89,6 +89,11 @@ impl Default for CartTotalData {
 }
 
 impl CartTotalData {
+    /// El botón "Ver productos" de la cesta vacía.
+    pub fn home_url(&self) -> &'static str {
+        HOME_URL
+    }
+
     /// Los totales solo cuentan las líneas disponibles.
     pub fn from_items(items: Vec<CartItemData>) -> Self {
         let default = CartTotalData::default();

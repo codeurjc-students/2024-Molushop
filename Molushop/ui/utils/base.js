@@ -160,6 +160,28 @@ document.addEventListener('htmx:removingHeadElement', (event) => {
     if (event.detail.headElement.tagName === 'SCRIPT') { event.preventDefault(); }
 });
 
+// Barra de carga arriba mientras llega la página (base.css, .is-navigating):
+// al pulsar un enlace con el boost y al volver atrás/adelante sin copia
+// guardada. Va en <html>, que el boost no sustituye.
+const NAV_PROGRESS = {
+    start: () => document.documentElement.classList.add('is-navigating'),
+    stop: () => document.documentElement.classList.remove('is-navigating'),
+};
+
+document.addEventListener('htmx:beforeRequest', (event) => {
+    if (event.detail.boosted) { NAV_PROGRESS.start(); }
+});
+
+document.addEventListener('htmx:historyCacheMiss', NAV_PROGRESS.start);
+
+['htmx:afterRequest', 'htmx:historyCacheMissLoad', 'htmx:historyCacheMissLoadError'].forEach((name) => {
+    document.addEventListener(name, NAV_PROGRESS.stop);
+});
+
+// Del panel o de una recarga se vuelve con la caché del navegador (bfcache):
+// la página llegaría con la barra a medias
+window.addEventListener('pageshow', NAV_PROGRESS.stop);
+
 // Errores de htmx: htmx 2 no pinta las respuestas 4xx/5xx. Las que el
 // servidor quiere enseñar (un aviso) llevan HX-Retarget (utils/hx.rs,
 // error_modal): esas se pintan. Las demás, como antes, no.

@@ -2,7 +2,7 @@
     {% if checkout.is_empty() %}
     <div class="checkout-empty">
         <span>No hay artículos que comprar.</span>
-        <a href="{{checkout.routes.cart}}" class="no-generic-a back-to-cart">Volver a la cesta</a>
+        <a href="{{checkout.routes.cart}}" class="m-btn m-btn--secondary">Volver a la cesta</a>
     </div>
     {% else %}
     {# Un solo POST lleva la dirección y la confirmación: así no quedan filas
