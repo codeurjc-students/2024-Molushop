@@ -8,6 +8,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 use crate::middleware::auth::Auth;
+use crate::constants::urls::HOME_URL;
 //scope ??
 // --> dispatcher --> ---> /home
 
@@ -24,9 +25,18 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             "/home", 
             web::get().to(get_home).wrap(Auth::new())
         )
+        .route("/", web::get().to(redirect_home))
         ;
         //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
+}
+
+/// La raíz lleva a la portada. 302 y no 301: si algún día la portada pasa a
+/// ser "/", una 301 se quedaría guardada en navegadores y buscadores.
+async fn redirect_home() -> HttpResponse {
+    HttpResponse::Found()
+        .insert_header((actix_web::http::header::LOCATION, HOME_URL))
+        .finish()
 }
 
 //el modelo lo creo aqui o en la pagina de modelos
