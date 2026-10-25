@@ -1,0 +1,11 @@
+{% extends "layouts/layout1.html" %}
+{# Layout de la tienda: layout1 + la cabecera nav1. La página necesita un campo `nav1`. #}
+{% block layout_styles %}
+    {% include "components/nav1/styles.html" %}
+{% endblock %}
+{% block layout_scripts %}
+    {% include "components/nav1/scripts.html" %}
+{% endblock %}
+{% block header %}
+    {% include "components/nav1/templates/nav1.html" %}
+{% endblock %}
