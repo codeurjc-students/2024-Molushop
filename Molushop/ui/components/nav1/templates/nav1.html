@@ -15,16 +15,24 @@
       </form>
     </div>
     -->
-    {# Un GET normal a /search (con hx-boost, sin recargar): funciona igual sin JS. #}
+    {# Un GET normal a /search (con hx-boost, sin recargar): funciona igual sin JS.
+       Mientras se escribe, el input pide sugerencias y las pinta en #nav1-suggestions
+       (nav1_search, script.js: abrir, cerrar y las flechas del teclado). #}
     <div class="search-bar">
       <form action="{{nav1.routes.search}}" method="get" role="search">
         <div class="search-box-container">
-          <input type="search" name="q" value="{{nav1.search}}" placeholder="Busca productos o marcas" aria-label="Buscar productos" maxlength="100" enterkeyhint="search">
+          <input type="search" name="q" value="{{nav1.search}}" placeholder="Busca productos o marcas" aria-label="Buscar productos" maxlength="100" enterkeyhint="search"
+            autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nav1-suggestions"
+            hx-get="{{nav1.routes.suggestions}}"
+            hx-trigger="input changed delay:250ms[this.value.trim().length >= 2]"
+            hx-target="#nav1-suggestions"
+            hx-sync="this:replace">
           <button type="submit" class="search-icon" aria-label="Buscar">
             <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
           </button>
         </div>
       </form>
+      <div id="nav1-suggestions" class="nav1-suggestions" hidden></div>
     </div>
     <div class="right-block">
       <div class="cart">

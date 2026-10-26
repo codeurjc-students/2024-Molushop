@@ -1,6 +1,8 @@
 use askama::Template;
 
 use serde::{Serialize,Deserialize};
+use crate::models::components::product_card_model::ProductCardData;
+use crate::models::pages_models::search_page_model::CategoryLink;
 
 
 #[derive(Template,Clone,Debug)]
@@ -29,5 +31,19 @@ pub struct Routes{
     pub orders: String,
     pub account: String,
     pub logout: String,
-    pub search: String
+    pub search: String,
+    /// Las sugerencias que salen bajo el buscador mientras se escribe.
+    pub suggestions: String
+}
+
+/// Sugerencias del buscador (`/components/search-suggestions?q=`): categorías
+/// cuyo nombre encaja, los primeros productos y el enlace a todos los resultados.
+#[derive(Template,Clone,Debug)]
+#[template(path="components/nav1/templates/suggestions.html")]
+pub struct SearchSuggestions{
+    pub query: String,
+    pub categories: Vec<CategoryLink>,
+    pub products: Vec<ProductCardData>,
+    /// La búsqueda completa (`/search?q=`).
+    pub all_url: String,
 }

@@ -1,0 +1,32 @@
+{# Sugerencias del buscador de nav1 (SearchSuggestions), dentro de #nav1-suggestions.
+   Cada opción es un enlace normal (con hx-boost, sin recargar). Las flechas del
+   teclado las recorren desde el input (nav1_search, script.js). #}
+<div class="nav1-suggest" role="listbox" aria-label="Sugerencias de búsqueda">
+    {% if !categories.is_empty() %}
+    <div role="group" aria-label="Categorías">
+        <p class="nav1-suggest__title" aria-hidden="true">Categorías</p>
+        {% for category in categories %}
+        <a class="nav1-suggest__item" role="option" id="nav1-suggest-c{{loop.index}}" href="{{category.url}}">
+            <svg class="icn-svg nav1-suggest__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
+            <span class="nav1-suggest__name">{{category.name}}</span>
+            <span class="nav1-suggest__meta">{{category.products}}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if !products.is_empty() %}
+    <div role="group" aria-label="Productos">
+        <p class="nav1-suggest__title" aria-hidden="true">Productos</p>
+        {% for product in products %}
+        <a class="nav1-suggest__item" role="option" id="nav1-suggest-p{{loop.index}}" href="{{product.url}}">
+            <img class="nav1-suggest__image" src="{{product.image}}" alt="" loading="lazy">
+            <span class="nav1-suggest__name">{{product.name}}</span>
+            <span class="nav1-suggest__meta">{% if product.price.is_some() %}{{ product.price_tag() }}{% else %}No disponible{% endif %}</span>
+        </a>
+        {% endfor %}
+    </div>
+    <a class="nav1-suggest__item nav1-suggest__all" role="option" id="nav1-suggest-all" href="{{all_url}}">Ver todos los resultados de “{{query}}”</a>
+    {% else if categories.is_empty() %}
+    <p class="nav1-suggest__empty">No hay productos para “{{query}}”</p>
+    {% endif %}
+</div>

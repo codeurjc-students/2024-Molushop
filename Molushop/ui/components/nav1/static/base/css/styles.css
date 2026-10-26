@@ -39,6 +39,7 @@
   }
 
   .search-bar{
+    position: relative;
     order: 3;
     flex-basis: 100%;
     display: flex;
@@ -87,6 +88,83 @@
     .search-icon:hover {
       opacity: 0.8;
     }
+  }
+
+  /* Sugerencias del buscador: caja flotante bajo el input, de su mismo ancho
+     (en móvil, el de la pantalla). La opción activa con las flechas se marca
+     igual que al pasar el ratón. */
+  .nav1-suggestions{
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 0;
+    right: 0;
+    z-index: 100;
+    max-height: 70vh;
+    overflow-y: auto;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+  }
+  .nav1-suggestions[hidden]{
+    display: none;
+  }
+  .nav1-suggest{
+    padding: var(--space-2) 0;
+  }
+  .nav1-suggest__title{
+    margin: var(--space-2) var(--space-3) var(--space-1);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nav1-suggest__item{
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .nav1-suggest__item:hover,
+  .nav1-suggest__item[aria-selected="true"]{
+    background-color: var(--color-bg-soft);
+  }
+  .nav1-suggest__icon{
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .nav1-suggest__image{
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+  }
+  .nav1-suggest__name{
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav1-suggest__meta{
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .nav1-suggest__all{
+    margin-top: var(--space-2);
+    border-top: 1px solid var(--color-border);
+    font-weight: var(--font-weight-medium);
+  }
+  .nav1-suggest__empty{
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-muted);
   }
 
   .right-block{

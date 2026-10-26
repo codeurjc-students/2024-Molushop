@@ -81,6 +81,32 @@ pub fn children<'a>(categories: &'a [CategoryCount], parent: Option<&str>) -> Ve
         .collect()
 }
 
+/// Las que tienen productos y cuyo nombre lleva todas las palabras de `q`,
+/// sin contar mayúsculas ni acentos (como `f_unaccent` en las consultas).
+/// Para las sugerencias del buscador: las categorías son pocas y se filtran aquí.
+pub fn named_like<'a>(categories: &'a [CategoryCount], q: &str) -> Vec<&'a CategoryCount> {
+    let words: Vec<String> = q.split_whitespace().map(fold).collect();
+    if words.is_empty() { return Vec::new(); }
+    categories.iter()
+        .filter(|c| c.products > 0)
+        .filter(|c| { let name = fold(&c.name); words.iter().all(|w| name.contains(w.as_str())) })
+        .collect()
+}
+
+/// Minúsculas y sin acentos, para comparar ("Electrónica" -> "electronica").
+fn fold(text: &str) -> String {
+    text.to_lowercase().chars().map(|c| match c {
+        'á' | 'à' | 'â' | 'ä' => 'a',
+        'é' | 'è' | 'ê' | 'ë' => 'e',
+        'í' | 'ì' | 'î' | 'ï' => 'i',
+        'ó' | 'ò' | 'ô' | 'ö' => 'o',
+        'ú' | 'ù' | 'û' | 'ü' => 'u',
+        'ñ' => 'n',
+        'ç' => 'c',
+        other => other,
+    }).collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -102,5 +128,18 @@ mod tests {
         let all = vec![category("SPORT", None, 2), category("ELEC", None, 0), category("PADEL", Some("SPORT"), 2)];
         let ids: Vec<_> = children(&all, None).iter().map(|c| c.id.as_str()).collect();
         assert_eq!(ids, ["SPORT"]);
+    }
+
+    #[test]
+    fn named_like_ignores_case_and_accents() {
+        let mut all = vec![category("ELEC", None, 3), category("PADEL", Some("SPORT"), 1), category("TV", Some("ELEC"), 0)];
+        all[0].name = "Electrónica".into();
+        all[1].name = "Pádel".into();
+        all[2].name = "Televisores".into();
+        let ids = |q: &str| named_like(&all, q).iter().map(|c| c.id.as_str()).collect::<Vec<_>>();
+        assert_eq!(ids("ELECTRONICA"), ["ELEC"]);
+        assert_eq!(ids("pádel"), ["PADEL"]);
+        assert!(ids("tele").is_empty(), "sin productos no sale");
+        assert!(ids("   ").is_empty());
     }
 }
