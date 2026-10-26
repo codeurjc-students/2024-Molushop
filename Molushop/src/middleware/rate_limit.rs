@@ -174,7 +174,7 @@ mod tests {
         use crate::i18n::Lang;
         assert_eq!(wait_minutes(30), 1);
         assert_eq!(wait_minutes(61), 2);
-        let wait = |lang, secs| I18n::for_lang(lang).t_args("rate-limit-wait", &[("minutes", wait_minutes(secs).into())]);
+        let wait = |lang: Lang, secs| lang.t_args("rate-limit-wait", &[("minutes", wait_minutes(secs).into())]);
         assert_eq!(wait(Lang::Es, 30), "Demasiados intentos seguidos. Espera 1 minuto y vuelve a intentarlo.");
         assert_eq!(wait(Lang::Es, 61), "Demasiados intentos seguidos. Espera 2 minutos y vuelve a intentarlo.");
         assert_eq!(wait(Lang::En, 61), "Too many attempts in a row. Wait 2 minutes and try again.");

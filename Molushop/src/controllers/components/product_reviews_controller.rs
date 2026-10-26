@@ -82,7 +82,7 @@ async fn list_reviews(
     let product_id = path.into_inner();
     let page = query.page.unwrap_or(1);
     let user_id = session_user_id(&req);
-    let body = get_product_reviews_body_render(i18n, &product_id, page, user_id.as_ref(), pool_data.get_ref()).await;
+    let body = get_product_reviews_body_render(&i18n, &product_id, page, user_id.as_ref(), pool_data.get_ref()).await;
 
     HttpResponse::Ok().body(body)
 }
@@ -129,7 +129,7 @@ async fn save_product_review(
         Ok(()) => {
             // Vuelve a la primera página: la opinión recién escrita es la más
             // reciente, así que sale arriba del todo.
-            let body = get_product_reviews_body_render(i18n, &form.product_id, 1, Some(&user_id), pool).await;
+            let body = get_product_reviews_body_render(&i18n, &form.product_id, 1, Some(&user_id), pool).await;
             HttpResponse::Ok().body(body)
         }
         Err(ServiceError::InvalidRating) => {
@@ -181,7 +181,7 @@ async fn delete_product_review(
 
     match delete_review(&user_id, &product_id, pool).await {
         Ok(()) => {
-            let body = get_product_reviews_body_render(i18n, &product_id, 1, Some(&user_id), pool).await;
+            let body = get_product_reviews_body_render(&i18n, &product_id, 1, Some(&user_id), pool).await;
             HttpResponse::Ok().body(body)
         }
         Err(e) => {

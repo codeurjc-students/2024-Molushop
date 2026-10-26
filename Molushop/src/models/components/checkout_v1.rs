@@ -8,9 +8,9 @@ use crate::models::components::cart_total_v1::CartTotalData;
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/checkout_v1/checkout_v1.html")]
-pub struct CheckoutV1{
+pub struct CheckoutV1<'a>{
     pub checkout: CheckoutData,
-    pub i18n: crate::i18n::I18n,
+    pub i18n: &'a crate::i18n::I18n,
 }
 
 #[derive(Serialize, Debug, Clone)]

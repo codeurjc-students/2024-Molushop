@@ -135,7 +135,7 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_s
     let home_render = Home{
         user_logged,
         page_name:i18n.t("home-page-title"),
-        group_cards2:get_product_card_group_render_all(i18n.clone(), &pool).await,
+        group_cards2:get_product_card_group_render_all(&i18n, &pool).await,
         categories:home_categories(i18n.lang, pool).await,
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),

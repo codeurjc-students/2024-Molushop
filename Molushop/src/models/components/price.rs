@@ -66,7 +66,7 @@ impl Price {
     pub fn amount_label(&self) -> String {
         match &self.amount {
             Some(amount) => format_amount_in(amount, self.lang),
-            None => I18n::for_lang(self.lang).t("price-unavailable"),
+            None => self.lang.t("price-unavailable"),
         }
     }
 

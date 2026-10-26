@@ -13,9 +13,9 @@ use crate::i18n::I18n;
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/cart_total_v1/cart_total_v1.html")]
-pub struct CartTotalV1{
+pub struct CartTotalV1<'a>{
     pub cart_total: CartTotalData,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 /// Sólo el cuerpo del componente, sin los <link>/<script> del wrapper.
@@ -23,9 +23,9 @@ pub struct CartTotalV1{
 /// wrapper, el script.js se volvería a cargar en cada actualización.
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/cart_total_v1/templates/base.html")]
-pub struct CartTotalV1Body{
+pub struct CartTotalV1Body<'a>{
     pub cart_total: CartTotalData,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 #[derive(Serialize, Debug, Clone)]

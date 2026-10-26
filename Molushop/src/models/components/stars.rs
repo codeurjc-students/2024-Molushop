@@ -72,7 +72,7 @@ impl Stars {
         } else {
             format!("{}{}{}", tenths / 10, self.lang.decimal_separator(), tenths % 10)
         };
-        I18n::for_lang(self.lang).t1("stars-label", "rating", &number)
+        self.lang.t_args("stars-label", &[("rating", number.into())])
     }
 }
 

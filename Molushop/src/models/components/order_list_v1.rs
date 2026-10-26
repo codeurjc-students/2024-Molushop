@@ -10,9 +10,9 @@ use crate::models::components::order_detail_v1::{OrderLineData, cancelled_total,
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_list_v1/order_list_v1.html")]
-pub struct OrderListV1{
+pub struct OrderListV1<'a>{
     pub order_list: OrderListData,
-    pub i18n: crate::i18n::I18n,
+    pub i18n: &'a crate::i18n::I18n,
 }
 
 /// Un pedido tal como se pinta EN LA LISTA. No se reutiliza `OrderData` a

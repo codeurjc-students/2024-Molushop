@@ -75,9 +75,9 @@ pub fn cancelled_total(items: &[OrderLineData]) -> BigDecimal {
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_detail_v1/order_detail_v1.html")]
-pub struct OrderDetailV1{
+pub struct OrderDetailV1<'a>{
     pub order: OrderData,
-    pub i18n: crate::i18n::I18n,
+    pub i18n: &'a crate::i18n::I18n,
 }
 
 /// Una línea del pedido tal como se pinta. Sale del snapshot de `order_items`,

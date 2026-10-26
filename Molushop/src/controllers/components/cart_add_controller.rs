@@ -106,7 +106,7 @@ pub struct UpdateCartForm {
 
 /// Devuelve el cuerpo del carrito re-renderizado junto al nuevo contador,
 /// que es lo que consumen tanto el componente como el badge del nav.
-async fn cart_body_response(i18n: I18n, user_id: &Uuid, pool: &DbPool) -> HttpResponse {
+async fn cart_body_response(i18n: &I18n, user_id: &Uuid, pool: &DbPool) -> HttpResponse {
     let cart_count = get_cart_item_count(user_id, pool).await;
     let body = get_cart_total_body_render(i18n, Some(user_id), pool).await;
     HttpResponse::Ok()
@@ -159,7 +159,7 @@ async fn update_cart_item(
     let pool = pool_data.get_ref();
 
     match cart_update_service::update_cart_item(&user_id, &form_data.cart_product_id, form_data.quantity, pool).await {
-        Ok(_) => cart_body_response(i18n, &user_id, pool).await,
+        Ok(_) => cart_body_response(&i18n, &user_id, pool).await,
         Err(e) => cart_error_response(&i18n, e),
     }
 }
@@ -180,7 +180,7 @@ async fn remove_cart_item(
     let pool = pool_data.get_ref();
 
     match cart_update_service::remove_cart_item(&user_id, &cart_product_id, pool).await {
-        Ok(_) => cart_body_response(i18n, &user_id, pool).await,
+        Ok(_) => cart_body_response(&i18n, &user_id, pool).await,
         Err(e) => cart_error_response(&i18n, e),
     }
 }

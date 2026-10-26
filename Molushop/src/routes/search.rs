@@ -69,7 +69,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
     let (products, more_url) = get_product_card_group_page(1, &filter, pool).await;
     let has_results = !products.is_empty();
     let results = if has_results {
-        ProductCardGroup { products, more_url, i18n: i18n.clone() }.render().unwrap_or_else(|e| {
+        ProductCardGroup { products, more_url, i18n: &i18n }.render().unwrap_or_else(|e| {
             println!("Error en el renderizado de ProductCardGroup! --> {}", e);
             String::new()
         })

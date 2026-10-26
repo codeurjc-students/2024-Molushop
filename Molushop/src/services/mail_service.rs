@@ -15,7 +15,7 @@
 
 use std::env;
 
-use crate::i18n::{I18n, Lang};
+use crate::i18n::Lang;
 
 /// Un email ya redactado.
 #[derive(Debug, Clone)]
@@ -65,11 +65,10 @@ pub async fn send_password_reset(to: &str, username: &str, link: &str, minutes: 
 }
 
 fn password_reset_mail(to: &str, username: &str, link: &str, minutes: i64, lang: Lang) -> Mail {
-    let i18n = I18n::for_lang(lang);
     Mail {
         to: to.to_string(),
-        subject: i18n.t("mail-reset-subject"),
-        body: format!("{}\n", i18n.t_args("mail-reset-body", &[
+        subject: lang.t("mail-reset-subject"),
+        body: format!("{}\n", lang.t_args("mail-reset-body", &[
             ("username", username.to_string().into()),
             ("minutes", minutes.into()),
             ("link", link.to_string().into()),

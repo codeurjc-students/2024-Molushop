@@ -6,9 +6,9 @@ use bigdecimal::BigDecimal;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/login_base/templates/login_base.html")]
-pub struct LoginProduct{
+pub struct LoginProduct<'a>{
     pub login_base_data: LoginProductData,
-    pub i18n: crate::i18n::I18n,
+    pub i18n: &'a crate::i18n::I18n,
 }
 
 #[derive(Debug, Clone)]

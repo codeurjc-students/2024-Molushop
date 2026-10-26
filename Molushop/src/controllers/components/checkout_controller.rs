@@ -75,7 +75,8 @@ async fn confirm(
     // La validación de la dirección es del servidor aunque los inputs sean
     // `required`: el `required` del navegador no es una garantía.
     if !form.address_is_complete() {
-        return repaint(i18n.clone(), &user_id, &form, &i18n.t("checkout-error-address"), None, pool).await;
+        let message = i18n.t("checkout-error-address");
+        return repaint(i18n, &user_id, &form, &message, None, pool).await;
     }
 
     match confirm_order(&user_id, &form, pool).await {
@@ -91,7 +92,7 @@ async fn confirm(
             } else {
                 i18n.t1("checkout-error-stock-out", "product", &product_name)
             };
-            repaint(i18n.clone(), &user_id, &form, &message, Some(line_id), pool).await
+            repaint(i18n, &user_id, &form, &message, Some(line_id), pool).await
         }
 
         Err(ServiceError::EmptyCart) => {
@@ -104,16 +105,18 @@ async fn confirm(
 
         Err(ServiceError::ProductUnavailable { line_id, product_name }) => {
             let message = i18n.t1("checkout-error-unavailable", "product", &product_name);
-            repaint(i18n.clone(), &user_id, &form, &message, Some(line_id), pool).await
+            repaint(i18n, &user_id, &form, &message, Some(line_id), pool).await
         }
 
         Err(ServiceError::MissingPrice) => {
-            repaint(i18n.clone(), &user_id, &form, &i18n.t("checkout-error-price"), None, pool).await
+            let message = i18n.t("checkout-error-price");
+            repaint(i18n, &user_id, &form, &message, None, pool).await
         }
 
         Err(e) => {
             println!("Error al confirmar el pedido: {}", e);
-            repaint(i18n.clone(), &user_id, &form, &i18n.t("checkout-error"), None, pool).await
+            let message = i18n.t("checkout-error");
+            repaint(i18n, &user_id, &form, &message, None, pool).await
         }
     }
 }

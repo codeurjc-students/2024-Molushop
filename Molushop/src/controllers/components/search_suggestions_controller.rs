@@ -86,7 +86,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
         categories,
         products,
         all_url: filter.url(SEARCH_URL, None),
-        i18n,
+        i18n: &i18n,
     }.render().unwrap_or_else(|e| {
         println!("Error en el renderizado de SearchSuggestions! --> {}", e);
         String::new()

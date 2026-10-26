@@ -13,9 +13,9 @@ use crate::models::components::price::Price;
 use crate::models::components::quantity::Quantity;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_detail_principal/product_detail_principal.html")]
-pub struct ProductDetailPrincipal{
+pub struct ProductDetailPrincipal<'a>{
     product_data : ProductDetailPrincipalData,
-    i18n: crate::i18n::I18n,
+    i18n: &'a crate::i18n::I18n,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

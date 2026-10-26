@@ -7,11 +7,11 @@ use crate::models::pages_models::search_page_model::CategoryLink;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/nav1/templates/nav1.html")]
-pub struct Nav1{
+pub struct Nav1<'a>{
     //pub login_base_data: Nav1Data
     pub nav1: Nav1Data,
     /// nav1.html enlaza en el idioma de la página (en las páginas lo pone la página).
-    pub i18n: crate::i18n::I18n,
+    pub i18n: &'a crate::i18n::I18n,
 }
 
 #[derive(Debug, Clone)]
@@ -42,12 +42,12 @@ pub struct Routes{
 /// cuyo nombre encaja, los primeros productos y el enlace a todos los resultados.
 #[derive(Template,Clone,Debug)]
 #[template(path="components/nav1/templates/suggestions.html")]
-pub struct SearchSuggestions{
+pub struct SearchSuggestions<'a>{
     pub query: String,
     pub categories: Vec<CategoryLink>,
     pub products: Vec<ProductCardData>,
     /// La búsqueda completa (`/search?q=`).
     pub all_url: String,
     /// El de la página desde la que se pide (`HX-Current-URL`).
-    pub i18n: crate::i18n::I18n,
+    pub i18n: &'a crate::i18n::I18n,
 }

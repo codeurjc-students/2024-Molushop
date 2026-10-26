@@ -15,9 +15,9 @@ pub const NO_IMAGE: &str = "/assets/imgs/no-image.svg";
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card/templates/product_card.html")]
-pub struct ProductCard{
+pub struct ProductCard<'a>{
     pub product: ProductCardData,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 #[derive(Debug, Clone)]

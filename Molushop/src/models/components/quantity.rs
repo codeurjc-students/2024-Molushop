@@ -52,7 +52,7 @@ impl Quantity {
 
     /// Una etiqueta (`qty-label`, `qty-decrease`, `qty-increase`).
     pub fn label(&self, key: &str) -> String {
-        I18n::for_lang(self.lang).t(key)
+        self.lang.t(key)
     }
 
     pub fn at_min(&self) -> bool {

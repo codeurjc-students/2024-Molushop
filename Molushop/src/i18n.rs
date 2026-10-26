@@ -19,6 +19,7 @@
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::future::{ready, Ready};
+use std::sync::OnceLock;
 
 use actix_web::dev::Payload;
 use actix_web::{FromRequest, HttpRequest};
@@ -128,6 +129,28 @@ impl Lang {
         }
     }
 
+    /// El texto de `key` en este idioma. Si falta, el español; si tampoco
+    /// está, la propia clave (y un aviso en el log), que se vea en la página.
+    /// Va en `Lang` (que es `Copy`) para que los átomos y los correos traduzcan
+    /// sin crear un `I18n`.
+    pub fn t(self, key: &str) -> String {
+        self.lookup(key, None)
+    }
+
+    /// Como `t`, con variables: `t_args("search-results", &[("q", q.into())])`.
+    pub fn t_args(self, key: &str, args: &[(&'static str, FluentValue)]) -> String {
+        let args: HashMap<Cow<'static, str>, FluentValue> =
+            args.iter().map(|(name, value)| (Cow::Borrowed(*name), value.clone())).collect();
+        self.lookup(key, Some(&args))
+    }
+
+    fn lookup(self, key: &str, args: Option<&HashMap<Cow<'static, str>, FluentValue>>) -> String {
+        LOCALES.try_lookup_complete(&self.langid(), key, args).unwrap_or_else(|| {
+            println!("i18n: falta la clave \"{}\" ({})", key, self.code());
+            key.to_string()
+        })
+    }
+
     fn langid(self) -> LanguageIdentifier {
         match self {
             Lang::Es => langid!("es"),
@@ -172,9 +195,12 @@ impl I18n {
         I18n { lang, path: path.to_string(), origin: origin.to_string() }
     }
 
-    /// Solo para traducir textos (sin página detrás: hreflang y selector no valen).
-    pub fn for_lang(lang: Lang) -> Self {
-        I18n::new(lang, "/", "")
+    /// Uno en español para lo que se pinta sin petición (las rutas `spawn` de
+    /// ejemplo, las tarjetas sueltas por id). Es estático porque los
+    /// componentes guardan una referencia (`&'a I18n`), no una copia.
+    pub fn default_ref() -> &'static I18n {
+        static DEFAULT: OnceLock<I18n> = OnceLock::new();
+        DEFAULT.get_or_init(I18n::default)
     }
 
     pub fn from_http_request(req: &HttpRequest) -> Self {
@@ -203,17 +229,14 @@ impl I18n {
         self.lang.code()
     }
 
-    /// El texto de `key` en este idioma. Si falta, el español; si tampoco
-    /// está, la propia clave (y un aviso en el log), que se vea en la página.
+    /// El texto de `key` en este idioma (`Lang::t`).
     pub fn t(&self, key: &str) -> String {
-        self.lookup(key, None)
+        self.lang.t(key)
     }
 
     /// Como `t`, con variables: `t_args("search-results", &[("q", q.into())])`.
     pub fn t_args(&self, key: &str, args: &[(&'static str, FluentValue)]) -> String {
-        let args: HashMap<Cow<'static, str>, FluentValue> =
-            args.iter().map(|(name, value)| (Cow::Borrowed(*name), value.clone())).collect();
-        self.lookup(key, Some(&args))
+        self.lang.t_args(key, args)
     }
 
     /// `t_args` con una variable de texto, para las plantillas:
@@ -237,13 +260,6 @@ impl I18n {
     /// Con dos variables de texto.
     pub fn t2(&self, key: &str, name1: &'static str, value1: impl AsRef<str>, name2: &'static str, value2: impl AsRef<str>) -> String {
         self.t_args(key, &[(name1, FluentValue::from(value1.as_ref())), (name2, FluentValue::from(value2.as_ref()))])
-    }
-
-    fn lookup(&self, key: &str, args: Option<&HashMap<Cow<'static, str>, FluentValue>>) -> String {
-        LOCALES.try_lookup_complete(&self.lang.langid(), key, args).unwrap_or_else(|| {
-            println!("i18n: falta la clave \"{}\" ({})", key, self.code());
-            key.to_string()
-        })
     }
 
     /// Una ruta de la tienda en este idioma: "/cart" -> "/en/cart". Lo que no
@@ -344,7 +360,7 @@ mod tests {
         let i18n = I18n::new(Lang::En, "/search?q=pala roja", "http://localhost:8080");
         assert_eq!(i18n.url("/cart"), "/en/cart");
         assert_eq!(i18n.url("javascript:void(0)"), "javascript:void(0)");
-        assert_eq!(I18n::for_lang(Lang::Es).url("/cart"), "/cart");
+        assert_eq!(I18n::default_ref().url("/cart"), "/cart");
         assert_eq!(i18n.page_url_in(Lang::Es), "http://localhost:8080/search?q=pala roja");
         let en = i18n.languages().into_iter().find(|l| l.code == "en").unwrap();
         assert!(en.current);
@@ -366,6 +382,7 @@ mod tests {
         assert_eq!(I18n::default().t("lang-label"), "Idioma");
         assert_eq!(en.t("no-such-key"), "no-such-key");
         assert_eq!(en.t_args("i18n-test-count", &[("count", 1.into())]), "1 product");
+        assert_eq!(Lang::En.t("lang-label"), "Language");
         assert_eq!(I18n::default().t_args("i18n-test-count", &[("count", 3.into())]), "3 productos");
         assert_eq!(en.t1("search-title-query", "q", "pala"), "Results for “pala”");
         assert_eq!(en.t2("search-title-query-category", "q", "pala", "category", "Padel"), "“pala” in Padel");

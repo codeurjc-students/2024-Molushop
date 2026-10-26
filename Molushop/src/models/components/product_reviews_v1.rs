@@ -20,9 +20,9 @@ pub const PAGE_SIZE: i64 = 5;
 
 #[derive(Template, Clone, Debug)]
 #[template(path = "components/product_reviews_v1/product_reviews_v1.html")]
-pub struct ProductReviewsV1 {
+pub struct ProductReviewsV1<'a>{
     pub reviews: ProductReviewsData,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 /// Sólo el cuerpo, sin el `<link>` del wrapper. Es lo que devuelve el "ver más":
@@ -30,9 +30,9 @@ pub struct ProductReviewsV1 {
 /// cada pulsación. Mismo reparto que en `cart_total_v1`.
 #[derive(Template, Clone, Debug)]
 #[template(path = "components/product_reviews_v1/templates/base.html")]
-pub struct ProductReviewsV1Body {
+pub struct ProductReviewsV1Body<'a>{
     pub reviews: ProductReviewsData,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 /// Las URLs del componente, rellenadas por el controlador (`lazy_static`), no

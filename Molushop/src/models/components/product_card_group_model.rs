@@ -5,21 +5,21 @@ use crate::i18n::I18n;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card_group/templates/product_card_group.html")]
-pub struct ProductCardGroup{
+pub struct ProductCardGroup<'a>{
     pub products: Vec<ProductCardData>,
     /// `Some`: hay más productos y el botón "Cargar más" los pide aquí.
     pub more_url: Option<String>,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 /// Una tanda de "Cargar más": las tarjetas y, si quedan, el botón siguiente,
 /// sin la caja del grupo (van dentro de la que ya está en la página).
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card_group/templates/items.html")]
-pub struct ProductCardGroupPage{
+pub struct ProductCardGroupPage<'a>{
     pub products: Vec<ProductCardData>,
     pub more_url: Option<String>,
-    pub i18n: I18n,
+    pub i18n: &'a I18n,
 }
 
 /// Lo que filtra la rejilla de tarjetas: la portada va sin nada y la búsqueda

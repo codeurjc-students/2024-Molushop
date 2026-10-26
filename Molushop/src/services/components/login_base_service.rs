@@ -14,7 +14,7 @@ pub fn get_login_base_rendered()->String{
         login_base_data: LoginProductData{
             routes: &ROUTES
         },
-        i18n: crate::i18n::I18n::default(),
+        i18n: crate::i18n::I18n::default_ref(),
     };
     login_product.render().unwrap()
     
