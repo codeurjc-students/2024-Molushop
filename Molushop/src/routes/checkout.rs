@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, HttpRequest};
+use crate::i18n::I18n;
 use serde::Deserialize;
 use uuid::Uuid;
 
@@ -33,6 +34,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 
 async fn get_checkout(
+    i18n: I18n,
     query: web::Query<CheckoutQuery>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -45,7 +47,7 @@ async fn get_checkout(
     let lines = query.into_inner().lines;
     let checkout = get_checkout_object(user_id_opt.as_ref(), lines.as_deref(), pool).await;
 
-    HttpResponse::Ok().body(render_checkout_page(user_id_opt.as_ref(), checkout, pool).await)
+    HttpResponse::Ok().body(render_checkout_page(i18n, user_id_opt.as_ref(), checkout, pool).await)
 }
 
 /// Pinta la página entera alrededor de un `CheckoutData` ya construido.
@@ -55,6 +57,7 @@ async fn get_checkout(
 /// el usuario acababa de teclear en vez de redirigir y perderla. Sin este
 /// helper, el controlador tendría que duplicar el montaje del nav y el modal.
 pub async fn render_checkout_page(
+    i18n: I18n,
     user_id: Option<&Uuid>,
     checkout: CheckoutData,
     pool: &DbPool
@@ -73,7 +76,8 @@ pub async fn render_checkout_page(
         user_logged,
         page_name:"Finalizar compra".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id, pool).await,
-        login_base_data:login_base_service::get_login_base_model_data(),
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         checkout
     }.render().unwrap()
 }

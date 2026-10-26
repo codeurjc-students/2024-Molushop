@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse, HttpRequest};
+use crate::i18n::I18n;
 use uuid::Uuid;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -42,6 +43,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 
 async fn get_orders(
+    i18n: I18n,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>
 ) -> HttpResponse {
@@ -63,7 +65,8 @@ async fn get_orders(
         user_logged,
         page_name:"Mis pedidos".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-        login_base_data:login_base_service::get_login_base_model_data(),
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         order_list:get_orders_list_object(user_id_opt.as_ref(), pool).await
     }.render().unwrap();
 
@@ -71,6 +74,7 @@ async fn get_orders(
 }
 
 async fn get_order(
+    i18n: I18n,
     path: web::Path<Uuid>,
     query: web::Query<OrderDetailQuery>,
     pool_data: web::Data<DbPool>,
@@ -101,7 +105,8 @@ async fn get_order(
         user_logged,
         page_name:"Pedido".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-        login_base_data:login_base_service::get_login_base_model_data(),
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         order
     }.render().unwrap();
 

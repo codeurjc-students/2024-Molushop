@@ -1,4 +1,5 @@
 use askama::Template;
+use crate::i18n::I18n;
 use crate::models::components::nav1_model::*;
 use crate::models::components::login_base_model::LoginProductData;
 
@@ -18,10 +19,14 @@ pub struct CategoryLink{
 #[template(path="pages/search/search.html")]
 pub struct SearchPage{
     pub user_logged: bool,
-    pub page_name: String,
     pub nav1: Nav1Data,
     pub login_base_data: LoginProductData,
-    pub title: String,
+    /// El idioma de la petición (src/i18n.rs): `<html lang>`, enlaces y textos.
+    pub i18n: I18n,
+    /// Lo buscado y el nombre de la categoría elegida: con ellos compone la
+    /// plantilla el título (el <title> y el <h1>).
+    pub query: Option<String>,
+    pub category: Option<String>,
     /// De "Todas" a la categoría elegida; vacío sin categoría. La última es
     /// la elegida y no lleva enlace.
     pub breadcrumb: Vec<CategoryLink>,

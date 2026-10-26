@@ -1,6 +1,15 @@
 {% extends "layouts/shop.html" %}
 {# Búsqueda de la tienda (SearchPage). Su CSS lo carga layouts/shop.html.
    Las categorías son enlaces normales: con hx-boost cambian la URL sin recargar. #}
+{# El título, para el <title> y el <h1>. #}
+{% macro search_title() %}
+{%- if let Some(q) = query -%}
+    {%- if let Some(name) = category -%}“{{q}}” en {{name}}{%- else -%}Resultados de “{{q}}”{%- endif -%}
+{%- else if let Some(name) = category -%}{{name}}
+{%- else -%}Todos los productos
+{%- endif -%}
+{% endmacro %}
+{% block title %}{% call search_title() %}{% endcall %} | Molushop{% endblock %}
 {% block content %}
     {% include "components/login_modal/login_modal.html"%}
     <section class="search-page">
@@ -17,7 +26,7 @@
             </ol>
         </nav>
         {% endif %}
-        <h1 class="search-title">{{title}}</h1>
+        <h1 class="search-title">{% call search_title() %}{% endcall %}</h1>
         {% if let Some(url) = clear_query_url %}
         <a class="search-clear" href="{{url}}">Quitar la búsqueda</a>
         {% endif %}

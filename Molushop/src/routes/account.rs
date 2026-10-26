@@ -3,6 +3,7 @@
 //! `?error=` (como en el panel). La lógica está en `account_service`.
 
 use actix_web::{http::header, web, HttpResponse};
+use crate::i18n::I18n;
 use askama::Template;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -81,6 +82,7 @@ fn back_to_account(query: &str) -> HttpResponse {
 }
 
 async fn account_page(
+    i18n: I18n,
     query: web::Query<AccountQuery>,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
@@ -109,6 +111,7 @@ async fn account_page(
         page_name: "Mi cuenta".to_string(),
         nav1: get_nav1_object(username.clone(), user_id.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         username,
         other_sessions,
         ok_message: query.ok.as_deref().and_then(|c| ok_message(c, query.n.unwrap_or(0))),

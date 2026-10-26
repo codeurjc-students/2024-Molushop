@@ -22,6 +22,7 @@ pub mod jobs;
 pub mod utils;
 pub mod middleware;
 pub mod constants;
+pub mod i18n;
 
 use services::servicesX;
 use services::aws::s3::{client, startup};

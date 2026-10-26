@@ -1,9 +1,12 @@
 <!DOCTYPE html>
-<html lang="es">
+{# El panel y el admin, en español; la tienda pone el de la petición (shop.html). #}
+<html lang="{% block html_lang %}es{% endblock %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{page_name}}</title>
+    {# Una página puede componer su título en la plantilla (block title) en vez de
+       traerlo hecho en `page_name`: el texto queda en el HTML, no en Rust. #}
+    <title>{% block title %}{{page_name}}{% endblock %}</title>
     <!-- Copias locales con versión fija: htmx 2.0.11, response-targets 2.0.4,
          head-support 2.0.5, hyperscript 0.9.14, json-enc-custom 0.1.8. -->
     <script src="/assets/htmx.js"></script>
@@ -28,6 +31,7 @@
        la página. Van en el <head> y no en el <header>: lo del <body> lo
        sustituye htmx al volver atrás con el historial, y un <link> nuevo se
        pinta un instante sin estilos. #}
+    {% block layout_meta %}{% endblock %}
     {% block layout_styles %}{% endblock %}
     {% block layout_scripts %}{% endblock %}
     {% block scripts %}{% endblock %}

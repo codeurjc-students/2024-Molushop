@@ -1,4 +1,5 @@
 use actix_web::{web, HttpResponse};
+use crate::i18n::I18n;
 use uuid::Uuid;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -23,6 +24,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 }
 
 async fn get_about_us(
+    i18n: I18n,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>
 ) -> HttpResponse {
@@ -44,7 +46,8 @@ async fn get_about_us(
         user_logged,
         page_name:"Sobre nosotros".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-        login_base_data:login_base_service::get_login_base_model_data()
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n
     }.render().unwrap();
 
     HttpResponse::Ok().body(about_us_render)

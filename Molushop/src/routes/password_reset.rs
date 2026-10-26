@@ -4,6 +4,7 @@
 //! en `password_reset_service`; el envío del email, en `mail_service`.
 
 use actix_web::{http::header, web, HttpResponse};
+use crate::i18n::I18n;
 use askama::Template;
 use serde::Deserialize;
 use uuid::Uuid;
@@ -104,6 +105,7 @@ async fn nav_parts(
 }
 
 async fn forgot_page(
+    i18n: I18n,
     query: web::Query<ForgotQuery>,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
@@ -115,6 +117,7 @@ async fn forgot_page(
         page_name: "He olvidado mi contraseña".to_string(),
         nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         sent: query.sent.is_some(),
         reset_minutes: RESET_MINUTES,
         error_message: query.error.as_deref().and_then(error_message),
@@ -132,6 +135,7 @@ async fn forgot_submit(form: web::Form<ForgotForm>, pool_data: web::Data<DbPool>
 }
 
 async fn reset_page(
+    i18n: I18n,
     query: web::Query<ResetQuery>,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
@@ -150,6 +154,7 @@ async fn reset_page(
         page_name: "Nueva contraseña".to_string(),
         nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         token,
         token_valid,
         done: query.done.is_some(),

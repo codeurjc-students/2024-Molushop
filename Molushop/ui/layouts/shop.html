@@ -7,6 +7,16 @@
    falta ninguno. Son pocos KB, con nombres de clase propios de cada componente.
    Un componente o página nueva de la tienda pone aquí su styles.html, no en la
    página ni dentro del componente (un <link> en el body tiene el mismo problema). #}
+{# Todas las páginas de la tienda llevan `i18n` (src/i18n.rs). #}
+{% block html_lang %}{{ i18n.code() }}{% endblock %}
+{# La misma página en cada idioma, para los buscadores. Sin idioma
+   reconocido (x-default), la española. #}
+{% block layout_meta %}
+    {% for (code, url) in i18n.alternates() %}
+    <link rel="alternate" hreflang="{{code}}" href="{{url}}">
+    {% endfor %}
+    <link rel="alternate" hreflang="x-default" href="{{ i18n.page_url_in(crate::i18n::Lang::DEFAULT) }}">
+{% endblock %}
 {% block layout_styles %}
     {% include "components/nav1/styles.html" %}
     {% include "components/footer1/styles.html" %}

@@ -1,4 +1,5 @@
 use actix_web::{get, post, web,delete, App, HttpResponse,HttpRequest, HttpServer, Responder, http::StatusCode};
+use crate::i18n::I18n;
 use lazy_static::lazy_static;
 use uuid::Uuid;
 
@@ -30,7 +31,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 }
 
-async fn get_cart(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
+async fn get_cart(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     
     let mut nombre_aux = "".to_string();
@@ -64,7 +65,8 @@ async fn get_cart(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
         user_logged,
         page_name:"Cesta".to_string(),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-        login_base_data:login_base_service::get_login_base_model_data(),
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
         cart_total:get_cart_total_object(user_id_opt.as_ref(), pool).await
     }.render().unwrap();
 

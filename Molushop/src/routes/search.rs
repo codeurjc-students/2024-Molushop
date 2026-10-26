@@ -3,6 +3,7 @@
 //! recargar), así que la búsqueda se puede compartir y volver atrás funciona.
 
 use actix_web::{web, HttpResponse};
+use crate::i18n::I18n;
 use askama::Template;
 use serde::Deserialize;
 
@@ -29,7 +30,7 @@ pub struct SearchQuery {
     pub category: Option<String>,
 }
 
-async fn search(query: web::Query<SearchQuery>, pool_data: web::Data<DbPool>, opt_session_data: Option<web::ReqData<SessionData>>) -> HttpResponse {
+async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data<DbPool>, opt_session_data: Option<web::ReqData<SessionData>>) -> HttpResponse {
     let pool = pool_data.get_ref();
     let query = query.into_inner();
     let mut filter = CardFilter::new(query.q, query.category);
@@ -65,13 +66,6 @@ async fn search(query: web::Query<SearchQuery>, pool_data: web::Data<DbPool>, op
         .map(|c| link(Some(&c.id), &c.name, c.products))
         .collect();
 
-    let title = match (filter.q.as_deref(), selected) {
-        (Some(q), Some(category)) => format!("“{}” en {}", q, category.name),
-        (Some(q), None) => format!("Resultados de “{}”", q),
-        (None, Some(category)) => category.name.clone(),
-        (None, None) => "Todos los productos".to_string(),
-    };
-
     let (products, more_url) = get_product_card_group_page(1, &filter, pool).await;
     let has_results = !products.is_empty();
     let results = if has_results {
@@ -97,10 +91,11 @@ async fn search(query: web::Query<SearchQuery>, pool_data: web::Data<DbPool>, op
 
     let render = SearchPage {
         user_logged,
-        page_name: format!("{} | Molushop", title),
         nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
-        title,
+        i18n: i18n,
+        query: filter.q.clone(),
+        category: selected.map(|c| c.name.clone()),
         breadcrumb,
         categories: subcategories,
         clear_query_url: filter.q.as_ref().map(|_| filter.without_query().url(SEARCH_URL, None)),

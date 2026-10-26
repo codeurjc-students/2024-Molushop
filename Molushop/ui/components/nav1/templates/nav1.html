@@ -2,7 +2,7 @@
 <div class="nav1">
   <div class="container-nav">
     <div class="logo">
-      <a class="active" href="{{nav1.routes.home}}">
+      <a class="active" href="{{ i18n.url(nav1.routes.home) }}">
         <img src="/assets/logos/molushop-on-green.svg" alt="Molushop" />
       </a>
     </div>
@@ -19,7 +19,7 @@
        Mientras se escribe, el input pide sugerencias y las pinta en #nav1-suggestions
        (nav1_search, script.js: abrir, cerrar y las flechas del teclado). #}
     <div class="search-bar">
-      <form action="{{nav1.routes.search}}" method="get" role="search">
+      <form action="{{ i18n.url(nav1.routes.search) }}" method="get" role="search">
         <div class="search-box-container">
           <input type="search" name="q" value="{{nav1.search}}" placeholder="Busca productos o marcas" aria-label="Buscar productos" maxlength="100" enterkeyhint="search"
             autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nav1-suggestions"
@@ -36,7 +36,7 @@
     </div>
     <div class="right-block">
       <div class="cart">
-        <a class="cart-icon" href="{{nav1.routes.cart}}" aria-label="Carrito">
+        <a class="cart-icon" href="{{ i18n.url(nav1.routes.cart) }}" aria-label="Carrito">
           <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
           {% if nav1.cart_count > 0 %}
           <span id="cart-badge" class="cart-badge">{{nav1.cart_count}}</span>
@@ -53,8 +53,8 @@
         <div id="profile-menu" class="profile-menu" hidden>
           {% if nav1.logged %}
           <ul class="profile-menu-list">
-            <li><a href="{{nav1.routes.orders}}">Mis Pedidos</a></li>
-            <li><a href="{{nav1.routes.account}}">Mi cuenta</a></li>
+            <li><a href="{{ i18n.url(nav1.routes.orders) }}">Mis Pedidos</a></li>
+            <li><a href="{{ i18n.url(nav1.routes.account) }}">Mi cuenta</a></li>
           </ul>
           <button type="button" class="profile-menu-logout"
             hx-post="{{nav1.routes.logout}}"

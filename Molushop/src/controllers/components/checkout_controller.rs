@@ -1,4 +1,5 @@
 use actix_web::{post, web, HttpMessage, HttpRequest, HttpResponse, Scope};
+use crate::i18n::I18n;
 use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
 use uuid::Uuid;
 use lazy_static::lazy_static;
@@ -53,6 +54,7 @@ fn config(cfg: &mut web::ServiceConfig) {
 ///   así que no habría de dónde recuperarla.
 #[post("/confirm")]
 async fn confirm(
+    i18n: I18n,
     form: web::Form<ConfirmForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -73,7 +75,7 @@ async fn confirm(
     // La validación de la dirección es del servidor aunque los inputs sean
     // `required`: el `required` del navegador no es una garantía.
     if !form.address_is_complete() {
-        return repaint(&user_id, &form, "Faltan datos de la dirección de envío.", None, pool).await;
+        return repaint(i18n.clone(), &user_id, &form, "Faltan datos de la dirección de envío.", None, pool).await;
     }
 
     match confirm_order(&user_id, &form, pool).await {
@@ -89,7 +91,7 @@ async fn confirm(
             } else {
                 format!("«{}» se ha quedado sin stock mientras completabas el pedido.", product_name)
             };
-            repaint(&user_id, &form, &message, Some(line_id), pool).await
+            repaint(i18n.clone(), &user_id, &form, &message, Some(line_id), pool).await
         }
 
         Err(ServiceError::EmptyCart) => {
@@ -102,16 +104,16 @@ async fn confirm(
 
         Err(ServiceError::ProductUnavailable { line_id, product_name }) => {
             let message = format!("«{}» ya no está disponible. Quítalo de la cesta para completar el pedido. No se ha cobrado nada.", product_name);
-            repaint(&user_id, &form, &message, Some(line_id), pool).await
+            repaint(i18n.clone(), &user_id, &form, &message, Some(line_id), pool).await
         }
 
         Err(ServiceError::MissingPrice) => {
-            repaint(&user_id, &form, "Uno de los artículos no tiene precio disponible ahora mismo. No se ha cobrado nada.", None, pool).await
+            repaint(i18n.clone(), &user_id, &form, "Uno de los artículos no tiene precio disponible ahora mismo. No se ha cobrado nada.", None, pool).await
         }
 
         Err(e) => {
             println!("Error al confirmar el pedido: {}", e);
-            repaint(&user_id, &form, "No se ha podido completar el pedido. No se ha cobrado nada; inténtalo de nuevo.", None, pool).await
+            repaint(i18n.clone(), &user_id, &form, "No se ha podido completar el pedido. No se ha cobrado nada; inténtalo de nuevo.", None, pool).await
         }
     }
 }
@@ -120,6 +122,7 @@ async fn confirm(
 /// `409 Conflict` y no `200`: la petición era válida pero el estado del catálogo
 /// no permitió cumplirla.
 async fn repaint(
+    i18n: I18n,
     user_id: &Uuid,
     form: &ConfirmForm,
     message: &str,
@@ -137,5 +140,5 @@ async fn repaint(
 
     HttpResponse::Conflict()
         .content_type("text/html; charset=utf-8")
-        .body(render_checkout_page(Some(user_id), checkout, pool).await)
+        .body(render_checkout_page(i18n, Some(user_id), checkout, pool).await)
 }

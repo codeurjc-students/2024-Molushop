@@ -1,5 +1,6 @@
 //dependecias 
 use actix_web::{get, post, web,delete, App, HttpResponse,HttpRequest, HttpServer, Responder, http::StatusCode};
+use crate::i18n::{I18n, Lang, LANG_COOKIE};
 use lazy_static::lazy_static;
 use uuid::Uuid;
 
@@ -31,11 +32,27 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 }
 
-/// La raíz lleva a la portada. 302 y no 301: si algún día la portada pasa a
-/// ser "/", una 301 se quedaría guardada en navegadores y buscadores.
-async fn redirect_home() -> HttpResponse {
+/// La raíz lleva a la portada. "/en" (y "/en/") a la inglesa; "/" a la del
+/// idioma elegido en el selector (cookie) o, si no hay, al que pide el
+/// navegador; si no es ninguno de los nuestros, español.
+/// 302 y no 301: depende de quién entra, y una 301 se quedaría guardada en
+/// navegadores y buscadores.
+pub async fn redirect_home(req: HttpRequest) -> HttpResponse {
+    let (lang, _) = Lang::split_path(req.path());
+    let lang = if lang != Lang::DEFAULT {
+        lang
+    } else {
+        req.cookie(LANG_COOKIE)
+            .and_then(|cookie| Lang::from_code(cookie.value()))
+            .or_else(|| req.headers()
+                .get(actix_web::http::header::ACCEPT_LANGUAGE)
+                .and_then(|value| value.to_str().ok())
+                .and_then(Lang::from_accept_language))
+            .unwrap_or(Lang::DEFAULT)
+    };
     HttpResponse::Found()
-        .insert_header((actix_web::http::header::LOCATION, HOME_URL))
+        .insert_header((actix_web::http::header::LOCATION, format!("{}{}", lang.prefix(), HOME_URL)))
+        .insert_header((actix_web::http::header::VARY, "Accept-Language, Cookie"))
         .finish()
 }
 
@@ -81,7 +98,7 @@ async fn home_categories(pool: &DbPool) -> Vec<CategoryLink> {
         .collect()
 }
 
-async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
+async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     
     let mut nombre_aux = "".to_string();
@@ -121,7 +138,8 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
         group_cards2:get_product_card_group_render_all(&pool).await,
         categories:home_categories(pool).await,
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
-        login_base_data:login_base_service::get_login_base_model_data()
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n
     }.render().unwrap();
     
 
