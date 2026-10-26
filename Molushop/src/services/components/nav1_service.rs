@@ -19,6 +19,7 @@ pub async fn get_nav1_object(name: String, user_id: Option<&Uuid>, pool: &DbPool
         name,
         cart_count,
         logged: user_id.is_some(),
+        search: String::new(),
     }
 }
 

@@ -1,0 +1,44 @@
+{% extends "layouts/shop.html" %}
+{# Búsqueda de la tienda (SearchPage). Su CSS lo carga layouts/shop.html.
+   Las categorías son enlaces normales: con hx-boost cambian la URL sin recargar. #}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <section class="search-page">
+        {% if !breadcrumb.is_empty() %}
+        <nav class="search-breadcrumb" aria-label="Categoría">
+            <ol>
+                {% for crumb in breadcrumb %}
+                {% if loop.last %}
+                <li aria-current="page">{{crumb.name}}</li>
+                {% else %}
+                <li><a href="{{crumb.url}}">{{crumb.name}}</a></li>
+                {% endif %}
+                {% endfor %}
+            </ol>
+        </nav>
+        {% endif %}
+        <h1 class="search-title">{{title}}</h1>
+        {% if let Some(url) = clear_query_url %}
+        <a class="search-clear" href="{{url}}">Quitar la búsqueda</a>
+        {% endif %}
+        {% if !categories.is_empty() %}
+        <nav class="search-categories" aria-label="Filtrar por categoría">
+            <ul>
+                {% for category in categories %}
+                <li><a class="search-chip" href="{{category.url}}">{{category.name}} <span class="search-chip__count">{{category.products}}</span></a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </section>
+    {% if has_results %}
+    {{results|safe}}
+    {% else %}
+    <section class="search-empty m-card">
+        <svg class="icn-svg search-empty__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
+        <h2>No hemos encontrado productos</h2>
+        <p>Prueba con otras palabras o con menos filtros.</p>
+        <a href="{{nav1.routes.search}}" class="m-btn m-btn--primary">Ver todos los productos</a>
+    </section>
+    {% endif %}
+{% endblock %}

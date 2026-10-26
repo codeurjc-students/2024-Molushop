@@ -11,3 +11,5 @@ pub const ACCOUNT_URL: &str = "/account";
 /// Portada. Ojo: `nav1_controller::ROUTES` todavía la lleva escrita a mano;
 /// unificarlo es parte de la limpieza de rutas pendiente.
 pub const HOME_URL: &str = "/home";
+/// Búsqueda de la tienda (`?q=` y `?category=`); el buscador de nav1 envía aquí.
+pub const SEARCH_URL: &str = "/search";

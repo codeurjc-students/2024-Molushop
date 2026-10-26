@@ -15,11 +15,12 @@
       </form>
     </div>
     -->
+    {# Un GET normal a /search (con hx-boost, sin recargar): funciona igual sin JS. #}
     <div class="search-bar">
-      <form>
+      <form action="{{nav1.routes.search}}" method="get" role="search">
         <div class="search-box-container">
-          <input type="text" placeholder="Busca">
-          <button class="search-icon" aria-label="Buscar">
+          <input type="search" name="q" value="{{nav1.search}}" placeholder="Busca productos o marcas" aria-label="Buscar productos" maxlength="100" enterkeyhint="search">
+          <button type="submit" class="search-icon" aria-label="Buscar">
             <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
           </button>
         </div>

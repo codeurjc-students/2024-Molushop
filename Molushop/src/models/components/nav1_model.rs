@@ -17,7 +17,9 @@ pub struct Nav1Data{
     pub cart_count: i64,
     /// Si hay sesión. El menú de perfil enseña "Identifícate" o las entradas de la cuenta
     /// según esto, en vez de deducirlo de que `name` venga vacío.
-    pub logged: bool
+    pub logged: bool,
+    /// Lo buscado, para dejarlo escrito en el buscador (solo en `/search`).
+    pub search: String
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -26,5 +28,6 @@ pub struct Routes{
     pub cart: String,
     pub orders: String,
     pub account: String,
-    pub logout: String
+    pub logout: String,
+    pub search: String
 }

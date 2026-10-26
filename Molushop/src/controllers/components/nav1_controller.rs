@@ -10,7 +10,7 @@ use super::scope::SCOPE_COMPONENTS;
 use super::login_base_controller;
 use askama::Template;
 use crate::services::components::nav1_service::*;
-use crate::constants::urls::{ACCOUNT_URL, ORDERS_URL};
+use crate::constants::urls::{ACCOUNT_URL, ORDERS_URL, SEARCH_URL};
 
 static SCOPE: &str = "/nav1";
 
@@ -23,7 +23,8 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         cart: "/cart".to_string(),
         orders: ORDERS_URL.to_string(),
         account: ACCOUNT_URL.to_string(),
-        logout: login_base_controller::ROUTES.logout.to_string()
+        logout: login_base_controller::ROUTES.logout.to_string(),
+        search: SEARCH_URL.to_string()
         //login: Box::leak(format!("{}{}/login",SCOPE_COMPONENTS, SCOPE1).into_boxed_str())
     };
 

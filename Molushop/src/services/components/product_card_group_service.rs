@@ -44,16 +44,18 @@ pub async fn get_product_card_group_object_concurrent(
 /// Productos por tanda en la portada.
 pub const HOME_PAGE_SIZE: i64 = 24;
 
-/// Una tanda de la portada (`page` desde 1) y, si quedan más, la URL de la
-/// siguiente. Se pide una tarjeta de más para saber si hay siguiente.
-pub async fn get_product_card_group_page(page: i64, pool:&DbPool) -> (Vec<ProductCardData>, Option<String>){
+/// Una tanda de la portada o de la búsqueda (`page` desde 1) y, si quedan
+/// más, la URL de la siguiente, con el mismo filtro. Se pide una tarjeta de
+/// más para saber si hay siguiente.
+pub async fn get_product_card_group_page(page: i64, filter: &CardFilter, pool:&DbPool) -> (Vec<ProductCardData>, Option<String>){
     let page = page.max(1);
-    match get_product_cards1(HOME_PAGE_SIZE + 1, (page - 1) * HOME_PAGE_SIZE, pool).await{
+    let patterns = filter.like_patterns();
+    match get_product_cards1(HOME_PAGE_SIZE + 1, (page - 1) * HOME_PAGE_SIZE, &patterns, filter.category.as_deref(), pool).await{
         Ok(mut data) => {
             let more = data.len() as i64 > HOME_PAGE_SIZE;
             data.truncate(HOME_PAGE_SIZE as usize);
             let cards = data.into_iter().map(ProductCardData::from).collect();
-            let more_url = more.then(|| format!("{}?page={}", PRODUCT_CARD_GROUP_ROUTES.page, page + 1));
+            let more_url = more.then(|| filter.url(&PRODUCT_CARD_GROUP_ROUTES.page, Some(page + 1)));
             (cards, more_url)
         },
         Err(e) => {
@@ -73,7 +75,7 @@ pub async fn get_product_card_group_render(ids:Vec<&Uuid>,pool:&DbPool)->String{
 
 pub async fn get_product_card_group_render_all(pool:&DbPool) -> String{
     //Siempre para los result hacer un match, nunca usar unwrap() --> mala practica
-    let (products, more_url) = get_product_card_group_page(1, pool).await;
+    let (products, more_url) = get_product_card_group_page(1, &CardFilter::default(), pool).await;
     let object_product_card = ProductCardGroup{ products, more_url };
     match object_product_card.render(){
         Ok(render) => render,

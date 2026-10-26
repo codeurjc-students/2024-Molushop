@@ -1,5 +1,5 @@
-//! Grupo de tarjetas de la portada: "Cargar más productos" pide aquí la
-//! tanda siguiente. Público, como la portada.
+//! Grupo de tarjetas de la portada y de la búsqueda: "Cargar más productos"
+//! pide aquí la tanda siguiente, con el mismo filtro. Público, como ellas.
 
 use actix_web::{get, web, HttpResponse, Scope};
 use askama::Template;
@@ -9,7 +9,7 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 
 use super::scope::SCOPE_COMPONENTS;
-use crate::models::components::product_card_group_model::ProductCardGroupPage;
+use crate::models::components::product_card_group_model::{CardFilter, ProductCardGroupPage};
 use crate::services::components::product_card_group_service::get_product_card_group_page;
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -30,13 +30,18 @@ pub fn scope() -> Scope {
     web::scope(SCOPE).service(page)
 }
 
+/// La tanda y el filtro de la búsqueda (`CardFilter`), si lo hay.
 #[derive(Deserialize)]
 pub struct PageQuery {
     pub page: Option<i64>,
+    pub q: Option<String>,
+    pub category: Option<String>,
 }
 
 #[get("/page")]
 async fn page(query: web::Query<PageQuery>, pool_data: web::Data<DbPool>) -> HttpResponse {
-    let (products, more_url) = get_product_card_group_page(query.page.unwrap_or(2), pool_data.get_ref()).await;
+    let query = query.into_inner();
+    let filter = CardFilter::new(query.q, query.category);
+    let (products, more_url) = get_product_card_group_page(query.page.unwrap_or(2), &filter, pool_data.get_ref()).await;
     HttpResponse::Ok().body(ProductCardGroupPage { products, more_url }.render().unwrap())
 }

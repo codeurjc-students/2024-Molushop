@@ -1054,7 +1054,11 @@ pub async fn revoke_session(jti_x:&String, user_id_x:&Uuid, pool:&DbPool)-> Resu
 }
 
 /// Las tarjetas de la portada, de `limit` en `limit` ("Cargar más").
-pub async fn get_product_cards1(limit: i64, offset: i64, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
+/// Tarjetas de la portada y de la búsqueda. `patterns`: un ILIKE por palabra
+/// (`CardFilter::like_patterns`; vacío, sin filtrar); `category`: esa
+/// categoría o cualquiera por debajo de ella. Lo que cuenta como "a la venta"
+/// lo repite `search_service::category_counts`: si cambia aquí, también allí.
+pub async fn get_product_cards1(limit: i64, offset: i64, patterns: &[String], category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
     let connection = &mut pool.get().await.unwrap();
     let results = sql_query(r#"
         select p.id,
@@ -1091,6 +1095,20 @@ pub async fn get_product_cards1(limit: i64, offset: i64, pool:&DbPool)->Result<V
         join product_seller ps on p.id=ps.product_id
         join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
+        -- Búsqueda: cada palabra tiene que salir en el nombre o en la marca.
+        and not exists (
+            select 1 from unnest($3::text[]) w
+            where not (coalesce(p.name, '') ilike w or coalesce(p.brand, '') ilike w)
+        )
+        and ($4::text is null or exists (
+            with recursive sub as (
+                select id from category where id = $4
+                union all
+                select c.id from category c join sub on c.parent = sub.id
+            )
+            select 1 from category_product cp
+            where cp.product_id = p.id and cp.category_id in (select id from sub)
+        ))
         -- p.id desempata: sin él, dos productos con el mismo nombre podrían
         -- salir en dos tandas o en ninguna.
         order by p.name, p.id
@@ -1098,6 +1116,8 @@ pub async fn get_product_cards1(limit: i64, offset: i64, pool:&DbPool)->Result<V
     "#)
         .bind::<diesel::sql_types::BigInt, _>(limit)
         .bind::<diesel::sql_types::BigInt, _>(offset)
+        .bind::<diesel::sql_types::Array<Text>, _>(patterns)
+        .bind::<diesel::sql_types::Nullable<Text>, _>(category)
         .load::<ProductCard1>(connection).await?;
     Ok(results)
 }

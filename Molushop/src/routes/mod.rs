@@ -15,6 +15,7 @@ pub mod panel_register;
 pub mod account;
 pub mod password_reset;
 pub mod not_found;
+pub mod search;
 
 use actix_web::web;
 use crate::middleware::auth::Auth;
@@ -22,6 +23,7 @@ use crate::middleware::auth::Auth;
 /// Función centralizada para configurar todas las rutas de la aplicación
 pub fn config_routes(cfg: &mut web::ServiceConfig) {
     home::config(cfg);
+    search::config(cfg);
     about_us::config(cfg);
     ui_catalog::config(cfg);
     sandbox::config(cfg);
