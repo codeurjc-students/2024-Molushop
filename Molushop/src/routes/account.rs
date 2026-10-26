@@ -48,36 +48,37 @@ pub struct PasswordForm {
     new2: String,
 }
 
-fn ok_message(code: &str, closed: usize) -> Option<String> {
+fn ok_message(i18n: &I18n, code: &str, closed: usize) -> Option<String> {
     let sessions = match closed {
-        0 => String::new(),
-        1 => " Se ha cerrado 1 sesión en otro dispositivo.".to_string(),
-        n => format!(" Se han cerrado {} sesiones en otros dispositivos.", n),
+        0 => None,
+        n => Some(i18n.t_count("account-ok-sessions-closed", n)),
     };
     match code {
-        "password" => Some(format!("Contraseña cambiada.{}", sessions)),
-        "sessions" => Some(match closed {
-            0 => "No había otras sesiones abiertas.".to_string(),
-            _ => sessions.trim_start().to_string(),
+        "password" => Some(match sessions {
+            Some(sessions) => format!("{} {}", i18n.t("account-ok-password"), sessions),
+            None => i18n.t("account-ok-password"),
         }),
+        "sessions" => Some(sessions.unwrap_or_else(|| i18n.t("account-ok-no-sessions"))),
         _ => None,
     }
 }
 
-fn error_message(code: &str) -> Option<&'static str> {
-    match code {
-        "current" => Some("La contraseña actual no es correcta."),
-        "mismatch" => Some("Las dos contraseñas nuevas no coinciden."),
-        "weak" => Some("La nueva contraseña no es segura: al menos 8 caracteres, con mayúscula, minúscula, número y un símbolo."),
-        "same" => Some("La nueva contraseña es igual que la actual."),
-        "db" => Some("Ha ocurrido un error. Inténtalo de nuevo."),
-        _ => None,
-    }
+fn error_message(i18n: &I18n, code: &str) -> Option<String> {
+    let key = match code {
+        "current" => "account-error-current",
+        "mismatch" => "account-error-mismatch",
+        "weak" => "account-error-weak",
+        "same" => "account-error-same",
+        "db" => "auth-error",
+        _ => return None,
+    };
+    Some(i18n.t(key))
 }
 
-fn back_to_account(query: &str) -> HttpResponse {
+/// De vuelta a "Mi cuenta", en el idioma de la página que envió el formulario.
+fn back_to_account(i18n: &I18n, query: &str) -> HttpResponse {
     HttpResponse::SeeOther()
-        .insert_header((header::LOCATION, format!("{}?{}", ACCOUNT_URL, query)))
+        .insert_header((header::LOCATION, format!("{}?{}", i18n.url(ACCOUNT_URL), query)))
         .finish()
 }
 
@@ -106,51 +107,55 @@ async fn account_page(
     }
 
     let query = query.into_inner();
+    let ok_message = query.ok.as_deref().and_then(|c| ok_message(&i18n, c, query.n.unwrap_or(0)));
+    let error_message = query.error.as_deref().and_then(|c| error_message(&i18n, c));
     let page = AccountPage {
         user_logged,
-        page_name: "Mi cuenta".to_string(),
+        page_name: i18n.t("account-page-title"),
         nav1: get_nav1_object(username.clone(), user_id.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         username,
         other_sessions,
-        ok_message: query.ok.as_deref().and_then(|c| ok_message(c, query.n.unwrap_or(0))),
-        error_message: query.error.as_deref().and_then(error_message),
+        ok_message,
+        error_message,
     }.render().unwrap();
 
     HttpResponse::Ok().content_type("text/html; charset=utf-8").body(page)
 }
 
 async fn password_submit(
+    i18n: I18n,
     form: web::Form<PasswordForm>,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
 ) -> HttpResponse {
     // Sin sesión, la página enseña el botón de identificarse.
     let Some(session) = opt_session_data.map(|d| d.into_inner()) else {
-        return back_to_account("");
+        return back_to_account(&i18n, "");
     };
     match change_password(&session.id, &session.jti, &form.current, &form.new, &form.new2, pool_data.get_ref()).await {
-        Ok(closed) => back_to_account(&format!("ok=password&n={}", closed)),
+        Ok(closed) => back_to_account(&i18n, &format!("ok=password&n={}", closed)),
         Err(e) => {
             println!("Mi cuenta, contraseña: {:?}", e);
-            back_to_account(&format!("error={}", e.code()))
+            back_to_account(&i18n, &format!("error={}", e.code()))
         }
     }
 }
 
 async fn sessions_submit(
+    i18n: I18n,
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
 ) -> HttpResponse {
     let Some(session) = opt_session_data.map(|d| d.into_inner()) else {
-        return back_to_account("");
+        return back_to_account(&i18n, "");
     };
     match revoke_other_sessions(&session.id, &session.jti, pool_data.get_ref()).await {
-        Ok(closed) => back_to_account(&format!("ok=sessions&n={}", closed)),
+        Ok(closed) => back_to_account(&i18n, &format!("ok=sessions&n={}", closed)),
         Err(e) => {
             println!("Mi cuenta, sesiones: {:?}", e);
-            back_to_account(&format!("error={}", e.code()))
+            back_to_account(&i18n, &format!("error={}", e.code()))
         }
     }
 }

@@ -1,32 +1,32 @@
 <div class="order-list-1" id="order-list-1">
     <div class="list-header">
-        <h1>Mis pedidos</h1>
+        <h1>{{ i18n.t("nav-orders") }}</h1>
         {% if !order_list.orders.is_empty() %}
-        <span class="list-count">{{order_list.orders.len()}} pedido{% if order_list.orders.len() != 1 %}s{% endif %}</span>
+        <span class="list-count">{{ i18n.t_count("orders-count", order_list.orders.len()) }}</span>
         {% endif %}
     </div>
 
     {% if !order_list.logged %}
     <!-- data-login-required: login_modal.js abre el login solo al entrar -->
     <div class="list-empty m-card" data-login-required>
-        <span>Identifícate para ver tus pedidos.</span>
-        <button type="button" class="m-btn m-btn--primary open-login-modal">Identifícate</button>
+        <span>{{ i18n.t("orders-login-prompt") }}</span>
+        <button type="button" class="m-btn m-btn--primary open-login-modal">{{ i18n.t("nav-login") }}</button>
     </div>
     {% else if order_list.orders.is_empty() %}
     <div class="list-empty m-card">
-        <span>Todavía no has hecho ningún pedido.</span>
-        <a href="{{order_list.home_url}}" class="m-btn m-btn--primary">Ver productos</a>
+        <span>{{ i18n.t("orders-empty") }}</span>
+        <a href="{{ i18n.url(order_list.home_url) }}" class="m-btn m-btn--primary">{{ i18n.t("home-hero-cta") }}</a>
     </div>
     {% else %}
     <div class="orders">
         {% for order in order_list.orders %}
-        <a href="{{order.detail_url()}}" class="no-generic-a order-card m-card m-card--link">
+        <a href="{{ i18n.url(order.detail_url()) }}" class="no-generic-a order-card m-card m-card--link">
             <div class="card-header">
                 <div class="card-id">
-                    <span class="order-number">Pedido nº {{order.order_number}}</span>
+                    <span class="order-number">{{ i18n.t1("order-number", "number", order.order_number.to_string()) }}</span>
                     <span class="order-date">{{order.date_label()}}</span>
                 </div>
-                <span class="m-badge m-badge--lg m-badge--{{order.status_variant()}}">{{order.status_label()}}</span>
+                <span class="m-badge m-badge--lg m-badge--{{order.status_variant()}}">{{ i18n.t(order.status_key()) }}</span>
             </div>
 
             <div class="lines">
@@ -40,7 +40,7 @@
                         {% endif %}
                         <div class="quantity">x{{item.quantity}}</div>
                         {% if order.mixed_status() %}
-                        <div><span class="m-badge m-badge--{{item.status_variant()}}">{{item.status_label()}}</span></div>
+                        <div><span class="m-badge m-badge--{{item.status_variant()}}">{{ i18n.t(item.status_key()) }}</span></div>
                         {% endif %}
                     </div>
                 </div>
@@ -48,16 +48,16 @@
             </div>
 
             <div class="card-footer">
-                <span class="units">{{order.total_units()}} artículo{% if order.total_units() != 1 %}s{% endif %}</span>
+                <span class="units">{{ i18n.t_count("order-units", order.total_units()) }}</span>
                 <div class="card-total">
-                    <span>Total</span>
-                    <div class="money">{{ order.total_tag() }}</div>
+                    <span>{{ i18n.t("order-total") }}</span>
+                    <div class="money">{{ order.total_tag().localized(i18n) }}</div>
                 </div>
             </div>
         </a>
         {% endfor %}
     </div>
 
-    <a href="{{order_list.home_url}}" class="no-generic-a keep-shopping">Seguir comprando</a>
+    <a href="{{ i18n.url(order_list.home_url) }}" class="no-generic-a keep-shopping">{{ i18n.t("orders-keep-shopping") }}</a>
     {% endif %}
 </div>

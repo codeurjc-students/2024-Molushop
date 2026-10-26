@@ -5,8 +5,10 @@ use crate::i18n::I18n;
 #[template(path = "components/modal/templates/message.html")]
 pub struct MessageModal{
     pub text: String,
-    /// El texto del botón: "Aceptar", u otro idioma con `in_lang`.
+    /// El texto del botón: "Aceptar", u otro idioma con `translated`.
     pub accept: String,
+    /// La etiqueta de la "×" para lectores de pantalla.
+    pub close: String,
 }
 
 impl MessageModal{
@@ -17,6 +19,7 @@ impl MessageModal{
         Self{
             text,
             accept: "Aceptar".to_string(),
+            close: "Cerrar".to_string(),
         }
     }
     /// Un aviso de la tienda: el texto es una clave de `locales/*` y el botón
@@ -25,6 +28,7 @@ impl MessageModal{
         Self{
             text: i18n.t(key),
             accept: i18n.t("modal-accept"),
+            close: i18n.t("modal-close"),
         }
     }
 }

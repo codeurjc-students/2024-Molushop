@@ -15,6 +15,8 @@
 
 use std::env;
 
+use crate::i18n::{I18n, Lang};
+
 /// Un email ya redactado.
 #[derive(Debug, Clone)]
 pub struct Mail {
@@ -56,19 +58,37 @@ pub fn public_base_url() -> String {
         .to_string()
 }
 
-/// El email de "He olvidado mi contraseña".
-pub async fn send_password_reset(to: &str, username: &str, link: &str, minutes: i64) -> Result<(), MailError> {
-    send(&Mail {
+/// El email de "He olvidado mi contraseña", en `lang` (el de la página desde
+/// la que se pidió). Los textos están en `locales/*/account.ftl` (mail-reset-*).
+pub async fn send_password_reset(to: &str, username: &str, link: &str, minutes: i64, lang: Lang) -> Result<(), MailError> {
+    send(&password_reset_mail(to, username, link, minutes, lang)).await
+}
+
+fn password_reset_mail(to: &str, username: &str, link: &str, minutes: i64, lang: Lang) -> Mail {
+    let i18n = I18n::for_lang(lang);
+    Mail {
         to: to.to_string(),
-        subject: "Molushop: cambia tu contraseña".to_string(),
-        body: format!(
-            "Hola, {}:\n\n\
-             Alguien (esperamos que tú) ha pedido cambiar la contraseña de tu cuenta de Molushop.\n\
-             Para elegir una nueva, abre este enlace (caduca en {} minutos y solo sirve una vez):\n\n\
-             {}\n\n\
-             Si no lo has pedido tú, ignora este email: tu contraseña no cambia.\n",
-            username, minutes, link
-        ),
-    })
-    .await
+        subject: i18n.t("mail-reset-subject"),
+        body: format!("{}\n", i18n.t_args("mail-reset-body", &[
+            ("username", username.to_string().into()),
+            ("minutes", minutes.into()),
+            ("link", link.to_string().into()),
+        ])),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn password_reset_mail_in_each_language() {
+        let es = password_reset_mail("a@b.c", "ana", "http://x/password/reset?token=t", 30, Lang::Es);
+        assert_eq!(es.subject, "Molushop: cambia tu contraseña");
+        assert!(es.body.starts_with("Hola, ana:\n\nAlguien"), "{}", es.body);
+        assert!(es.body.contains("caduca en 30 minutos") && es.body.contains("\n\nhttp://x/password/reset?token=t\n\n"), "{}", es.body);
+        let en = password_reset_mail("a@b.c", "ana", "http://x/en/password/reset?token=t", 30, Lang::En);
+        assert_eq!(en.subject, "Molushop: change your password");
+        assert!(en.body.starts_with("Hi ana,\n\nSomeone"), "{}", en.body);
+    }
 }

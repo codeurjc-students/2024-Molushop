@@ -19,5 +19,5 @@ pub struct AccountPage{
     pub other_sessions: i64,
     /// Aviso del último POST (viene de `?ok=` / `?error=`).
     pub ok_message: Option<String>,
-    pub error_message: Option<&'static str>
+    pub error_message: Option<String>
 }

@@ -6,12 +6,13 @@ use uuid::Uuid;
 use crate::models::components::price::Price;
 use crate::constants::urls::{HOME_URL, ORDER_URL_PREFIX};
 use crate::models::models_x::{Order, OrderItem};
-use crate::models::components::order_detail_v1::{OrderLineData, cancelled_total, mixed_status, status_label, status_variant};
+use crate::models::components::order_detail_v1::{OrderLineData, cancelled_total, mixed_status, status_key, status_label, status_variant};
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_list_v1/order_list_v1.html")]
 pub struct OrderListV1{
-    pub order_list: OrderListData
+    pub order_list: OrderListData,
+    pub i18n: crate::i18n::I18n,
 }
 
 /// Un pedido tal como se pinta EN LA LISTA. No se reutiliza `OrderData` a
@@ -43,6 +44,10 @@ impl OrderSummaryData {
 
     pub fn status_label(&self) -> &'static str {
         status_label(self.status)
+    }
+
+    pub fn status_key(&self) -> &'static str {
+        status_key(self.status)
     }
 
     pub fn status_variant(&self) -> &'static str {

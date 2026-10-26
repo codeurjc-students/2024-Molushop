@@ -63,7 +63,7 @@ async fn get_orders(
 
     let orders_render = OrdersPage{
         user_logged,
-        page_name:"Mis pedidos".to_string(),
+        page_name:i18n.t("orders-page-title"),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
@@ -103,7 +103,7 @@ async fn get_order(
 
     let order_render = OrderPage{
         user_logged,
-        page_name:"Pedido".to_string(),
+        page_name:i18n.t("order-page-title"),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,

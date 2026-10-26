@@ -218,19 +218,25 @@ impl I18n {
 
     /// `t_args` con una variable de texto, para las plantillas:
     /// `{{ i18n.t1("search-title-query", "q", q) }}`.
-    pub fn t1(&self, key: &str, name: &'static str, value: &str) -> String {
-        self.t_args(key, &[(name, FluentValue::from(value))])
+    pub fn t1(&self, key: &str, name: &'static str, value: impl AsRef<str>) -> String {
+        self.t_args(key, &[(name, FluentValue::from(value.as_ref()))])
     }
 
     /// Un texto con plural según `count`, para las plantillas:
     /// `{{ i18n.t_count("product-reviews-count", n) }}`.
     pub fn t_count(&self, key: &str, count: impl Count) -> String {
-        self.t_args(key, &[("count", FluentValue::from(count.count()))])
+        self.t_count_as(key, "count", count)
+    }
+
+    /// Como `t_count`, con otro nombre de variable:
+    /// `{{ i18n.t_count_as("password-forgot-sent", "minutes", reset_minutes) }}`.
+    pub fn t_count_as(&self, key: &str, name: &'static str, count: impl Count) -> String {
+        self.t_args(key, &[(name, FluentValue::from(count.count()))])
     }
 
     /// Con dos variables de texto.
-    pub fn t2(&self, key: &str, name1: &'static str, value1: &str, name2: &'static str, value2: &str) -> String {
-        self.t_args(key, &[(name1, FluentValue::from(value1)), (name2, FluentValue::from(value2))])
+    pub fn t2(&self, key: &str, name1: &'static str, value1: impl AsRef<str>, name2: &'static str, value2: impl AsRef<str>) -> String {
+        self.t_args(key, &[(name1, FluentValue::from(value1.as_ref())), (name2, FluentValue::from(value2.as_ref()))])
     }
 
     fn lookup(&self, key: &str, args: Option<&HashMap<Cow<'static, str>, FluentValue>>) -> String {
@@ -242,7 +248,10 @@ impl I18n {
 
     /// Una ruta de la tienda en este idioma: "/cart" -> "/en/cart". Lo que no
     /// es una ruta interna ("javascript:void(0)", "https://...") sale igual.
-    pub fn url(&self, path: &str) -> String {
+    /// `impl AsRef<str>`: askama pasa los campos por referencia y lo que
+    /// devuelve un método (`order.detail_url()`), por valor.
+    pub fn url(&self, path: impl AsRef<str>) -> String {
+        let path = path.as_ref();
         if path.starts_with('/') && !path.starts_with("//") {
             format!("{}{}", self.lang.prefix(), path)
         } else {

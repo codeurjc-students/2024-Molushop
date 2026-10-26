@@ -1,6 +1,6 @@
 {# Carcasa común de los modales (átomo m-modal, ui/styles/atoms/modal.css).
    La extienden message.html (MessageModal) y confirm.html (ConfirmModal), que
-   rellenan los bloques body y actions.
+   rellenan los bloques body y actions (y close_label, si no es "Cerrar").
 
    Se añade al final del <body> (hx-swap="beforeend" o insertAdjacentHTML).
    Cualquier cosa de dentro lo cierra con "trigger closeModal": sube hasta la
@@ -13,7 +13,7 @@
        on keyup[key is 'Escape'] from window trigger closeModal end">
     <div class="m-modal__backdrop" _="on click trigger closeModal"></div>
     <div class="m-modal__dialog">
-        <button type="button" class="m-modal__close" aria-label="Cerrar" _="on click trigger closeModal">&times;</button>
+        <button type="button" class="m-modal__close" aria-label="{% block close_label %}Cerrar{% endblock %}" _="on click trigger closeModal">&times;</button>
         <div class="m-modal__body">{% block body %}{% endblock %}</div>
         <div class="m-modal__actions">{% block actions %}{% endblock %}</div>
     </div>

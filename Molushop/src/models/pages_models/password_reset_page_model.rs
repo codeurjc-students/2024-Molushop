@@ -18,5 +18,5 @@ pub struct PasswordResetPage{
     pub token: String,
     pub token_valid: bool,
     pub done: bool,
-    pub error_message: Option<&'static str>
+    pub error_message: Option<String>
 }

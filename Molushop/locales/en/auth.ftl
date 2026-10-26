@@ -33,6 +33,7 @@ auth-logout-failed = We couldn't log you out.
 
 ## Notices (MessageModal) and attempt limit (rate_limit)
 modal-accept = OK
+modal-close = Close
 rate-limit-title = Too many attempts
 rate-limit-wait = Too many attempts in a row. Wait { $minutes ->
     [one] 1 minute

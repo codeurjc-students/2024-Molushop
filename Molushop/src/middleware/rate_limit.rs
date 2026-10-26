@@ -94,6 +94,7 @@ fn too_many(req: &ServiceRequest, wait_secs: u64) -> HttpResponse {
     let body = if htmx {
         let mut modal = MessageModal::from_string(message.clone());
         modal.accept = i18n.t("modal-accept");
+        modal.close = i18n.t("modal-close");
         modal.render().unwrap_or(message)
     } else {
         let title = i18n.t("rate-limit-title");

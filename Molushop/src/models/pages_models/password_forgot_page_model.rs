@@ -17,5 +17,5 @@ pub struct PasswordForgotPage{
     pub sent: bool,
     /// Lo que dura el enlace (`RESET_MINUTES`), para el aviso.
     pub reset_minutes: i64,
-    pub error_message: Option<&'static str>
+    pub error_message: Option<String>
 }

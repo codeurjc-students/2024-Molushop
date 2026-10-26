@@ -34,6 +34,18 @@ pub fn status_label(status: i16) -> &'static str {
 /// Variante del átomo `m-badge` (`ui/styles/atoms/badge.css`) para un estado de
 /// pedido: la plantilla pinta `m-badge--{variante}`. Suelta por lo mismo que
 /// `status_label`: comprador y panel tienen que colorear igual.
+/// La clave de `locales/*/account.ftl` de un estado, para la tienda
+/// (`{{ i18n.t(order.status_key()) }}`). El panel sigue con `status_label`.
+pub fn status_key(status: i16) -> &'static str {
+    match status {
+        ORDER_CONFIRMED => "order-status-confirmed",
+        ORDER_CANCELLED => "order-status-cancelled",
+        ORDER_SHIPPED => "order-status-shipped",
+        ORDER_DELIVERED => "order-status-delivered",
+        _ => "order-status-pending"
+    }
+}
+
 pub fn status_variant(status: i16) -> &'static str {
     match status {
         ORDER_CONFIRMED => "neutral",
@@ -64,7 +76,8 @@ pub fn cancelled_total(items: &[OrderLineData]) -> BigDecimal {
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/order_detail_v1/order_detail_v1.html")]
 pub struct OrderDetailV1{
-    pub order: OrderData
+    pub order: OrderData,
+    pub i18n: crate::i18n::I18n,
 }
 
 /// Una línea del pedido tal como se pinta. Sale del snapshot de `order_items`,
@@ -119,6 +132,10 @@ pub struct OrderData{
 impl OrderLineData {
     pub fn status_label(&self) -> &'static str {
         status_label(self.status)
+    }
+
+    pub fn status_key(&self) -> &'static str {
+        status_key(self.status)
     }
 
     pub fn status_variant(&self) -> &'static str {
@@ -186,6 +203,10 @@ impl OrderData {
 
     pub fn status_label(&self) -> &'static str {
         status_label(self.status)
+    }
+
+    pub fn status_key(&self) -> &'static str {
+        status_key(self.status)
     }
 
     pub fn status_variant(&self) -> &'static str {

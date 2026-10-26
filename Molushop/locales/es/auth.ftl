@@ -33,6 +33,7 @@ auth-logout-failed = No se ha podido cerrar la sesión.
 
 ## Avisos (MessageModal) y límite de intentos (rate_limit)
 modal-accept = Aceptar
+modal-close = Cerrar
 rate-limit-title = Demasiados intentos
 rate-limit-wait = Demasiados intentos seguidos. Espera { $minutes ->
     [one] 1 minuto

@@ -21,6 +21,7 @@ use uuid::Uuid;
 use crate::schema::{base_user, password_resets, user_sessions};
 use crate::services::auth::hash_password;
 use crate::services::mail_service::{public_base_url, send_password_reset};
+use crate::i18n::Lang;
 use crate::utils::tokens::{random_token, sha256_hex};
 use crate::utils::validations::is_password_strong;
 
@@ -70,7 +71,7 @@ async fn connection(
 
 /// Paso 1. `Ok(())` tanto si la cuenta existe como si no. Un fallo al mandar el
 /// email solo se apunta en el log: el usuario puede volver a pedirlo.
-pub async fn request_reset(email: &str, pool: &DbPool) -> Result<(), ResetError> {
+pub async fn request_reset(email: &str, lang: Lang, pool: &DbPool) -> Result<(), ResetError> {
     let email = email.trim();
     if email.is_empty() {
         return Ok(());
@@ -117,8 +118,9 @@ pub async fn request_reset(email: &str, pool: &DbPool) -> Result<(), ResetError>
     }.scope_boxed())
     .await?;
 
-    let link = format!("{}{}?token={}", public_base_url(), RESET_URL, token);
-    if let Err(e) = send_password_reset(&user_email, &username, &link, RESET_MINUTES).await {
+    // El enlace lleva a la página en el mismo idioma que el email.
+    let link = format!("{}{}{}?token={}", public_base_url(), lang.prefix(), RESET_URL, token);
+    if let Err(e) = send_password_reset(&user_email, &username, &link, RESET_MINUTES, lang).await {
         println!("Recuperar contraseña, email: {:?}", e);
     }
     Ok(())

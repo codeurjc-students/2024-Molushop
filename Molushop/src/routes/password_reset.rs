@@ -68,13 +68,14 @@ pub struct ResetForm {
     new2: String,
 }
 
-fn error_message(code: &str) -> Option<&'static str> {
-    match code {
-        "mismatch" => Some("Las dos contraseñas no coinciden."),
-        "weak" => Some("La contraseña no es segura: al menos 8 caracteres, con mayúscula, minúscula, número y un símbolo."),
-        "db" => Some("Ha ocurrido un error. Inténtalo de nuevo."),
-        _ => None,
-    }
+fn error_message(i18n: &I18n, code: &str) -> Option<String> {
+    let key = match code {
+        "mismatch" => "password-error-mismatch",
+        "weak" => "password-error-weak",
+        "db" => "auth-error",
+        _ => return None,
+    };
+    Some(i18n.t(key))
 }
 
 fn redirect(location: String) -> HttpResponse {
@@ -112,24 +113,26 @@ async fn forgot_page(
 ) -> HttpResponse {
     let pool = pool_data.get_ref();
     let (user_logged, nav1) = nav_parts(opt_session_data, pool).await;
+    let error_message = query.error.as_deref().and_then(|c| error_message(&i18n, c));
     html(PasswordForgotPage {
         user_logged,
-        page_name: "He olvidado mi contraseña".to_string(),
+        page_name: i18n.t("password-forgot-page-title"),
         nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         sent: query.sent.is_some(),
         reset_minutes: RESET_MINUTES,
-        error_message: query.error.as_deref().and_then(error_message),
+        error_message,
     }.render().unwrap())
 }
 
-async fn forgot_submit(form: web::Form<ForgotForm>, pool_data: web::Data<DbPool>) -> HttpResponse {
-    match request_reset(&form.email, pool_data.get_ref()).await {
-        Ok(()) => redirect(format!("{}?sent=1", FORGOT_URL)),
+async fn forgot_submit(i18n: I18n, form: web::Form<ForgotForm>, pool_data: web::Data<DbPool>) -> HttpResponse {
+    // El email y su enlace van en el idioma de la página desde la que se pide.
+    match request_reset(&form.email, i18n.lang, pool_data.get_ref()).await {
+        Ok(()) => redirect(format!("{}?sent=1", i18n.url(FORGOT_URL))),
         Err(e) => {
             println!("Recuperar contraseña: {:?}", e);
-            redirect(format!("{}?error={}", FORGOT_URL, e.code()))
+            redirect(format!("{}?error={}", i18n.url(FORGOT_URL), e.code()))
         }
     }
 }
@@ -149,28 +152,29 @@ async fn reset_page(
             false
         });
     let (user_logged, nav1) = nav_parts(opt_session_data, pool).await;
+    let error_message = query.error.as_deref().and_then(|c| error_message(&i18n, c));
     html(PasswordResetPage {
         user_logged,
-        page_name: "Nueva contraseña".to_string(),
+        page_name: i18n.t("password-reset-page-title"),
         nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         token,
         token_valid,
         done: query.done.is_some(),
-        error_message: query.error.as_deref().and_then(error_message),
+        error_message,
     }.render().unwrap())
 }
 
-async fn reset_submit(form: web::Form<ResetForm>, pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn reset_submit(i18n: I18n, form: web::Form<ResetForm>, pool_data: web::Data<DbPool>) -> HttpResponse {
     match reset_password(&form.token, &form.new, &form.new2, pool_data.get_ref()).await {
-        Ok(()) => redirect(format!("{}?done=1", RESET_URL)),
+        Ok(()) => redirect(format!("{}?done=1", i18n.url(RESET_URL))),
         // Sin token en la URL: la página dice que el enlace no vale.
-        Err(ResetError::InvalidToken) => redirect(RESET_URL.to_string()),
+        Err(ResetError::InvalidToken) => redirect(i18n.url(RESET_URL)),
         Err(e) => {
             println!("Recuperar contraseña: {:?}", e);
             // El token ya viajaba en la URL del email: volver con él no expone nada nuevo.
-            redirect(format!("{}?token={}&error={}", RESET_URL, form.token, e.code()))
+            redirect(format!("{}?token={}&error={}", i18n.url(RESET_URL), form.token, e.code()))
         }
     }
 }
