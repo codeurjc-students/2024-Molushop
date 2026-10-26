@@ -13,7 +13,8 @@ pub fn get_login_base_rendered()->String{
     let login_product= LoginProduct{
         login_base_data: LoginProductData{
             routes: &ROUTES
-        }
+        },
+        i18n: crate::i18n::I18n::default(),
     };
     login_product.render().unwrap()
     

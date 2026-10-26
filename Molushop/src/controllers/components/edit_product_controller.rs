@@ -100,9 +100,7 @@ async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,
     let result = edit_product_general(&product_id,form_complete, pool_data.get_ref()).await;
 match result{
         Ok(_) => {
-            let modal_render = MessageModal{
-                text:"Producto actualizado correctamente!".to_string()
-            }.render().unwrap();
+            let modal_render = MessageModal::new("Producto actualizado correctamente!").render().unwrap();
             // La cabecera del editor se actualiza con lo guardado (edit-product.js).
             // Solo va el estado: el nombre y la marca los lee del formulario, y
             // así la cabecera HTTP no lleva texto del vendedor.
@@ -431,9 +429,7 @@ let client_data_x = client_data.get_ref().as_ref();
                 println!("Panel: error al mirar las variaciones de {}: {}", product_id, e);
                 true
             });
-            let modal_render = MessageModal{
-                text:"Imagen actualizada correctamente!".to_string()
-            }.render().unwrap();
+            let modal_render = MessageModal::new("Imagen actualizada correctamente!").render().unwrap();
             let tiles = UploadedImages{
                 images: new_images,
                 routes: &ROUTES,
@@ -465,9 +461,7 @@ let client_data_x = client_data.get_ref().as_ref();
     match result_update{
         Ok(_) => {
             println!("Producto editado correctamente");
-            let modal_render = MessageModal{
-                text:"Imagen actualizada correctamente!".to_string()
-            }.render().unwrap();
+            let modal_render = MessageModal::new("Imagen actualizada correctamente!").render().unwrap();
             HttpResponse::Ok().body(modal_render)
         },
         Err(e) => {

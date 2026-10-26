@@ -1,4 +1,6 @@
 {% let routes = login_base_data.routes %}
+{# Identificarse y crear cuenta (dentro del modal de login). Textos en
+   locales/*/auth.ftl; `i18n` lo pone la página (o LoginProduct). #}
 
 <div class="login-base">
     <div class="cont-total">
@@ -13,46 +15,42 @@
                 hx-ext="json-enc-custom"
                 hx-on::after-request="login_base.do_after_login(event)"
             >
-                <!-- <div class="imgcontainer">
-                    <img src="img_avatar2.png" alt="Avatar" class="avatar">
-                </div> -->
                 <div class="container-title">
-                    <span>Login</span>
+                    <span>{{ i18n.t("auth-login-title") }}</span>
                 </div>
-                
+
                 <div class="container">
                     <div class="m-field">
-                        <label class="m-label" for="login-username">Username</label>
-                        <input class="m-input" id="login-username" type="text" placeholder="Enter Username" name="username" required autocomplete="username">
+                        <label class="m-label" for="login-username">{{ i18n.t("auth-username") }}</label>
+                        <input class="m-input" id="login-username" type="text" placeholder="{{ i18n.t("auth-username-placeholder") }}" name="username" required autocomplete="username">
                     </div>
                     <div class="m-field">
-                        <label class="m-label" for="login-pass">Password</label>
-                        <input class="m-input" id="login-pass" type="password" placeholder="Enter Password" name="pass" required autocomplete="current-password">
+                        <label class="m-label" for="login-pass">{{ i18n.t("auth-password") }}</label>
+                        <input class="m-input" id="login-pass" type="password" placeholder="{{ i18n.t("auth-password-placeholder") }}" name="pass" required autocomplete="current-password">
                     </div>
 
-                    <button type="submit" class="m-btn m-btn--primary m-btn--block">Login</button>
-                    <a class="forgot-link" href="/password/forgot">¿Has olvidado tu contraseña?</a>
+                    <button type="submit" class="m-btn m-btn--primary m-btn--block">{{ i18n.t("auth-login-submit") }}</button>
+                    <a class="forgot-link" href="{{ i18n.url("/password/forgot") }}">{{ i18n.t("auth-forgot") }}</a>
                     <label class="m-check">
-                        <input type="checkbox" checked="checked" name="remember"> Remember me
+                        <input type="checkbox" checked="checked" name="remember"> {{ i18n.t("auth-remember") }}
                     </label>
                 </div>
-            </form> 
+            </form>
             <div class="container">
                 <hr>
                 <button type="button" class="m-btn m-btn--ghost m-btn--block change"
-                    _="on click 
+                    _="on click
                     set containerOne to the closest .container-ext
                     set containerTwo to the next <div/> from containerOne
                     toggle .disabled on containerOne
                     toggle .disabled on containerTwo
                     end"
-                >Si no tienes cuenta, registrate!</button>
+                >{{ i18n.t("auth-to-register") }}</button>
             </div>
 
 
             <div class="container container-footer">
-                <button type="button" class="m-btn m-btn--secondary cancelbtn">Cancel</button>
-                <span class="psw">Forgot <a href="#">password?</a></span>
+                <button type="button" class="m-btn m-btn--secondary cancelbtn" _="on click call (closest <dialog/>).close()">{{ i18n.t("auth-cancel") }}</button>
             </div>
         </div>
         <div class="container-ext register disabled" hx-ext="response-targets">
@@ -64,53 +62,49 @@
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
             >
-                <!-- <div class="imgcontainer">
-                    <img src="img_avatar2.png" alt="Avatar" class="avatar">
-                </div> -->
                 <div class="container-title">
-                    <span>Register</span>
+                    <span>{{ i18n.t("auth-register-title") }}</span>
                 </div>
-                
+
                 <div class="container">
                     <div class="m-field">
-                        <label class="m-label" for="register-username">Username</label>
-                        <input class="m-input" id="register-username" type="text" placeholder="Enter Username" name="username" required>
+                        <label class="m-label" for="register-username">{{ i18n.t("auth-username") }}</label>
+                        <input class="m-input" id="register-username" type="text" placeholder="{{ i18n.t("auth-username-placeholder") }}" name="username" required autocomplete="username">
                     </div>
                     <div class="m-field">
-                        <label class="m-label" for="register-email">Email</label>
-                        <input class="m-input" id="register-email" type="text" placeholder="Enter Email" name="email" required>
+                        <label class="m-label" for="register-email">{{ i18n.t("auth-email") }}</label>
+                        <input class="m-input" id="register-email" type="text" placeholder="{{ i18n.t("auth-email-placeholder") }}" name="email" required autocomplete="email">
                     </div>
                     <div class="m-field">
-                        <label class="m-label" for="register-pass">Password</label>
-                        <input class="m-input" id="register-pass" type="password" placeholder="Enter Password" name="pass" required>
+                        <label class="m-label" for="register-pass">{{ i18n.t("auth-password") }}</label>
+                        <input class="m-input" id="register-pass" type="password" placeholder="{{ i18n.t("auth-password-placeholder") }}" name="pass" required autocomplete="new-password">
                     </div>
                     <div class="m-field">
-                        <label class="m-label" for="register-pass2">Repeat Password</label>
-                        <input class="m-input" id="register-pass2" type="password" placeholder="Enter Password" name="pass2" required>
+                        <label class="m-label" for="register-pass2">{{ i18n.t("auth-password-repeat") }}</label>
+                        <input class="m-input" id="register-pass2" type="password" placeholder="{{ i18n.t("auth-password-placeholder") }}" name="pass2" required autocomplete="new-password">
                     </div>
 
-                    <button type="submit" class="m-btn m-btn--primary m-btn--block">Register</button>
+                    <button type="submit" class="m-btn m-btn--primary m-btn--block">{{ i18n.t("auth-register-submit") }}</button>
                     <label class="m-check">
-                        <input type="checkbox" checked="checked"> Remember me
+                        <input type="checkbox" checked="checked"> {{ i18n.t("auth-remember") }}
                     </label>
                 </div>
-            </form> 
-            
+            </form>
+
             <div class="container">
                 <hr>
                 <button type="button" class="m-btn m-btn--ghost m-btn--block change"
-                    _="on click 
+                    _="on click
                     set containerOne to the closest .container-ext
                     set containerTwo to the previous .container-ext from containerOne
                     toggle .disabled on containerOne
                     toggle .disabled on containerTwo
                     end"
-                >Ya estoy registrado!</button>
+                >{{ i18n.t("auth-to-login") }}</button>
             </div>
 
             <div class="container container-footer">
-                <button type="button" class="m-btn m-btn--secondary cancelbtn">Cancel</button>
-                <span class="psw">Forgot <a href="#">password?</a></span>
+                <button type="button" class="m-btn m-btn--secondary cancelbtn" _="on click call (closest <dialog/>).close()">{{ i18n.t("auth-cancel") }}</button>
             </div>
         </div>
     </div>

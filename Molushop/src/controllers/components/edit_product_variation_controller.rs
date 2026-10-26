@@ -181,9 +181,7 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
     //aqui añadir headers a la respuesta
     /* 
     println!("{:?}",form_general);
-    let modal_respuesta = MessageModal{
-        text:"Prueba de edit_general, hecha correctamente".to_string()
-    }.render().unwrap();
+    let modal_respuesta = MessageModal::new("Prueba de edit_general, hecha correctamente").render().unwrap();
     HttpResponse::Ok().body(modal_respuesta)*/
 }
 
@@ -235,9 +233,7 @@ let form_identifiers = data.into_inner();
     match result{
         Ok(numero) =>{
             //aqui añadir a que 
-            let modal_respuesta = MessageModal{
-                text:"Identificadores editados correctamente".to_string()
-            }.render().unwrap();
+            let modal_respuesta = MessageModal::new("Identificadores editados correctamente").render().unwrap();
             println!("Todo correcto");
             HttpResponse::Ok().body(modal_respuesta)
         },
@@ -300,9 +296,7 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
 
     match result_update_price {
         Ok(_) => {
-            let modal_respuesta = MessageModal {
-                text: "Precio actualizado correctamente".to_string()
-            }.render().unwrap();
+            let modal_respuesta = MessageModal::new("Precio actualizado correctamente").render().unwrap();
             let trigger = json!({
                 "variation_update": { "target": ".variation-edit-container", "price": regular_price.to_string() }
             });

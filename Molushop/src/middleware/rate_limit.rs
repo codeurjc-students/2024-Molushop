@@ -26,6 +26,7 @@ use askama::Template;
 use lazy_static::lazy_static;
 
 use crate::models::components::message_modal::MessageModal;
+use crate::i18n::I18n;
 use crate::utils::hx::error_response;
 
 pub struct RateLimiter {
@@ -77,28 +78,30 @@ lazy_static! {
     static ref PASSWORD_CHANGE: RateLimiter = RateLimiter::new(10, Duration::from_secs(15 * 60));
 }
 
-fn minutes_label(secs: u64) -> String {
-    let minutes = secs.div_ceil(60);
-    if minutes <= 1 { "1 minuto".to_string() } else { format!("{} minutos", minutes) }
+/// Los minutos que hay que esperar, redondeando hacia arriba (30 s -> 1).
+fn wait_minutes(secs: u64) -> i64 {
+    secs.div_ceil(60).max(1) as i64
 }
 
 /// 429. Con htmx va el aviso (con HX-Retarget, como error_modal: se pinta
 /// también donde no hay response-targets); si no, una página mínima. El login
 /// del panel mira solo el código.
 fn too_many(req: &ServiceRequest, wait_secs: u64) -> HttpResponse {
-    let message = format!(
-        "Demasiados intentos seguidos. Espera {} y vuelve a intentarlo.",
-        minutes_label(wait_secs)
-    );
+    // El idioma de la página (o del fragmento de htmx); el panel, en español.
+    let i18n = I18n::from_http_request(req.request());
+    let message = i18n.t_args("rate-limit-wait", &[("minutes", wait_minutes(wait_secs).into())]);
     let htmx = req.headers().contains_key("HX-Request");
     let body = if htmx {
-        MessageModal::new(&message).render().unwrap_or(message)
+        let mut modal = MessageModal::from_string(message.clone());
+        modal.accept = i18n.t("modal-accept");
+        modal.render().unwrap_or(message)
     } else {
+        let title = i18n.t("rate-limit-title");
         format!(
-            "<!DOCTYPE html><html lang=\"es\"><head><meta charset=\"UTF-8\"><title>Demasiados intentos</title></head>\
+            "<!DOCTYPE html><html lang=\"{}\"><head><meta charset=\"UTF-8\"><title>{}</title></head>\
              <body style=\"font-family:sans-serif;max-width:560px;margin:3rem auto;padding:0 1rem\">\
-             <h1>Demasiados intentos</h1><p>{}</p><p><a href=\"javascript:history.back()\">Volver</a></p></body></html>",
-            message
+             <h1>{}</h1><p>{}</p><p><a href=\"javascript:history.back()\">{}</a></p></body></html>",
+            i18n.code(), title, title, message, i18n.t("rate-limit-back")
         )
     };
     let mut builder = if htmx {
@@ -166,8 +169,13 @@ mod tests {
     }
 
     #[test]
-    fn minutes_label_rounds_up() {
-        assert_eq!(minutes_label(30), "1 minuto");
-        assert_eq!(minutes_label(61), "2 minutos");
+    fn wait_message_rounds_up_and_uses_plurals() {
+        use crate::i18n::Lang;
+        assert_eq!(wait_minutes(30), 1);
+        assert_eq!(wait_minutes(61), 2);
+        let wait = |lang, secs| I18n::for_lang(lang).t_args("rate-limit-wait", &[("minutes", wait_minutes(secs).into())]);
+        assert_eq!(wait(Lang::Es, 30), "Demasiados intentos seguidos. Espera 1 minuto y vuelve a intentarlo.");
+        assert_eq!(wait(Lang::Es, 61), "Demasiados intentos seguidos. Espera 2 minutos y vuelve a intentarlo.");
+        assert_eq!(wait(Lang::En, 61), "Too many attempts in a row. Wait 2 minutes and try again.");
     }
 }
