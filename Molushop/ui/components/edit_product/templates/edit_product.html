@@ -155,9 +155,15 @@
                     <div class="image-gallery new-images">
                     </div>
                     {# data-image-variations-url: a dónde manda image-variations.js en qué
-                       variaciones sale cada imagen #}
+                       variaciones sale cada imagen.
+                       hx-encoding: la galería está dentro del formulario de subida, y su
+                       multipart se heredaría a "Hacer principal" y a las variaciones de
+                       cada imagen (htmx.ajax con source dentro de la galería). Esas
+                       peticiones solo llevan ids y sus handlers esperan web::Form: con
+                       multipart, actix responde 415. #}
                     <div class="image-gallery base-images" data-image-variations-url="{{routes.image_variations}}/{{product.id}}"
-                        data-main-image-url="{{routes.main_image}}/{{product.id}}">
+                        data-main-image-url="{{routes.main_image}}/{{product.id}}"
+                        hx-encoding="application/x-www-form-urlencoded">
                         {% if images.len()==0 %}
                             <p class="no-images">No hay imágenes disponibles</p>
                         {% else %}
