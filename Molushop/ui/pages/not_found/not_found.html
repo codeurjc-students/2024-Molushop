@@ -6,6 +6,6 @@
         <svg class="icn-svg not-found__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
         <h1>{{title}}</h1>
         <p>{{message}}</p>
-        <a href="{{nav1.routes.home}}" class="m-btn m-btn--primary">Ver todos los productos</a>
+        <a href="{{ i18n.url(nav1.routes.home) }}" class="m-btn m-btn--primary">{{ i18n.t("see-all-products") }}</a>
     </section>
 {% endblock %}

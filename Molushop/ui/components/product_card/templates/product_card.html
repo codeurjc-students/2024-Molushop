@@ -2,7 +2,7 @@
 
 <div class="product-card">
     <!-- <a href="#" class="link"> -->
-    <a class="link" href="{{product.url}}">
+    <a class="link" href="{{ i18n.url(product.url) }}">
         <!--La ruta de la imagen dependerá del producto-->
         <img src="{{product.image}}" alt="{{product.name}}">
         <div class="producto-info">
@@ -13,7 +13,7 @@
                  tarjetas de una fila sigan alineadas. -->
             <div class="producto-valoracion">
                 {% if product.rating_count > 0 %}
-                {{ product.stars() }}
+                {{ product.stars(i18n) }}
                 <span class="producto-valoracion-total">({{product.rating_count}})</span>
                 {% endif %}
             </div>
@@ -24,10 +24,10 @@
             <div class="producto-acciones">
                 {# Un <span> y no un <button>: va dentro del enlace a la ficha, que es
                    donde se elige la variación. #}
-                <span class="m-btn m-btn--primary m-btn--block boton-agregar-carrito">Añadir al carrito</span>
+                <span class="m-btn m-btn--primary m-btn--block boton-agregar-carrito">{{ i18n.t("card-add-to-cart") }}</span>
             </div>
             {% else %}
-            <p class="producto-precio is-unavailable">No disponible</p>
+            <p class="producto-precio is-unavailable">{{ i18n.t("card-unavailable") }}</p>
             {% endif %}
         </div>
     </a>

@@ -11,6 +11,8 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
+use crate::i18n::Lang;
+
 #[derive(QueryableByName, Debug, Clone)]
 pub struct CategoryCount {
     #[diesel(sql_type = Text)]
@@ -25,9 +27,10 @@ pub struct CategoryCount {
 }
 
 /// Todas las categorías con su recuento para `patterns` (los de
-/// `CardFilter::like_patterns`; vacío, sin texto). "A la venta" es lo mismo
-/// que en `servicesX::get_product_cards1`.
-pub async fn category_counts(patterns: &[String], pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
+/// `CardFilter::like_patterns`; vacío, sin texto) y su nombre en `lang`
+/// (`category_translation`; si no está traducida, el de `category`, en
+/// español). "A la venta" es lo mismo que en `servicesX::get_product_cards1`.
+pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
     let connection = &mut pool.get().await.unwrap();
     sql_query(r#"
         with recursive tree as (
@@ -46,16 +49,18 @@ pub async fn category_counts(patterns: &[String], pool: &DbPool) -> Result<Vec<C
                 where not (f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
             )
         )
-        select cat.id::text as id, cat.name, cat.parent::text as parent,
+        select cat.id::text as id, coalesce(ct.name, cat.name) as name, cat.parent::text as parent,
             (select count(distinct v.id)
              from tree t
              join category_product cp on cp.category_id = t.id
              join visible v on v.id = cp.product_id
              where t.root = cat.id) as products
         from category cat
-        order by cat.name
+        left join category_translation ct on ct.category_id = cat.id and ct.locale = $2
+        order by name
     "#)
         .bind::<Array<Text>, _>(patterns)
+        .bind::<Text, _>(lang.code())
         .load::<CategoryCount>(connection).await
 }
 

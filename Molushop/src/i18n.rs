@@ -115,6 +115,14 @@ impl Lang {
         best.map(|(lang, _)| lang)
     }
 
+    /// La coma o el punto de los decimales ("4,5" / "4.5").
+    pub fn decimal_separator(self) -> char {
+        match self {
+            Lang::Es => ',',
+            Lang::En => '.',
+        }
+    }
+
     fn langid(self) -> LanguageIdentifier {
         match self {
             Lang::Es => langid!("es"),
@@ -147,6 +155,11 @@ pub struct I18n {
 impl I18n {
     pub fn new(lang: Lang, path: &str, origin: &str) -> Self {
         I18n { lang, path: path.to_string(), origin: origin.to_string() }
+    }
+
+    /// Solo para traducir textos (sin página detrás: hreflang y selector no valen).
+    pub fn for_lang(lang: Lang) -> Self {
+        I18n::new(lang, "/", "")
     }
 
     pub fn from_http_request(req: &HttpRequest) -> Self {
@@ -186,6 +199,17 @@ impl I18n {
         self.lookup(key, Some(&args))
     }
 
+    /// `t_args` con una variable de texto, para las plantillas:
+    /// `{{ i18n.t1("search-title-query", "q", q) }}`.
+    pub fn t1(&self, key: &str, name: &'static str, value: &str) -> String {
+        self.t_args(key, &[(name, FluentValue::from(value))])
+    }
+
+    /// Con dos variables de texto.
+    pub fn t2(&self, key: &str, name1: &'static str, value1: &str, name2: &'static str, value2: &str) -> String {
+        self.t_args(key, &[(name1, FluentValue::from(value1)), (name2, FluentValue::from(value2))])
+    }
+
     fn lookup(&self, key: &str, args: Option<&HashMap<Cow<'static, str>, FluentValue>>) -> String {
         LOCALES.try_lookup_complete(&self.lang.langid(), key, args).unwrap_or_else(|| {
             println!("i18n: falta la clave \"{}\" ({})", key, self.code());
@@ -193,9 +217,14 @@ impl I18n {
         })
     }
 
-    /// Una ruta de la tienda en este idioma: "/cart" -> "/en/cart".
+    /// Una ruta de la tienda en este idioma: "/cart" -> "/en/cart". Lo que no
+    /// es una ruta interna ("javascript:void(0)", "https://...") sale igual.
     pub fn url(&self, path: &str) -> String {
-        format!("{}{}", self.lang.prefix(), path)
+        if path.starts_with('/') && !path.starts_with("//") {
+            format!("{}{}", self.lang.prefix(), path)
+        } else {
+            path.to_string()
+        }
     }
 
     /// Esta misma página en `lang`, con el dominio (para `hreflang`).
@@ -282,6 +311,8 @@ mod tests {
     fn urls_keep_the_page_and_the_query() {
         let i18n = I18n::new(Lang::En, "/search?q=pala roja", "http://localhost:8080");
         assert_eq!(i18n.url("/cart"), "/en/cart");
+        assert_eq!(i18n.url("javascript:void(0)"), "javascript:void(0)");
+        assert_eq!(I18n::for_lang(Lang::Es).url("/cart"), "/cart");
         assert_eq!(i18n.page_url_in(Lang::Es), "http://localhost:8080/search?q=pala roja");
         let en = i18n.languages().into_iter().find(|l| l.code == "en").unwrap();
         assert!(en.current);
@@ -304,6 +335,22 @@ mod tests {
         assert_eq!(en.t("no-such-key"), "no-such-key");
         assert_eq!(en.t_args("i18n-test-count", &[("count", 1.into())]), "1 product");
         assert_eq!(I18n::default().t_args("i18n-test-count", &[("count", 3.into())]), "3 productos");
+        assert_eq!(en.t1("search-title-query", "q", "pala"), "Results for “pala”");
+        assert_eq!(en.t2("search-title-query-category", "q", "pala", "category", "Padel"), "“pala” in Padel");
+    }
+
+    #[test]
+    fn every_key_exists_in_every_language() {
+        // Una clave que solo está en un idioma saldría en español (o como clave) en el otro.
+        let keys = |lang: &str| -> std::collections::BTreeSet<String> {
+            let dir = format!("{}/locales/{}", env!("CARGO_MANIFEST_DIR"), lang);
+            std::fs::read_dir(dir).unwrap()
+                .flat_map(|f| std::fs::read_to_string(f.unwrap().path()).unwrap().lines().map(str::to_string).collect::<Vec<_>>())
+                .filter(|l| l.chars().next().map_or(false, |c| c.is_ascii_lowercase()))
+                .filter_map(|l| l.split_once(" =").map(|(k, _)| k.trim().to_string()))
+                .collect()
+        };
+        assert_eq!(keys("es"), keys("en"));
     }
 
     #[test]

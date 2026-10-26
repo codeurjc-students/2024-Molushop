@@ -74,7 +74,8 @@ pub async fn get_product_card_render(id:&Uuid,pool:&DbPool)->String{
     let objeto = get_product_card_object(&id,&pool).await;
 
     let render  = ProductCard{
-        product:objeto
+        product:objeto,
+        i18n: crate::i18n::I18n::default(),
     }.render().unwrap();
     render
     

@@ -70,13 +70,14 @@ pub async fn get_product_card_group_render(ids:Vec<&Uuid>,pool:&DbPool)->String{
     ProductCardGroup{
         products:get_product_card_group_object_concurrent(ids,pool).await,
         more_url: None,
+        i18n: crate::i18n::I18n::default(),
     }.render().unwrap()
 }
 
-pub async fn get_product_card_group_render_all(pool:&DbPool) -> String{
+pub async fn get_product_card_group_render_all(i18n: crate::i18n::I18n, pool:&DbPool) -> String{
     //Siempre para los result hacer un match, nunca usar unwrap() --> mala practica
     let (products, more_url) = get_product_card_group_page(1, &CardFilter::default(), pool).await;
-    let object_product_card = ProductCardGroup{ products, more_url };
+    let object_product_card = ProductCardGroup{ products, more_url, i18n };
     match object_product_card.render(){
         Ok(render) => render,
         Err(e) => {

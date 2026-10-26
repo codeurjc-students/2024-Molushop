@@ -77,9 +77,9 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
         // No está a la venta (no existe, desactivado o tienda inactiva)
         Ok(None) => return not_found_page(
             i18n,
-            "Producto no disponible",
-            "Este producto no está disponible",
-            "Puede que ya no esté a la venta o que el enlace no sea correcto.",
+            "product-notfound-page-title",
+            "product-notfound-title",
+            "product-notfound-text",
             user_id_opt.as_ref(),
             pool
         ).await,

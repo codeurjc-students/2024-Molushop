@@ -9,6 +9,7 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 
 use super::scope::SCOPE_COMPONENTS;
+use crate::i18n::I18n;
 use crate::models::components::product_card_group_model::{CardFilter, ProductCardGroupPage};
 use crate::services::components::product_card_group_service::get_product_card_group_page;
 
@@ -39,9 +40,9 @@ pub struct PageQuery {
 }
 
 #[get("/page")]
-async fn page(query: web::Query<PageQuery>, pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn page(i18n: I18n, query: web::Query<PageQuery>, pool_data: web::Data<DbPool>) -> HttpResponse {
     let query = query.into_inner();
     let filter = CardFilter::new(query.q, query.category);
     let (products, more_url) = get_product_card_group_page(query.page.unwrap_or(2), &filter, pool_data.get_ref()).await;
-    HttpResponse::Ok().body(ProductCardGroupPage { products, more_url }.render().unwrap())
+    HttpResponse::Ok().body(ProductCardGroupPage { products, more_url, i18n }.render().unwrap())
 }

@@ -35,7 +35,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
     let query = query.into_inner();
     let mut filter = CardFilter::new(query.q, query.category);
 
-    let categories = match category_counts(&filter.like_patterns(), pool).await {
+    let categories = match category_counts(&filter.like_patterns(), i18n.lang, pool).await {
         Ok(categories) => categories,
         Err(e) => {
             println!("Búsqueda: error cargando las categorías: {}", e);
@@ -58,7 +58,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
     };
     let mut breadcrumb = Vec::new();
     if selected.is_some() {
-        breadcrumb.push(link(None, "Todas", 0));
+        breadcrumb.push(link(None, &i18n.t("search-all-categories"), 0));
         breadcrumb.extend(path.iter().map(|c| link(Some(&c.id), &c.name, c.products)));
     }
     let subcategories = children(&categories, selected.map(|c| c.id.as_str()))
@@ -69,7 +69,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
     let (products, more_url) = get_product_card_group_page(1, &filter, pool).await;
     let has_results = !products.is_empty();
     let results = if has_results {
-        ProductCardGroup { products, more_url }.render().unwrap_or_else(|e| {
+        ProductCardGroup { products, more_url, i18n: i18n.clone() }.render().unwrap_or_else(|e| {
             println!("Error en el renderizado de ProductCardGroup! --> {}", e);
             String::new()
         })

@@ -78,6 +78,15 @@ diesel::table! {
 }
 
 diesel::table! {
+    category_translation (category_id, locale) {
+        category_id -> Varchar,
+        #[max_length = 8]
+        locale -> Varchar,
+        name -> Varchar,
+    }
+}
+
+diesel::table! {
     customer_address (id) {
         id -> Uuid,
         customer_id -> Uuid,
@@ -386,6 +395,7 @@ diesel::joinable!(cart_products -> product_variations (product_var_id));
 diesel::joinable!(carts -> base_user (user_id));
 diesel::joinable!(category_product -> category (category_id));
 diesel::joinable!(category_product -> products (product_id));
+diesel::joinable!(category_translation -> category (category_id));
 diesel::joinable!(customer_address -> base_user (customer_id));
 diesel::joinable!(discount_history -> product_variations (variation_id));
 diesel::joinable!(discounts -> product_variations (variation_id));
@@ -423,6 +433,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     carts,
     category,
     category_product,
+    category_translation,
     customer_address,
     discount_history,
     discounts,

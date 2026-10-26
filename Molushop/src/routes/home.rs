@@ -79,8 +79,8 @@ use crate::models::pages_models::search_page_model::CategoryLink;
 
 /// Los chips de la portada: las categorías de arriba del todo que tienen algo
 /// a la venta, cada una con su búsqueda. Si falla, la portada sale sin ellos.
-async fn home_categories(pool: &DbPool) -> Vec<CategoryLink> {
-    let categories = match category_counts(&[], pool).await {
+async fn home_categories(lang: Lang, pool: &DbPool) -> Vec<CategoryLink> {
+    let categories = match category_counts(&[], lang, pool).await {
         Ok(categories) => categories,
         Err(e) => {
             println!("Home: error cargando las categorías: {}", e);
@@ -134,9 +134,9 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_s
     
     let home_render = Home{
         user_logged,
-        page_name:"Home".to_string(),
-        group_cards2:get_product_card_group_render_all(&pool).await,
-        categories:home_categories(pool).await,
+        page_name:i18n.t("home-page-title"),
+        group_cards2:get_product_card_group_render_all(i18n.clone(), &pool).await,
+        categories:home_categories(i18n.lang, pool).await,
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n

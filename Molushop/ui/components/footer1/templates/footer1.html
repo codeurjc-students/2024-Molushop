@@ -3,21 +3,21 @@
   <div class="footer1-container">
     <div class="footer1-brand">
       <img src="/assets/logos/molushop.svg" alt="Molushop" />
-      <p>Productos de tiendas independientes, en un solo carrito.</p>
+      <p>{{ i18n.t("footer-tagline") }}</p>
     </div>
-    <nav class="footer1-col" aria-label="Tienda">
-      <h2>Tienda</h2>
+    <nav class="footer1-col" aria-label="{{ i18n.t("footer-shop") }}">
+      <h2>{{ i18n.t("footer-shop") }}</h2>
       <ul>
-        <li><a href="{{ i18n.url(nav1.routes.home) }}">Inicio</a></li>
-        <li><a href="{{ i18n.url(nav1.routes.cart) }}">Carrito</a></li>
-        <li><a href="{{ i18n.url(nav1.routes.orders) }}">Mis pedidos</a></li>
+        <li><a href="{{ i18n.url(nav1.routes.home) }}">{{ i18n.t("footer-home") }}</a></li>
+        <li><a href="{{ i18n.url(nav1.routes.cart) }}">{{ i18n.t("nav-cart") }}</a></li>
+        <li><a href="{{ i18n.url(nav1.routes.orders) }}">{{ i18n.t("nav-orders") }}</a></li>
       </ul>
     </nav>
     <nav class="footer1-col" aria-label="Molushop">
       <h2>Molushop</h2>
       <ul>
-        <li><a href="{{ i18n.url("/about-us") }}">Sobre nosotros</a></li>
-        <li><a href="/panel/register" hx-boost="false">Vende en Molushop</a></li>
+        <li><a href="{{ i18n.url("/about-us") }}">{{ i18n.t("footer-about") }}</a></li>
+        <li><a href="/panel/register" hx-boost="false">{{ i18n.t("footer-sell") }}</a></li>
       </ul>
     </nav>
   </div>

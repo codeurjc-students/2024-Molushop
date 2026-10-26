@@ -44,7 +44,7 @@ async fn get_about_us(
 
     let about_us_render = AboutUsPage{
         user_logged,
-        page_name:"Sobre nosotros".to_string(),
+        page_name:i18n.t("about-page-title"),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n

@@ -1,6 +1,7 @@
 use askama::Template;
 use serde::{Serialize, Deserialize};
 use crate::models::components::product_card_model::*;
+use crate::i18n::I18n;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card_group/templates/product_card_group.html")]
@@ -8,6 +9,7 @@ pub struct ProductCardGroup{
     pub products: Vec<ProductCardData>,
     /// `Some`: hay más productos y el botón "Cargar más" los pide aquí.
     pub more_url: Option<String>,
+    pub i18n: I18n,
 }
 
 /// Una tanda de "Cargar más": las tarjetas y, si quedan, el botón siguiente,
@@ -17,6 +19,7 @@ pub struct ProductCardGroup{
 pub struct ProductCardGroupPage{
     pub products: Vec<ProductCardData>,
     pub more_url: Option<String>,
+    pub i18n: I18n,
 }
 
 /// Lo que filtra la rejilla de tarjetas: la portada va sin nada y la búsqueda

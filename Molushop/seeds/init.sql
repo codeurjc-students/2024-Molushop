@@ -1,6 +1,6 @@
 -- Datos base de Molushop: lo que necesita CUALQUIER entorno (desarrollo y
--- producción) después de las migraciones. Hoy solo son las categorías: sin
--- ellas no se puede crear ningún producto.
+-- producción) después de las migraciones. Hoy solo son las categorías (y sus
+-- nombres en inglés): sin ellas no se puede crear ningún producto.
 --
 -- Uso (después de `diesel migration run` sobre una base de datos vacía):
 --     psql -v ON_ERROR_STOP=1 -f seeds/init.sql "$DATABASE_URL"
@@ -52,5 +52,46 @@ INSERT INTO category (id, name, parent, base_specs) VALUES
     ('WEIGHTS', 'Pesas y mancuernas', 'FITNESS', '{"specs": ["weight_range", "material"]}'),
     ('YOGA', 'Yoga y pilates', 'FITNESS', '{"specs": ["material", "length"]}')
 ON CONFLICT (id) DO NOTHING;
+
+-- Sus nombres en inglés (migración category_translation). El español es
+-- category.name, arriba.
+INSERT INTO category_translation (category_id, locale, name) VALUES
+    ('BEAU', 'en', 'Beauty & Personal Care'),
+    ('CLOT', 'en', 'Clothing'),
+    ('ELEC', 'en', 'Electronics'),
+    ('HOME', 'en', 'Home & Kitchen'),
+    ('SPORT', 'en', 'Sports & Outdoors'),
+    ('BATH', 'en', 'Bath & Body'),
+    ('FRAGR', 'en', 'Fragrances'),
+    ('HAIR', 'en', 'Hair Care'),
+    ('MAKEUP', 'en', 'Makeup'),
+    ('SKIN', 'en', 'Skincare'),
+    ('ACC', 'en', 'Accessories'),
+    ('CHILCL', 'en', 'Children Clothing'),
+    ('MENCL', 'en', 'Men Clothing'),
+    ('SHOES', 'en', 'Shoes'),
+    ('WOMCL', 'en', 'Women Clothing'),
+    ('CAMERA', 'en', 'Cameras & Photography'),
+    ('HEADP', 'en', 'Headphones'),
+    ('LAPTOP', 'en', 'Laptops'),
+    ('PHONE', 'en', 'Mobile Phones'),
+    ('TV', 'en', 'Televisions'),
+    ('BEDD', 'en', 'Bedding'),
+    ('DECOR', 'en', 'Home Décor'),
+    ('FURNI', 'en', 'Furniture'),
+    ('KITCH', 'en', 'Kitchen Appliances'),
+    ('LIGHT', 'en', 'Lighting'),
+    ('BIKE', 'en', 'Cycling'),
+    ('CAMP', 'en', 'Camping & Hiking'),
+    ('FITNESS', 'en', 'Fitness Equipment'),
+    ('OUTDO', 'en', 'Outdoor Gear'),
+    ('PADEL', 'en', 'Padel'),
+    ('TEAM', 'en', 'Team Sports'),
+    ('ACCESS', 'en', 'Fitness Accessories'),
+    ('CARDIO', 'en', 'Cardio Equipment'),
+    ('STRENGTH', 'en', 'Strength Training'),
+    ('WEIGHTS', 'en', 'Weights & Dumbbells'),
+    ('YOGA', 'en', 'Yoga & Pilates')
+ON CONFLICT (category_id, locale) DO NOTHING;
 
 COMMIT;

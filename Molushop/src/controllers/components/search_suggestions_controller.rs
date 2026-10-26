@@ -10,6 +10,7 @@ use lazy_static::lazy_static;
 use serde::Deserialize;
 
 use super::scope::SCOPE_COMPONENTS;
+use crate::i18n::I18n;
 use crate::constants::urls::SEARCH_URL;
 use crate::models::components::nav1_model::SearchSuggestions;
 use crate::models::components::product_card_group_model::CardFilter;
@@ -47,7 +48,7 @@ pub struct SuggestionsQuery {
 }
 
 #[get("")]
-async fn suggestions(query: web::Query<SuggestionsQuery>, pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data: web::Data<DbPool>) -> HttpResponse {
     let pool = pool_data.get_ref();
     let filter = CardFilter::new(query.into_inner().q, None);
     let q = match filter.q.as_deref() {
@@ -64,7 +65,7 @@ async fn suggestions(query: web::Query<SuggestionsQuery>, pool_data: web::Data<D
         }
     };
     // Las categorías con productos (de cualquier nombre), filtradas aquí por el suyo.
-    let categories = match category_counts(&[], pool).await {
+    let categories = match category_counts(&[], i18n.lang, pool).await {
         Ok(all) => named_like(&all, q)
             .into_iter()
             .take(MAX_CATEGORIES)
@@ -85,6 +86,7 @@ async fn suggestions(query: web::Query<SuggestionsQuery>, pool_data: web::Data<D
         categories,
         products,
         all_url: filter.url(SEARCH_URL, None),
+        i18n,
     }.render().unwrap_or_else(|e| {
         println!("Error en el renderizado de SearchSuggestions! --> {}", e);
         String::new()

@@ -48,4 +48,6 @@ pub struct SearchSuggestions{
     pub products: Vec<ProductCardData>,
     /// La búsqueda completa (`/search?q=`).
     pub all_url: String,
+    /// El de la página desde la que se pide (`HX-Current-URL`).
+    pub i18n: crate::i18n::I18n,
 }

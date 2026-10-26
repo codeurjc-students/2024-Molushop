@@ -1,4 +1,5 @@
 use askama::Template;
+use crate::i18n::{I18n, Lang};
 
 /// Átomo: estrellas de valoración, solo para leer (las de opinar son radios y
 /// van en product_reviews_v1). Pinta cinco estrellas para una nota de 0 a 5.
@@ -20,17 +21,25 @@ use askama::Template;
 pub struct Stars {
     pub value: f64,
     pub small: bool,
+    /// El idioma de la etiqueta para lectores de pantalla (`in_lang`).
+    pub lang: Lang,
 }
 
 impl Stars {
     /// 20px de alto.
     pub fn new(value: impl Into<f64>) -> Self {
-        Stars { value: value.into(), small: false }
+        Stars { value: value.into(), small: false, lang: Lang::DEFAULT }
     }
 
     /// 16px de alto, para la tarjeta de producto.
     pub fn sm(value: impl Into<f64>) -> Self {
-        Stars { value: value.into(), small: true }
+        Stars { value: value.into(), small: true, lang: Lang::DEFAULT }
+    }
+
+    /// La etiqueta en otro idioma (por defecto, español).
+    pub fn in_lang(mut self, lang: Lang) -> Self {
+        self.lang = lang;
+        self
     }
 
     /// El símbolo del sprite de cada estrella: "full", "half" o "empty". Se
@@ -49,15 +58,16 @@ impl Stars {
         icons
     }
 
-    /// Para lectores de pantalla: "4,6 de 5 estrellas", "4 de 5 estrellas".
+    /// Para lectores de pantalla: "4,6 de 5 estrellas", "4 de 5 estrellas"
+    /// ("4.6 out of 5 stars" en inglés).
     pub fn label(&self) -> String {
         let tenths = (self.value * 10.0).round() as i64;
         let number = if tenths % 10 == 0 {
             (tenths / 10).to_string()
         } else {
-            format!("{},{}", tenths / 10, tenths % 10)
+            format!("{}{}{}", tenths / 10, self.lang.decimal_separator(), tenths % 10)
         };
-        format!("{} de 5 estrellas", number)
+        I18n::for_lang(self.lang).t1("stars-label", "rating", &number)
     }
 }
 
@@ -84,5 +94,6 @@ mod tests {
         assert_eq!(Stars::new(4.6).label(), "4,6 de 5 estrellas");
         assert_eq!(Stars::new(4).label(), "4 de 5 estrellas");
         assert_eq!(Stars::new(3.96).label(), "4 de 5 estrellas");
+        assert_eq!(Stars::new(4.6).in_lang(Lang::En).label(), "4.6 out of 5 stars");
     }
 }

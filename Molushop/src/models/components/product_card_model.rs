@@ -8,6 +8,7 @@ use crate::constants::urls::PRODUCT_URL_PREFIX;
 use crate::models::components::stars::Stars;
 use crate::models::components::price::Price;
 use crate::constants::money::DEFAULT_CURRENCY;
+use crate::i18n::I18n;
 
 /// La imagen de los productos que no tienen ninguna.
 pub const NO_IMAGE: &str = "/assets/imgs/no-image.svg";
@@ -15,7 +16,8 @@ pub const NO_IMAGE: &str = "/assets/imgs/no-image.svg";
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card/templates/product_card.html")]
 pub struct ProductCard{
-    pub product: ProductCardData
+    pub product: ProductCardData,
+    pub i18n: I18n,
 }
 
 #[derive(Debug, Clone)]
@@ -32,9 +34,9 @@ pub struct ProductCardData{
 }
 
 impl ProductCardData {
-    /// Las estrellas de la media, en pequeño.
-    pub fn stars(&self) -> Stars {
-        Stars::sm(self.rating_average)
+    /// Las estrellas de la media, en pequeño y en el idioma de la página.
+    pub fn stars(&self, i18n: &I18n) -> Stars {
+        Stars::sm(self.rating_average).in_lang(i18n.lang)
     }
 
     pub fn price_tag(&self) -> Price {

@@ -11,6 +11,6 @@
     <button type="button" class="m-btn m-btn--secondary"
         hx-get="{{url}}"
         hx-target="closest .product-card-more"
-        hx-swap="outerHTML">Cargar más productos</button>
+        hx-swap="outerHTML">{{ i18n.t("card-load-more") }}</button>
 </div>
 {% endif %}
