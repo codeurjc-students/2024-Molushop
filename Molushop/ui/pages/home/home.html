@@ -8,6 +8,16 @@
             <a href="#productos" class="m-btn m-btn--primary">Ver productos</a>
         </div>
     </section>
+    {% if !categories.is_empty() %}
+    {# Los mismos chips que en /search (su CSS lo carga layouts/shop.html). #}
+    <nav class="home-categories search-categories" aria-label="Categorías">
+        <ul>
+            {% for category in categories %}
+            <li><a class="search-chip" href="{{category.url}}">{{category.name}} <span class="search-chip__count">{{category.products}}</span></a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
     <h2 id="productos" class="home-section-title">Todos los productos</h2>
     {{group_cards2|safe}}
 {% endblock %}

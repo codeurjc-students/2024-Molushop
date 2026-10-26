@@ -8,7 +8,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 use crate::middleware::auth::Auth;
-use crate::constants::urls::HOME_URL;
+use crate::constants::urls::{HOME_URL, SEARCH_URL};
 //scope ??
 // --> dispatcher --> ---> /home
 
@@ -56,6 +56,30 @@ use chrono::prelude::*;
 
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
+use crate::services::search_service::{category_counts, children};
+use crate::models::components::product_card_group_model::CardFilter;
+use crate::models::pages_models::search_page_model::CategoryLink;
+
+/// Los chips de la portada: las categorías de arriba del todo que tienen algo
+/// a la venta, cada una con su búsqueda. Si falla, la portada sale sin ellos.
+async fn home_categories(pool: &DbPool) -> Vec<CategoryLink> {
+    let categories = match category_counts(&[], pool).await {
+        Ok(categories) => categories,
+        Err(e) => {
+            println!("Home: error cargando las categorías: {}", e);
+            return Vec::new();
+        }
+    };
+    let all = CardFilter::new(None, None);
+    children(&categories, None)
+        .into_iter()
+        .map(|c| CategoryLink {
+            name: c.name.clone(),
+            url: all.with_category(Some(&c.id)).url(SEARCH_URL, None),
+            products: c.products,
+        })
+        .collect()
+}
 
 async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
@@ -95,6 +119,7 @@ async fn get_home(pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:
         user_logged,
         page_name:"Home".to_string(),
         group_cards2:get_product_card_group_render_all(&pool).await,
+        categories:home_categories(pool).await,
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data:login_base_service::get_login_base_model_data()
     }.render().unwrap();

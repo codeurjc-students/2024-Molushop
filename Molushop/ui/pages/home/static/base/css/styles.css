@@ -1,4 +1,4 @@
-/* Portada, mobile-first: hero y título de la sección de productos, con el
+/* Portada, mobile-first: hero, chips de categoría (los de la búsqueda) y título de la sección de productos, con el
    ancho de la rejilla (70rem: em cambiaría con el tamaño de letra del h2).
    Desde 600px, más aire y letra más grande. */
 .home-hero{
@@ -24,6 +24,13 @@
     color: var(--gray-700);
 }
 
+.home-categories{
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: 0 var(--space-3);
+    box-sizing: border-box;
+}
+
 .home-section-title{
     max-width: 70rem;
     margin: var(--space-5) auto calc(-1 * var(--space-2));
@@ -41,6 +48,9 @@
     }
     .home-hero p{
         font-size: var(--font-size-lg);
+    }
+    .home-categories{
+        padding: 0 var(--space-4);
     }
     .home-section-title{
         margin-top: var(--space-6);
