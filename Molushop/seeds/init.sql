@@ -6,49 +6,51 @@
 --     psql -v ON_ERROR_STOP=1 -f seeds/init.sql "$DATABASE_URL"
 --
 -- Se puede ejecutar más de una vez: ON CONFLICT no duplica nada.
--- Sacado de la base de datos de desarrollo el 2026-10-18 (36 categorías, en
--- inglés). Van ordenadas por profundidad: cada padre antes que sus hijos.
+-- Sacado de la base de datos de desarrollo el 2026-10-18 (36 categorías);
+-- nombres en español desde el 2026-10-26 (migración category_names_es). Los
+-- id no cambian: van en las URL (/search?category=CLOT). Van ordenadas por
+-- profundidad: cada padre antes que sus hijos.
 -- `depth` e `is_parent` no se escriben: los calculan los triggers de `category`.
 
 BEGIN;
 
 INSERT INTO category (id, name, parent, base_specs) VALUES
-    ('BEAU', 'Beauty & Personal Care', NULL, '{"specs": ["ingredients", "skin_type"]}'),
-    ('CLOT', 'Clothing', NULL, '{"specs": ["material", "size"]}'),
-    ('ELEC', 'Electronics', NULL, '{"specs": ["warranty", "voltage"]}'),
-    ('HOME', 'Home & Kitchen', NULL, '{"specs": ["material", "warranty"]}'),
-    ('SPORT', 'Sports & Outdoors', NULL, '{"specs": ["material", "recommended_age"]}'),
-    ('BATH', 'Bath & Body', 'BEAU', '{"specs": ["use", "skin_type"]}'),
-    ('FRAGR', 'Fragrances', 'BEAU', '{"specs": ["scent", "lasting_time"]}'),
-    ('HAIR', 'Hair Care', 'BEAU', '{"specs": ["hair_type", "benefits"]}'),
-    ('MAKEUP', 'Makeup', 'BEAU', '{"specs": ["ingredients", "skin_type"]}'),
-    ('SKIN', 'Skincare', 'BEAU', '{"specs": ["use", "suitable_for"]}'),
-    ('ACC', 'Accessories', 'CLOT', '{"specs": ["material", "gender"]}'),
-    ('CHILCL', 'Children Clothing', 'CLOT', '{"specs": ["size", "fit"]}'),
-    ('MENCL', 'Men Clothing', 'CLOT', '{"specs": ["size", "fit"]}'),
-    ('SHOES', 'Shoes', 'CLOT', '{"specs": ["size", "material"]}'),
-    ('WOMCL', 'Women Clothing', 'CLOT', '{"specs": ["size", "fit"]}'),
-    ('CAMERA', 'Cameras & Photography', 'ELEC', '{"specs": ["megapixels", "battery"]}'),
-    ('HEADP', 'Headphones', 'ELEC', '{"specs": ["type", "wireless"]}'),
-    ('LAPTOP', 'Laptops', 'ELEC', '{"specs": ["os", "storage"]}'),
-    ('PHONE', 'Mobile Phones', 'ELEC', '{"specs": ["os", "screen_size"]}'),
-    ('TV', 'Televisions', 'ELEC', '{"specs": ["screen_size", "display"]}'),
-    ('BEDD', 'Bedding', 'HOME', '{"specs": ["material", "sizes"]}'),
-    ('DECOR', 'Home Décor', 'HOME', '{"specs": ["style", "material"]}'),
-    ('FURNI', 'Furniture', 'HOME', '{"specs": ["material", "weight_capacity"]}'),
-    ('KITCH', 'Kitchen Appliances', 'HOME', '{"specs": ["power", "voltage"]}'),
-    ('LIGHT', 'Lighting', 'HOME', '{"specs": ["type", "power"]}'),
-    ('BIKE', 'Cycling', 'SPORT', '{"specs": ["type", "material"]}'),
-    ('CAMP', 'Camping & Hiking', 'SPORT', '{"specs": ["material", "usage"]}'),
-    ('FITNESS', 'Fitness Equipment', 'SPORT', '{"specs": ["usage", "weight"]}'),
-    ('OUTDO', 'Outdoor Gear', 'SPORT', '{"specs": ["material", "warranty"]}'),
-    ('PADEL', 'Padel', 'SPORT', '{"specs": ["use", "recommended_skill"]}'),
-    ('TEAM', 'Team Sports', 'SPORT', '{"specs": ["players", "equipment_included"]}'),
-    ('ACCESS', 'Fitness Accessories', 'FITNESS', '{"specs": ["material", "suitable_for"]}'),
-    ('CARDIO', 'Cardio Equipment', 'FITNESS', '{"specs": ["type", "monitor_included"]}'),
-    ('STRENGTH', 'Strength Training', 'FITNESS', '{"specs": ["material", "weight_capacity"]}'),
-    ('WEIGHTS', 'Weights & Dumbbells', 'FITNESS', '{"specs": ["weight_range", "material"]}'),
-    ('YOGA', 'Yoga & Pilates', 'FITNESS', '{"specs": ["material", "length"]}')
+    ('BEAU', 'Belleza y cuidado personal', NULL, '{"specs": ["ingredients", "skin_type"]}'),
+    ('CLOT', 'Ropa', NULL, '{"specs": ["material", "size"]}'),
+    ('ELEC', 'Electrónica', NULL, '{"specs": ["warranty", "voltage"]}'),
+    ('HOME', 'Hogar y cocina', NULL, '{"specs": ["material", "warranty"]}'),
+    ('SPORT', 'Deportes y aire libre', NULL, '{"specs": ["material", "recommended_age"]}'),
+    ('BATH', 'Baño y cuerpo', 'BEAU', '{"specs": ["use", "skin_type"]}'),
+    ('FRAGR', 'Perfumes', 'BEAU', '{"specs": ["scent", "lasting_time"]}'),
+    ('HAIR', 'Cuidado del cabello', 'BEAU', '{"specs": ["hair_type", "benefits"]}'),
+    ('MAKEUP', 'Maquillaje', 'BEAU', '{"specs": ["ingredients", "skin_type"]}'),
+    ('SKIN', 'Cuidado de la piel', 'BEAU', '{"specs": ["use", "suitable_for"]}'),
+    ('ACC', 'Complementos', 'CLOT', '{"specs": ["material", "gender"]}'),
+    ('CHILCL', 'Ropa infantil', 'CLOT', '{"specs": ["size", "fit"]}'),
+    ('MENCL', 'Ropa de hombre', 'CLOT', '{"specs": ["size", "fit"]}'),
+    ('SHOES', 'Calzado', 'CLOT', '{"specs": ["size", "material"]}'),
+    ('WOMCL', 'Ropa de mujer', 'CLOT', '{"specs": ["size", "fit"]}'),
+    ('CAMERA', 'Cámaras y fotografía', 'ELEC', '{"specs": ["megapixels", "battery"]}'),
+    ('HEADP', 'Auriculares', 'ELEC', '{"specs": ["type", "wireless"]}'),
+    ('LAPTOP', 'Portátiles', 'ELEC', '{"specs": ["os", "storage"]}'),
+    ('PHONE', 'Móviles', 'ELEC', '{"specs": ["os", "screen_size"]}'),
+    ('TV', 'Televisores', 'ELEC', '{"specs": ["screen_size", "display"]}'),
+    ('BEDD', 'Ropa de cama', 'HOME', '{"specs": ["material", "sizes"]}'),
+    ('DECOR', 'Decoración', 'HOME', '{"specs": ["style", "material"]}'),
+    ('FURNI', 'Muebles', 'HOME', '{"specs": ["material", "weight_capacity"]}'),
+    ('KITCH', 'Electrodomésticos de cocina', 'HOME', '{"specs": ["power", "voltage"]}'),
+    ('LIGHT', 'Iluminación', 'HOME', '{"specs": ["type", "power"]}'),
+    ('BIKE', 'Ciclismo', 'SPORT', '{"specs": ["type", "material"]}'),
+    ('CAMP', 'Camping y senderismo', 'SPORT', '{"specs": ["material", "usage"]}'),
+    ('FITNESS', 'Fitness', 'SPORT', '{"specs": ["usage", "weight"]}'),
+    ('OUTDO', 'Equipo de exterior', 'SPORT', '{"specs": ["material", "warranty"]}'),
+    ('PADEL', 'Pádel', 'SPORT', '{"specs": ["use", "recommended_skill"]}'),
+    ('TEAM', 'Deportes de equipo', 'SPORT', '{"specs": ["players", "equipment_included"]}'),
+    ('ACCESS', 'Accesorios de fitness', 'FITNESS', '{"specs": ["material", "suitable_for"]}'),
+    ('CARDIO', 'Cardio', 'FITNESS', '{"specs": ["type", "monitor_included"]}'),
+    ('STRENGTH', 'Entrenamiento de fuerza', 'FITNESS', '{"specs": ["material", "weight_capacity"]}'),
+    ('WEIGHTS', 'Pesas y mancuernas', 'FITNESS', '{"specs": ["weight_range", "material"]}'),
+    ('YOGA', 'Yoga y pilates', 'FITNESS', '{"specs": ["material", "length"]}')
 ON CONFLICT (id) DO NOTHING;
 
 COMMIT;
