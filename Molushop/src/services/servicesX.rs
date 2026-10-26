@@ -1095,10 +1095,11 @@ pub async fn get_product_cards1(limit: i64, offset: i64, patterns: &[String], ca
         join product_seller ps on p.id=ps.product_id
         join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
-        -- Búsqueda: cada palabra tiene que salir en el nombre o en la marca.
+        -- Búsqueda: cada palabra tiene que salir en el nombre o en la marca,
+        -- sin contar acentos (f_unaccent, migración unaccent_search).
         and not exists (
             select 1 from unnest($3::text[]) w
-            where not (coalesce(p.name, '') ilike w or coalesce(p.brand, '') ilike w)
+            where not (f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
         )
         and ($4::text is null or exists (
             with recursive sub as (
