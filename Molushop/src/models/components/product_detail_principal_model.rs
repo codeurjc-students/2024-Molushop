@@ -14,7 +14,8 @@ use crate::models::components::quantity::Quantity;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_detail_principal/product_detail_principal.html")]
 pub struct ProductDetailPrincipal{
-    product_data : ProductDetailPrincipalData
+    product_data : ProductDetailPrincipalData,
+    i18n: crate::i18n::I18n,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -140,14 +141,6 @@ impl ProductDetailPrincipalData {
     }
 
     /// "9 opiniones", "1 opinión".
-    pub fn rating_count_label(&self) -> String {
-        if self.rating_count == 1 {
-            "1 opinión".to_string()
-        } else {
-            format!("{} opiniones", self.rating_count)
-        }
-    }
-
     /// La variación que sale seleccionada al entrar: la de los valores marcados
     /// `is_default` (la de más stock, ver `variacion_prioritaria`). Si no casa
     /// ninguna, la primera del mapa. Un producto sin variaciones tiene una sola,

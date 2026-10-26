@@ -29,6 +29,12 @@ const PRODUCT_DETAIL = {
         this.resumePendingAdd();
     },
 
+    // Un texto de la ficha en el idioma de la página (data-text-*, true.html);
+    // si faltara, el español.
+    text: function(name, fallback) {
+        return this.element.dataset["text" + name] || fallback;
+    },
+
     // Devuelve { attrName: value } de los radios actualmente marcados
     getSelectedAttrs: function() {
         let selected = {};
@@ -155,7 +161,7 @@ const PRODUCT_DETAIL = {
         let soldOut = variant == null || variant.stock <= 0;
         btn.disabled = soldOut;
         let text = btn.querySelector("span");
-        if (text) { text.textContent = soldOut ? "Agotado" : "Añadir al carrito"; }
+        if (text) { text.textContent = soldOut ? this.text("SoldOut", "Agotado") : this.text("Add", "Añadir al carrito"); }
         let msg = this.element.querySelector(".sold-out-msg");
         if (msg) { msg.hidden = !(variant != null && variant.stock <= 0); }
     },
@@ -192,7 +198,7 @@ const PRODUCT_DETAIL = {
             // price llega null si la variación no tiene fila en prices: se
             // enseña como no disponible en vez de "null €".
             let hasPrice = match.price != null;
-            priceEl.textContent = hasPrice ? MONEY.format(match.price) : "No disponible";
+            priceEl.textContent = hasPrice ? MONEY.format(match.price) : this.text("Unavailable", "No disponible");
             if (currencyEl) { currencyEl.hidden = !hasPrice; }
         }
     },
@@ -212,13 +218,13 @@ const PRODUCT_DETAIL = {
         let variant = this.findVariantByAttrs(selectedAttrs);
 
         if (!variant) {
-            this.showError("Selecciona una variación válida.");
+            this.showError(this.text("PickVariation", "Selecciona una variación válida."));
             return;
         }
         // El servidor la rechazaría igual ("No price found"); así el aviso se
         // entiende y no se hace la petición.
         if (variant.price == null) {
-            this.showError("Esta variación no está disponible ahora mismo.");
+            this.showError(this.text("VariationUnavailable", "Esta variación no está disponible ahora mismo."));
             return;
         }
 
@@ -226,7 +232,7 @@ const PRODUCT_DETAIL = {
         let quantity = parseInt(quantityInput.value) || 1;
 
         if (quantity <= 0) {
-            this.showError("La cantidad debe ser mayor que 0.");
+            this.showError(this.text("QuantityPositive", "La cantidad debe ser mayor que 0."));
             return;
         }
 

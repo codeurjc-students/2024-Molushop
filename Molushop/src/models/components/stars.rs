@@ -36,6 +36,11 @@ impl Stars {
         Stars { value: value.into(), small: true, lang: Lang::DEFAULT }
     }
 
+    /// En el idioma de la página: `{{ reviews.stars().localized(i18n) }}`.
+    pub fn localized(self, i18n: &I18n) -> Self {
+        self.in_lang(i18n.lang)
+    }
+
     /// La etiqueta en otro idioma (por defecto, español).
     pub fn in_lang(mut self, lang: Lang) -> Self {
         self.lang = lang;

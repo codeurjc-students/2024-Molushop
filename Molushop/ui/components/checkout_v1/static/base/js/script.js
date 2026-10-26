@@ -17,7 +17,10 @@ document.addEventListener('submit', (event) => {
     const button = form.querySelector('.confirm-button');
     button.disabled = true;
     button.setAttribute('aria-busy', 'true');
-    button.textContent = 'Confirmando pedido…';
+    // El texto de antes se guarda para devolverlo al volver atrás; el nuevo
+    // viene de la plantilla, en el idioma de la página.
+    button.dataset.idleText = button.textContent;
+    button.textContent = button.dataset.sendingText || 'Confirmando pedido…';
 });
 
 // Al volver atrás con el navegador la página sale de la caché tal cual,
@@ -30,5 +33,5 @@ window.addEventListener('pageshow', (event) => {
     const button = form.querySelector('.confirm-button');
     button.disabled = false;
     button.removeAttribute('aria-busy');
-    button.textContent = 'Confirmar pedido';
+    button.textContent = button.dataset.idleText || button.textContent;
 });

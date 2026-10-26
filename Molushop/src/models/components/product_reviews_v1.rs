@@ -6,6 +6,7 @@ use uuid::Uuid;
 use crate::controllers::components::product_reviews_controller::ROUTES;
 use crate::models::models_x::RatingSummaryRow;
 use crate::models::components::stars::Stars;
+use crate::i18n::I18n;
 
 /// Tope del comentario. El mismo número que el CHECK de la tabla: la
 /// validación del servidor y la de la BD tienen que decir lo mismo, y el
@@ -21,6 +22,7 @@ pub const PAGE_SIZE: i64 = 5;
 #[template(path = "components/product_reviews_v1/product_reviews_v1.html")]
 pub struct ProductReviewsV1 {
     pub reviews: ProductReviewsData,
+    pub i18n: I18n,
 }
 
 /// Sólo el cuerpo, sin el `<link>` del wrapper. Es lo que devuelve el "ver más":
@@ -30,6 +32,7 @@ pub struct ProductReviewsV1 {
 #[template(path = "components/product_reviews_v1/templates/base.html")]
 pub struct ProductReviewsV1Body {
     pub reviews: ProductReviewsData,
+    pub i18n: I18n,
 }
 
 /// Las URLs del componente, rellenadas por el controlador (`lazy_static`), no
@@ -197,9 +200,9 @@ impl ProductReviewsData {
         self.total == 0
     }
 
-    /// "4,3" — con coma, que es como se escribe un decimal en español.
-    pub fn average_label(&self) -> String {
-        format!("{:.1}", self.average).replace('.', ",")
+    /// "4,3" en español, "4.3" en inglés.
+    pub fn average_label(&self, i18n: &I18n) -> String {
+        format!("{:.1}", self.average).replace('.', &i18n.lang.decimal_separator().to_string())
     }
 
     /// Las estrellas de la MEDIA, con media estrella.
@@ -225,6 +228,11 @@ impl ProductReviewsData {
 
     pub fn shown(&self) -> i64 {
         self.items.len() as i64
+    }
+
+    /// "Ver más opiniones (5 de 12)".
+    pub fn more_label(&self, i18n: &I18n) -> String {
+        i18n.t_args("reviews-more", &[("shown", self.shown().into()), ("total", self.total.into())])
     }
 
     pub fn has_more(&self) -> bool {

@@ -1,8 +1,8 @@
 <div class="checkout-1" id="checkout-1">
     {% if checkout.is_empty() %}
     <div class="checkout-empty">
-        <span>No hay artículos que comprar.</span>
-        <a href="{{checkout.routes.cart}}" class="m-btn m-btn--secondary">Volver a la cesta</a>
+        <span>{{ i18n.t("checkout-empty") }}</span>
+        <a href="{{ i18n.url(checkout.routes.cart) }}" class="m-btn m-btn--secondary">{{ i18n.t("checkout-back-to-cart") }}</a>
     </div>
     {% else %}
     {# Un solo POST lleva la dirección y la confirmación: así no quedan filas
@@ -17,44 +17,44 @@
 
         <div class="checkout-main m-card">
             <div class="header-container">
-                <h1>Finalizar compra</h1>
-                <a href="{{checkout.routes.cart}}" class="no-generic-a back-to-cart">Volver a la cesta</a>
+                <h1>{{ i18n.t("checkout-title") }}</h1>
+                <a href="{{ i18n.url(checkout.routes.cart) }}" class="no-generic-a back-to-cart">{{ i18n.t("checkout-back-to-cart") }}</a>
             </div>
 
-            <h2 class="section-title">Dirección de envío</h2>
+            <h2 class="section-title">{{ i18n.t("checkout-address") }}</h2>
             <div class="address-form">
                 <label class="m-field">
-                    <span class="m-label">Dirección</span>
+                    <span class="m-label">{{ i18n.t("checkout-street1") }}</span>
                     <input class="m-input" type="text" name="street1" maxlength="255" required value="{{checkout.address.street1}}">
                 </label>
                 <label class="m-field">
-                    <span class="m-label">Dirección 2 <span class="optional">(opcional)</span></span>
+                    <span class="m-label">{{ i18n.t("checkout-street2") }} <span class="optional">{{ i18n.t("checkout-optional") }}</span></span>
                     <input class="m-input" type="text" name="street2" maxlength="255" value="{{checkout.address.street2}}">
                 </label>
                 <div class="field-row">
                     <label class="m-field">
-                        <span class="m-label">Código postal</span>
+                        <span class="m-label">{{ i18n.t("checkout-postal-code") }}</span>
                         <input class="m-input" type="text" name="postal_code" maxlength="20" required value="{{checkout.address.postal_code}}">
                     </label>
                     <label class="m-field">
-                        <span class="m-label">Ciudad</span>
+                        <span class="m-label">{{ i18n.t("checkout-city") }}</span>
                         <input class="m-input" type="text" name="city" maxlength="255" required value="{{checkout.address.city}}">
                     </label>
                 </div>
                 <label class="m-field">
-                    <span class="m-label">Provincia</span>
+                    <span class="m-label">{{ i18n.t("checkout-province") }}</span>
                     <input class="m-input" type="text" name="province" maxlength="255" required value="{{checkout.address.province}}">
                 </label>
             </div>
 
-            <h2 class="section-title">Artículos</h2>
+            <h2 class="section-title">{{ i18n.t("checkout-items") }}</h2>
             <div class="lines">
                 {% for item in checkout.cart_total.items %}
                 <div class="line{% if checkout.line_failed(item.id) %} line-failed{% endif %}">
                     <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
                     <div class="line-data">
                         <div class="title">
-                            <a href="{{item.url}}">{{item.name}}</a>
+                            <a href="{{ i18n.url(item.url) }}">{{item.name}}</a>
                         </div>
                         {% if !item.variation_label.is_empty() %}
                         <div class="variations">{{item.variation_label}}</div>
@@ -64,35 +64,35 @@
                         {% endif %}
                         <div class="quantity">x{{item.quantity}}</div>
                     </div>
-                    <div class="line-money">{{ item.subtotal_tag() }}</div>
+                    <div class="line-money">{{ item.subtotal_tag().localized(i18n) }}</div>
                 </div>
                 {% endfor %}
             </div>
         </div>
 
         <div class="checkout-side m-card">
-            <h2 class="title-resume">Resumen</h2>
+            <h2 class="title-resume">{{ i18n.t("cart-summary") }}</h2>
             <div class="data-resume">
                 <div class="space total">
-                    <span>Total de articulos ({{checkout.cart_total.total_units}})</span>
-                    <div class="money">{{ checkout.cart_total.total_tag() }}</div>
+                    <span>{{ i18n.t("cart-items-total") }} ({{checkout.cart_total.total_units}})</span>
+                    <div class="money">{{ checkout.cart_total.total_tag().localized(i18n) }}</div>
                 </div>
                 <div class="space discounts">
-                    <span>Descuento de articulos</span>
-                    <div class="money">- {{ checkout.cart_total.discount_tag() }}</div>
+                    <span>{{ i18n.t("cart-discount") }}</span>
+                    <div class="money">- {{ checkout.cart_total.discount_tag().localized(i18n) }}</div>
                 </div>
                 <div class="space shipment">
-                    <span>Envío</span>
-                    <span>Gratis</span>
+                    <span>{{ i18n.t("cart-shipping") }}</span>
+                    <span>{{ i18n.t("cart-shipping-free") }}</span>
                 </div>
                 <div class="space final-total">
-                    <span>Estimación total</span>
-                    <div class="money">{{ checkout.cart_total.final_total_tag() }}</div>
+                    <span>{{ i18n.t("cart-estimated-total") }}</span>
+                    <div class="money">{{ checkout.cart_total.final_total_tag().localized(i18n) }}</div>
                 </div>
                 <div class="iva">
-                    IVA incluido
+                    {{ i18n.t("cart-vat-included") }}
                 </div>
-                <button type="submit" class="m-btn m-btn--primary confirm-button">Confirmar pedido</button>
+                <button type="submit" class="m-btn m-btn--primary confirm-button" data-sending-text="{{ i18n.t("checkout-sending") }}">{{ i18n.t("checkout-confirm") }}</button>
             </div>
         </div>
     </form>

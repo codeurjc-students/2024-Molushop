@@ -166,13 +166,14 @@ fn review_from_row((id, author, rating_value, comment, created_at): ReviewRow) -
 /// Render del cuerpo de la sección: lo que devuelven el "ver más" y el POST de
 /// una opinión nueva.
 pub async fn get_product_reviews_body_render(
+    i18n: crate::i18n::I18n,
     product_id: &Uuid,
     page: i64,
     user_id: Option<&Uuid>,
     pool: &DbPool,
 ) -> String {
     let objeto = get_product_reviews_object(product_id, page, user_id, pool).await;
-    ProductReviewsV1Body { reviews: objeto }.render().unwrap()
+    ProductReviewsV1Body { reviews: objeto, i18n }.render().unwrap()
 }
 
 /// ¿Le ha llegado al usuario este producto? Es la regla para poder opinar:

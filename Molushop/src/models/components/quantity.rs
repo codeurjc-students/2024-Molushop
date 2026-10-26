@@ -1,4 +1,5 @@
 use askama::Template;
+use crate::i18n::{I18n, Lang};
 
 /// Átomo: selector de cantidad (− 1 +). Pinta los dos botones y el input; el
 /// JS común (`QUANTITY` en ui/utils/base.js) suma o resta sin pasarse de los
@@ -21,6 +22,8 @@ pub struct Quantity {
     /// `None` = sin tope.
     pub max: Option<i32>,
     pub small: bool,
+    /// Las etiquetas de los botones y del campo (`localized`).
+    pub lang: Lang,
 }
 
 impl Quantity {
@@ -32,13 +35,24 @@ impl Quantity {
         if let Some(m) = max {
             value = value.min(m);
         }
-        Quantity { value, min, max, small: false }
+        Quantity { value, min, max, small: false, lang: Lang::DEFAULT }
     }
 
     /// El del carrito, más bajo.
     pub fn sm(mut self) -> Self {
         self.small = true;
         self
+    }
+
+    /// En el idioma de la página: `{{ item.quantity_tag().localized(i18n) }}`.
+    pub fn localized(mut self, i18n: &I18n) -> Self {
+        self.lang = i18n.lang;
+        self
+    }
+
+    /// Una etiqueta (`qty-label`, `qty-decrease`, `qty-increase`).
+    pub fn label(&self, key: &str) -> String {
+        I18n::for_lang(self.lang).t(key)
     }
 
     pub fn at_min(&self) -> bool {

@@ -11,7 +11,8 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::message_modal::MessageModal;
-use crate::utils::hx::error_modal;
+use crate::utils::hx::error_modal_t;
+use crate::i18n::I18n;
 use crate::models::components::cart_total_v1::CartRoutes;
 use crate::constants::urls::CHECKOUT_URL;
 use super::scope::SCOPE_COMPONENTS;
@@ -53,6 +54,7 @@ pub struct AddToCartForm {
 
 #[post("/add")]
 async fn add_to_cart(
+    i18n: I18n,
     form: web::Json<AddToCartForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -72,26 +74,26 @@ async fn add_to_cart(
     let pool = pool_data.get_ref();
 
     if form_data.quantity <= 0 {
-        return error_modal(StatusCode::BAD_REQUEST, "La cantidad debe ser mayor a 0");
+        return error_modal_t(StatusCode::BAD_REQUEST, &i18n, "product-quantity-positive");
     }
 
     match cart_add_service::add_to_cart(&user_id, &form_data.product_var_id, form_data.quantity, pool).await {
-        Ok(msg) => {
+        Ok(_) => {
             let cart_count = get_cart_item_count(&user_id, pool).await;
-            let modal_render = MessageModal::new(&msg).render().unwrap();
+            let modal_render = MessageModal::translated(&i18n, "cart-added").render().unwrap();
             HttpResponse::Ok()
                 .insert_header(("X-Cart-Count", cart_count.to_string()))
                 .body(modal_render)
         }
         Err(ServiceError::VariationNotFound) => {
-            error_modal(StatusCode::BAD_REQUEST, "Variación no encontrada")
+            error_modal_t(StatusCode::BAD_REQUEST, &i18n, "cart-error-variation")
         }
         Err(ServiceError::NotEnoughStock) => {
-            error_modal(StatusCode::BAD_REQUEST, "No hay suficiente stock")
+            error_modal_t(StatusCode::BAD_REQUEST, &i18n, "cart-error-stock")
         }
         Err(e) => {
             println!("Error al añadir al carrito: {}", e);
-            error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al añadir al carrito")
+            error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, &i18n, "cart-error-add")
         }
     }
 }
@@ -104,28 +106,28 @@ pub struct UpdateCartForm {
 
 /// Devuelve el cuerpo del carrito re-renderizado junto al nuevo contador,
 /// que es lo que consumen tanto el componente como el badge del nav.
-async fn cart_body_response(user_id: &Uuid, pool: &DbPool) -> HttpResponse {
+async fn cart_body_response(i18n: I18n, user_id: &Uuid, pool: &DbPool) -> HttpResponse {
     let cart_count = get_cart_item_count(user_id, pool).await;
-    let body = get_cart_total_body_render(Some(user_id), pool).await;
+    let body = get_cart_total_body_render(i18n, Some(user_id), pool).await;
     HttpResponse::Ok()
         .insert_header(("X-Cart-Count", cart_count.to_string()))
         .body(body)
 }
 
-fn cart_error_response(e: ServiceError) -> HttpResponse {
+fn cart_error_response(i18n: &I18n, e: ServiceError) -> HttpResponse {
     match e {
         ServiceError::CartItemNotFound => {
-            error_modal(StatusCode::NOT_FOUND, "El producto ya no está en tu cesta")
+            error_modal_t(StatusCode::NOT_FOUND, i18n, "cart-error-line-gone")
         }
         ServiceError::VariationNotFound => {
-            error_modal(StatusCode::BAD_REQUEST, "Variación no encontrada")
+            error_modal_t(StatusCode::BAD_REQUEST, i18n, "cart-error-variation")
         }
         ServiceError::NotEnoughStock => {
-            error_modal(StatusCode::BAD_REQUEST, "No hay suficiente stock")
+            error_modal_t(StatusCode::BAD_REQUEST, i18n, "cart-error-stock")
         }
         e => {
             println!("Error al modificar el carrito: {}", e);
-            error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al modificar el carrito")
+            error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, i18n, "cart-error-update")
         }
     }
 }
@@ -143,6 +145,7 @@ fn unauthorized() -> HttpResponse {
 /// Fija la cantidad de una línea. Cantidad <= 0 elimina la línea.
 #[post("/update")]
 async fn update_cart_item(
+    i18n: I18n,
     form: web::Json<UpdateCartForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -156,13 +159,14 @@ async fn update_cart_item(
     let pool = pool_data.get_ref();
 
     match cart_update_service::update_cart_item(&user_id, &form_data.cart_product_id, form_data.quantity, pool).await {
-        Ok(_) => cart_body_response(&user_id, pool).await,
-        Err(e) => cart_error_response(e),
+        Ok(_) => cart_body_response(i18n, &user_id, pool).await,
+        Err(e) => cart_error_response(&i18n, e),
     }
 }
 
 #[delete("/remove/{cart_product_id}")]
 async fn remove_cart_item(
+    i18n: I18n,
     path: web::Path<Uuid>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -176,7 +180,7 @@ async fn remove_cart_item(
     let pool = pool_data.get_ref();
 
     match cart_update_service::remove_cart_item(&user_id, &cart_product_id, pool).await {
-        Ok(_) => cart_body_response(&user_id, pool).await,
-        Err(e) => cart_error_response(e),
+        Ok(_) => cart_body_response(i18n, &user_id, pool).await,
+        Err(e) => cart_error_response(&i18n, e),
     }
 }

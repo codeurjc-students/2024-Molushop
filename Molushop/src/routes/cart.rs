@@ -63,7 +63,7 @@ async fn get_cart(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_s
     
     let cart_render = CartPage{
         user_logged,
-        page_name:"Cesta".to_string(),
+        page_name:i18n.t("cart-page-title"),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,

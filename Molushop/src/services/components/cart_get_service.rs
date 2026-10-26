@@ -110,18 +110,20 @@ pub async fn get_cart_total_object(user_id: Option<&Uuid>, pool: &DbPool) -> Car
     CartTotalData::from_items(items)
 }
 
-pub async fn get_cart_total_render(user_id: Option<&Uuid>, pool: &DbPool) -> String {
+pub async fn get_cart_total_render(i18n: crate::i18n::I18n, user_id: Option<&Uuid>, pool: &DbPool) -> String {
     let objeto = get_cart_total_object(user_id, pool).await;
     CartTotalV1 {
-        cart_total: objeto
+        cart_total: objeto,
+        i18n,
     }.render().unwrap()
 }
 
 /// Render del cuerpo del componente, para los refrescos parciales tras
 /// modificar o eliminar una línea.
-pub async fn get_cart_total_body_render(user_id: Option<&Uuid>, pool: &DbPool) -> String {
+pub async fn get_cart_total_body_render(i18n: crate::i18n::I18n, user_id: Option<&Uuid>, pool: &DbPool) -> String {
     let objeto = get_cart_total_object(user_id, pool).await;
     CartTotalV1Body {
-        cart_total: objeto
+        cart_total: objeto,
+        i18n,
     }.render().unwrap()
 }

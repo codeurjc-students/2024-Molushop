@@ -88,7 +88,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
 
     let home_render = ProductPage{
         user_logged,    
-        page_name:"Product".to_string(),
+        page_name:format!("{} | Molushop", product_data.name),
         nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,

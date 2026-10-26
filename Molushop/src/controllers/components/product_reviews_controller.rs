@@ -9,6 +9,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 type DbPool = Pool<AsyncPgConnection>;
 
 use super::scope::SCOPE_COMPONENTS;
+use crate::i18n::I18n;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::product_reviews_v1::{ProductReviewsRoutes, MAX_COMMENT_LEN};
 use crate::models::error::ServiceError;
@@ -72,6 +73,7 @@ pub struct PageQuery {
 /// puesto en la ficha.
 #[get("/list/{product_id}")]
 async fn list_reviews(
+    i18n: I18n,
     path: web::Path<Uuid>,
     query: web::Query<PageQuery>,
     pool_data: web::Data<DbPool>,
@@ -80,7 +82,7 @@ async fn list_reviews(
     let product_id = path.into_inner();
     let page = query.page.unwrap_or(1);
     let user_id = session_user_id(&req);
-    let body = get_product_reviews_body_render(&product_id, page, user_id.as_ref(), pool_data.get_ref()).await;
+    let body = get_product_reviews_body_render(i18n, &product_id, page, user_id.as_ref(), pool_data.get_ref()).await;
 
     HttpResponse::Ok().body(body)
 }
@@ -98,6 +100,7 @@ pub struct ReviewForm {
 /// ya con la suya dentro y la media recalculada.
 #[post("/save")]
 async fn save_product_review(
+    i18n: I18n,
     form: web::Form<ReviewForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -119,34 +122,34 @@ async fn save_product_review(
 
     let rating_value = match form.rating_value {
         Some(v) => v,
-        None => return HttpResponse::BadRequest().body(form_error("Elige cuántas estrellas le das.")),
+        None => return HttpResponse::BadRequest().body(form_error(&i18n.t("reviews-error-no-rating"))),
     };
 
     match save_review(&user_id, &form.product_id, rating_value, form.comment, pool).await {
         Ok(()) => {
             // Vuelve a la primera página: la opinión recién escrita es la más
             // reciente, así que sale arriba del todo.
-            let body = get_product_reviews_body_render(&form.product_id, 1, Some(&user_id), pool).await;
+            let body = get_product_reviews_body_render(i18n, &form.product_id, 1, Some(&user_id), pool).await;
             HttpResponse::Ok().body(body)
         }
         Err(ServiceError::InvalidRating) => {
-            HttpResponse::BadRequest().body(form_error("La puntuación tiene que ir de 1 a 5 estrellas."))
+            HttpResponse::BadRequest().body(form_error(&i18n.t("reviews-error-rating-range")))
         }
-        Err(ServiceError::CommentTooLong) => HttpResponse::BadRequest().body(form_error(&format!(
-            "El comentario no puede pasar de {} caracteres.",
-            MAX_COMMENT_LEN
+        Err(ServiceError::CommentTooLong) => HttpResponse::BadRequest().body(form_error(&i18n.t_args(
+            "reviews-error-too-long",
+            &[("max", (MAX_COMMENT_LEN as i64).into())]
         ))),
         Err(ServiceError::ProductNotFound) => {
-            HttpResponse::BadRequest().body(form_error("Este producto ya no está disponible."))
+            HttpResponse::BadRequest().body(form_error(&i18n.t("reviews-error-product-gone")))
         }
         // 403 y no 401: la sesión es buena, lo que falta es haberlo recibido. Con un
         // 401 se abriría el login, que no arregla nada.
         Err(ServiceError::NotPurchased) => HttpResponse::Forbidden()
-            .body(form_error("Solo pueden opinar quienes ya han recibido este producto.")),
+            .body(form_error(&i18n.t("reviews-buyers-only"))),
         Err(e) => {
             println!("Error al guardar la opinión: {}", e);
             HttpResponse::InternalServerError()
-                .body(form_error("No se ha podido guardar tu opinión. Inténtalo otra vez."))
+                .body(form_error(&i18n.t("reviews-error-save")))
         }
     }
 }
@@ -159,6 +162,7 @@ async fn save_product_review(
 /// aunque el pedido se cancelase después de opinar.
 #[delete("/delete/{product_id}")]
 async fn delete_product_review(
+    i18n: I18n,
     path: web::Path<Uuid>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
@@ -177,13 +181,13 @@ async fn delete_product_review(
 
     match delete_review(&user_id, &product_id, pool).await {
         Ok(()) => {
-            let body = get_product_reviews_body_render(&product_id, 1, Some(&user_id), pool).await;
+            let body = get_product_reviews_body_render(i18n, &product_id, 1, Some(&user_id), pool).await;
             HttpResponse::Ok().body(body)
         }
         Err(e) => {
             println!("Error al borrar la opinión: {}", e);
             HttpResponse::InternalServerError()
-                .body(form_error("No se ha podido borrar tu opinión. Inténtalo otra vez."))
+                .body(form_error(&i18n.t("reviews-error-delete")))
         }
     }
 }

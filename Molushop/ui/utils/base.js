@@ -4,10 +4,18 @@
 // pinta el servidor (constants::money::format_amount y el átomo Price). Úsalo
 // siempre que el JS escriba un precio, en vez de toFixed().
 const MONEY = {
-    formatter: new Intl.NumberFormat("es-ES", {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }),
+    // El de <html lang>: "9,00" en español, "9.00" en inglés. Igual que
+    // constants::money::format_amount_in. Se mira en cada llamada: con
+    // hx-boost la página cambia sin recargar.
+    formatters: {},
+    formatter: function() {
+        let locale = document.documentElement.lang === "en" ? "en-GB" : "es-ES";
+        this.formatters[locale] ??= new Intl.NumberFormat(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        return this.formatters[locale];
+    },
 
     // Acepta número o texto ("150.99", que es como llega de la BD).
     format: function(value) {
@@ -15,7 +23,7 @@ const MONEY = {
         if (!Number.isFinite(number)) { return String(value); }
         // Sin "-0,00" para un negativo que redondea a cero, igual que en Rust.
         if (Math.abs(number) < 0.005) { number = 0; }
-        return this.formatter.format(number);
+        return this.formatter().format(number);
     }
 };
 

@@ -20,7 +20,7 @@
             {# Sin precio no se puede comprar: solo "No disponible", en gris y sin
                botón (el clic en la tarjeta sigue llevando a la ficha). #}
             {% if product.price.is_some() %}
-            <p class="producto-precio">{{ product.price_tag() }}</p>
+            <p class="producto-precio">{{ product.price_tag().localized(i18n) }}</p>
             <div class="producto-acciones">
                 {# Un <span> y no un <button>: va dentro del enlace a la ficha, que es
                    donde se elige la variación. #}

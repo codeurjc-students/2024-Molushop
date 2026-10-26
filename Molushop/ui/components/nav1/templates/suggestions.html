@@ -21,7 +21,7 @@
         <a class="nav1-suggest__item" role="option" id="nav1-suggest-p{{loop.index}}" href="{{ i18n.url(product.url) }}">
             <img class="nav1-suggest__image" src="{{product.image}}" alt="" loading="lazy">
             <span class="nav1-suggest__name">{{product.name}}</span>
-            <span class="nav1-suggest__meta">{% if product.price.is_some() %}{{ product.price_tag() }}{% else %}{{ i18n.t("card-unavailable") }}{% endif %}</span>
+            <span class="nav1-suggest__meta">{% if product.price.is_some() %}{{ product.price_tag().localized(i18n) }}{% else %}{{ i18n.t("card-unavailable") }}{% endif %}</span>
         </a>
         {% endfor %}
     </div>

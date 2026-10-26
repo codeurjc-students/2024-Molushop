@@ -74,7 +74,7 @@ pub async fn render_checkout_page(
 
     CheckoutPage{
         user_logged,
-        page_name:"Finalizar compra".to_string(),
+        page_name:i18n.t("checkout-page-title"),
         nav1:get_nav1_object(nombre_aux, user_id, pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,

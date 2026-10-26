@@ -1,7 +1,8 @@
 use askama::Template;
 use bigdecimal::BigDecimal;
 
-use crate::constants::money::{format_amount, symbol_of};
+use crate::constants::money::{format_amount_in, symbol_of};
+use crate::i18n::{I18n, Lang};
 
 /// Átomo: precio. Pinta un importe con su moneda en el formato de la tienda
 /// ("9,00 €"). El formato está en `constants::money::format_amount`, y el JS
@@ -25,16 +26,19 @@ pub struct Price {
     /// Código ISO ("EUR"), como en la BD; el símbolo sale al pintar.
     pub currency: String,
     pub large: bool,
+    /// El formato del importe, "No disponible" y dónde va el símbolo
+    /// (`localized`): "9,00 €" en español, "€9.00" en inglés.
+    pub lang: Lang,
 }
 
 impl Price {
     pub fn new(amount: &BigDecimal, currency: &str) -> Self {
-        Price { amount: Some(amount.clone()), currency: currency.to_string(), large: false }
+        Price { amount: Some(amount.clone()), currency: currency.to_string(), large: false, lang: Lang::DEFAULT }
     }
 
     /// Para un precio que puede faltar (una variación sin fila en `prices`).
     pub fn maybe(amount: Option<&BigDecimal>, currency: &str) -> Self {
-        Price { amount: amount.cloned(), currency: currency.to_string(), large: false }
+        Price { amount: amount.cloned(), currency: currency.to_string(), large: false, lang: Lang::DEFAULT }
     }
 
     /// El precio grande de la cabecera de la ficha.
@@ -43,15 +47,26 @@ impl Price {
         self
     }
 
+    /// En el idioma de la página: `{{ item.price_tag().localized(i18n) }}`.
+    pub fn localized(mut self, i18n: &I18n) -> Self {
+        self.lang = i18n.lang;
+        self
+    }
+
+    /// El símbolo delante del importe ("€9.00") y no detrás ("9,00 €").
+    pub fn currency_first(&self) -> bool {
+        self.lang == Lang::En
+    }
+
     pub fn has_amount(&self) -> bool {
         self.amount.is_some()
     }
 
-    /// "9,00", o "No disponible" si no hay precio.
+    /// "9,00" ("9.00" en inglés), o "No disponible" si no hay precio.
     pub fn amount_label(&self) -> String {
         match &self.amount {
-            Some(amount) => format_amount(amount),
-            None => "No disponible".to_string(),
+            Some(amount) => format_amount_in(amount, self.lang),
+            None => I18n::for_lang(self.lang).t("price-unavailable"),
         }
     }
 

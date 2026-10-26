@@ -6,6 +6,7 @@ use askama::Template;
 use serde_json::Value;
 
 use crate::models::components::message_modal::MessageModal;
+use crate::i18n::I18n;
 
 /// Respuesta de error (4xx/5xx) que htmx sí pinta: htmx 2 no pinta los
 /// errores por defecto, pero con `HX-Retarget` el manejador `htmx:beforeSwap`
@@ -23,6 +24,12 @@ pub fn error_response(status: StatusCode) -> HttpResponseBuilder {
 /// El aviso (MessageModal) con su código de error de verdad.
 pub fn error_modal(status: StatusCode, text: &str) -> HttpResponse {
     error_response(status).body(MessageModal::new(text).render().unwrap())
+}
+
+/// Como `error_modal`, en el idioma de la página: `key` es una clave de
+/// `locales/*` y el botón va traducido.
+pub fn error_modal_t(status: StatusCode, i18n: &I18n, key: &str) -> HttpResponse {
+    error_response(status).body(MessageModal::translated(i18n, key).render().unwrap())
 }
 
 /// El JSON de `HX-Trigger` solo con ASCII: una cabecera HTTP no admite tildes

@@ -64,7 +64,7 @@ async fn confirm(
         Some(s) => s.id,
         None => {
             return HttpResponse::Found()
-                .insert_header(("Location", CART_URL))
+                .insert_header(("Location", i18n.url(CART_URL)))
                 .finish();
         }
     };
@@ -75,21 +75,21 @@ async fn confirm(
     // La validación de la dirección es del servidor aunque los inputs sean
     // `required`: el `required` del navegador no es una garantía.
     if !form.address_is_complete() {
-        return repaint(i18n.clone(), &user_id, &form, "Faltan datos de la dirección de envío.", None, pool).await;
+        return repaint(i18n.clone(), &user_id, &form, &i18n.t("checkout-error-address"), None, pool).await;
     }
 
     match confirm_order(&user_id, &form, pool).await {
         Ok(order) => HttpResponse::SeeOther()
             // ?nuevo=1: la ficha solo dice "¡Pedido confirmado!" al llegar desde aquí
             // (lo lee get_order en routes/orders.rs)
-            .insert_header(("Location", format!("{}{}?nuevo=1", ORDER_URL_PREFIX, order.id)))
+            .insert_header(("Location", i18n.url(&format!("{}{}?nuevo=1", ORDER_URL_PREFIX, order.id))))
             .finish(),
 
         Err(ServiceError::NotEnoughStockLine { line_id, product_name, available }) => {
             let message = if available > 0 {
-                format!("Se ha quedado sin stock suficiente: de «{}» sólo quedan {}. Ajusta la cantidad en la cesta.", product_name, available)
+                i18n.t_args("checkout-error-stock-low", &[("product", product_name.into()), ("available", (available as i64).into())])
             } else {
-                format!("«{}» se ha quedado sin stock mientras completabas el pedido.", product_name)
+                i18n.t1("checkout-error-stock-out", "product", &product_name)
             };
             repaint(i18n.clone(), &user_id, &form, &message, Some(line_id), pool).await
         }
@@ -98,22 +98,22 @@ async fn confirm(
             // Sin líneas no hay página que repintar con sentido: el carrito es
             // el sitio al que mandarlo.
             HttpResponse::SeeOther()
-                .insert_header(("Location", CART_URL))
+                .insert_header(("Location", i18n.url(CART_URL)))
                 .finish()
         }
 
         Err(ServiceError::ProductUnavailable { line_id, product_name }) => {
-            let message = format!("«{}» ya no está disponible. Quítalo de la cesta para completar el pedido. No se ha cobrado nada.", product_name);
+            let message = i18n.t1("checkout-error-unavailable", "product", &product_name);
             repaint(i18n.clone(), &user_id, &form, &message, Some(line_id), pool).await
         }
 
         Err(ServiceError::MissingPrice) => {
-            repaint(i18n.clone(), &user_id, &form, "Uno de los artículos no tiene precio disponible ahora mismo. No se ha cobrado nada.", None, pool).await
+            repaint(i18n.clone(), &user_id, &form, &i18n.t("checkout-error-price"), None, pool).await
         }
 
         Err(e) => {
             println!("Error al confirmar el pedido: {}", e);
-            repaint(i18n.clone(), &user_id, &form, "No se ha podido completar el pedido. No se ha cobrado nada; inténtalo de nuevo.", None, pool).await
+            repaint(i18n.clone(), &user_id, &form, &i18n.t("checkout-error"), None, pool).await
         }
     }
 }

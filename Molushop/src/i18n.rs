@@ -4,8 +4,10 @@
 //! Las rutas de la tienda se registran dos veces, sin prefijo y bajo `/en`
 //! (`routes::config_routes`). El panel y el admin solo existen en español.
 //!
-//! Los fragmentos de htmx (`/components/...`) no llevan prefijo: su idioma es
-//! el de la página que los pide, que htmx manda en `HX-Current-URL`.
+//! Lo de `/components/...` (fragmentos de htmx, los `fetch` del carrito y de la
+//! ficha, el POST del checkout) no lleva prefijo: va en el idioma de la página
+//! desde la que se pide. htmx la manda en `HX-Current-URL`; para `fetch` y los
+//! formularios normales, el navegador la pone en `Referer`.
 //!
 //! El navegador (Accept-Language) y la cookie `lang` (el selector del pie) solo
 //! deciden a dónde lleva la raíz `/` (`routes::home::redirect_home`).
@@ -32,6 +34,9 @@ static_loader! {
         customise: |bundle| bundle.set_use_isolating(false),
     };
 }
+
+/// Los componentes de la tienda (`controllers::components::scope`).
+const COMPONENTS_PREFIX: &str = "/components/";
 
 /// La cookie que guarda el idioma elegido en el selector del pie.
 pub const LANG_COOKIE: &str = "lang";
@@ -131,6 +136,16 @@ impl Lang {
     }
 }
 
+/// Un número para `I18n::t_count`. askama pasa los campos por referencia
+/// (`&i64`) y los literales como `i32`: así vale cualquiera.
+pub trait Count {
+    fn count(&self) -> i64;
+}
+impl Count for i64 { fn count(&self) -> i64 { *self } }
+impl Count for i32 { fn count(&self) -> i64 { *self as i64 } }
+impl Count for usize { fn count(&self) -> i64 { *self as i64 } }
+impl<T: Count + ?Sized> Count for &T { fn count(&self) -> i64 { (**self).count() } }
+
 /// Un enlace del selector de idioma.
 #[derive(Clone, Debug)]
 pub struct LangLink {
@@ -165,19 +180,21 @@ impl I18n {
     pub fn from_http_request(req: &HttpRequest) -> Self {
         let info = req.connection_info();
         let origin = format!("{}://{}", info.scheme(), info.host());
-        let (mut lang, path) = Lang::split_path(req.path());
+        let (lang, path) = Lang::split_path(req.path());
+        // Lo de /components va en el idioma de la página que lo pide (y esa
+        // es la página para hreflang, si se repinta entera: el checkout).
+        if lang == Lang::DEFAULT && path.starts_with(COMPONENTS_PREFIX) {
+            let headers = req.headers();
+            let page = headers.get("HX-Current-URL").or_else(|| headers.get(actix_web::http::header::REFERER));
+            if let Some(page) = page.and_then(|v| v.to_str().ok()) {
+                let (page_lang, page_path) = Lang::split_path(path_of_url(page));
+                return I18n::new(page_lang, page_path, &origin);
+            }
+        }
         let path = match req.query_string() {
             "" => path.to_string(),
             query => format!("{}?{}", path, query),
         };
-        // Un fragmento de htmx (no una página con hx-boost) va en el idioma de
-        // la página desde la que se pide.
-        let headers = req.headers();
-        if lang == Lang::DEFAULT && headers.contains_key("HX-Request") && !headers.contains_key("HX-Boosted") {
-            if let Some(current) = headers.get("HX-Current-URL").and_then(|v| v.to_str().ok()) {
-                lang = Lang::split_path(path_of_url(current)).0;
-            }
-        }
         I18n::new(lang, &path, &origin)
     }
 
@@ -203,6 +220,12 @@ impl I18n {
     /// `{{ i18n.t1("search-title-query", "q", q) }}`.
     pub fn t1(&self, key: &str, name: &'static str, value: &str) -> String {
         self.t_args(key, &[(name, FluentValue::from(value))])
+    }
+
+    /// Un texto con plural según `count`, para las plantillas:
+    /// `{{ i18n.t_count("product-reviews-count", n) }}`.
+    pub fn t_count(&self, key: &str, count: impl Count) -> String {
+        self.t_args(key, &[("count", FluentValue::from(count.count()))])
     }
 
     /// Con dos variables de texto.
@@ -351,6 +374,24 @@ mod tests {
                 .collect()
         };
         assert_eq!(keys("es"), keys("en"));
+    }
+
+    #[test]
+    fn components_follow_the_page_language() {
+        use actix_web::test::TestRequest;
+        let from = |req: TestRequest| I18n::from_http_request(&req.to_http_request());
+        // htmx manda la página en HX-Current-URL...
+        let i18n = from(TestRequest::get().uri("/components/search-suggestions?q=pa")
+            .insert_header(("HX-Current-URL", "http://localhost:8080/en/search?q=pa")));
+        assert_eq!((i18n.lang, i18n.path.as_str()), (Lang::En, "/search?q=pa"));
+        // ...y fetch y los formularios, el navegador en Referer.
+        let i18n = from(TestRequest::post().uri("/components/checkout/confirm")
+            .insert_header(("Referer", "http://localhost:8080/en/checkout?lines=1")));
+        assert_eq!((i18n.lang, i18n.path.as_str()), (Lang::En, "/checkout?lines=1"));
+        // Fuera de /components manda la URL, venga de donde venga.
+        let i18n = from(TestRequest::get().uri("/search").insert_header(("Referer", "http://localhost:8080/en/home")));
+        assert_eq!(i18n.lang, Lang::Es);
+        assert_eq!(from(TestRequest::get().uri("/components/x")).lang, Lang::Es);
     }
 
     #[test]
