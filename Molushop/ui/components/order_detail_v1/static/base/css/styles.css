@@ -26,16 +26,17 @@
             color: var(--color-text-muted);
         }
     }
+    /* Móvil: el resumen va debajo de las líneas; desde 900px, al lado. */
     .order-body{
         display: flex;
+        flex-direction: column;
         gap: 1em;
-        align-items: flex-start;
 
         .order-main{
             flex: 1 1 auto;
+            min-width: 0;
         }
         .order-side{
-            flex: 0 0 300px;
             display: flex;
             flex-direction: column;
             gap: 0.5em;
@@ -109,5 +110,16 @@
     }
     .back-to-cart{
         margin-top: 0.5em;
+    }
+}
+
+@media (min-width: 900px) {
+    .order-detail-1 .order-body{
+        flex-direction: row;
+        align-items: flex-start;
+
+        .order-side{
+            flex: 0 0 300px;
+        }
     }
 }
