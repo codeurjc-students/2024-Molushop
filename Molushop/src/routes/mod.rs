@@ -6,6 +6,7 @@ pub mod product;
 pub mod cart;
 pub mod checkout;
 pub mod orders;
+pub mod favorites;
 pub mod panel;
 pub mod panel_products;
 pub mod panel_orders;
@@ -44,6 +45,7 @@ fn shop_routes(cfg: &mut web::ServiceConfig) {
     cart::config(cfg);
     checkout::config(cfg);
     orders::config(cfg);
+    favorites::config(cfg);
     account::config(cfg);
     password_reset::config(cfg);
 }

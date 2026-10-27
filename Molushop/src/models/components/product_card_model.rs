@@ -36,6 +36,10 @@ pub struct ProductCardData{
     /// Si el usuario lo tiene en favoritos. No sale de la consulta de las
     /// tarjetas: lo pone `mark_favorites` (product_card_group_service).
     pub is_favorite: bool,
+    /// `false` = ya no se vende (borrado, inactivo o de una tienda inactiva).
+    /// Solo sale así en "Mis favoritos": la tarjeta no enlaza a la ficha, que
+    /// daría 404, y deja el corazón para quitarlo.
+    pub available: bool,
 }
 
 impl ProductCardData {
@@ -67,6 +71,7 @@ impl Default for ProductCardData {
             rating_average: 0.0,
             rating_count: 0,
             is_favorite: false,
+            available: true,
         }
     }
 }
@@ -92,6 +97,7 @@ impl From<ProductCard1> for ProductCardData {
             rating_average: db.rating_average,
             rating_count: db.rating_count,
             is_favorite: false,
+            available: true,
         }
     }
 }
@@ -123,5 +129,15 @@ mod tests {
         assert!(full.contains("fav-btn is-active"));
         assert!(full.contains("/components/favorites/remove/"));
         assert!(full.contains("icon-heart-filled"));
+    }
+
+    #[test]
+    fn la_que_ya_no_se_vende_no_enlaza_y_deja_quitarla() {
+        let product = ProductCardData { id: Uuid::new_v4(), is_favorite: true, available: false, ..Default::default() };
+        let html = ProductCard { product, i18n: I18n::default_ref() }.render().unwrap();
+        assert!(html.contains("product-card is-unavailable"));
+        assert!(!html.contains("<a class=\"link\""), "sin enlace: la ficha daría 404");
+        assert!(html.contains("Ya no está a la venta"));
+        assert!(html.contains("/components/favorites/remove/"));
     }
 }

@@ -1,13 +1,18 @@
 
 
-<div class="product-card">
+<div class="product-card{% if !product.available %} is-unavailable{% endif %}">
     {# Fuera del enlace: dentro, pulsarlo llevaría también a la ficha. Va en la
        esquina de la imagen (product_card/css). #}
     <div class="product-card__fav">
         {% let fav = product.favorite_button() %}
         {% include "components/favorite_button/templates/button.html" %}
     </div>
+    {# Lo que ya no se vende (solo en "Mis favoritos") no enlaza: la ficha daría 404. #}
+    {% if product.available %}
     <a class="link" href="{{ i18n.url(product.url) }}">
+    {% else %}
+    <div class="link">
+    {% endif %}
         <!--La ruta de la imagen dependerá del producto-->
         <img src="{{product.image}}" alt="{{product.name}}">
         <div class="producto-info">
@@ -24,7 +29,9 @@
             </div>
             {# Sin precio no se puede comprar: solo "No disponible", en gris y sin
                botón (el clic en la tarjeta sigue llevando a la ficha). #}
-            {% if product.price.is_some() %}
+            {% if !product.available %}
+            <p class="producto-precio is-unavailable">{{ i18n.t("card-no-longer-sold") }}</p>
+            {% else if product.price.is_some() %}
             <p class="producto-precio">{{ product.price_tag().localized(i18n) }}</p>
             <div class="producto-acciones">
                 {# Un <span> y no un <button>: va dentro del enlace a la ficha, que es
@@ -35,5 +42,9 @@
             <p class="producto-precio is-unavailable">{{ i18n.t("card-unavailable") }}</p>
             {% endif %}
         </div>
+    {% if product.available %}
     </a>
+    {% else %}
+    </div>
+    {% endif %}
 </div>

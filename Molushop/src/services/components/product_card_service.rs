@@ -68,6 +68,7 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
         rating_average: 0.0,
         rating_count: 0,
         is_favorite: false,
+        available: true,
     }
 }
 pub async fn get_product_card_render(id:&Uuid,pool:&DbPool)->String{

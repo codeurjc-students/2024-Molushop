@@ -1,13 +1,16 @@
 use std::collections::HashSet;
 
 use diesel::prelude::*;
+use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
 use uuid::Uuid;
 
 use crate::constants::product_status::PRODUCT_ACTIVE;
+use crate::models::components::product_card_model::ProductCardData;
 use crate::models::error::ServiceError;
+use crate::models::models_x::ProductCard1;
 use crate::schema::{favorites, products};
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -126,4 +129,76 @@ pub async fn favorite_product_ids(
         .await?;
 
     Ok(ids)
+}
+
+/// Una tarjeta de "Mis favoritos": la de siempre más si aún se vende.
+#[derive(QueryableByName)]
+struct FavoriteCardRow {
+    #[diesel(embed)]
+    card: ProductCard1,
+    #[diesel(sql_type = diesel::sql_types::Bool)]
+    available: bool,
+}
+
+/// Las tarjetas de "Mis favoritos", del último guardado al primero, con el
+/// corazón lleno. A diferencia de las de la portada (`get_product_cards1`),
+/// salen también las que ya no se venden, marcadas: si desaparecieran sin más,
+/// el usuario no sabría qué ha pasado con lo que guardó.
+pub async fn favorite_cards(user_id: &Uuid, pool: &DbPool) -> Result<Vec<ProductCardData>, ServiceError> {
+    let connection = &mut pool
+        .get()
+        .await
+        .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
+
+    let rows: Vec<FavoriteCardRow> = sql_query(r#"
+        select p.id,
+            p.name,
+            p.brand,
+            (select img.image_url
+            from images_product img
+            where img.product_id = p.id
+            order by img.is_main desc, img.id asc
+            limit 1) as image_url,
+            pr.price,
+            pr.currency,
+            s.store_name,
+            s.id store_id,
+            (select coalesce(avg(r.rating_value), 0)::float8 from ratings r where r.product_id = p.id) as rating_average,
+            (select count(*) from ratings r where r.product_id = p.id) as rating_count,
+            -- Lo mismo que exige la portada: producto activo de una tienda activa.
+            (p.status = 1 and s.id is not null) as available
+        from favorites f
+        join products p on p.id = f.product_id
+        -- El precio "desde", como en get_product_cards1.
+        left join lateral (
+            select pr2.price, pr2.currency
+            from product_variations pv
+            join prices pr2 on pr2.variation_id = pv.id
+            where pv.product_id = p.id and pv.status = 1
+            order by pr2.price asc
+            limit 1
+        ) pr on true
+        -- LEFT y no JOIN: sin tienda activa la tarjeta sale igual, como no disponible.
+        left join lateral (
+            select s2.id, s2.store_name
+            from product_seller ps
+            join seller s2 on s2.id = ps.seller_id and s2.status = 1
+            where ps.product_id = p.id
+            limit 1
+        ) s on true
+        where f.user_id = $1
+        order by f.added_at desc, p.id;
+    "#)
+        .bind::<diesel::sql_types::Uuid, _>(user_id)
+        .load(connection)
+        .await?;
+
+    Ok(rows
+        .into_iter()
+        .map(|row| ProductCardData {
+            is_favorite: true,
+            available: row.available,
+            ..ProductCardData::from(row.card)
+        })
+        .collect())
 }

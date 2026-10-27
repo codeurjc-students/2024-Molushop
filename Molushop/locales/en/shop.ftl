@@ -14,6 +14,7 @@ nav-search-submit = Search
 nav-cart = Cart
 nav-profile = Profile
 nav-orders = My orders
+nav-favorites = My favorites
 nav-account = My account
 nav-logout = Log out
 nav-login = Sign in
@@ -43,6 +44,14 @@ favorites-add = Save to favorites
 favorites-remove = Remove from favorites
 favorites-error-gone = This product is no longer for sale.
 favorites-error = We couldn't update your favorites. Please try again.
+favorites-page-title = My favorites | Molushop
+favorites-count = { $count ->
+    [one] 1 product
+   *[other] { $count } products
+}
+favorites-login-prompt = Sign in to see your favorites.
+favorites-empty = You haven't saved any products yet. Tap the heart on the ones you like to keep them here.
+card-no-longer-sold = No longer for sale
 
 ## Product cards
 card-add-to-cart = Add to cart

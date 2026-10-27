@@ -7,6 +7,7 @@ pub mod sandbox_page_model;
 pub mod checkout_page_model;
 pub mod order_page_model;
 pub mod orders_page_model;
+pub mod favorites_page_model;
 pub mod account_page_model;
 pub mod password_forgot_page_model;
 pub mod password_reset_page_model;

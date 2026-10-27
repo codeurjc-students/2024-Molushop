@@ -31,6 +31,7 @@ pub struct Routes{
     pub home: String,
     pub cart: String,
     pub orders: String,
+    pub favorites: String,
     pub account: String,
     pub logout: String,
     pub search: String,

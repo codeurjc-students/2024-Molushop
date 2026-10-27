@@ -6,6 +6,8 @@ pub const CHECKOUT_URL: &str = "/checkout";
 pub const ORDER_URL_PREFIX: &str = "/orders/";
 /// Lista de "mis pedidos".
 pub const ORDERS_URL: &str = "/orders";
+/// "Mis favoritos" (plan de favoritos, paso 5).
+pub const FAVORITES_URL: &str = "/favorites";
 /// "Mi cuenta": cambiar la contraseña y cerrar las demás sesiones.
 pub const ACCOUNT_URL: &str = "/account";
 /// Portada. Ojo: `nav1_controller::ROUTES` todavía la lleva escrita a mano;

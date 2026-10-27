@@ -1,0 +1,35 @@
+{% extends "layouts/shop.html" %}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <div class="favorites-page">
+        <div class="favorites-header">
+            <h1>{{ i18n.t("nav-favorites") }}</h1>
+            {% if !products.is_empty() %}
+            <span class="favorites-count">{{ i18n.t_count("favorites-count", products.len()) }}</span>
+            {% endif %}
+        </div>
+
+        {% if !user_logged %}
+        <!-- data-login-required: login_modal.js abre el login solo al entrar -->
+        <div class="favorites-empty m-card" data-login-required>
+            <span>{{ i18n.t("favorites-login-prompt") }}</span>
+            <button type="button" class="m-btn m-btn--primary open-login-modal">{{ i18n.t("nav-login") }}</button>
+        </div>
+        {% else if products.is_empty() %}
+        <div class="favorites-empty m-card">
+            <span>{{ i18n.t("favorites-empty") }}</span>
+            <a href="{{ i18n.url(home_url) }}" class="m-btn m-btn--primary">{{ i18n.t("home-hero-cta") }}</a>
+        </div>
+        {% else %}
+        {# Quitar un favorito solo vacía el corazón: la tarjeta se queda hasta
+           recargar, por si ha sido sin querer. #}
+        <div class="product-card-multiple">
+            {% for product in products %}
+            <div class="product-card-container">
+                {% include "components/product_card/templates/product_card.html" %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

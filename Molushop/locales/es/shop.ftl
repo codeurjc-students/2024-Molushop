@@ -15,6 +15,7 @@ nav-search-submit = Buscar
 nav-cart = Carrito
 nav-profile = Perfil
 nav-orders = Mis pedidos
+nav-favorites = Mis favoritos
 nav-account = Mi cuenta
 nav-logout = Cerrar sesión
 nav-login = Identifícate
@@ -44,6 +45,14 @@ favorites-add = Guardar en favoritos
 favorites-remove = Quitar de favoritos
 favorites-error-gone = Este producto ya no está a la venta.
 favorites-error = No se ha podido guardar el cambio en tus favoritos. Inténtalo de nuevo.
+favorites-page-title = Mis favoritos | Molushop
+favorites-count = { $count ->
+    [one] 1 producto
+   *[other] { $count } productos
+}
+favorites-login-prompt = Identifícate para ver tus favoritos.
+favorites-empty = Todavía no has guardado ningún producto. Pulsa el corazón de los que te gusten para tenerlos aquí.
+card-no-longer-sold = Ya no está a la venta
 
 ## Tarjetas de producto
 card-add-to-cart = Añadir al carrito

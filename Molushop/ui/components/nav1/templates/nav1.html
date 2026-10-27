@@ -54,6 +54,7 @@
           {% if nav1.logged %}
           <ul class="profile-menu-list">
             <li><a href="{{ i18n.url(nav1.routes.orders) }}">{{ i18n.t("nav-orders") }}</a></li>
+            <li><a href="{{ i18n.url(nav1.routes.favorites) }}">{{ i18n.t("nav-favorites") }}</a></li>
             <li><a href="{{ i18n.url(nav1.routes.account) }}">{{ i18n.t("nav-account") }}</a></li>
           </ul>
           <button type="button" class="profile-menu-logout"

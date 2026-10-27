@@ -16,6 +16,18 @@
     position: relative; /* Para el corazón de favoritos, en la esquina */
 }
 
+/* Ya no se vende (solo en "Mis favoritos"): sin enlace, la foto en gris y sin
+   el levantamiento al pasar el ratón. El corazón sigue igual para quitarlo. */
+.product-card.is-unavailable:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+}
+
+.product-card.is-unavailable img {
+    filter: grayscale(1);
+    opacity: 0.6;
+}
+
 /* Corazón de favoritos (favorite_button) sobre la esquina de la imagen. Va
    fuera del enlace a la ficha; aquí, redondo, más pequeño y con sombra para
    que se vea sobre cualquier foto. */
