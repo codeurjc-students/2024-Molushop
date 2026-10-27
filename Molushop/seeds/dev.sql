@@ -15,7 +15,8 @@
 --                        sirve para el selector de tienda) y de "Tienda Retirada" (inactiva)
 --   vendedora_pendiente  solo tiene "Tienda Pendiente" (pendiente de aprobar)
 --   comprador_dev        pedidos con líneas en todos los estados, carrito con
---                        líneas que ya no se venden, dirección guardada
+--                        líneas que ya no se venden, dirección guardada,
+--                        cuatro favoritos (dos ya no se venden)
 --   comprador2_dev       un pedido entregado y una opinión
 --
 -- Productos (ids 33333333-...-0000000000NN) y lo que prueban:
@@ -194,6 +195,16 @@ INSERT INTO ratings (id, product_id, user_id, rating_value, comment) VALUES
         'Muy buena calidad, la talla es la esperada.'),
     ('bbbbbbbb-0000-4000-8000-000000000002', '33333333-0000-4000-8000-000000000001', '11111111-0000-4000-8000-000000000005', 3,
         NULL);
+
+-- ---------------------------------------------------------------- Favoritos
+-- De comprador_dev: dos que se venden y dos que ya no (salen "No disponible"
+-- en la página de favoritos). Las fechas fijan el orden: el último guardado,
+-- primero.
+INSERT INTO favorites (id, user_id, product_id, added_at) VALUES
+    ('cccccccc-0000-4000-8000-000000000001', '11111111-0000-4000-8000-000000000004', '33333333-0000-4000-8000-000000000001', NOW() - INTERVAL '4 days'), -- camiseta
+    ('cccccccc-0000-4000-8000-000000000002', '11111111-0000-4000-8000-000000000004', '33333333-0000-4000-8000-000000000007', NOW() - INTERVAL '3 days'), -- taza
+    ('cccccccc-0000-4000-8000-000000000003', '11111111-0000-4000-8000-000000000004', '33333333-0000-4000-8000-000000000009', NOW() - INTERVAL '2 days'), -- bufanda: inactiva
+    ('cccccccc-0000-4000-8000-000000000004', '11111111-0000-4000-8000-000000000004', '33333333-0000-4000-8000-000000000006', NOW() - INTERVAL '1 day');  -- gorra: eliminada
 
 -- ---------------------------------------------------------------- Carrito
 -- Carrito activo de comprador_dev: una línea buena y cuatro que ya no se

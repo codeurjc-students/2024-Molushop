@@ -139,11 +139,9 @@ diesel::table! {
 diesel::table! {
     favorites (id) {
         id -> Uuid,
-        user_id -> Nullable<Uuid>,
-        product_var_id -> Nullable<Uuid>,
+        user_id -> Uuid,
+        product_id -> Uuid,
         added_at -> Timestamptz,
-        #[max_length = 255]
-        notes -> Nullable<Varchar>,
     }
 }
 
@@ -400,7 +398,7 @@ diesel::joinable!(customer_address -> base_user (customer_id));
 diesel::joinable!(discount_history -> product_variations (variation_id));
 diesel::joinable!(discounts -> product_variations (variation_id));
 diesel::joinable!(favorites -> base_user (user_id));
-diesel::joinable!(favorites -> product_variations (product_var_id));
+diesel::joinable!(favorites -> products (product_id));
 diesel::joinable!(images_product -> products (product_id));
 diesel::joinable!(images_product_variations -> images_product (image_id));
 diesel::joinable!(images_product_variations -> product_variations (variation_id));

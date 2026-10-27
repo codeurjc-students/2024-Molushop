@@ -21,3 +21,4 @@ pub mod account_service;
 pub mod mail_service;
 pub mod password_reset_service;
 pub mod search_service;
+pub mod favorites_service;
