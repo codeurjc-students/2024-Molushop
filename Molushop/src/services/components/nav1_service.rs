@@ -24,9 +24,9 @@ pub async fn get_nav1_object(name: String, user_id: Option<&Uuid>, pool: &DbPool
 }
 
 pub async fn get_nav1_render(name: String, user_id: Option<&Uuid>, pool: &DbPool) -> String {
-    let objeto = get_nav1_object(name, user_id, pool).await;
+    let data = get_nav1_object(name, user_id, pool).await;
     Nav1 {
-        nav1: objeto,
+        nav1: data,
         i18n: crate::i18n::I18n::default_ref(),
     }.render().unwrap()
 }

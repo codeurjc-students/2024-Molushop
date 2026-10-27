@@ -172,8 +172,8 @@ pub async fn get_product_reviews_body_render(
     user_id: Option<&Uuid>,
     pool: &DbPool,
 ) -> String {
-    let objeto = get_product_reviews_object(product_id, page, user_id, pool).await;
-    ProductReviewsV1Body { reviews: objeto, i18n }.render().unwrap()
+    let data = get_product_reviews_object(product_id, page, user_id, pool).await;
+    ProductReviewsV1Body { reviews: data, i18n }.render().unwrap()
 }
 
 /// ¿Le ha llegado al usuario este producto? Es la regla para poder opinar:

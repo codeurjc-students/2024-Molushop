@@ -8,7 +8,7 @@
     <nav aria-label="Categoría elegida">
         <ol class="crumbs">
             <li><button type="button" hx-get="{{routes.reset_category}}" hx-target=".chain">Categorías</button></li>
-        {% for elem in padres %}
+        {% for elem in ancestors %}
             {% if loop.last %}
             <li aria-current="page">{{elem.name}}</li>
             {% else %}

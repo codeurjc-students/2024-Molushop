@@ -112,8 +112,9 @@ mod tests {
         ProductCard { product, i18n: I18n::default_ref() }.render().unwrap()
     }
 
+    /// Dentro del enlace, pulsar el corazón llevaría también a la ficha.
     #[test]
-    fn el_corazon_va_fuera_del_enlace() {
+    fn heart_is_outside_the_link() {
         let html = render(false);
         let heart = html.find("fav-btn").unwrap();
         let link = html.find("class=\"link\"").unwrap();
@@ -121,7 +122,7 @@ mod tests {
     }
 
     #[test]
-    fn el_corazon_sale_lleno_o_vacio() {
+    fn heart_is_filled_or_empty() {
         let empty = render(false);
         assert!(empty.contains("/components/favorites/add/"));
         assert!(empty.contains("aria-pressed=\"false\""));
@@ -131,8 +132,9 @@ mod tests {
         assert!(full.contains("icon-heart-filled"));
     }
 
+    /// La que ya no se vende no enlaza (la ficha daría 404), pero deja quitarla de favoritos.
     #[test]
-    fn la_que_ya_no_se_vende_no_enlaza_y_deja_quitarla() {
+    fn unavailable_card_has_no_link_and_can_be_removed() {
         let product = ProductCardData { id: Uuid::new_v4(), is_favorite: true, available: false, ..Default::default() };
         let html = ProductCard { product, i18n: I18n::default_ref() }.render().unwrap();
         assert!(html.contains("product-card is-unavailable"));

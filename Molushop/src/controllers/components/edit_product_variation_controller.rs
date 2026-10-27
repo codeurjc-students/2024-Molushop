@@ -181,8 +181,8 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
     //aqui añadir headers a la respuesta
     /* 
     println!("{:?}",form_general);
-    let modal_respuesta = MessageModal::new("Prueba de edit_general, hecha correctamente").render().unwrap();
-    HttpResponse::Ok().body(modal_respuesta)*/
+    let modal_html = MessageModal::new("Prueba de edit_general, hecha correctamente").render().unwrap();
+    HttpResponse::Ok().body(modal_html)*/
 }
 
 #[derive(Deserialize)]
@@ -233,9 +233,9 @@ let form_identifiers = data.into_inner();
     match result{
         Ok(numero) =>{
             //aqui añadir a que 
-            let modal_respuesta = MessageModal::new("Identificadores editados correctamente").render().unwrap();
+            let modal_html = MessageModal::new("Identificadores editados correctamente").render().unwrap();
             println!("Todo correcto");
-            HttpResponse::Ok().body(modal_respuesta)
+            HttpResponse::Ok().body(modal_html)
         },
         Err(e)=>{
             println!("Ha ocurrido un error: {}",e);
@@ -296,13 +296,13 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
 
     match result_update_price {
         Ok(_) => {
-            let modal_respuesta = MessageModal::new("Precio actualizado correctamente").render().unwrap();
+            let modal_html = MessageModal::new("Precio actualizado correctamente").render().unwrap();
             let trigger = json!({
                 "variation_update": { "target": ".variation-edit-container", "price": regular_price.to_string() }
             });
             HttpResponse::Ok()
                 .insert_header(("HX-Trigger", trigger.to_string()))
-                .body(modal_respuesta)
+                .body(modal_html)
         },
         Err(e) => {
             println!("Error al actualizar precio: {}", e);
@@ -328,13 +328,13 @@ let form = data.into_inner();
     let result_stock = set_stock_variation(&var_id, &new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
-            let modal_respuesta = MessageModal::new("Stock actualizado").render().unwrap();
+            let modal_html = MessageModal::new("Stock actualizado").render().unwrap();
             let trigger = json!({
                 "variation_update": { "target": ".variation-edit-container", "stock": new_stock }
             });
             return HttpResponse::Ok()
                 .insert_header(("HX-Trigger", trigger.to_string()))
-                .body(modal_respuesta)
+                .body(modal_html)
         },
         Err(e)=>{
             println!("{}",e);

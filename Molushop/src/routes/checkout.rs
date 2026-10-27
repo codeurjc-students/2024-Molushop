@@ -62,12 +62,12 @@ pub async fn render_checkout_page(
     checkout: CheckoutData,
     pool: &DbPool
 ) -> String {
-    let mut nombre_aux = "".to_string();
+    let mut user_name = "".to_string();
     let mut user_logged = false;
 
     if let Some(user_id) = user_id {
         if let Ok(user) = get_user_2(user_id, pool).await {
-            nombre_aux = user.username;
+            user_name = user.username;
             user_logged = true;
         }
     }
@@ -75,7 +75,7 @@ pub async fn render_checkout_page(
     CheckoutPage{
         user_logged,
         page_name:i18n.t("checkout-page-title"),
-        nav1:get_nav1_object(nombre_aux, user_id, pool).await,
+        nav1:get_nav1_object(user_name, user_id, pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         checkout

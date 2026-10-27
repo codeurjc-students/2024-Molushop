@@ -101,7 +101,7 @@ async fn home_categories(lang: Lang, pool: &DbPool) -> Vec<CategoryLink> {
 async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     
-    let mut nombre_aux = "".to_string();
+    let mut user_name = "".to_string();
     let mut user_logged = false;
     let mut user_id_opt: Option<Uuid> = None;
 
@@ -114,7 +114,7 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_s
                 //datos del usuario
         match get_user_2(&user_id,&pool).await{
             Ok(user)=>{
-                nombre_aux = user.username;
+                user_name = user.username;
                 user_logged = true;
             }
             Err(e)=>{
@@ -137,7 +137,7 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,req: HttpRequest,opt_s
         page_name:i18n.t("home-page-title"),
         group_cards2:get_product_card_group_render_all(&i18n, user_id_opt.as_ref(), &pool).await,
         categories:home_categories(i18n.lang, pool).await,
-        nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
+        nav1:get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n
     }.render().unwrap();

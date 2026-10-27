@@ -91,8 +91,9 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    /// Separa las specs de la plantilla de la categoría (en su orden, vacías si faltan) de las que añadió el vendedor.
     #[test]
-    fn separa_las_de_la_categoria_de_las_propias() {
+    fn splits_category_specs_from_own() {
         let specs = json!({ "os": "Android", "zz": "1", "peso": 200 });
         let base = json!({ "specs": ["screen_size", "os"] });
         let split = split_specs(Some(&specs), Some(&base));
@@ -106,8 +107,9 @@ mod tests {
         ]);
     }
 
+    /// Sin specs y con una plantilla que no se entiende, no hay nada que pintar.
     #[test]
-    fn sin_categoria_ni_specs_queda_vacio() {
+    fn no_category_and_no_specs_is_empty() {
         let split = split_specs(None, Some(&json!("no vale")));
         assert!(split.category.is_empty() && split.custom.is_empty());
     }

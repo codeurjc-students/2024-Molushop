@@ -1265,20 +1265,23 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
 mod tests {
     use super::*;
 
+    /// Quita las specs con el nombre o el valor en blanco y recorta los espacios.
     #[test]
-    fn clean_specs_quita_las_vacias() {
+    fn clean_specs_drops_empty_ones() {
         let raw = json!({"material": " algodón ", "size": "", "": "suelto", "  ": "x"});
         assert_eq!(clean_specs(&raw).unwrap(), json!({"material": "algodón"}));
     }
 
+    /// Sin specs (null o todas en blanco) queda un objeto vacío, no null.
     #[test]
-    fn clean_specs_sin_specs_es_objeto_vacio() {
+    fn clean_specs_without_specs_is_empty_object() {
         assert_eq!(clean_specs(&Value::Null).unwrap(), json!({}));
         assert_eq!(clean_specs(&json!({"size": "  "})).unwrap(), json!({}));
     }
 
+    /// Rechaza lo que no sea un objeto de textos nombre → valor.
     #[test]
-    fn clean_specs_rechaza_lo_que_no_es_nombre_valor() {
+    fn clean_specs_rejects_non_name_value() {
         assert!(matches!(clean_specs(&json!(["a"])), Err(ServiceError::InvalidSpecs)));
         assert!(matches!(clean_specs(&json!({"size": 3})), Err(ServiceError::InvalidSpecs)));
     }

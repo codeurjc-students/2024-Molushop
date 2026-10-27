@@ -288,8 +288,9 @@ mod tests {
         gallery.into_iter().map(|(i, visible)| (i.image_url.clone(), visible)).collect()
     }
 
+    /// Primero las imágenes de la variación elegida, luego las generales; las de otras variaciones, escondidas.
     #[test]
-    fn galeria_primero_las_de_la_variacion() {
+    fn gallery_puts_variation_images_first() {
         let (red, blue) = (Uuid::new_v4(), Uuid::new_v4());
         let data = ProductDetailPrincipalData {
             images_product: vec![image("general", &[]), image("azul", &[blue]), image("roja", &[red])],
@@ -302,8 +303,9 @@ mod tests {
             vec![("general".into(), true), ("azul".into(), false), ("roja".into(), false)]);
     }
 
+    /// Si la variación no tiene imágenes propias ni hay generales, se enseñan todas.
     #[test]
-    fn galeria_sin_propias_ni_generales_las_ensena_todas() {
+    fn gallery_without_own_or_general_shows_all() {
         let (red, blue) = (Uuid::new_v4(), Uuid::new_v4());
         let data = ProductDetailPrincipalData {
             images_product: vec![image("azul", &[blue]), image("roja", &[red])],

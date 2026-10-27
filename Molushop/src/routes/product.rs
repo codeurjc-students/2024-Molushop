@@ -39,7 +39,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     let product_id = path.into_inner();
-    let mut nombre_aux = "".to_string();
+    let mut user_name = "".to_string();
     let mut user_logged = false;
     let mut user_id_opt: Option<Uuid> = None;
 
@@ -52,7 +52,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
                 //datos del usuario
         match get_user_2(&user_id,&pool).await{
             Ok(user)=>{
-                nombre_aux = user.username;
+                user_name = user.username;
                 user_logged = true;
             }
             Err(e)=>{
@@ -66,10 +66,6 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
     //let user_data = "cosas";
 
     
-    let id = Uuid::parse_str("5b45ee44-faf4-4939-baf5-eca379cea1e9").unwrap();
-    let id2 = Uuid::parse_str("69ebb636-70f4-4ebc-973d-411231185365").unwrap();
-    let id3 = Uuid::parse_str("c477ee20-0640-4a97-ba8f-5ad077e17324").unwrap();
-    let vector_refs: Vec<&Uuid> = vec![&id, &id2, &id3];
 
     //hacer el render directamente o 
 
@@ -99,7 +95,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
     let home_render = ProductPage{
         user_logged,    
         page_name:format!("{} | Molushop", product_data.name),
-        nav1:get_nav1_object(nombre_aux, user_id_opt.as_ref(), pool).await,
+        nav1:get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         product_data,

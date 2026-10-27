@@ -32,21 +32,6 @@ pub async fn create_product_variations(product: &ProductForm, product_id: Uuid, 
     }
     //let variations_stuct = serde_json::from_value::<Vec<ProductVariation>>(variations).unwrap;
 }
-/*
-fn combinar_listas<T: Clone>(lista1: &[T], lista2: &[T]) -> Vec<T> {
-    let mut resultado:Vec<T> = Vec::with_capacity(lista1.len() + lista2.len());
-    resultado.extend(lista1.iter().cloned());
-    resultado.extend(lista2.iter().cloned());
-    resultado
-}
-
-fn clone_and_add<T: Clone>(lista: &[T], elemento: T) -> Vec<T> {
-    let mut nueva_lista = Vec::with_capacity(lista.len() + 1);
-    nueva_lista.extend(lista.iter().cloned());
-    nueva_lista.push(elemento);
-    nueva_lista
-    }
-*/
 fn generate_combinations(
     variations: &[ProductVariation],
     current_combination: &mut Vec<VariationValue>,

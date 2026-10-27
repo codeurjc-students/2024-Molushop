@@ -20,20 +20,20 @@ pub struct Routes{
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/create_product/templates/list-category-base.html")]
 pub struct ListCategoryBase{
-    padres : Vec<Category2>,
+    ancestors : Vec<Category2>,
     categories: Vec<Category2>,
     routes: &'static Routes,
 }
 
 impl ListCategoryBase {
     pub fn new_2(
-            padresx: Vec<Category>,
-            categoriesx: Vec<Category>,
+            ancestors: Vec<Category>,
+            categories: Vec<Category>,
             routes: &'static Routes,
         ) -> Self {
         ListCategoryBase {
-            padres: padresx.iter().map(|c| c.to_category2().unwrap()).collect(),
-            categories: categoriesx.iter().map(|c| c.to_category2().unwrap()).collect(),
+            ancestors: ancestors.iter().map(|c| c.to_category2().unwrap()).collect(),
+            categories: categories.iter().map(|c| c.to_category2().unwrap()).collect(),
             routes
         }
     }
@@ -47,9 +47,9 @@ pub struct BaseCategory{
 }
 
 impl BaseCategory{
-    pub fn new(categoriesx: Vec<Category>,routes: &'static Routes) -> Self {
+    pub fn new(categories: Vec<Category>,routes: &'static Routes) -> Self {
         BaseCategory {
-            categories: categoriesx.iter().map(|c| c.to_category2().unwrap()).collect(),
+            categories: categories.iter().map(|c| c.to_category2().unwrap()).collect(),
             routes
         }
     }
@@ -62,23 +62,23 @@ pub struct BaseProducto{
     category_id: String,
     routes : &'static Routes,
     /// De la raíz a la categoría elegida (incluida), para la miga de pan.
-    padres: Vec<Category2>,
+    ancestors: Vec<Category2>,
 }
 
 impl BaseProducto{
-    pub fn new(specsx: BaseSpecs,id: String, routes: &'static Routes, padresx: Vec<Category>) -> Self {
+    pub fn new(specsx: BaseSpecs,id: String, routes: &'static Routes, ancestors: Vec<Category>) -> Self {
         BaseProducto {
             specs: specsx.specs,
             category_id: id,
             routes,
-            padres: padresx.iter().map(|c| c.to_category2().unwrap()).collect(),
+            ancestors: ancestors.iter().map(|c| c.to_category2().unwrap()).collect(),
         }
     }
 
     /// "Cambiar": vuelve a la lista de la que se eligió la categoría (sus
     /// hermanas) o, si era de primer nivel, al principio.
     pub fn change_url(&self) -> String {
-        match self.padres.len().checked_sub(2).and_then(|i| self.padres.get(i)) {
+        match self.ancestors.len().checked_sub(2).and_then(|i| self.ancestors.get(i)) {
             Some(parent) => format!("{}/{}", self.routes.category_children, parent.id),
             None => self.routes.reset_category.to_string(),
         }

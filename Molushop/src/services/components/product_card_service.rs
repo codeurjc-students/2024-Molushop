@@ -28,17 +28,17 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     //Poner siempre el precio más bajo de las variaciones del producto?
     
     //obtener el precio
-    let precios = match get_variations_prices_product(&id,&pool).await{
+    let prices = match get_variations_prices_product(&id,&pool).await{
         Ok(prices)=>prices,
         Err(e)=>{
             println!("Error obteniendo los precios {:?}", e);
             return ProductCardData::default();
         }
     };
-    let precio = if !precios.is_empty(){
-        precios[0].price.clone()
+    let price = if !prices.is_empty(){
+        prices[0].price.clone()
     }else{
-        //crear un objeto BigDecimal nuevo
+        //crear un data BigDecimal nuevo
         BigDecimal::from(0)
     };
     //obtener las imagenes
@@ -60,7 +60,7 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
         id: product.id,
         name:product.name,
         image:img_url,
-        price:Some(precio),
+        price:Some(price),
         currency: DEFAULT_CURRENCY.to_string(),
         url: format!("{}{}",PRODUCT_URL_PREFIX,product.id),
         // Este camino (tarjetas sueltas por id) no consulta las opiniones: la
@@ -74,10 +74,10 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
 pub async fn get_product_card_render(id:&Uuid,pool:&DbPool)->String{
     //llamda a la base de datos
     //let product = get_product(id,pool).await;
-    let objeto = get_product_card_object(&id,&pool).await;
+    let data = get_product_card_object(&id,&pool).await;
 
     let render  = ProductCard{
-        product:objeto,
+        product:data,
         i18n: crate::i18n::I18n::default_ref(),
     }.render().unwrap();
     render

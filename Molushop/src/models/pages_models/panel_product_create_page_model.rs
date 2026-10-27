@@ -22,7 +22,7 @@ pub struct PanelProductCreatePage {
 
 impl PanelProductCreatePage {
     pub fn new_2(
-            categories1: Vec<Category>,
+            categories: Vec<Category>,
             routes: &'static Routes,
             panel_nav: PanelNav,
             store_id: Uuid,
@@ -30,7 +30,7 @@ impl PanelProductCreatePage {
         ) -> Self {
         PanelProductCreatePage {
             user_logged: false,
-            categories: categories1.iter().map(|c| c.to_category2().unwrap()).collect(),
+            categories: categories.iter().map(|c| c.to_category2().unwrap()).collect(),
             routes, page_name: "Categorias".to_string(),
             panel_nav,
             store_id,

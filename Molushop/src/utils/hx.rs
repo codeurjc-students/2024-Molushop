@@ -55,16 +55,18 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    /// El aviso lleva su código de error de verdad y las cabeceras para que htmx lo pinte en el body.
     #[test]
-    fn el_error_lleva_su_codigo_y_lo_que_necesita_htmx() {
+    fn error_has_its_status_and_htmx_headers() {
         let resp = error_modal(StatusCode::CONFLICT, "Ese SKU ya existe");
         assert_eq!(resp.status(), StatusCode::CONFLICT);
         assert_eq!(resp.headers().get("HX-Retarget").unwrap(), "body");
         assert_eq!(resp.headers().get("HX-Reswap").unwrap(), "beforeend");
     }
 
+    /// Tildes y emojis van escapados: una cabecera HTTP solo admite ASCII, y el JSON decodificado no cambia.
     #[test]
-    fn deja_la_cabecera_en_ascii_y_el_json_igual() {
+    fn header_is_ascii_and_json_unchanged() {
         let value = json!({ "m": "Ya lo usa Cortina · Señal 😀" });
         let header = trigger_json(&value);
         assert!(header.is_ascii());

@@ -160,8 +160,9 @@ mod tests {
         }
     }
 
+    /// Ordena las filas por sus valores, en el orden en que aparecen en el producto.
     #[test]
-    fn ordena_por_el_orden_de_aparicion_de_los_valores() {
+    fn sorts_by_value_appearance_order() {
         // Los atributos llegan en otro orden que los títulos: se casan por nombre.
         let p = product(vec![
             variation(&[("Tamaño", "1"), ("Color", "Rojo")], PRODUCT_DRAFT, 0),
@@ -177,8 +178,9 @@ mod tests {
         assert_eq!(explorer.filters()[1], (1, "Color".to_string(), vec!["Rojo".to_string(), "Verde".to_string()]));
     }
 
+    /// Pinta cada fila con sus datos y escapa los valores que escribe el vendedor.
     #[test]
-    fn pinta_las_filas_con_sus_datos_y_escapa_los_valores() {
+    fn renders_rows_with_data_and_escapes_values() {
         let p = product(vec![
             variation(&[("Tamaño", "1"), ("Color", "<b>Rojo</b>")], PRODUCT_ACTIVE, 7),
         ]);
@@ -196,8 +198,9 @@ mod tests {
         assert!(!html.contains("data-sku-url"));
     }
 
+    /// La tabla editable lleva el botón de editar cada fila; sin precio, sale "No disponible".
     #[test]
-    fn editable_lleva_boton_y_sin_precio_no_disponible() {
+    fn editable_has_button_and_no_price_is_unavailable() {
         let mut pv = variation(&[("Tamaño", "1"), ("Color", "Rojo")], PRODUCT_ACTIVE, 7);
         pv.price = None;
         let p = product(vec![pv]);
@@ -217,16 +220,18 @@ mod tests {
         product: &'a Product,
     }
 
+    /// Incluido en otra plantilla, el componente no sale escapado (y los valores siguen escapados).
     #[test]
-    fn dentro_de_otra_plantilla_no_se_escapa() {
+    fn not_escaped_inside_another_template() {
         let p = product(vec![variation(&[("Tamaño", "1"), ("Color", "<b>Rojo</b>")], PRODUCT_ACTIVE, 7)]);
         let html = Card { product: &p }.render().unwrap();
         assert!(html.contains(r#"<div class="c-variations-explorer">"#), "el componente sale escapado");
         assert!(!html.contains("<b>Rojo</b>"));
     }
 
+    /// Activa sin stock es su propio estado (is-out), no is-active.
     #[test]
-    fn estado_activa_sin_stock_aparte() {
+    fn active_without_stock_is_its_own_state() {
         let p = product(Vec::new());
         let explorer = p.variations_explorer();
         assert_eq!(explorer.state_class(&variation(&[], PRODUCT_ACTIVE, 3)), "is-active");

@@ -239,8 +239,9 @@ mod tests {
         html.matches("class=\"fav-btn").count()
     }
 
+    /// En una línea que ya no se vende, solo si ya era favorito: guardarla daría "ya no está a la venta".
     #[test]
-    fn el_corazon_sale_si_se_vende_o_si_ya_era_favorito() {
+    fn heart_shows_if_on_sale_or_already_favorite() {
         assert_eq!(hearts(line("9.50", 1, true)), 1);
         // Ya no se vende: guardarlo daría "ya no está a la venta"
         assert_eq!(hearts(line("9.50", 1, false)), 0);

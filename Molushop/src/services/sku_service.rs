@@ -300,7 +300,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn normaliza_el_sku() {
+    fn normalizes_the_sku() {
         assert_eq!(normalize_sku("  CORT-VER_S.1 "), Ok(Some("CORT-VER_S.1".to_string())));
         assert_eq!(normalize_sku("   "), Ok(None));
         assert_eq!(normalize_sku(""), Ok(None));
@@ -310,8 +310,9 @@ mod tests {
         assert!(normalize_sku(&"A".repeat(65)).is_err());
     }
 
+    /// En un lote, las que van sin SKU no cuentan como repetidas; los repetidos y los de formato no válido salen como problemas.
     #[test]
-    fn el_lote_no_repite_ni_deja_formatos_malos() {
+    fn batch_has_no_repeats_or_bad_formats() {
         let (a, b, c) = (Uuid::new_v4(), Uuid::new_v4(), Uuid::new_v4());
         assert_eq!(
             check_sku_batch(&[(a, " X-1 ".into()), (b, "".into()), (c, "".into())]),
