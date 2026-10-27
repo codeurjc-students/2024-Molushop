@@ -179,7 +179,18 @@
                     .buttons-extra{
                         grid-area: extra;
                         display: flex;
+                        align-items: center;
                         gap: var(--space-3);
+
+                        /* El corazón (favorite_button) sin caja, como la papelera
+                           de al lado; el hueco pulsable sigue siendo cómodo. */
+                        .fav-btn{
+                            width: 2rem;
+                            height: 2rem;
+                            border: 0;
+                            background: none;
+                            font-size: 1em;
+                        }
                     }
                 }
             }

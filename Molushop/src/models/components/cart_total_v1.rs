@@ -1,3 +1,4 @@
+use crate::models::components::favorite_button::FavoriteButton;
 use askama::Template;
 use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
@@ -60,6 +61,8 @@ pub struct CartItemData{
     /// id de la fila en cart_products, es el identificador de la línea
     pub id: Uuid,
     pub product_var_id: Uuid,
+    /// Para el corazón de favoritos, que va por producto y no por variación.
+    pub product_id: Uuid,
     pub name: String,
     pub variation_label: String,
     pub image: String,
@@ -74,7 +77,17 @@ pub struct CartItemData{
     /// False si ya no se puede comprar: sin tienda activa, producto eliminado o
     /// inactivo, variación desactivada o sin precio. Son los mismos casos en que el checkout
     /// rechaza el pedido; el carrito la marca, no la cuenta y no deja elegirla.
-    pub available: bool
+    pub available: bool,
+    /// Si el producto está en los favoritos del usuario. Lo pone
+    /// `get_cart_total_object`, no la consulta del carrito.
+    pub is_favorite: bool,
+}
+
+impl CartItemData {
+    /// "Guardar en favoritos": el corazón de la línea. No la quita del carrito.
+    pub fn favorite_button(&self) -> FavoriteButton {
+        FavoriteButton::new(self.product_id, self.is_favorite)
+    }
 }
 
 impl Default for CartTotalData {
@@ -175,6 +188,7 @@ impl From<CartItem1> for CartItemData {
         Self {
             id: db.id,
             product_var_id: db.product_var_id,
+            product_id: db.product_id,
             name: db.name.unwrap_or_else(|| "Producto sin nombre".to_string()),
             variation_label: db.variation_label.unwrap_or_default(),
             image: db.image_url.unwrap_or_else(|| "/images/default-placeholder.png".to_string()),
@@ -185,7 +199,8 @@ impl From<CartItem1> for CartItemData {
             store_name: db.store_name.unwrap_or_default(),
             quantity: db.quantity,
             stock: db.stock,
-            available
+            available,
+            is_favorite: false,
         }
     }
 }
@@ -200,6 +215,7 @@ mod tests {
         CartItemData {
             id: Uuid::new_v4(),
             product_var_id: Uuid::new_v4(),
+            product_id: Uuid::new_v4(),
             name: String::new(),
             variation_label: String::new(),
             image: String::new(),
@@ -211,7 +227,25 @@ mod tests {
             quantity,
             stock: 10,
             available,
+            is_favorite: false,
         }
+    }
+
+    fn hearts(item: CartItemData) -> usize {
+        let html = CartTotalV1Body {
+            cart_total: CartTotalData::from_items(vec![item]),
+            i18n: crate::i18n::I18n::default_ref(),
+        }.render().unwrap();
+        html.matches("class=\"fav-btn").count()
+    }
+
+    #[test]
+    fn el_corazon_sale_si_se_vende_o_si_ya_era_favorito() {
+        assert_eq!(hearts(line("9.50", 1, true)), 1);
+        // Ya no se vende: guardarlo daría "ya no está a la venta"
+        assert_eq!(hearts(line("9.50", 1, false)), 0);
+        // ...pero si ya era favorito, el corazón se queda para poder quitarlo
+        assert_eq!(hearts(CartItemData { is_favorite: true, ..line("9.50", 1, false) }), 1);
     }
 
     #[test]

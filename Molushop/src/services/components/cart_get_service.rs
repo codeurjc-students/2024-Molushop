@@ -1,3 +1,4 @@
+use crate::services::favorites_service::favorite_ids_among;
 use diesel::sql_query;
 use diesel::result::Error;
 use diesel_async::RunQueryDsl;
@@ -106,7 +107,16 @@ pub async fn get_cart_total_object(user_id: Option<&Uuid>, pool: &DbPool) -> Car
         }
     };
 
-    let items: Vec<CartItemData> = rows.into_iter().map(CartItemData::from).collect();
+    let mut items: Vec<CartItemData> = rows.into_iter().map(CartItemData::from).collect();
+
+    // El corazón lleno en las líneas cuyo producto ya está en favoritos. Una
+    // consulta para todo el carrito; si falla, el carrito sale igual.
+    let product_ids: Vec<Uuid> = items.iter().map(|i| i.product_id).collect();
+    match favorite_ids_among(uid, &product_ids, pool).await {
+        Ok(favorites) => items.iter_mut().for_each(|i| i.is_favorite = favorites.contains(&i.product_id)),
+        Err(e) => println!("Error leyendo los favoritos del carrito: {:?}", e),
+    }
+
     CartTotalData::from_items(items)
 }
 

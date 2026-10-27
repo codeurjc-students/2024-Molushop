@@ -83,11 +83,13 @@
                                         <use href="/assets/svg/icons/full.svg#icon-trash" />
                                     </svg>
                                 </div>
-                                <div class="favorite">
-                                    <svg class="icn-svg">
-                                        <use href="/assets/svg/icons/full.svg#corazon" />
-                                    </svg>
-                                </div>
+                                {# "Guardar en favoritos" sin quitarla del carrito. En una línea
+                                   que ya no se vende solo si ya era favorita, para poder
+                                   quitarla: guardarla daría "ya no está a la venta". #}
+                                {% if item.available || item.is_favorite %}
+                                {% let fav = item.favorite_button() %}
+                                {% include "components/favorite_button/templates/button.html" %}
+                                {% endif %}
                             </div>
                         </div>
                     </div>
