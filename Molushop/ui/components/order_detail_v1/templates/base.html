@@ -48,12 +48,16 @@
                         {% if !item.store_name.is_empty() %}
                         <div class="shop">{{item.store_name}}</div>
                         {% endif %}
-                        <div class="quantity">x{{item.quantity}}</div>
                         {% if order.mixed_status() %}
                         <div><span class="m-badge m-badge--{{item.status_variant()}}">{{ i18n.t(item.status_key()) }}</span></div>
                         {% endif %}
+                        <!-- Cantidad y total en la misma fila: el precio no
+                             ocupa una columna propia y el nombre gana ancho. -->
+                        <div class="line-bottom">
+                            <div class="quantity">x{{item.quantity}}</div>
+                            <div class="line-money">{{ order.line_total_tag(item).localized(i18n) }}</div>
+                        </div>
                     </div>
-                    <div class="line-money">{{ order.line_total_tag(item).localized(i18n) }}</div>
                 </div>
                 {% endfor %}
             </div>
