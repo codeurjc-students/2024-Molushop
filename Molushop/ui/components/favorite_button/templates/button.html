@@ -1,0 +1,14 @@
+{# Corazón de favoritos. Necesita `fav` (FavoriteButton) e `i18n`. La respuesta
+   del POST es este mismo botón ya cambiado (outerHTML); sin sesión, un 401 con
+   HX-Trigger "auth-required" que abre el login (login_modal.js). #}
+<button type="button" class="fav-btn{% if fav.active %} is-active{% endif %}"
+    hx-post="{{ fav.action_url() }}"
+    hx-swap="outerHTML"
+    aria-pressed="{% if fav.active %}true{% else %}false{% endif %}"
+    {% if fav.active %}
+    aria-label="{{ i18n.t("favorites-remove") }}" title="{{ i18n.t("favorites-remove") }}"
+    {% else %}
+    aria-label="{{ i18n.t("favorites-add") }}" title="{{ i18n.t("favorites-add") }}"
+    {% endif %}>
+    <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#{% if fav.active %}icon-heart-filled{% else %}corazon{% endif %}" /></svg>
+</button>

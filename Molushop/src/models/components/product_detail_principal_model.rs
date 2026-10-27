@@ -11,6 +11,7 @@ use bigdecimal::BigDecimal;
 use crate::models::components::stars::Stars;
 use crate::models::components::price::Price;
 use crate::models::components::quantity::Quantity;
+use crate::models::components::favorite_button::FavoriteButton;
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/product_detail_principal/product_detail_principal.html")]
 pub struct ProductDetailPrincipal<'a>{
@@ -32,7 +33,11 @@ pub struct ProductDetailPrincipalData{
     pub variant_map: Vec<VariantMapItem>,
     pub variations_with_stock_status: Vec<Variation>,
     pub rating_average: f64,
-    pub rating_count: i64
+    pub rating_count: i64,
+    /// Si el usuario lo tiene en favoritos. No sale de la consulta del
+    /// producto: lo pone la ruta de la ficha cuando hay sesión.
+    #[serde(default)]
+    pub is_favorite: bool,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ImageProduct{
@@ -130,6 +135,7 @@ impl Default for ProductDetailPrincipalData {
             variations_with_stock_status: Vec::new(),
             rating_average: 0.0,
             rating_count: 0,
+            is_favorite: false,
         }
     }
 }
@@ -215,6 +221,11 @@ impl ProductDetailPrincipalData {
             .replace("</", "<\\/")
     }
 
+    /// El corazón de favoritos, junto a "Añadir al carrito".
+    pub fn favorite_button(&self) -> FavoriteButton {
+        FavoriteButton::new(self.id, self.is_favorite)
+    }
+
     /// URL del endpoint de "añadir al carrito". No es un dato del producto,
     /// por eso es un método y no un campo: se lee de las rutas del carrito.
     pub fn cart_add_url(&self) -> &'static str {
@@ -246,6 +257,7 @@ impl From<ProductForPage1> for ProductDetailPrincipalData {
 
             rating_average: db.rating_average,
             rating_count: db.rating_count,
+            is_favorite: false,
         }
     }
 }

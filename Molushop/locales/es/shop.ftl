@@ -39,6 +39,12 @@ home-hero-title = Todo lo que buscas, de tiendas independientes
 home-hero-text = Compra a varias tiendas a la vez y paga en un solo carrito.
 home-hero-cta = Ver productos
 
+## Favoritos
+favorites-add = Guardar en favoritos
+favorites-remove = Quitar de favoritos
+favorites-error-gone = Este producto ya no está a la venta.
+favorites-error = No se ha podido guardar el cambio en tus favoritos. Inténtalo de nuevo.
+
 ## Tarjetas de producto
 card-add-to-cart = Añadir al carrito
 card-unavailable = No disponible

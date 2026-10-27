@@ -20,6 +20,7 @@ use crate::services::components::{
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
 use crate::services::servicesX::{check_session,get_user_2};
+use crate::services::favorites_service::favorite_ids_among;
 use crate::middleware::auth::Auth;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -72,7 +73,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
 
     //hacer el render directamente o 
 
-    let product_data = match get_product_object(&product_id,&pool).await {
+    let mut product_data = match get_product_object(&product_id,&pool).await {
         Ok(Some(product_data)) => product_data,
         // No está a la venta (no existe, desactivado o tienda inactiva)
         Ok(None) => return not_found_page(
@@ -85,6 +86,15 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
         ).await,
         Err(_) => return HttpResponse::InternalServerError().finish(),
     };
+
+    // El corazón lleno si ya lo tiene guardado. Si la consulta falla, la ficha
+    // sale igual, con el corazón vacío.
+    if let Some(user_id) = user_id_opt.as_ref() {
+        match favorite_ids_among(user_id, &[product_id], pool).await {
+            Ok(ids) => product_data.is_favorite = ids.contains(&product_id),
+            Err(e) => println!("Error leyendo los favoritos de la ficha: {}", e),
+        }
+    }
 
     let home_render = ProductPage{
         user_logged,    

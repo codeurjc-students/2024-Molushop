@@ -1,0 +1,39 @@
+/* Corazón de favoritos (templates/button.html). Botón cuadrado con el icono:
+   vacío en gris, lleno en el rojo de peligro. Mientras dura la petición,
+   base.js lo apaga (BUSY) y aquí se atenúa. */
+.fav-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    color: var(--color-text-muted);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: color var(--transition-fast),
+                border-color var(--transition-fast);
+}
+
+.fav-btn:hover {
+    color: var(--color-danger);
+    border-color: var(--color-danger);
+}
+
+.fav-btn.is-active {
+    color: var(--color-danger);
+}
+
+.fav-btn:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+.fav-btn:disabled {
+    opacity: 0.6;
+    cursor: progress;
+}

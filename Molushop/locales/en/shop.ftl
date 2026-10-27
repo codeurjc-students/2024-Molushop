@@ -38,6 +38,12 @@ home-hero-title = Everything you're looking for, from independent shops
 home-hero-text = Buy from several shops at once and pay in a single cart.
 home-hero-cta = See products
 
+## Favorites
+favorites-add = Save to favorites
+favorites-remove = Remove from favorites
+favorites-error-gone = This product is no longer for sale.
+favorites-error = We couldn't update your favorites. Please try again.
+
 ## Product cards
 card-add-to-cart = Add to cart
 card-unavailable = Unavailable

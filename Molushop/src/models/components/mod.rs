@@ -21,3 +21,4 @@ pub mod stars;
 pub mod price;
 pub mod variations_explorer;
 pub mod quantity;
+pub mod favorite_button;

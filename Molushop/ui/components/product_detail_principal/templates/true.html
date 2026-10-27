@@ -85,6 +85,8 @@
                         <span>{{ i18n.t("card-add-to-cart") }}</span>
                     </button>
                 </div>
+                {% let fav = product_data.favorite_button() %}
+                {% include "components/favorite_button/templates/button.html" %}
             </div>
             {# La variación elegida existe pero no tiene stock (refreshAddButton) #}
             <p class="m-alert m-alert--warning sold-out-msg" role="status" hidden>

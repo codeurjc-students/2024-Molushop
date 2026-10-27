@@ -10,3 +10,4 @@ pub mod checkout_controller;
 pub mod product_reviews_controller;
 pub mod product_card_group_controller;
 pub mod search_suggestions_controller;
+pub mod favorites_controller;
