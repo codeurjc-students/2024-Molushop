@@ -9,6 +9,7 @@ use crate::models::components::stars::Stars;
 use crate::models::components::price::Price;
 use crate::constants::money::DEFAULT_CURRENCY;
 use crate::i18n::I18n;
+use crate::models::components::favorite_button::FavoriteButton;
 
 /// La imagen de los productos que no tienen ninguna.
 pub const NO_IMAGE: &str = "/assets/imgs/no-image.svg";
@@ -22,6 +23,7 @@ pub struct ProductCard<'a>{
 
 #[derive(Debug, Clone)]
 pub struct ProductCardData{
+    pub id: Uuid,
     pub name: String,
     pub image: String,
     /// `None` = ninguna variación tiene precio: se pinta "No disponible".
@@ -30,10 +32,18 @@ pub struct ProductCardData{
     pub currency: String,
     pub url : String,
     pub rating_average: f64,
-    pub rating_count: i64
+    pub rating_count: i64,
+    /// Si el usuario lo tiene en favoritos. No sale de la consulta de las
+    /// tarjetas: lo pone `mark_favorites` (product_card_group_service).
+    pub is_favorite: bool,
 }
 
 impl ProductCardData {
+    /// El corazón de favoritos, en la esquina de la imagen.
+    pub fn favorite_button(&self) -> FavoriteButton {
+        FavoriteButton::new(self.id, self.is_favorite)
+    }
+
     /// Las estrellas de la media, en pequeño y en el idioma de la página.
     pub fn stars(&self, i18n: &I18n) -> Stars {
         Stars::sm(self.rating_average).in_lang(i18n.lang)
@@ -48,13 +58,15 @@ impl ProductCardData {
 impl Default for ProductCardData {
     fn default() -> Self {
         Self {
+            id: Uuid::nil(),
             name: "Producto no disponible".to_string(),
             image: NO_IMAGE.to_string(),
             price: None,
             currency: DEFAULT_CURRENCY.to_string(),
             url : "javascript:void(0)".to_string(),
             rating_average: 0.0,
-            rating_count: 0
+            rating_count: 0,
+            is_favorite: false,
         }
     }
 }
@@ -63,6 +75,7 @@ impl Default for ProductCardData {
 impl From<ProductCard1> for ProductCardData {
     fn from(db: ProductCard1) -> Self {
         Self {
+            id: db.id,
             // Si el nombre es None, usamos un string vacío o un valor por defecto
             name: db.name.unwrap_or_else(|| "Producto sin nombre".to_string()),
             
@@ -77,8 +90,38 @@ impl From<ProductCard1> for ProductCardData {
             url: format!("{}{}",PRODUCT_URL_PREFIX,db.id),
 
             rating_average: db.rating_average,
-            rating_count: db.rating_count
+            rating_count: db.rating_count,
+            is_favorite: false,
         }
     }
 }
 //lamar a una constante 
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn render(is_favorite: bool) -> String {
+        let product = ProductCardData { id: Uuid::new_v4(), is_favorite, ..Default::default() };
+        ProductCard { product, i18n: I18n::default_ref() }.render().unwrap()
+    }
+
+    #[test]
+    fn el_corazon_va_fuera_del_enlace() {
+        let html = render(false);
+        let heart = html.find("fav-btn").unwrap();
+        let link = html.find("class=\"link\"").unwrap();
+        assert!(heart < link, "el corazón tiene que ir antes (y fuera) del enlace a la ficha");
+    }
+
+    #[test]
+    fn el_corazon_sale_lleno_o_vacio() {
+        let empty = render(false);
+        assert!(empty.contains("/components/favorites/add/"));
+        assert!(empty.contains("aria-pressed=\"false\""));
+        let full = render(true);
+        assert!(full.contains("fav-btn is-active"));
+        assert!(full.contains("/components/favorites/remove/"));
+        assert!(full.contains("icon-heart-filled"));
+    }
+}

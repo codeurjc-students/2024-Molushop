@@ -13,6 +13,25 @@
     background-color: var(--color-bg); /* Fondo blanco */
     display: flex; /* Usamos flexbox para organizar el contenido */
     flex-direction: column; /* Apila los elementos verticalmente */
+    position: relative; /* Para el corazón de favoritos, en la esquina */
+}
+
+/* Corazón de favoritos (favorite_button) sobre la esquina de la imagen. Va
+   fuera del enlace a la ficha; aquí, redondo, más pequeño y con sombra para
+   que se vea sobre cualquier foto. */
+.product-card__fav {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    z-index: 1;
+}
+
+.product-card__fav .fav-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.1rem;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
 }
 
 .product-card:hover {

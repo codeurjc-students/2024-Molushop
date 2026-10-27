@@ -66,7 +66,8 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
         .map(|c| link(Some(&c.id), &c.name, c.products))
         .collect();
 
-    let (products, more_url) = get_product_card_group_page(1, &filter, pool).await;
+    let user_id = opt_session_data.map(|session_data| session_data.into_inner().id);
+    let (products, more_url) = get_product_card_group_page(1, &filter, user_id.as_ref(), pool).await;
     let has_results = !products.is_empty();
     let results = if has_results {
         ProductCardGroup { products, more_url, i18n: &i18n }.render().unwrap_or_else(|e| {
@@ -79,7 +80,6 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
 
     let mut user_name = String::new();
     let mut user_logged = false;
-    let user_id = opt_session_data.map(|session_data| session_data.into_inner().id);
     if let Some(user_id) = user_id.as_ref() {
         if let Ok(user) = get_user_2(user_id, pool).await {
             user_name = user.username;

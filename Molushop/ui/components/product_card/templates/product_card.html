@@ -1,7 +1,12 @@
 
 
 <div class="product-card">
-    <!-- <a href="#" class="link"> -->
+    {# Fuera del enlace: dentro, pulsarlo llevaría también a la ficha. Va en la
+       esquina de la imagen (product_card/css). #}
+    <div class="product-card__fav">
+        {% let fav = product.favorite_button() %}
+        {% include "components/favorite_button/templates/button.html" %}
+    </div>
     <a class="link" href="{{ i18n.url(product.url) }}">
         <!--La ruta de la imagen dependerá del producto-->
         <img src="{{product.image}}" alt="{{product.name}}">
