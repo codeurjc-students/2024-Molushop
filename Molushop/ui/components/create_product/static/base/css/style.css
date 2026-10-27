@@ -3,6 +3,10 @@
    filas de la lista, más altas desde 900px. El ancho y el relleno de la
    página los pone .panel-products (pages/panel_products). */
 
+.cont-base .chain {
+    padding: var(--space-3);
+}
+
 .chain {
     display: flex;
     flex-direction: column;
@@ -119,6 +123,12 @@
 .list button:focus-visible {
     outline: 2px solid var(--color-focus);
     outline-offset: 2px;
+}
+
+@media (min-width: 600px) {
+    .cont-base .chain {
+        padding: var(--space-4);
+    }
 }
 
 @media (min-width: 900px) {
