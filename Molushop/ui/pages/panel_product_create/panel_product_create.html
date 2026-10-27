@@ -1,10 +1,9 @@
 {% extends "layouts/panel.html" %}
-{% block scripts%}
-
+{% block scripts %}
+    {% include "components/create_product/scripts.html" %}
 {% endblock %}
 {% block styles %}
     {% include "components/create_product/styles.html" %}
-    {% include "components/create_product/scripts.html" %}
     {# Misma cabecera que la lista de productos y Editar: comparte su CSS. #}
     <link rel="stylesheet" href="/static/pages/panel_products/css/styles.css">
 {% endblock %}

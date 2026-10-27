@@ -5,8 +5,6 @@ use super::super::models_x::{Category2,Category};
 use super::super::extra::{BaseSpecs};
 //const BASE_PATH: &str = "create_product/";
 //poner una variable como path de la plantilla?
-use serde_json::Value;
-use serde_json::json;
 
 #[derive(Serialize,Clone,Debug)]
 pub struct Routes{
@@ -21,19 +19,19 @@ pub struct Routes{
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/create_product/templates/list-category-base.html")]
-pub struct List_category_base{
+pub struct ListCategoryBase{
     padres : Vec<Category2>,
     categories: Vec<Category2>,
     routes: &'static Routes,
 }
 
-impl List_category_base {
+impl ListCategoryBase {
     pub fn new_2(
             padresx: Vec<Category>,
             categoriesx: Vec<Category>,
             routes: &'static Routes,
         ) -> Self {
-        List_category_base {
+        ListCategoryBase {
             padres: padresx.iter().map(|c| c.to_category2().unwrap()).collect(),
             categories: categoriesx.iter().map(|c| c.to_category2().unwrap()).collect(),
             routes
@@ -43,14 +41,14 @@ impl List_category_base {
 
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/create_product/templates/base-category.html")]
-pub struct Base_category{
+pub struct BaseCategory{
     categories: Vec<Category2>,
     routes: &'static Routes,
 }
 
-impl Base_category{
+impl BaseCategory{
     pub fn new(categoriesx: Vec<Category>,routes: &'static Routes) -> Self {
-        Base_category {
+        BaseCategory {
             categories: categoriesx.iter().map(|c| c.to_category2().unwrap()).collect(),
             routes
         }

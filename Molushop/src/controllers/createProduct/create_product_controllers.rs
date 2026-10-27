@@ -108,7 +108,7 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
     match (categories_result, ancestors_result) {
         (Ok(categories), Ok(ancestors)) => {
 
-            let list_category_base = List_category_base::new_2(
+            let list_category_base = ListCategoryBase::new_2(
                 ancestors,
                 categories,
                 &ROUTES
@@ -143,7 +143,7 @@ async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
     let categories = obtain_base_categories(pool).await;
     match categories{
         Ok(categories) => {
-            let base_category = Base_category::new(categories,&ROUTES); 
+            let base_category = BaseCategory::new(categories,&ROUTES); 
             let rendered = base_category.render().unwrap();
             HttpResponse::Ok().body(rendered)
         },
