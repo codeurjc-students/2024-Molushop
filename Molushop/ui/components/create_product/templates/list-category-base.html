@@ -1,22 +1,28 @@
+{# Dentro de una categoría: la miga de pan hasta ella y sus hijas. #}
 <div class="top">
-    <ul>
-        <li hx-get="{{routes.reset_category}}" hx-target=".chain" hx-trigger="click">X</li>
-    {% for elem in padres %}
-        {% if loop.last %}
-            <li>{{elem.name}}</li>
-        {% else %}
-            <li hx-get="{{routes.category_children}}/{{elem.id}}" hx-target=".chain" hx-trigger="click">{{elem.name}}</li>
-        {% endif %}
-    {% endfor %}
-    </ul>
+    <h2 class="top__title">Elige la categoría</h2>
+    <nav aria-label="Categoría elegida">
+        <ol class="crumbs">
+            <li><button type="button" hx-get="{{routes.reset_category}}" hx-target=".chain">Categorías</button></li>
+        {% for elem in padres %}
+            {% if loop.last %}
+            <li aria-current="page">{{elem.name}}</li>
+            {% else %}
+            <li><button type="button" hx-get="{{routes.category_children}}/{{elem.id}}" hx-target=".chain">{{elem.name}}</button></li>
+            {% endif %}
+        {% endfor %}
+        </ol>
+    </nav>
 </div>
 <div class="select-cat"></div>
-<ul class="list">    
+<ul class="list">
 {% for category in categories %}
-    {% if category.is_parent %}
-        <li hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
-    {% else %}
-        <li hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat" hx-trigger="click">{{category.name}}</li>
-    {% endif %}
+    <li>
+        {% if category.is_parent %}
+        <button type="button" hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain">{{category.name}}</button>
+        {% else %}
+        <button type="button" hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat">{{category.name}}</button>
+        {% endif %}
+    </li>
 {% endfor %}
 </ul>

@@ -1,114 +1,120 @@
-/* Mobile-first: en móvil, menos relleno y letra más pequeña; desde 900px,
-   los tamaños grandes. */
-.cont-base {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
+/* Selector de categoría del alta de producto. La caja es del átomo m-card;
+   aquí solo la cabecera (título y miga de pan) y la lista. Mobile-first: las
+   filas de la lista, más altas desde 900px. El ancho y el relleno de la
+   página los pone .panel-products (pages/panel_products). */
+
+.chain {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
 }
-    
-    .cont-base h2 {
-    color: var(--color-text);
-    font-size: 2rem;
-    margin-bottom: 2rem;
-    text-align: center;
-    font-weight: 300;
-    letter-spacing: 1px;
-    }
-    
-    .chain {
-    background: var(--color-bg);
-    border-radius: 10px;
-    box-shadow: var(--shadow-md);
-    overflow: hidden;
-    }
-    
-    .top {
-    background: var(--color-primary);
-    padding: 1.5rem;
-    color: var(--color-on-primary);
-    }
-    
-    .top h4 {
+
+.top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.top__title {
     margin: 0;
-    font-size: 1.2rem;
-    font-weight: 500;
-    }
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
 
-    .top ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .top ul li {
-        color: var(--color-on-primary);
-        display: flex;
-        align-items: center;
-        font-size: 0.9rem;
-    }
-    
-    /* Añade el símbolo > entre los elementos */
-    .top ul li:not(:last-child)::after {
-        content: '>';
-        margin: 0 0.5rem;
-        color: var(--color-on-primary);
-    }
-
-    
-    .select-cat {
-    padding: 1rem;
-    }
-    
-    .list {
+/* Miga de pan: "Categorías › Ropa › Camisetas". Las anteriores son botones
+   con aspecto de enlace; la última, la actual, en texto normal. */
+.crumbs {
     list-style: none;
     padding: 0;
     margin: 0;
-    }
-    
-    .list li {
-    padding: 0.8rem 1rem;
-    margin: 0.5rem 0;
-    border-radius: 6px;
-    background: var(--color-bg-soft);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.crumbs li {
+    display: flex;
+    align-items: center;
+}
+
+.crumbs li:not(:last-child)::after {
+    content: '›';
+    margin-left: var(--space-1);
+}
+
+.crumbs li[aria-current] {
     color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+}
+
+.crumbs button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--color-primary-strong);
     cursor: pointer;
-    transition: all 0.3s ease;
+}
+
+.crumbs button:hover {
+    text-decoration: underline;
+}
+
+.crumbs button:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+/* Cada categoría es un botón a todo el ancho, con "›" a la derecha */
+.list button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
     border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font: inherit;
+    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--transition-fast),
+                border-color var(--transition-fast);
+}
+
+.list button::after {
+    content: '›';
+    color: var(--color-text-muted);
+}
+
+.list button:hover {
+    background: var(--color-bg-soft);
+    border-color: var(--color-primary-strong);
+}
+
+.list button:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+@media (min-width: 900px) {
+    .list button {
+        padding: var(--space-4) var(--space-5);
     }
-    
-    .list li:hover {
-    background: var(--color-primary);
-    color: var(--color-on-primary);
-    transform: translateX(10px);
-    box-shadow: var(--shadow-sm);
-    }
-    
-    /* Efecto de hover suave */
-    .list li::before {
-    content: '→';
-    margin-right: 10px;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    }
-    
-    .list li:hover::before {
-    opacity: 1;
-    }
-    
-    /* Responsive */
-    @media (min-width: 900px) {
-    .cont-base {
-        padding: 2rem;
-    }
-    
-    .cont-base h2 {
-        font-size: 2.5rem;
-    }
-    
-    .list li {
-        padding: 1rem 1.5rem;
-    }
-    }
+}

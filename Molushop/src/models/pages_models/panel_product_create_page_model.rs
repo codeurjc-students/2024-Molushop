@@ -16,6 +16,8 @@ pub struct PanelProductCreatePage {
     panel_nav: PanelNav,
     /// Tienda a cuyo nombre se crea: la página la manda en la cabecera `X-Store-Id`.
     store_id: Uuid,
+    /// Para el título ("Nuevo producto en …").
+    store_name: String,
 }
 
 impl PanelProductCreatePage {
@@ -24,6 +26,7 @@ impl PanelProductCreatePage {
             routes: &'static Routes,
             panel_nav: PanelNav,
             store_id: Uuid,
+            store_name: String,
         ) -> Self {
         PanelProductCreatePage {
             user_logged: false,
@@ -31,6 +34,7 @@ impl PanelProductCreatePage {
             routes, page_name: "Categorias".to_string(),
             panel_nav,
             store_id,
+            store_name,
         }
     }
 

@@ -5,12 +5,20 @@
 {% block styles %}
     {% include "components/create_product/styles.html" %}
     {% include "components/create_product/scripts.html" %}
+    {# Misma cabecera que la lista de productos y Editar: comparte su CSS. #}
+    <link rel="stylesheet" href="/static/pages/panel_products/css/styles.css">
 {% endblock %}
 
 {% block content %}
-    {# htmx hereda `hx-headers`: todas las peticiones del alta, incluido el POST del
-       formulario que se carga después, llevan la tienda de esta página. #}
-    <div hx-headers='{"X-Store-Id": "{{store_id}}"}'>
-        {% include "components/create_product/templates/base.html" %}
+    <div class="panel-products">
+        <div class="panel-products__header">
+            <h1>Nuevo producto en {{store_name}}</h1>
+            <a href="/panel/stores/{{store_id}}/products" class="m-btn m-btn--secondary">&larr; Volver a productos</a>
+        </div>
+        {# htmx hereda `hx-headers`: todas las peticiones del alta, incluido el POST del
+           formulario que se carga después, llevan la tienda de esta página. #}
+        <div hx-headers='{"X-Store-Id": "{{store_id}}"}'>
+            {% include "components/create_product/templates/base.html" %}
+        </div>
     </div>
 {% endblock %}

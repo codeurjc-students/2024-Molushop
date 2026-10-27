@@ -119,6 +119,7 @@ async fn products_create(
                 &ROUTES_CREATE_PRODUCT,
                 PanelNav::new(&panel_user, "create").with_store(&store),
                 store.id,
+                store.store_name.clone(),
             ).render().unwrap();
             html(StatusCode::OK, page)
         }

@@ -1,6 +1,18 @@
-<h4>Selecciona  una categoría</h4> 
-<ul class="list">    
-{% for category in categories %}
-    <li hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain" hx-trigger="click">{{category.name}}</li>
-{% endfor %}
-</ul>
+{# Primer nivel del selector: la página al cargar y la respuesta de
+   "Categorías" (reset-category). #}
+<div class="top">
+    <h2 class="top__title">Elige la categoría</h2>
+</div>
+<div class="select-cat">
+    <ul class="list">
+    {% for category in categories %}
+        <li>
+            {% if category.is_parent %}
+            <button type="button" hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain">{{category.name}}</button>
+            {% else %}
+            <button type="button" hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat">{{category.name}}</button>
+            {% endif %}
+        </li>
+    {% endfor %}
+    </ul>
+</div>
