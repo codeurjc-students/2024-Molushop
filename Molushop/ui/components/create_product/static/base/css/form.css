@@ -1,27 +1,12 @@
-.select-cat h1 {
-color: var(--color-text);
-text-align: center;
-margin-bottom: 2rem;
-font-weight: 300;
-font-size: 2.5rem;
-}
-
-/* La caja es del átomo m-card; aquí solo el ancho y la separación entre bloques */
-/* Mobile-first: en móvil el formulario lleva relleno y los botones de
-   .cp-actions van uno debajo de otro; desde 900px, sin relleno y en fila. */
-.select-cat form {
-max-width: 800px;
-margin: 0 auto;
-padding: 1rem;
-}
-
-.select-cat form > * + * {
+/* El formulario del alta va dentro de la tarjeta del selector (.chain), debajo
+   de la categoría elegida: sin caja propia, solo la separación entre bloques. */
+.product-form > * + * {
 margin-top: var(--space-5);
 }
 
 /* ---- Secciones del alta (Specs, Variaciones) ----
    También en la pestaña Especificaciones de Editar producto (por eso no van
-   dentro de .select-cat): solo las usan esas dos pantallas.
+   dentro de .product-form): solo las usan esas dos pantallas.
    cp-section   caja gris con título (legend) y ayuda (m-hint)
    cp-item      caja blanca dentro de una sección
    cp-list      columna de cajas o de filas
@@ -86,7 +71,7 @@ flex-direction: column;
 gap: var(--space-2);
 }
 
-.select-cat .variations-list {
+.product-form .variations-list {
 gap: var(--space-4);
 }
 
@@ -113,11 +98,9 @@ flex-wrap: wrap;
 gap: var(--space-2);
 }
 
+/* Mobile-first: en móvil los botones de .cp-actions van uno debajo de otro;
+   desde 900px, en fila. */
 @media (min-width: 900px) {
-.select-cat form {
-    padding: 0;
-}
-
 .cp-actions {
     flex-direction: row;
 }

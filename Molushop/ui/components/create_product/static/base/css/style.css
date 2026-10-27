@@ -17,6 +17,14 @@
     border-bottom: 1px solid var(--color-border);
 }
 
+/* Con la categoría ya elegida: "Categoría" y el botón "Cambiar" en una fila */
+.top__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+}
+
 .top__title {
     margin: 0;
     font-size: var(--font-size-lg);

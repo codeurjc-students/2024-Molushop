@@ -14,14 +14,13 @@
         </ol>
     </nav>
 </div>
-<div class="select-cat"></div>
 <ul class="list">
 {% for category in categories %}
     <li>
         {% if category.is_parent %}
         <button type="button" hx-get="{{routes.category_children}}/{{category.id}}" hx-target=".chain">{{category.name}}</button>
         {% else %}
-        <button type="button" hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".select-cat">{{category.name}}</button>
+        <button type="button" hx-get="{{routes.next_select}}/{{category.id}}" hx-target=".chain">{{category.name}}</button>
         {% endif %}
     </li>
 {% endfor %}

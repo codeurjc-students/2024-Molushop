@@ -154,18 +154,17 @@ async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
     }
 }
 
+/// Formulario del alta para la categoría final elegida. Los antepasados (la
+/// categoría incluida, al final) dan la miga de pan de su cabecera.
 #[get("/next-select/{category_id}")]
-async fn next_category(path: web::Path<String>) -> impl Responder {
+async fn next_category(path: web::Path<String>, pool_data: web::Data<DbPool>) -> impl Responder {
     let category_id= path.into_inner();
-    //vamos a obtener el json de la plantilla de la categoría
-    //let specs_result= obtain_base_specs(&category_id);
-    //let nombre_result = services::product::get_name(&category_id);
-    let category_result = services::category::get_category(&category_id);
-    match category_result{
-        Ok(category) => {
+    match obtain_ancestors(&category_id, pool_data.get_ref()).await {
+        Ok(mut ancestors) if !ancestors.is_empty() => {
             // Las specs son opcionales: una categoría sin plantilla (o con una
             // que no se entiende) abre el formulario sin specs sugeridas.
-            let base_specs = category.base_specs
+            let base_specs = ancestors.last_mut()
+                .and_then(|category| category.base_specs.take())
                 .and_then(|specs| match serde_json::from_value::<BaseSpecs>(specs) {
                     Ok(base_specs) => Some(base_specs),
                     Err(e) => {
@@ -174,8 +173,12 @@ async fn next_category(path: web::Path<String>) -> impl Responder {
                     }
                 })
                 .unwrap_or(BaseSpecs { specs: Vec::new() });
-            let base_product = BaseProducto::new(base_specs,category_id, &ROUTES,category.name);
+            let base_product = BaseProducto::new(base_specs,category_id, &ROUTES,ancestors);
             HttpResponse::Ok().body(base_product.render().unwrap())
+        },
+        Ok(_) => {
+            println!("Categoría {} no encontrada", category_id);
+            error_modal(StatusCode::NOT_FOUND, "No se ha encontrado la categoría")
         },
         Err(e) => {
             println!("Error loading category: {}", e);

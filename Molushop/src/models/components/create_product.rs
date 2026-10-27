@@ -63,16 +63,26 @@ pub struct BaseProducto{
     specs: Vec<String>,
     category_id: String,
     routes : &'static Routes,
-    name: String,
+    /// De la raíz a la categoría elegida (incluida), para la miga de pan.
+    padres: Vec<Category2>,
 }
 
 impl BaseProducto{
-    pub fn new(specsx: BaseSpecs,id: String, routes: &'static Routes,name: String) -> Self {
+    pub fn new(specsx: BaseSpecs,id: String, routes: &'static Routes, padresx: Vec<Category>) -> Self {
         BaseProducto {
-            specs: specsx.specs,   
+            specs: specsx.specs,
             category_id: id,
             routes,
-            name
+            padres: padresx.iter().map(|c| c.to_category2().unwrap()).collect(),
+        }
+    }
+
+    /// "Cambiar": vuelve a la lista de la que se eligió la categoría (sus
+    /// hermanas) o, si era de primer nivel, al principio.
+    pub fn change_url(&self) -> String {
+        match self.padres.len().checked_sub(2).and_then(|i| self.padres.get(i)) {
+            Some(parent) => format!("{}/{}", self.routes.category_children, parent.id),
+            None => self.routes.reset_category.to_string(),
         }
     }
 }

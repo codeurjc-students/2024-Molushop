@@ -1,7 +1,26 @@
-<h1>Formulario de {{name}}</h1>
+{# Sustituye todo lo de dentro de .chain: la lista de categorías se cambia por
+   la elegida y el formulario, en la misma tarjeta. #}
+<div class="top">
+    <div class="top__row">
+        <h2 class="top__title">Categoría</h2>
+        <button type="button" class="m-btn m-btn--secondary m-btn--sm" hx-get="{{change_url()}}" hx-target=".chain">Cambiar</button>
+    </div>
+    <nav aria-label="Categoría elegida">
+        <ol class="crumbs">
+            <li><button type="button" hx-get="{{routes.reset_category}}" hx-target=".chain">Categorías</button></li>
+        {% for elem in padres %}
+            {% if loop.last %}
+            <li aria-current="page">{{elem.name}}</li>
+            {% else %}
+            <li><button type="button" hx-get="{{routes.category_children}}/{{elem.id}}" hx-target=".chain">{{elem.name}}</button></li>
+            {% endif %}
+        {% endfor %}
+        </ol>
+    </nav>
+</div>
     {# La respuesta no se pinta aquí: si va bien, HX-Redirect a "Editar" del
        producto nuevo; si no, un aviso con su código (utils/hx.rs, error_modal). #}
-    <form class="m-card m-card--raised m-card--lg"
+    <form class="product-form"
         hx-post="{{routes.create_product}}/{{category_id}}"
         hx-swap="none"
         hx-ext="json-enc-custom">
