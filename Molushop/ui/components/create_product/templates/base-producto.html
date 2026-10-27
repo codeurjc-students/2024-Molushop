@@ -24,11 +24,38 @@
         hx-post="{{routes.create_product}}/{{category_id}}"
         hx-swap="none"
         hx-ext="json-enc-custom">
-        {# Specs y Variaciones comparten estructura (form.css): cp-section con
+        {# Mismo orden que las pestañas de Editar: General, Especificaciones y
+           Variaciones. Las tres comparten estructura (form.css): cp-section con
            su título, cp-item para cada caja blanca, cp-row para cada fila
            "campo + ×" y cp-actions para los botones. #}
+        <fieldset class="cp-section general">
+            <legend class="cp-section__title">General</legend>
+            <div class="cp-item general-fields">
+                <div class="m-field">
+                    <label class="m-label" for="name">Nombre</label>
+                    <input class="m-input" type="text" id="name" name="name" required>
+                </div>
+                <div class="m-field">
+                    <label class="m-label" for="brand">Marca</label>
+                    <input class="m-input" type="text" id="brand" name="brand" required>
+                </div>
+                <div class="m-field">
+                    <label class="m-label" for="id">Código</label>
+                    <input class="m-input" type="text" id="id" name="code" required>
+                </div>
+                <div class="m-field">
+                    <label class="m-label" for="price">Precio</label>
+                    <input class="m-input" pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)" inputmode="decimal" placeholder="12.50">
+                </div>
+                <div class="m-field general-fields__wide">
+                    <label class="m-label" for="description">Descripción</label>
+                    <textarea class="m-input" id="description" name="description" rows="4"></textarea>
+                </div>
+            </div>
+        </fieldset>
+
         <fieldset class="cp-section specs">
-            <legend class="cp-section__title">Specs</legend>
+            <legend class="cp-section__title">Especificaciones</legend>
             <p class="m-hint">Opcionales: las que dejes en blanco no se guardan.</p>
             <div class="cp-item specs-list">
                 {% for elem in specs %}
@@ -45,26 +72,6 @@
             {% include "components/create_product/templates/spec_template.html" %}
         </fieldset>
 
-        <div class="m-field">
-            <label class="m-label" for="id">CODE:</label>
-            <input class="m-input" type="text" id="id" name="code" required>
-        </div>
-        <div class="m-field">
-            <label class="m-label" for="name">Nombre:</label>
-            <input class="m-input" type="text" id="name" name="name" required>
-        </div>
-        <div class="m-field">
-            <label class="m-label" for="price">Precio:</label>
-            <input class="m-input" pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)">
-        </div>
-        <div class="m-field">
-            <label class="m-label" for="brand">Marca:</label>
-            <input class="m-input" type="text" id="brand" name="brand" required>
-        </div>
-        <div class="m-field">
-            <label class="m-label" for="description">Descripción:</label>
-            <textarea class="m-input" id="description" name="description"></textarea>
-        </div>
         {# Los `name` (variations[i][name], variations[i][values][j][value]) no
            se escriben aquí: los pone `renumberVariations` (js/functions.js) por
            la posición de cada campo, así se puede quitar cualquiera. #}
@@ -100,6 +107,6 @@
             </template>
         </fieldset>
         <div>
-            <button type="submit" class="m-btn m-btn--primary m-btn--lg m-btn--block">Enviar</button>
+            <button type="submit" class="m-btn m-btn--primary m-btn--lg m-btn--block">Crear producto</button>
         </div>
     </form>
