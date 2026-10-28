@@ -18,6 +18,7 @@ pub mod utils;
 pub mod middleware;
 pub mod constants;
 pub mod i18n;
+mod logging;
 
 use services::aws::s3::{client, startup};
 use controllers::components;
@@ -30,31 +31,19 @@ use diesel_async::AsyncPgConnection;
 
 use dotenvy::dotenv;
 
-use std::any::type_name;
-
-
-
-fn print_type_of<T>(_: &T) {
-    println!("{}", type_name::<T>());
-}
-
-
-
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     //init_jobs();
     //hacer el pool de conexiones
     dotenv().ok();
+    logging::init();
 
     let config: AsyncDieselConnectionManager<AsyncPgConnection> = AsyncDieselConnectionManager::<AsyncPgConnection>::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set"));
     let pool:Pool<AsyncPgConnection> = Pool::builder(config).build().unwrap();
-    print_type_of(&pool);
     let pool_data = web::Data::new(pool);
 
     let client = startup::configure_and_return_s3_client().await;
     let client_data = web::Data::new(Arc::new(client));
-
-    println!("Hello, world!");
 
     HttpServer::new(move|| {
         App::new()

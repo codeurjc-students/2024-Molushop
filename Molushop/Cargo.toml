@@ -32,6 +32,8 @@ futures-util = "0.3.31"
 ipnet = "2.11.0"
 askama = "0.15.4"
 fluent-templates = "0.15.1"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 
 [dependencies.uuid]
 version = "1.10.0"
