@@ -2,7 +2,6 @@
 
 //use diesel::RunQueryDsl;
 use diesel::dsl::exists;
-use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use diesel_async::{RunQueryDsl, AsyncConnection, AsyncPgConnection};
 use diesel_async::scoped_futures::ScopedFutureExt;
@@ -12,14 +11,11 @@ use diesel::dsl::select;
 use diesel::sql_query;
 use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
-use dotenvy::dotenv;
-use std::env;
-use crate::models::models_x::{ProductForPage1,ProductWithImages1,Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation,UserAuth,NewUserSession,ProductCard1};
+use crate::models::models_x::{ProductForPage1,ProductWithImages1,Discounts,Category,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation,UserAuth,NewUserSession,ProductCard1};
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
 use diesel::{insert_into,update}; 
-use chrono::NaiveDate;
 use chrono::prelude::*;
 use serde_json::Value;
 use serde_json::json;
@@ -29,110 +25,8 @@ use diesel_async::pooled_connection::deadpool::Pool;
 //use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-pub fn establish_connection() -> PgConnection {
-    dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    PgConnection::establish(&database_url)
-        .unwrap_or_else(|_| panic!("Error connecting to {}", database_url))
-}
-
-
-
-pub fn combine<T: Clone>(lists: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    if lists.is_empty() {
-        return vec![vec![]];
-    }
-
-    let mut result = Vec::new();
-    let first_list = &lists[0];
-    let rest_lists = &lists[1..];
-
-    for item in first_list {
-        for combination in combine(rest_lists.to_vec()) {
-            let mut new_combination = vec![item.clone()];
-            new_combination.extend(combination);
-            result.push(new_combination);
-        }
-    }
-
-    result
-}
-
-pub fn combine_tail_recursive<T: Clone>(lists: Vec<Vec<T>>) -> Vec<Vec<T>> {
-    fn helper<T: Clone>(lists: &[Vec<T>], acc: Vec<Vec<T>>) -> Vec<Vec<T>> {
-        if lists.is_empty() {
-            return acc;
-        }
-
-        let first_list = &lists[0];
-        let rest_lists = &lists[1..];
-
-        let mut new_acc = Vec::new();
-        for combination in acc { //tiene un elemento vacio
-            for item in first_list {
-                let mut new_combination = combination.clone();
-                new_combination.push(item.clone());
-                new_acc.push(new_combination);
-            }
-        }
-
-        helper(rest_lists, new_acc)
-    }
-
-    helper(&lists, vec![vec![]])
-}
-
-
-pub fn insert_data_test() -> bool {
-    
-    let other_id= Uuid::new_v4();
-    let _new_user = NewBaseUser{
-        id: &other_id,
-        username:"Moluxo",
-        name: "Test",
-        lastname: "Test",
-        email: "moluxo@hotmail.com",
-        password: "tuAbuelaE",
-        birthdate: &NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
-    }; 
-
-    let _connection = &mut establish_connection();
-    /* 
-    let result= insert_into(base_user).values(newUser).execute(connection);
-    match result {
-        Ok(num) => {
-            println!("Data inserted {}",num);
-            true
-        },
-        Err(_) => {
-            println!("Error inserting data");
-            false 
-        }
-    }
-    */
-    true
-
-}
-
-
-pub fn modify_data_test() -> bool {
-    
-    let _connection = &mut establish_connection();
-    /*let result = update(base_user).set((email.eq("otro@gmail.com"),name.eq("GIGA"),modified.eq(Utc::now().naive_utc()))).execute(connection);
-    match result {
-        Ok(num) => {
-            println!("Data modified {}",num);
-            true
-        },
-        Err(_) => {
-            println!("Error modifying data");
-            false 
-        }
-    }*/
-    true
-}
-
+use crate::models::components::edit_product_variation_model::Identifier;
 pub async fn obtain_base_categories(pool:&DbPool) -> Result<Vec<Category>,Error> {
     
     use crate::schema::category::dsl::*;
@@ -151,14 +45,6 @@ pub async fn obtain_categories_children(id_category:&String, pool: &DbPool) -> R
     results
 }
 
-pub async fn obtain_category(id_category:&String, pool:&DbPool) -> Category {
-    use crate::schema::category::dsl::*;
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
-    let result = category.filter(id.eq(id_category)).first::<Category>(connection).await.expect("Error loading category");
-    result
-}
-
 pub async fn obtain_ancestors(id_category:&String, pool: &DbPool) -> Result<Vec<Category>,Error> {
     use crate::models::models_x::Category;
     //let connection = &mut establish_connection();
@@ -169,16 +55,6 @@ pub async fn obtain_ancestors(id_category:&String, pool: &DbPool) -> Result<Vec<
     .bind::<Text,_>(id_category.to_string()).get_results(connection).await;
     
     ancestors
-}
-
-pub async fn obtain_base_specs(id_category:&String, pool:&DbPool) -> Result<Vec<Option<Value>>,Error> {
-   
-    use crate::schema::category::dsl::*;
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
-    let result = category.filter(id.eq(id_category)).select(base_specs).load::<Option<Value>>(connection).await;
-    result
-    
 }
 /// Crea el producto ENTERO en una sola transacción: el producto, su vendedor, su
 /// categoría, las variaciones y sus precios. Si falla cualquier paso no queda
@@ -331,20 +207,6 @@ use crate::models::product_variation::VariationValue;
     }
  }
 
-pub async fn get_seller_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Products>,Error>{
-    use crate::schema::product_seller::dsl::*;
-    use crate::schema::products::dsl::*;
-    //use crate::schema::products;
-    //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
-    let results = products
-        .inner_join(product_seller.on(id.eq(product_id)))
-        .filter(seller_id.eq(user_id))
-        .select(Products::as_select())
-        .load::<Products>(connection).await;
-    results
-}
-
 /// Productos del panel con el nombre de su tienda. `None` = todas las tiendas
 /// (admin); `Some(tiendas)` = solo las de esas tiendas. Los productos sin fila en
 /// `product_seller` (los "borrados") no salen.
@@ -440,39 +302,6 @@ pub async fn update_image(id_producto:&Uuid,tipo:&String,image_url:&String,pool:
     .execute(connection).await;
     result
 }
-
-use crate::controllers::components::edit_product_controller::ImageData;
-
-pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], pool: &DbPool) -> Result<usize, Error> {
-    let connection = &mut pool.get().await.unwrap();
-    
-    // Convertir el array de ImageData a un array JSON
-    let images_json: Vec<serde_json::Value> = images
-        .iter()
-        .map(|img| json!({
-            "tipo": img.tipo,
-            "url": img.url
-        }))
-        .collect();
-    
-    let json_array = serde_json::to_string(&images_json).unwrap();
-    
-    let result = sql_query(r#"
-    UPDATE products 
-    SET images = jsonb_set(
-        images,
-        '{images}',
-        (images->'images') || $2::jsonb
-    )
-    WHERE id = $1
-    "#)
-    .bind::<diesel::sql_types::Uuid, _>(id_producto)
-    .bind::<diesel::sql_types::Text, _>(json_array)
-    .execute(connection)
-    .await;
-    
-    result
-}
 use crate::models::models_x::NewImageProduct2;
 pub async fn update_multiple_images_2(image_products:Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut pool.get().await.unwrap();
@@ -489,35 +318,6 @@ pub async fn update_multiple_images_2(image_products:Vec<NewImageProduct2>, pool
 }
 
 
-//pub async fn get_product_cards() -> Rersult<>
-
-/* 
-pub async fn get_images(id_producto: &Uuid, pool: &DbPool) -> Result<Vec<ImageData>, Error> {
-    let connection = &mut pool.get().await.unwrap();
-    
-    let result = sql_query(r#"
-    SELECT jsonb_array_elements(images->'images') AS image
-    FROM products
-    WHERE id = $1
-    "#)
-    .bind::<diesel::sql_types::Uuid, _>(id_producto)
-    .load::<(serde_json::Value,)>(connection)
-    .await?;
-    
-    let images: Vec<ImageData> = result
-        .iter()
-        .map(|(row,)| {
-            let image = row.as_object().unwrap();
-            ImageData {
-                tipo: image["tipo"].as_str().unwrap().to_string(),
-                url: image["url"].as_str().unwrap().to_string(),
-            }
-        })
-        .collect();
-    
-    Ok(images)
-}
-*/
 use crate::models::models_x::{NewPrice,Price};
 use diesel::upsert::excluded;
 pub async fn insert_prices_variations(
@@ -588,36 +388,6 @@ pub async fn get_variations_with_prices(prod_id:&Uuid,curr:&String,pool: &DbPool
         .await?;
     
     Ok(results)
-}
-
-use crate::models::components::edit_product_variation_model::Identifier;
-pub async fn set_variation_identifiers_antiguo(
-    vec_identifiers:&[Identifier],
-    var_id:&Uuid,
-    pool: &DbPool
-)-> Result<usize,Error>{
-    //añadir o sobreescribir?
-    let connection = &mut pool.get().await.unwrap();
-    let insert_identifiers:Vec<NewIdentifierVariation> = vec_identifiers
-        .iter()
-        .map(|ident| NewIdentifierVariation{
-            product_variation_id:&var_id,
-            identifier:&ident.name,
-            value:&ident.value
-        })
-        .collect();
-    
-
-    use crate::schema::product_variations_identifiers::dsl::*;
-    insert_into(product_variations_identifiers)
-        .values(&insert_identifiers)
-        .on_conflict((product_variation_id,identifier))
-        .do_update()
-        .set(
-            value.eq(excluded(value))
-        )
-        .execute(connection)
-        .await
 }
 ////NUEVO///
 pub async fn set_variation_identifiers(
@@ -692,10 +462,6 @@ pub async fn get_identifier_options_var(pool: &DbPool) -> Result<Vec<String>, Er
         .await;
     
     results
-}
-
-pub async fn delete_variation_identifier(_var_id:&Uuid,_name:&String,_pool:&DbPool)->Result<usize,Error>{
-    Ok(99)
 }
 
 use crate::models::components::edit_product_variation_model::PriceData;
@@ -816,19 +582,6 @@ pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: 
     
             Ok(1)
         })).await
-}
-
-pub async fn update_discount_variation(var_id:&Uuid,status_value:&i16,pool:&DbPool)-> Result<usize,Error>{
-    use crate::schema::product_variations::dsl::*;
-
-    let connection = &mut pool.get().await.unwrap();
-
-    let result = update(product_variations)
-        .filter(id.eq(var_id))
-        .set(status.eq(status_value))
-        .execute(connection)
-        .await;
-    result  
 }
 
 
