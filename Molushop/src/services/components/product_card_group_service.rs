@@ -7,7 +7,7 @@ use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 type DbPool = Pool<AsyncPgConnection>;
 use crate::services::{
-    servicesX::*,
+    product_service::get_product_cards,
     components::product_card_service::*
 };
 use askama::Template;
@@ -48,7 +48,7 @@ pub const HOME_PAGE_SIZE: i64 = 24;
 pub async fn get_product_card_group_page(page: i64, filter: &CardFilter, user_id: Option<&Uuid>, pool:&DbPool) -> (Vec<ProductCardData>, Option<String>){
     let page = page.max(1);
     let patterns = filter.like_patterns();
-    match get_product_cards1(HOME_PAGE_SIZE + 1, (page - 1) * HOME_PAGE_SIZE, &patterns, filter.category.as_deref(), pool).await{
+    match get_product_cards(HOME_PAGE_SIZE + 1, (page - 1) * HOME_PAGE_SIZE, &patterns, filter.category.as_deref(), pool).await{
         Ok(mut data) => {
             let more = data.len() as i64 > HOME_PAGE_SIZE;
             data.truncate(HOME_PAGE_SIZE as usize);

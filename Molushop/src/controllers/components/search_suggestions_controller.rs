@@ -17,7 +17,7 @@ use crate::models::components::product_card_group_model::CardFilter;
 use crate::models::components::product_card_model::ProductCardData;
 use crate::models::pages_models::search_page_model::CategoryLink;
 use crate::services::search_service::{category_counts, named_like};
-use crate::services::servicesX::get_product_cards1;
+use crate::services::product_service::get_product_cards;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -57,7 +57,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
     };
 
     // Si algo falla, se sugiere lo que haya: "Buscar" sigue funcionando igual.
-    let products = match get_product_cards1(MAX_PRODUCTS, 0, &filter.like_patterns(), None, pool).await {
+    let products = match get_product_cards(MAX_PRODUCTS, 0, &filter.like_patterns(), None, pool).await {
         Ok(cards) => cards.into_iter().map(ProductCardData::from).collect(),
         Err(e) => {
             println!("Sugerencias: error cargando los productos: {}", e);

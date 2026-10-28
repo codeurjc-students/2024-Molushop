@@ -9,7 +9,7 @@ use diesel::result::Error;
 use diesel_async::pg::AsyncPgConnection;
 
 /// Crea las variaciones del producto y sus precios. Recibe la conexión de la
-/// transacción de `insert_new_product_complete`: si falla el precio, las
+/// transacción de `create_full_product`: si falla el precio, las
 /// variaciones tampoco quedan (antes quedaban sin fila en `prices`).
 pub async fn create_product_variations(product: &ProductForm, product_id: Uuid, conn: &mut AsyncPgConnection) -> Result<usize,Error> {
     match product.variations.clone(){

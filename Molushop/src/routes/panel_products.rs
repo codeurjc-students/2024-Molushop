@@ -23,7 +23,7 @@ use crate::models::pages_models::panel_product_create_page_model::PanelProductCr
 use crate::services::components::edit_product;
 use crate::services::panel_role_service::{product_in_store, resolve_store, PanelStore, PanelUser};
 use crate::services::products_panel;
-use crate::services::servicesX::obtain_base_categories;
+use crate::services::category_service::get_root_categories;
 
 /// Rutas relativas al scope `/panel`.
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -112,7 +112,7 @@ async fn products_create(
         Err(resp) => return resp,
     };
 
-    match obtain_base_categories(pool).await {
+    match get_root_categories(pool).await {
         Ok(categories) => {
             let page = PanelProductCreatePage::new_2(
                 categories,

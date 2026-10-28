@@ -10,8 +10,9 @@ use crate::models::models_x::{ProductVariation,Category,Price,Products};
 use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
 use uuid::Uuid;
-use crate::services::servicesX;
-use crate::services::servicesX::{get_panel_products, get_product_categories, get_product_variations, get_variations_with_prices};
+use crate::services::product_service;
+use crate::services::servicesX::{get_panel_products, get_product_variations, get_variations_with_prices};
+use crate::services::product_service::get_product_categories;
 type DbPool = Pool<AsyncPgConnection>;
 
 use diesel::sql_query;
@@ -82,7 +83,7 @@ pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,E
 /// Un producto para su página de edición, con las mismas variaciones que el
 /// listado. Quien llama ya ha comprobado que es de la tienda (`product_in_store`).
 pub async fn get_product(store_id:&Uuid, product_id:&Uuid, pool: &DbPool) -> Result<Product,Error>{
-    let product = servicesX::get_product(product_id, pool).await?;
+    let product = product_service::get_product(product_id, pool).await?;
     let image_url = get_main_images(std::slice::from_ref(product_id), pool).await?.remove(product_id);
     to_panel_product(product, store_id, image_url, pool).await
 }

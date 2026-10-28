@@ -141,7 +141,7 @@ struct FavoriteCardRow {
 }
 
 /// Las tarjetas de "Mis favoritos", del último guardado al primero, con el
-/// corazón lleno. A diferencia de las de la portada (`get_product_cards1`),
+/// corazón lleno. A diferencia de las de la portada (`get_product_cards`),
 /// salen también las que ya no se venden, marcadas: si desaparecieran sin más,
 /// el usuario no sabría qué ha pasado con lo que guardó.
 pub async fn favorite_cards(user_id: &Uuid, pool: &DbPool) -> Result<Vec<ProductCardData>, ServiceError> {
@@ -169,7 +169,7 @@ pub async fn favorite_cards(user_id: &Uuid, pool: &DbPool) -> Result<Vec<Product
             (p.status = 1 and s.id is not null) as available
         from favorites f
         join products p on p.id = f.product_id
-        -- El precio "desde", como en get_product_cards1.
+        -- El precio "desde", como en get_product_cards.
         left join lateral (
             select pr2.price, pr2.currency
             from product_variations pv

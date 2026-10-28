@@ -3,14 +3,15 @@ use diesel::result::Error;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 //use crate::schema::products::variations;
-use crate::services::servicesX::{get_product_variations, get_product_with_images1};
+use crate::services::servicesX::get_product_variations;
+use crate::services::product_service::get_product_with_images;
 type DbPool = Pool<AsyncPgConnection>;
 use uuid::Uuid;
 use crate::models::components::edit_product::{ProductEdit2,ImageCategories2,General,Variations,Variation,Attribute};
 //primero para la visualización de los productos tenemos que obtener el producto
 /// No comprueba propiedad: el handler llama antes a `can_edit_product`.
 pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,Error>{
-    let product2 = get_product_with_images1(&product_id, &pool).await?;
+    let product2 = get_product_with_images(&product_id, &pool).await?;
     let product_variations_start = get_product_variations(&product_id,&pool).await?;
     
     //obtener las variaciones correctamente

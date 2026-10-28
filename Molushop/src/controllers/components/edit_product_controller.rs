@@ -14,7 +14,8 @@ use diesel_async::pg::AsyncPgConnection;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{edit_product_general, update_multiple_images_2};
+use crate::services::product_service::update_product_general;
+use crate::services::servicesX::update_multiple_images_2;
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction, BulkOutcome};
 use crate::services::image_variations_service::set_image_variations;
 use crate::services::product_images_service::{set_main_image, delete_image as delete_product_image, product_has_variations};
@@ -91,7 +92,7 @@ async fn edit_general(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,
     }
     let form_complete = form.into_inner();
     let status = form_complete.status;
-    let result = edit_product_general(&product_id,form_complete, pool_data.get_ref()).await;
+    let result = update_product_general(&product_id,form_complete, pool_data.get_ref()).await;
 match result{
         Ok(_) => {
             let modal_render = MessageModal::new("Producto actualizado correctamente!").render().unwrap();

@@ -5,7 +5,8 @@ use askama::Template;
 
 use uuid::Uuid;
 
-use crate::services::servicesX::*;
+use crate::services::category_service::{get_root_categories, get_child_categories, get_category_ancestors};
+use crate::services::product_service::create_full_product;
 use crate::services::panel_role_service::{resolve_store, PanelUser};
 use crate::utils::hx::error_modal;
 
@@ -78,8 +79,8 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
     let now = Instant::now();
     //
     let category_id= path.into_inner();
-    let categories_result = obtain_categories_children(&category_id,pool).await;
-    let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = obtain_ancestors(&category_id,pool).await;
+    let categories_result = get_child_categories(&category_id,pool).await;
+    let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = get_category_ancestors(&category_id,pool).await;
     match (categories_result, ancestors_result) {
         (Ok(categories), Ok(ancestors)) => {
 
@@ -115,7 +116,7 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
 #[get("/reset-category")]
 async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
     let pool = pool_data.get_ref();
-    let categories = obtain_base_categories(pool).await;
+    let categories = get_root_categories(pool).await;
     match categories{
         Ok(categories) => {
             let base_category = BaseCategory::new(categories,&ROUTES); 
@@ -134,7 +135,7 @@ async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
 #[get("/next-select/{category_id}")]
 async fn next_category(path: web::Path<String>, pool_data: web::Data<DbPool>) -> impl Responder {
     let category_id= path.into_inner();
-    match obtain_ancestors(&category_id, pool_data.get_ref()).await {
+    match get_category_ancestors(&category_id, pool_data.get_ref()).await {
         Ok(mut ancestors) if !ancestors.is_empty() => {
             // Las specs son opcionales: una categoría sin plantilla (o con una
             // que no se entiende) abre el formulario sin specs sugeridas.
@@ -188,10 +189,10 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
     //hacer print del tipo que es data
     let datox = data.into_inner();
     println!("{:?}",datox);
-    //match insert_new_product(&datox,pool).await{
+    //match insert_product(&datox,pool).await{
     // Producto, vendedor, categoría, variaciones y precios van en UNA
     // transacción: o se crea todo o no se crea nada.
-    match insert_new_product_complete(seller_id,&datox,&category_id,pool).await{
+    match create_full_product(seller_id,&datox,&category_id,pool).await{
         Ok(new_id) => {
             println!("Producto creado con sus variaciones: {:?}",&new_id);
             // A su página de edición: el formulario ya no sirve (enviarlo otra

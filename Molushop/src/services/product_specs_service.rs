@@ -8,12 +8,11 @@ use diesel::sql_types::{Jsonb, Nullable, Uuid as SqlUuid};
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::RunQueryDsl;
-use serde_json::Value;
+use serde_json::{json, Value};
 use uuid::Uuid;
 
 use crate::models::components::edit_product::Specs;
 use crate::models::error::ServiceError;
-use crate::services::servicesX::clean_specs;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -86,6 +85,23 @@ pub async fn save_specs(product_id: &Uuid, raw: &Value, pool: &DbPool) -> Result
     Ok(())
 }
 
+pub fn clean_specs(raw: &Value) -> Result<Value, ServiceError> {
+    let map = match raw {
+        Value::Null => return Ok(json!({})),
+        Value::Object(map) => map,
+        _ => return Err(ServiceError::InvalidSpecs),
+    };
+    let mut cleaned = serde_json::Map::new();
+    for (key, value) in map {
+        let value = value.as_str().ok_or(ServiceError::InvalidSpecs)?.trim();
+        let key = key.trim();
+        if !key.is_empty() && !value.is_empty() {
+            cleaned.insert(key.to_string(), Value::String(value.to_string()));
+        }
+    }
+    Ok(Value::Object(cleaned))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -112,5 +128,26 @@ mod tests {
     fn no_category_and_no_specs_is_empty() {
         let split = split_specs(None, Some(&json!("no vale")));
         assert!(split.category.is_empty() && split.custom.is_empty());
+    }
+
+    /// Quita las specs con el nombre o el valor en blanco y recorta los espacios.
+    #[test]
+    fn clean_specs_drops_empty_ones() {
+        let raw = json!({"material": " algodón ", "size": "", "": "suelto", "  ": "x"});
+        assert_eq!(clean_specs(&raw).unwrap(), json!({"material": "algodón"}));
+    }
+
+    /// Sin specs (null o todas en blanco) queda un objeto vacío, no null.
+    #[test]
+    fn clean_specs_without_specs_is_empty_object() {
+        assert_eq!(clean_specs(&Value::Null).unwrap(), json!({}));
+        assert_eq!(clean_specs(&json!({"size": "  "})).unwrap(), json!({}));
+    }
+
+    /// Rechaza lo que no sea un objeto de textos nombre → valor.
+    #[test]
+    fn clean_specs_rejects_non_name_value() {
+        assert!(matches!(clean_specs(&json!(["a"])), Err(ServiceError::InvalidSpecs)));
+        assert!(matches!(clean_specs(&json!({"size": 3})), Err(ServiceError::InvalidSpecs)));
     }
 }
