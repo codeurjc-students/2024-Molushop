@@ -78,7 +78,7 @@ async fn get_order(
     path: web::Path<Uuid>,
     query: web::Query<OrderDetailQuery>,
     pool_data: web::Data<DbPool>,
-    req: HttpRequest,
+    _req: HttpRequest,
     opt_session_data: Option<web::ReqData<SessionData>>
 ) -> HttpResponse {
     let pool = pool_data.get_ref();

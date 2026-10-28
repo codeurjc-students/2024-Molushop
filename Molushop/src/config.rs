@@ -1,7 +1,7 @@
 use actix_files as fs;
 use actix_web::web;
 //use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 
 pub fn static_config(cfg: &mut web::ServiceConfig) {

@@ -1,12 +1,5 @@
-use actix_web::{get, post, web,delete,Scope, App, HttpRequest, HttpResponse, HttpServer, Responder, http::StatusCode};
-use aws_config::imds::client;
-use bigdecimal::BigDecimal;
+use actix_web::{get, post, web,Scope, HttpRequest, HttpResponse, Responder, http::StatusCode};
 use lazy_static::lazy_static;
-use actix_files as fs;
-use serde::Deserialize;
-use serde::Serialize;
-use std::{str::FromStr, sync::Mutex};
-use std::sync::Arc;
 
 use askama::Template;
 
@@ -16,41 +9,23 @@ use crate::services::servicesX::*;
 use crate::services::panel_role_service::{resolve_store, PanelUser};
 use crate::utils::hx::error_modal;
 
-use crate::services;
-use crate::models::models_x::{ProductForm,Category};
+use crate::models::models_x::ProductForm;
 use crate::models::extra::BaseSpecs;
 //use crate::models::product_variation::{VariationValue,Attribute};
 //use crate::models::get_product::ProductForm;
 
-use std::any::type_name;
 
 use crate::models::components::create_product::*;
 
-use actix_multipart::{
-    form::{
-        tempfile::{TempFile, TempFileConfig},
-        MultipartForm,
-        json::Json as MpJson
-    },
-    Multipart,
-};
 
-use serde_json::json;
 use std::time::Instant;
-use std::collections::HashMap;
 
 //use diesel_async::pooled_connection::bb8::Pool;
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use diesel_async::pg::AsyncPgConnection;
 //use bb8::Pool;
-use diesel_async::RunQueryDsl;
 //type DbPool = Pool<AsyncDieselConnectionManager<AsyncPgConnection>>;
 type DbPool = Pool<AsyncPgConnection>;
-
-fn print_type_of<T>(_: &T) {
-    println!("El tipo de dato es: {}", type_name::<T>());
-}
 
 static SCOPE: &str = "/create-product";
 /// Se registra dentro del scope `/panel` (`routes/panel.rs`); `ROUTES` lleva la URL completa.
@@ -115,10 +90,10 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
             );
             let rendered = list_category_base.render().unwrap();
             
-            ///Testeo tiempo
+            //Testeo tiempo
             let elapsed = now.elapsed();
             println!("Elapsed: {:.2?}", elapsed);
-            ///Testeo tiempo
+            //Testeo tiempo
             HttpResponse::Ok().body(rendered)
         },
         (Err(e), Ok(_)) => {
@@ -210,7 +185,6 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
     let category_id= path.into_inner();
     println!("{:?}",category_id);
     let pool = pool_data.get_ref();
-    //print_type_of(&data);
     //hacer print del tipo que es data
     let datox = data.into_inner();
     println!("{:?}",datox);

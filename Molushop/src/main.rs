@@ -1,8 +1,4 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use actix_files as fs;
-use servicesX::obtain_base_categories;
-use uuid::Uuid;
-use serde_json::Value;
+use actix_web::{web, App, HttpServer};
 use std::sync::Arc;
 
 mod config; 
@@ -33,40 +29,17 @@ use diesel_async::pooled_connection::AsyncDieselConnectionManager;
 use diesel_async::pooled_connection::deadpool::Pool;
 //use bb8::Pool;
 use diesel_async::AsyncPgConnection;
-use diesel_async::RunQueryDsl;
 
 use dotenvy::dotenv;
 
 use std::any::type_name;
 
-use actix_jobs::{Job, Scheduler, run_forever};
 
-use jobs::job_config::init_jobs;
 
 fn print_type_of<T>(_: &T) {
     println!("{}", type_name::<T>());
 }
 
-struct MyJob;
-impl Job for MyJob {
-    fn cron(&self) -> &str {
-        "*/2 * * * * * *" // every two seconds
-    }
-
-    fn run(&mut self) {
-        println!("Sending an email to all our clients...");
-    }
-}
-struct MyJob2;
-impl Job for MyJob2 {
-    fn cron(&self) -> &str {
-        "*/5 * * * * * *" // every two seconds
-    }
-
-    fn run(&mut self) {
-        println!("Otro job");
-    }
-}
 
 
 #[actix_web::main]

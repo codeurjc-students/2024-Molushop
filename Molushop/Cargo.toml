@@ -21,7 +21,6 @@ aws-config = { version = "1.1.7", features = ["behavior-version-latest"] }
 aws-sdk-s3 = { version = "1.61.0", features = ["behavior-version-latest"] }
 tokio = { version = "1", features = ["full"] }
 actix-multipart = "0.7.2"
-rinja = { version = "0.3.5", feature = "serde_json"} 
 actix-jobs = "=0.1.6"
 regex = "1.11.1"
 argon2 = "0.5.3"
@@ -31,7 +30,7 @@ thiserror = "2.0.12"
 pasetors = "0.7.4"
 futures-util = "0.3.31"
 ipnet = "2.11.0"
-askama = { version = "0.15.4", feature = "serde_json"}
+askama = "0.15.4"
 fluent-templates = "0.15.1"
 
 [dependencies.uuid]

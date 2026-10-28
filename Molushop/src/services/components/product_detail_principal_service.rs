@@ -1,16 +1,9 @@
-use crate::models::{
-    components::product_detail_principal_model::*,
-    models_x::ProductForPage1
-};
+use crate::models::components::product_detail_principal_model::*;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 type DbPool = Pool<AsyncPgConnection>;
-use crate::services::{
-    servicesX::*,
-    components::product_card_service::*
-};
-use askama::Template;
+use crate::services::servicesX::*;
 
 /// `Ok(None)` si el producto no está a la venta: no existe, no está activo o
 /// su tienda no está activa (la consulta no devuelve fila). La ruta responde

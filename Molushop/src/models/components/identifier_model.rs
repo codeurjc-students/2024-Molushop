@@ -1,8 +1,6 @@
 use askama::Template;
 
 use serde::{Serialize, Deserialize};
-use uuid::Uuid;
-use bigdecimal::BigDecimal;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;

@@ -1,12 +1,6 @@
-use actix_web::{cookie::Cookie, delete, dev::Transform, get, http::StatusCode, post, web, App, HttpRequest, HttpResponse, HttpServer, Responder, Scope};
-use aws_sdk_s3::primitives::event_stream::Message;
-use bigdecimal::BigDecimal;
-use diesel::result;
+use actix_web::{cookie::Cookie, get, post, web, HttpRequest, HttpResponse, Scope};
 use lazy_static::lazy_static;
 use askama::Template;
-use serde::{Deserialize, Serialize};
-use serde_json::json;
-use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
 use crate::models::components::login_base_model::*;
 use crate::services::components::login_base_service::*;
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -15,7 +9,6 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use super::scope::SCOPE_COMPONENTS;
 use crate::services::servicesX::{new_user_base,get_user,revoke_session};
-use crate::models::components::login_base_model::*;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::constants::urls::HOME_URL;
 use crate::i18n::I18n;
@@ -38,10 +31,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
 
 //
 use crate::middleware::prueba::*;
-use actix_web::{
-    dev::{ServiceFactory,forward_ready, Service, ServiceRequest, ServiceResponse},
-    Error,
-};
+use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
 
 //en el scope se puede poner el middleware
 pub fn scope1() -> Scope<impl ServiceFactory<ServiceRequest, Config = (), Response = ServiceResponse, Error = actix_web::Error, InitError = ()>> {
@@ -113,7 +103,6 @@ async fn spawn()->HttpResponse	{
 
 use crate::models::components::message_modal::MessageModal;
 use crate::services::auth::{hash_password,verify_password};
-use crate::models::error::ServiceError;
 
 #[post("/create-user", wrap = "actix_web::middleware::from_fn(crate::middleware::rate_limit::limit_register)")]
 async fn create_user(i18n: I18n, form:web::Json<FormRegister>,pool_data:web::Data<DbPool>)->HttpResponse{

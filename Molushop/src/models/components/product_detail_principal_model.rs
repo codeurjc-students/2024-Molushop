@@ -1,8 +1,5 @@
 use askama::Template;
-use crate::models::{
-    data_transfer_objects::product::{Product,RoutesProductPanelGroup},
-    models_x::ProductForPage1
-};
+use crate::models::models_x::ProductForPage1;
 use serde_json::{Value, from_value};
 use crate::controllers::components::cart_add_controller::ROUTES as CART_ROUTES;
 use serde::{Deserialize, Serialize};

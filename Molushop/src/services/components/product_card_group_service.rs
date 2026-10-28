@@ -11,10 +11,7 @@ use crate::services::{
     components::product_card_service::*
 };
 use askama::Template;
-use bigdecimal::BigDecimal;
-use serde::{Serialize, Deserialize};
 use futures_util::future::join_all;
-use crate::models::models_x::{ProductCard1};
 use crate::controllers::components::product_card_group_controller::ROUTES as PRODUCT_CARD_GROUP_ROUTES;
 use crate::services::favorites_service::favorite_ids_among;
 

@@ -3,7 +3,6 @@ use diesel::sql_query;
 use diesel_async::RunQueryDsl;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
 use crate::schema::{carts, cart_products, product_seller, product_variations, prices, products, seller};

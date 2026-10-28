@@ -20,7 +20,6 @@ pub mod search;
 pub mod lang;
 
 use actix_web::web;
-use crate::middleware::auth::Auth;
 
 /// Función centralizada para configurar todas las rutas de la aplicación
 pub fn config_routes(cfg: &mut web::ServiceConfig) {

@@ -9,18 +9,12 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use crate::models::error::ServiceError;
 use crate::services::create_product_variations::create_product_variations;
 use diesel::dsl::select;
-use diesel::dsl::sum;
 use diesel::sql_query;
-use diesel::sql_types::Bool;
 use diesel::prelude::QueryDsl;
 use diesel::sql_types::Text;
 use dotenvy::dotenv;
 use std::env;
-use crate::models;
 use crate::models::models_x::{ProductForPage1,ProductWithImages1,Discounts,Category,NewBaseUser,NewProduct,Products,ProductForm,NewProductVariation1,ProductVariation,UserAuth,NewUserSession,ProductCard1};
-use crate::models::get_product::{GetProductForm,Variation};
-use crate::models::product_variation;
-use crate::schema::base_user::password;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 use diesel::result::Error;
@@ -30,7 +24,6 @@ use chrono::prelude::*;
 use serde_json::Value;
 use serde_json::json;
 
-use serde::{Deserialize, Serialize};
 
 use diesel_async::pooled_connection::deadpool::Pool;
 //use diesel_async::pg::AsyncPgConnection;
@@ -92,9 +85,9 @@ pub fn combine_tail_recursive<T: Clone>(lists: Vec<Vec<T>>) -> Vec<Vec<T>> {
 
 
 pub fn insert_data_test() -> bool {
-    use crate::schema::base_user::dsl::*;
+    
     let other_id= Uuid::new_v4();
-    let newUser = NewBaseUser{
+    let _new_user = NewBaseUser{
         id: &other_id,
         username:"Moluxo",
         name: "Test",
@@ -104,7 +97,7 @@ pub fn insert_data_test() -> bool {
         birthdate: &NaiveDate::from_ymd_opt(2021, 1, 1).unwrap(),
     }; 
 
-    let connection = &mut establish_connection();
+    let _connection = &mut establish_connection();
     /* 
     let result= insert_into(base_user).values(newUser).execute(connection);
     match result {
@@ -124,8 +117,8 @@ pub fn insert_data_test() -> bool {
 
 
 pub fn modify_data_test() -> bool {
-    use crate::schema::base_user::dsl::*;
-    let connection = &mut establish_connection();
+    
+    let _connection = &mut establish_connection();
     /*let result = update(base_user).set((email.eq("otro@gmail.com"),name.eq("GIGA"),modified.eq(Utc::now().naive_utc()))).execute(connection);
     match result {
         Ok(num) => {
@@ -216,11 +209,6 @@ pub async fn insert_product_category(id_product:&Uuid, id_category:&String, conn
 pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, connection:&mut AsyncPgConnection) -> Result<usize,Error> {
     use crate::schema::product_seller::dsl::*;
     insert_into(product_seller).values((product_id.eq(id_product),seller_id.eq(id_seler))).execute(connection).await
-}
-
-#[derive(Deserialize, Serialize, Debug)]
-struct FormTitulos {
-    titulos: Vec<String>
 }
 
 /// Las specs son opcionales: se quitan las que llegan sin nombre o sin valor
@@ -454,7 +442,6 @@ pub async fn update_image(id_producto:&Uuid,tipo:&String,image_url:&String,pool:
 }
 
 use crate::controllers::components::edit_product_controller::ImageData;
-use crate::controllers::components::edit_product_controller::ImageData2;
 
 pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut pool.get().await.unwrap();
@@ -486,7 +473,6 @@ pub async fn update_multiple_images(id_producto: &Uuid, images: &[ImageData], po
     
     result
 }
-use crate::models::models_x::NewImageProduct;
 use crate::models::models_x::NewImageProduct2;
 pub async fn update_multiple_images_2(image_products:Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut pool.get().await.unwrap();
@@ -708,7 +694,7 @@ pub async fn get_identifier_options_var(pool: &DbPool) -> Result<Vec<String>, Er
     results
 }
 
-pub async fn delete_variation_identifier(var_id:&Uuid,name:&String,pool:&DbPool)->Result<usize,Error>{
+pub async fn delete_variation_identifier(_var_id:&Uuid,_name:&String,_pool:&DbPool)->Result<usize,Error>{
     Ok(99)
 }
 
@@ -716,8 +702,8 @@ use crate::models::components::edit_product_variation_model::PriceData;
 use crate::models::models_x::{NewDiscount,NewDiscountHistory};
 pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: &BigDecimal,currency_insert: &String,pool:&DbPool)-> Result<usize,Error>{
     use crate::schema::prices;
-    use crate::schema::price_history; //::dsl::nombre
-    use crate::schema::discounts::dsl::*;
+     //::dsl::nombre
+    
     //use crate::schema::discount_history::dsl::*;
     use crate::schema::discounts;
     use crate::schema::discount_history;
@@ -809,7 +795,7 @@ pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: 
                 };
     
     
-                let result_discount = insert_into(discounts::dsl::discounts)
+                let _result_discount = insert_into(discounts::dsl::discounts)
                     .values(new_discount)
                     .on_conflict(( discounts::dsl::variation_id,discounts::dsl::discount_type,discounts::dsl::currency))
                     .do_update()
@@ -823,7 +809,7 @@ pub async fn update_price_variation(form:&PriceData, var_id:&Uuid,price_insert: 
                     ))
                     .execute(tx).await?;
     
-                let result_discount = insert_into(discount_history::dsl::discount_history)
+                let _result_discount = insert_into(discount_history::dsl::discount_history)
                     .values(new_discount_history)
                     .execute(tx).await?;
             }

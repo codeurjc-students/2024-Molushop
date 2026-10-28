@@ -1,14 +1,12 @@
 use pasetors::claims::{Claims, ClaimsValidationRules};
-use pasetors::keys::{Generate, SymmetricKey};
+use pasetors::keys::SymmetricKey;
 use pasetors::{local, Local, version4::V4};
 use pasetors::token::UntrustedToken;
 use core::convert::TryFrom;
 use pasetors::errors::Error;
 use std::time::Duration;
-use dotenvy::dotenv;
 use lazy_static::lazy_static;
 use std::env;
-use uuid::Uuid;
 use std::collections::HashMap;
 //cargar del env --> secret key?
 //lazy constantes ? --> se debería leer del env solo 1 vez?

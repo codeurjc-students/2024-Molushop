@@ -1,10 +1,9 @@
-use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
-use diesel::result;
+use actix_web::{get, web,delete,Scope, HttpResponse, http::StatusCode};
 use lazy_static::lazy_static;
 use askama::Template;
 use uuid::Uuid;
 
-use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
+use crate::models::data_transfer_objects::product::RoutesProductPanelGroup as Routes;
 use crate::models::components::confirm_modal::ConfirmModal;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -19,7 +18,6 @@ use crate::utils::hx::error_modal;
 type DbPool = Pool<AsyncPgConnection>;
 
 static SCOPE: &str = "/product-panel-group";
-static DELETE_PRODUCT : &str = "/delete-product";
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     
     pub static ref ROUTES: Routes = Routes{

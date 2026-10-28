@@ -13,7 +13,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::controllers::components::edit_product_controller::ROUTES as ROUTES_EDIT_PRODUCT;
 use crate::controllers::components::product_panel_group::ROUTES as ROUTES_PRODUCT_PANEL_GROUP;
-use crate::controllers::createProduct::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
+use crate::controllers::create_product::create_product_controllers::ROUTES as ROUTES_CREATE_PRODUCT;
 use crate::models::components::edit_product::EditProduct;
 use crate::models::components::product_panel::ProductPanelGroup;
 use crate::models::components::panel_nav::PanelNav;

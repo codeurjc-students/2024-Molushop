@@ -193,7 +193,7 @@ impl Client {
         let file_type;
         if extension == "jpg" || extension == "jpeg" {
             file_type = "image/jpeg";
-        } else if(extension == "png") {
+        } else if extension == "png" {
             file_type = "image/png";
         }else{
             file_type = "other";

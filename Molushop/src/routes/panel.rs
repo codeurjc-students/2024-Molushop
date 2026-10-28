@@ -20,7 +20,7 @@ use crate::routes::panel_register;
 use crate::routes::admin_stores::{self, ADMIN_STORES};
 use crate::routes::admin_orders;
 use crate::controllers::components::scope::scope_panel_components;
-use crate::controllers::createProduct::create_product_controllers::scope_create_product;
+use crate::controllers::create_product::create_product_controllers::scope_create_product;
 
 /// `/panel`: vendedores y admin (el vendedor ve lo suyo, el admin todo).
 /// `/admin`: solo lo exclusivo del admin.

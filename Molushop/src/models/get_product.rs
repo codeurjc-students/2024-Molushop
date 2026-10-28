@@ -1,9 +1,7 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value; 
 use std::fmt;
-use askama::filters::HtmlSafe;
-use crate::controllers::createProduct::product;
-use crate::servicesX::{combine,combine_tail_recursive};
+use crate::servicesX::combine_tail_recursive;
 
 use super::models_x::Products;
 
@@ -114,7 +112,7 @@ impl GetProductForm{
         //};
         let has_variations = !variations.0.is_empty();
         let mut all_variations_x:Vec<Vec<String>> = Vec::new();
-        if(has_variations){
+        if has_variations {
             for variation in &variations{
                 let mut aux_values:Vec<String> = Vec::new();
                 for value in &variation.values{

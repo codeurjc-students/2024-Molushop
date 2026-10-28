@@ -1,5 +1,5 @@
 use askama::Template;
-use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
+use crate::models::data_transfer_objects::product::Product;
 use crate::models::components::variations_explorer::EditUrls;
 
 use serde::{Serialize, Deserialize};

@@ -1,17 +1,12 @@
-use serde::{Serialize, Deserialize};
 use diesel::result::Error;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use crate::models::data_transfer_objects::product::Product;
-use crate::models::models_x::{ProductVariation,Category};
-use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
 use crate::services::servicesX::{get_product_variations,get_product_with_images1};
 type DbPool = Pool<AsyncPgConnection>;
 use uuid::Uuid;
-use crate::models::components::edit_product::{ProductEdit,ProductEdit2,ImageCategories2,General,Images,Prices,Variations,Variation,Attribute};
-use crate::models::data_transfer_objects::images;
+use crate::models::components::edit_product::{ProductEdit2,ImageCategories2,General,Variations,Variation,Attribute};
 //primero para la visualización de los productos tenemos que obtener el producto
 /// No comprueba propiedad: el handler llama antes a `can_edit_product`.
 pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,Error>{

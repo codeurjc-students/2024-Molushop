@@ -1,6 +1,5 @@
-use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
+use actix_web::{get, post, web,delete,Scope, HttpResponse};
 use bigdecimal::BigDecimal;
-use diesel::result;
 use lazy_static::lazy_static;
 use askama::Template;
 use uuid::Uuid;
@@ -8,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
+use crate::models::components::confirm_modal::ConfirmModal;
 use crate::models::components::edit_product_variation_model::Routes;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
@@ -22,16 +21,6 @@ use crate::services::sku_service::{check_variation_sku, normalize_sku, save_vari
 use crate::utils::hx::error_modal;
 use actix_web::http::StatusCode as Status;
 
-use std::sync::Arc;
-use crate::services::aws::s3::client::Client;
-use actix_multipart::{
-    form::{
-        tempfile::{TempFile, TempFileConfig},
-        MultipartForm,
-        json::Json as MpJson
-    },
-    Multipart,
-};
 
 static SCOPE: &str = "/edit-product-variation";
 
@@ -231,7 +220,7 @@ let form_identifiers = data.into_inner();
     let result =set_variation_identifiers(&identifiers, &var_id, pool).await;
 
     match result{
-        Ok(numero) =>{
+        Ok(_numero) =>{
             //aqui añadir a que 
             let modal_html = MessageModal::new("Identificadores editados correctamente").render().unwrap();
             println!("Todo correcto");
@@ -387,7 +376,7 @@ async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
 }
 
 #[delete("/delete-identifier/{id_variation}")]
-async fn delete_identifier(pool_data:web::Data<DbPool>)->HttpResponse{
+async fn delete_identifier(_pool_data:web::Data<DbPool>)->HttpResponse{
     println!("BORRANDO IDENTIFICADOR");
     HttpResponse::Ok().finish()
 }

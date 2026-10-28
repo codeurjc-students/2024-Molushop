@@ -5,7 +5,6 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-use crate::controllers::createProduct::product;
 //use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
 use crate::models::components::edit_product_variation_model::*;
 use crate::services::servicesX::{get_discount_variation,get_stock_variation,get_identifier_options_var,get_product_variation,get_variation_price,get_variation_identifiers};
@@ -52,12 +51,12 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
             sale_price=disc.discount_value;
             sale_active=true;
         },
-        Err(e)=>{
+        Err(_e)=>{
 
         }
     }
 
-    let big_decimal_aux = BigDecimal::from(20);
+    let _big_decimal_aux = BigDecimal::from(20);
 
     let prices = Prices{
         actual_price: price_base.price,

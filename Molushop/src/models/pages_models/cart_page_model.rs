@@ -1,6 +1,5 @@
 use askama::Template;
 use crate::i18n::I18n;
-use crate::models::components::product_card_model::ProductCardData;
 use crate::models::components::nav1_model::*;
 use crate::models::components::login_base_model::LoginProductData;
 use crate::models::components::cart_total_v1::CartTotalData;

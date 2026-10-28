@@ -1,6 +1,5 @@
 use askama::Template;
 
-use serde::{Serialize,Deserialize};
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::models::models_x::ProductCard1;

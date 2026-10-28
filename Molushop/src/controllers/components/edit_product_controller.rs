@@ -1,13 +1,12 @@
-use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
-use diesel::result;
+use actix_web::{get, post, web,delete,Scope, HttpResponse};
 use lazy_static::lazy_static;
 use askama::Template;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use serde_json::json;
 
 //use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::{controllers::createProduct::product, models::components::confirm_modal::ConfirmModal};
+use crate::models::components::confirm_modal::ConfirmModal;
 use crate::models::components::edit_product::{Routes, UploadedImages, ImageCategories2};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
@@ -15,7 +14,7 @@ use diesel_async::pg::AsyncPgConnection;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{edit_product_general,update_image, update_multiple_images_2};
+use crate::services::servicesX::{edit_product_general, update_multiple_images_2};
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction, BulkOutcome};
 use crate::services::image_variations_service::set_image_variations;
 use crate::services::product_images_service::{set_main_image, delete_image as delete_product_image, product_has_variations};
@@ -28,17 +27,12 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
 use crate::services::aws::s3::client::Client;
-use actix_multipart::{
-    form::{
-        tempfile::{TempFile, TempFileConfig},
-        MultipartForm,
-        json::Json as MpJson
-    },
-    Multipart,
-};
+use actix_multipart::form::{
+        tempfile::TempFile,
+        MultipartForm
+    };
 
 static SCOPE: &str = "/edit-product";
-static DELETE_PRODUCT : &str = "/delete-product";
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     
     pub static ref ROUTES: Routes = Routes{
@@ -378,7 +372,7 @@ async fn edit_images(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,c
         return resp;
     }
 let client_data_x = client_data.get_ref().as_ref();
-    let mut vec_images:Vec<ImageData> = Vec::new();
+    let _vec_images:Vec<ImageData> = Vec::new();
     let mut vec_images2:Vec<NewImageProduct2> = Vec::new();
 
     for f in form.files {

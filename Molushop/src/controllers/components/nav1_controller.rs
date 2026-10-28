@@ -1,4 +1,4 @@
-use actix_web::{cookie::{time::OffsetDateTime, Cookie}, delete, dev::Transform, get, http::StatusCode, post, web, App, HttpResponse, HttpServer, Responder, Scope};
+use actix_web::{get, web, HttpResponse, Scope};
 use lazy_static::lazy_static;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -6,9 +6,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::models::components::nav1_model::*;
-use super::scope::SCOPE_COMPONENTS;
 use super::{login_base_controller, search_suggestions_controller};
-use askama::Template;
 use crate::services::components::nav1_service::*;
 use crate::constants::urls::{ACCOUNT_URL, FAVORITES_URL, ORDERS_URL, SEARCH_URL};
 

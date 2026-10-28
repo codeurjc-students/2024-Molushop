@@ -1,6 +1,5 @@
-use actix_web::{get, post, web,delete, App, HttpResponse,HttpRequest, HttpServer, Responder, http::StatusCode};
+use actix_web::{web, HttpResponse,HttpRequest};
 use crate::i18n::I18n;
-use lazy_static::lazy_static;
 use uuid::Uuid;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -11,15 +10,13 @@ use askama::Template;
 use crate::models::pages_models::product_page_model::*;
 use crate::routes::not_found::not_found_page;
 use crate::services::components::{
-    product_card_service::*,
-    product_card_group_service::*,
     nav1_service::*,
     product_detail_principal_service::get_product_object,
     product_reviews_service::get_product_reviews_object
 };
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
-use crate::services::servicesX::{check_session,get_user_2};
+use crate::services::servicesX::get_user_2;
 use crate::services::favorites_service::favorite_ids_among;
 use crate::middleware::auth::Auth;
 
@@ -36,7 +33,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 }
 
-async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPool>,req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
+async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     let product_id = path.into_inner();
     let mut user_name = "".to_string();
@@ -55,7 +52,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
                 user_name = user.username;
                 user_logged = true;
             }
-            Err(e)=>{
+            Err(_e)=>{
                 println!("Ha ocurrido un error con la base de datos!");
             }
         }
