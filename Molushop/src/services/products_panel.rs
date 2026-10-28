@@ -11,12 +11,7 @@ use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
 use uuid::Uuid;
 use crate::services::servicesX;
-use crate::services::servicesX::{
-    get_panel_products,
-    get_product_categories,
-    get_product_variations,
-    get_variations_with_prices
-};
+use crate::services::servicesX::{get_panel_products, get_product_categories, get_product_variations, get_variations_with_prices};
 type DbPool = Pool<AsyncPgConnection>;
 
 use diesel::sql_query;

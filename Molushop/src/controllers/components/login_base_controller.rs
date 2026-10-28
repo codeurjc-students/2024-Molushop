@@ -8,7 +8,8 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use super::scope::SCOPE_COMPONENTS;
-use crate::services::servicesX::{new_user_base,get_user,revoke_session};
+use crate::services::user_service::{insert_user, get_user_by_username};
+use crate::services::session_service::revoke_session;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::constants::urls::HOME_URL;
 use crate::i18n::I18n;
@@ -131,7 +132,7 @@ async fn create_user(i18n: I18n, form:web::Json<FormRegister>,pool_data:web::Dat
         }
     };
 
-    let result_new_user = new_user_base(&form_register.username,&form_register.email,&hashed_pass, pool).await;
+    let result_new_user = insert_user(&form_register.username,&form_register.email,&hashed_pass, pool).await;
 
     match result_new_user{
         Ok(_)=>{
@@ -153,7 +154,7 @@ async fn login(i18n: I18n, form:web::Json<FormLogin>,pool_data:web::Data<DbPool>
     //verificar que el ussuario y contraseña existen
     let form_login = form.into_inner();
     let pool = pool_data.get_ref();
-    let user_data= match get_user(&form_login.username,&pool).await{
+    let user_data= match get_user_by_username(&form_login.username,&pool).await{
         Ok(user)=> user,
         Err(e)=>{
             println!("Error! -> {}",e);

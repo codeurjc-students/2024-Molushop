@@ -14,7 +14,7 @@ use crate::services::components::checkout_get_service::get_checkout_object;
 use crate::models::components::checkout_v1::CheckoutData;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 /// `?lines=id1,id2`: qué líneas de la cesta se están comprando. Sin él se
 /// compra el carrito entero.
@@ -66,7 +66,7 @@ pub async fn render_checkout_page(
     let mut user_logged = false;
 
     if let Some(user_id) = user_id {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }

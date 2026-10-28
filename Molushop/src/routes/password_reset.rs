@@ -24,7 +24,7 @@ use crate::services::components::nav1_service::get_nav1_object;
 use crate::services::password_reset_service::{
     request_reset, reset_password, token_is_valid, ResetError, RESET_MINUTES, RESET_URL,
 };
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 pub static FORGOT_URL: &str = "/password/forgot";
 
@@ -97,7 +97,7 @@ async fn nav_parts(
     let mut username = String::new();
     let mut logged = false;
     if let Some(id) = user_id.as_ref() {
-        if let Ok(user) = get_user_2(id, pool).await {
+        if let Ok(user) = get_user_by_id(id, pool).await {
             username = user.username;
             logged = true;
         }

@@ -8,7 +8,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 use crate::services::paseto_token_session_service::*;
-use crate::services::servicesX::check_session;
+use crate::services::session_service::check_session;
 use std::collections::HashMap;
 use chrono::prelude::*;
 // There are two steps in middleware processing.

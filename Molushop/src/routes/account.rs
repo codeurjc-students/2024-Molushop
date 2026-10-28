@@ -21,7 +21,7 @@ use crate::models::pages_models::account_page_model::AccountPage;
 use crate::services::account_service::{change_password, other_sessions_count, revoke_other_sessions};
 use crate::services::components::login_base_service;
 use crate::services::components::nav1_service::get_nav1_object;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -96,7 +96,7 @@ async fn account_page(
     let mut user_logged = false;
     let mut other_sessions = 0;
     if let Some(session) = session.as_ref() {
-        if let Ok(user) = get_user_2(&session.id, pool).await {
+        if let Ok(user) = get_user_by_id(&session.id, pool).await {
             username = user.username;
             user_logged = true;
         }

@@ -61,7 +61,7 @@ use crate::services::components::{
     product_card_group_service::*,
     nav1_service::*
 };
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 
 use crate::middleware::auth::SessionData;
@@ -105,7 +105,7 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
         let user_id = session_data.id;
         user_id_opt = Some(user_id);
                 //datos del usuario
-        match get_user_2(&user_id,&pool).await{
+        match get_user_by_id(&user_id,&pool).await{
             Ok(user)=>{
                 user_name = user.username;
                 user_logged = true;

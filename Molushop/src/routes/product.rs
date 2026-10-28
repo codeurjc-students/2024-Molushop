@@ -16,7 +16,7 @@ use crate::services::components::{
 };
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 use crate::services::favorites_service::favorite_ids_among;
 use crate::middleware::auth::Auth;
 
@@ -47,7 +47,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
         let user_id = session_data.id;
         user_id_opt = Some(user_id);
                 //datos del usuario
-        match get_user_2(&user_id,&pool).await{
+        match get_user_by_id(&user_id,&pool).await{
             Ok(user)=>{
                 user_name = user.username;
                 user_logged = true;

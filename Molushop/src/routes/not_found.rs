@@ -9,7 +9,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::models::pages_models::not_found_page_model::NotFoundPage;
 use crate::services::components::{nav1_service::get_nav1_object, login_base_service};
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 use crate::middleware::auth::SessionData;
 
 /// La página 404 de la tienda, con la barra y la sesión del usuario. La usan
@@ -20,7 +20,7 @@ pub async fn not_found_page(i18n: I18n, page_name: &str, title: &str, message: &
     let mut user_name = "".to_string();
     let mut user_logged = false;
     if let Some(user_id) = user_id {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }

@@ -7,7 +7,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 //use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
 use crate::models::components::edit_product_variation_model::*;
-use crate::services::servicesX::{get_discount_variation,get_stock_variation,get_identifier_options_var,get_product_variation,get_variation_price,get_variation_identifiers};
+use crate::services::servicesX::{get_discount_variation, get_stock_variation, get_identifier_options_var, get_product_variation, get_variation_price, get_variation_identifiers};
 use bigdecimal::BigDecimal;
 
 //hacer un vec de variations

@@ -11,7 +11,7 @@ use crate::models::pages_models::about_us_page_model::*;
 use crate::services::components::nav1_service::*;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
@@ -36,7 +36,7 @@ async fn get_about_us(
     let mut user_logged = false;
 
     if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }

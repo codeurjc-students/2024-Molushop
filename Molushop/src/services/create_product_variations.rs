@@ -3,7 +3,7 @@ use crate::models::product_variation::{ProductVariation,VariationValue};
 //use crate::schema::product_variations::attributes;
 use uuid::Uuid;
 //use serde_json::Value;
-use crate::services::servicesX::{insert_product_variation,insert_product_variations, insert_prices_variations};
+use crate::services::servicesX::{insert_product_variation, insert_product_variations, insert_prices_variations};
 use diesel::result::Error;
 
 use diesel_async::pg::AsyncPgConnection;

@@ -14,7 +14,7 @@ use crate::services::components::{
 };
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     //cfg.service(products_panel_prueba);
@@ -42,7 +42,7 @@ async fn get_cart(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
         let user_id = session_data.id;
         user_id_opt = Some(user_id);
                 //datos del usuario
-        match get_user_2(&user_id,&pool).await{
+        match get_user_by_id(&user_id,&pool).await{
             Ok(user)=>{
                 user_name = user.username;
                 user_logged = true;

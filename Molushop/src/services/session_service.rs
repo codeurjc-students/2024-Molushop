@@ -1,6 +1,7 @@
 //! Abrir una sesión: el token PASETO, su fila en `user_sessions` y la cookie
 //! `sesion_token`. Lo usan el login y el alta de vendedor, que entra solo tras
-//! registrarse. Cerrarla es `revoke_session` (logout).
+//! registrarse. Aquí también se comprueba (`check_session`, el middleware) y se
+//! cierra (`revoke_session`, logout).
 
 use std::collections::HashMap;
 use std::time::Duration as DurationTime;
@@ -9,14 +10,17 @@ use actix_web::cookie::time::Duration as CookieDuration;
 use actix_web::cookie::{Cookie, SameSite};
 use actix_web::HttpRequest;
 use chrono::{Duration, Utc};
+use diesel::prelude::*;
+use diesel::result::Error;
+use diesel::{insert_into, update};
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::pg::AsyncPgConnection;
+use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use ipnet::IpNet;
 use uuid::Uuid;
 
-use crate::models::models_x::NewUserSession;
+use crate::models::models_x::{NewUserSession, UserSession};
 use crate::services::paseto_token_session_service::generate_local_token_duration;
-use crate::services::servicesX::insert_session_login;
+
 use crate::utils::tokens::sha256_hex;
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -60,7 +64,7 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
         user_agent,
         device_info: Some("por ahora xd"),
     };
-    insert_session_login(session, pool)
+    insert_session(session, pool)
         .await
         .map_err(|e| format!("Error guardando la sesión: {}", e))?;
 
@@ -73,4 +77,40 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
     cookie.set_secure(true);
     cookie.set_path("/");
     Ok(cookie)
+}
+
+pub async fn insert_session<'a>(session_data: NewUserSession<'a>, pool:&DbPool) -> Result<usize, Error> {
+    use crate::schema::user_sessions::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    let result = insert_into(user_sessions)
+        .values(session_data)
+        .execute(connection).await;
+    result
+}
+
+pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Error>{
+    use crate::schema::user_sessions::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    //let now = Utc::now().naive_utc();
+
+    let result = user_sessions
+        .filter(jti.eq(jti_x))
+        // .filter(is_revoked.eq(false))
+        // .filter(issued_at.lt(now))
+        // .filter(expires_at.gt(now))
+        .first::<UserSession>(connection).await;
+    result
+}
+
+/// Revoca la sesión `jti_x`. Se filtra también por usuario para que nunca pueda revocarse
+/// una sesión ajena, aunque el `jti` llegue de otro sitio que no sea el middleware.
+pub async fn revoke_session(jti_x:&String, user_id_x:&Uuid, pool:&DbPool)-> Result<usize,Error>{
+    use crate::schema::user_sessions::dsl::*;
+    let connection = &mut pool.get().await.unwrap();
+
+    update(user_sessions.filter(jti.eq(jti_x)).filter(user_id.eq(user_id_x)))
+        .set(is_revoked.eq(true))
+        .execute(connection).await
 }

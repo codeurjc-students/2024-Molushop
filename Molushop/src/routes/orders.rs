@@ -13,7 +13,7 @@ use crate::services::components::nav1_service::*;
 use crate::services::components::order_get_service::{get_order_object, get_orders_list_object};
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 use serde::Deserialize;
 
 /// Query de la ficha. `nuevo=1` lo pone la redirección del checkout al confirmar.
@@ -55,7 +55,7 @@ async fn get_orders(
     let mut user_logged = false;
 
     if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }
@@ -90,7 +90,7 @@ async fn get_order(
     let mut user_logged = false;
 
     if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }

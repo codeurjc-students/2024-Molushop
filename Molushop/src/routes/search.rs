@@ -18,7 +18,7 @@ use crate::models::pages_models::search_page_model::{CategoryLink, SearchPage};
 use crate::services::components::{login_base_service, nav1_service::get_nav1_object};
 use crate::services::components::product_card_group_service::get_product_card_group_page;
 use crate::services::search_service::{ancestors, category_counts, children};
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.route(SEARCH_URL, web::get().to(search).wrap(Auth::new()));
@@ -81,7 +81,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
     let mut user_name = String::new();
     let mut user_logged = false;
     if let Some(user_id) = user_id.as_ref() {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }

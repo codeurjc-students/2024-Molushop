@@ -35,7 +35,7 @@ pub struct ValidationResult{
     pub username_unique: bool
 }
 
-use crate::services::servicesX::{check_mail,check_username};
+use crate::services::user_service::{check_mail, check_username};
 pub async fn form_register_validation(form:&FormRegister,pool:&DbPool)-> Result<ValidationResult, Error>{
     let pass1= &form.pass;
     let pass2= &form.pass2;

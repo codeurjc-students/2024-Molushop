@@ -16,7 +16,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::variation_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{set_variation_identifiers,update_price_variation,set_stock_variation};
+use crate::services::servicesX::{set_variation_identifiers, update_price_variation, set_stock_variation};
 use crate::services::sku_service::{check_variation_sku, normalize_sku, save_variation_general, SaveGeneral};
 use crate::utils::hx::error_modal;
 use actix_web::http::StatusCode as Status;

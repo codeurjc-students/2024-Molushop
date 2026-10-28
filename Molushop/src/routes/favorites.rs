@@ -15,7 +15,7 @@ use crate::middleware::auth::{Auth, SessionData};
 use crate::models::pages_models::favorites_page_model::FavoritesPage;
 use crate::services::components::{login_base_service, nav1_service::get_nav1_object};
 use crate::services::favorites_service::favorite_cards;
-use crate::services::servicesX::get_user_2;
+use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     // Sin el wrap, opt_session_data llega None y la lista sale vacía
@@ -35,7 +35,7 @@ async fn get_favorites(
     let mut user_logged = false;
 
     if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_2(user_id, pool).await {
+        if let Ok(user) = get_user_by_id(user_id, pool).await {
             user_name = user.username;
             user_logged = true;
         }
