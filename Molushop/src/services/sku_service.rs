@@ -14,6 +14,7 @@ use serde::Serialize;
 use crate::constants::product_status::PRODUCT_ACTIVE;
 use std::collections::HashMap;
 use uuid::Uuid;
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -90,7 +91,7 @@ pub async fn check_variation_sku(variation_id: &Uuid, raw: &str, pool: &DbPool) 
         Ok(None) => return Ok(None),
         Err(text) => return Ok(Some(text.to_string())),
     };
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
     let holder = sku_holder(&mut conn, *variation_id, &sku).await?;
     Ok(holder.map(|holder| format!("Ya lo usa {}", holder)))
 }
@@ -104,7 +105,7 @@ pub async fn save_variation_general(
     pool: &DbPool,
 ) -> Result<SaveGeneral, Error> {
     let variation_id = *variation_id;
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
 
     let result = conn.transaction::<SaveGeneral, Error, _>(|conn| async move {
         // Solo al pasar a activa: una que ya lo estaba sin precio (de antes de
@@ -229,7 +230,7 @@ pub async fn save_skus(
     let ids: Vec<Uuid> = checked.iter().map(|(id, _)| *id).collect();
     let skus: Vec<Option<String>> = checked.iter().map(|(_, sku)| sku.clone()).collect();
     let product_id = *product_id;
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
 
     let result = conn.transaction::<SaveSkus, Error, _>(|conn| async move {
         let owned = sql_query(

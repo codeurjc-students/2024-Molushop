@@ -11,6 +11,7 @@ use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
 use crate::models::models_x::NewImageProduct2;
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -21,7 +22,7 @@ type DbPool = Pool<AsyncPgConnection>;
 pub async fn set_main_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -> Result<bool, Error> {
     let product_id = *product_id;
     let image_id = *image_id;
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
 
     conn.transaction::<bool, Error, _>(|conn| async move {
         let marked = sql_query("UPDATE images_product SET is_main = true WHERE id = $1 AND product_id = $2")
@@ -81,7 +82,7 @@ pub struct DeletedImage {
 pub async fn delete_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -> Result<Option<DeletedImage>, Error> {
     let product_id = *product_id;
     let image_id = *image_id;
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
 
     conn.transaction::<Option<DeletedImage>, Error, _>(|conn| async move {
         let deleted: Option<DeletedRow> = sql_query("DELETE FROM images_product WHERE id = $1 AND product_id = $2 RETURNING image_url, is_main")
@@ -123,7 +124,7 @@ pub async fn delete_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -> 
 /// Si el producto tiene atributos de variación (Color, Talla…): sin ellos, la
 /// galería no lleva el botón "Variaciones" (como `variations_titles` en la página).
 pub async fn product_has_variations(product_id: &Uuid, pool: &DbPool) -> Result<bool, Error> {
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
     let row: InUse = sql_query("SELECT COALESCE(jsonb_typeof(variation_titles->'titulos') = 'array'
             AND jsonb_array_length(variation_titles->'titulos') > 0, false) AS in_use
             FROM products WHERE id = $1")
@@ -134,7 +135,7 @@ pub async fn product_has_variations(product_id: &Uuid, pool: &DbPool) -> Result<
 }
 
 pub async fn insert_product_images(image_products:Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     use crate::schema::images_product::dsl::*;
     let result = insert_into(images_product).values(image_products).execute(connection).await;
     match result{

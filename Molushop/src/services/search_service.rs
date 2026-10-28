@@ -12,6 +12,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::i18n::Lang;
+use crate::utils::db::get_connection;
 
 #[derive(QueryableByName, Debug, Clone)]
 pub struct CategoryCount {
@@ -31,7 +32,7 @@ pub struct CategoryCount {
 /// (`category_translation`; si no está traducida, el de `category`, en
 /// español). "A la venta" es lo mismo que en `product_service::get_product_cards`.
 pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     sql_query(r#"
         with recursive tree as (
             -- Cada categoría con ella misma y con todas sus descendientes.

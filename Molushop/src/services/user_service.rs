@@ -9,6 +9,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
 use crate::models::models_x::UserAuth;
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -16,7 +17,7 @@ type DbPool = Pool<AsyncPgConnection>;
 pub async fn check_mail(mail:&String,pool: &DbPool)->Result<bool,Error>{
     use crate::schema::base_user::dsl::*;
 
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let result = select(exists(
         base_user.filter(email.eq(mail))
@@ -30,7 +31,7 @@ pub async fn check_mail(mail:&String,pool: &DbPool)->Result<bool,Error>{
 pub async fn check_username(user:&String,pool: &DbPool)->Result<bool,Error>{
     use crate::schema::base_user::dsl::*;
 
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let result = select(exists(
         base_user.filter(username.eq(user))
@@ -46,7 +47,7 @@ pub async fn check_username(user:&String,pool: &DbPool)->Result<bool,Error>{
 // Poner la restriccion de que el usuario esté activo
 pub async fn get_user_by_username(username_in:&String,pool:&DbPool)->Result<UserAuth,Error>{
     use crate::schema::base_user::dsl::*;
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let user = base_user
         .filter(username.eq(username_in))
@@ -66,7 +67,7 @@ pub async fn get_user_by_username(username_in:&String,pool:&DbPool)->Result<User
 
 pub async fn get_user_by_id(user_id:&Uuid,pool:&DbPool)->Result<UserAuth,Error>{
     use crate::schema::base_user::dsl::*;
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let user = base_user
         .filter(id.eq(user_id))
@@ -90,7 +91,7 @@ pub async fn insert_user(username_in:&String,email_in:&String,password_in:&Strin
     use crate::schema::base_user::dsl::*;
     use crate::models::models_x::NewBaseUserSimple;
 
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let new_id = Uuid::new_v4();
 

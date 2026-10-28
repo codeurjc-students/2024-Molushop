@@ -16,6 +16,7 @@ use crate::models::error::ServiceError;
 use crate::models::models_x::{Category, NewProduct, ProductCard1, ProductForPage1, ProductForm, ProductWithImages1, Products};
 use crate::services::create_product_variations::create_product_variations;
 use crate::services::product_specs_service::clean_specs;
+use crate::utils::db::get_connection;
 
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -99,7 +100,7 @@ pub async fn insert_product(form:&ProductForm,connection:&mut AsyncPgConnection)
 pub async fn get_product(id_product:&Uuid, pool:&DbPool) -> Result<Products,Error> {
     use crate::schema::products::dsl::*;
     //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let result = products.filter(id.eq(id_product)).first::<Products>(connection).await;
     result
 }
@@ -108,7 +109,7 @@ pub async fn get_product_categories(id_product:&Uuid,pool:&DbPool) -> Result<Vec
     use crate::schema::category_product::dsl::*;
     use crate::schema::category::dsl::*;
     //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let results = category
         .inner_join(category_product.on(id.eq(category_id)))
         .filter(product_id.eq(id_product))
@@ -120,7 +121,7 @@ pub async fn get_product_categories(id_product:&Uuid,pool:&DbPool) -> Result<Vec
 pub async fn update_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPool) -> Result<usize,Error> {
     use crate::schema::products::dsl::*;
     //let connection = &mut establish_connection();
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let result = update(products.filter(id.eq(id_product)))
         .set((
@@ -139,7 +140,7 @@ pub async fn update_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPo
 /// categoría o cualquiera por debajo de ella. Lo que cuenta como "a la venta"
 /// lo repite `search_service::category_counts`: si cambia aquí, también allí.
 pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         select p.id,
             p.name,
@@ -206,7 +207,7 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], cat
 /// No filtra por vendedor: quien llame tiene que haber comprobado antes la
 /// propiedad (`panel_role_service::can_edit_product`).
 pub async fn get_product_with_images(product_id: &Uuid, pool:&DbPool)->Result<ProductWithImages1,Error>{
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         select p.*,
             json_agg(json_build_object(
@@ -229,7 +230,7 @@ pub async fn get_product_with_images(product_id: &Uuid, pool:&DbPool)->Result<Pr
 }
 
 pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<ProductForPage1,Error>{
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         WITH variacion_prioritaria AS (
             SELECT v.id, v.attributes, pr.price, pr.currency

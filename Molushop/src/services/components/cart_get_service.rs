@@ -9,6 +9,7 @@ use askama::Template;
 
 use crate::models::models_x::CartItem1;
 use crate::models::components::cart_total_v1::{CartTotalV1, CartTotalV1Body, CartTotalData, CartItemData};
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -19,7 +20,7 @@ type DbPool = Pool<AsyncPgConnection>;
 /// `get_cart_items_conn`**: si no, la lectura caería fuera de ella y no tendría
 /// sus garantías.
 pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartItem1>, Error> {
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     get_cart_items_conn(user_id, connection).await
 }
 

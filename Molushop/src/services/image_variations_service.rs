@@ -10,6 +10,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -34,7 +35,7 @@ pub async fn set_image_variations(
     ids.dedup();
     let product_id = *product_id;
     let image_id = *image_id;
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
 
     conn.transaction::<bool, Error, _>(|conn| async move {
         let image = sql_query("SELECT count(*) AS n FROM images_product WHERE id = $1 AND product_id = $2")

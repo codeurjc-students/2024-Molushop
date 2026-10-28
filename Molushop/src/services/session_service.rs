@@ -22,6 +22,7 @@ use crate::models::models_x::{NewUserSession, UserSession};
 use crate::services::paseto_token_session_service::generate_local_token_duration;
 
 use crate::utils::tokens::sha256_hex;
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -81,7 +82,7 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
 
 pub async fn insert_session<'a>(session_data: NewUserSession<'a>, pool:&DbPool) -> Result<usize, Error> {
     use crate::schema::user_sessions::dsl::*;
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let result = insert_into(user_sessions)
         .values(session_data)
@@ -91,7 +92,7 @@ pub async fn insert_session<'a>(session_data: NewUserSession<'a>, pool:&DbPool) 
 
 pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Error>{
     use crate::schema::user_sessions::dsl::*;
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     //let now = Utc::now().naive_utc();
 
@@ -108,7 +109,7 @@ pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Err
 /// una sesión ajena, aunque el `jti` llegue de otro sitio que no sea el middleware.
 pub async fn revoke_session(jti_x:&String, user_id_x:&Uuid, pool:&DbPool)-> Result<usize,Error>{
     use crate::schema::user_sessions::dsl::*;
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     update(user_sessions.filter(jti.eq(jti_x)).filter(user_id.eq(user_id_x)))
         .set(is_revoked.eq(true))

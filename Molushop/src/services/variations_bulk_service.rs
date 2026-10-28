@@ -15,6 +15,7 @@ use std::str::FromStr;
 use uuid::Uuid;
 
 use crate::constants::product_status::{PRODUCT_ACTIVE, PRODUCT_DRAFT, PRODUCT_INACTIVE};
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -104,7 +105,7 @@ pub async fn bulk_update_variations(
     ids.dedup();
     let product_id = *product_id;
     let action = action.clone();
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
 
     conn.transaction::<BulkOutcome, Error, _>(|conn| async move {
         let owned = sql_query(

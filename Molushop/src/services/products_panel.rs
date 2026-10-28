@@ -22,6 +22,7 @@ use std::collections::HashMap;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use diesel_async::scoped_futures::ScopedFutureExt;
 use crate::constants::product_status::PRODUCT_DELETED;
+use crate::utils::db::get_connection;
 
 /// "Eliminar" del panel. No borra la fila (los pedidos y las opiniones apuntan
 /// a sus variaciones): la marca como `PRODUCT_DELETED` y, en la misma
@@ -31,7 +32,7 @@ use crate::constants::product_status::PRODUCT_DELETED;
 /// `store_ids`: `None` (el admin) cualquier producto; `Some(tiendas)` solo si
 /// es de una de ellas. `Ok(false)` si no existe, ya estaba borrado o es ajeno.
 pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool: &DbPool) -> Result<bool, Error> {
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
     let store_ids: Option<Vec<Uuid>> = store_ids.map(|ids| ids.to_vec());
 
     conn.transaction::<bool, Error, _>(|conn| async move {
@@ -142,7 +143,7 @@ async fn get_main_images(product_ids: &[Uuid], pool: &DbPool) -> Result<HashMap<
     if product_ids.is_empty() {
         return Ok(HashMap::new());
     }
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
     let rows = sql_query(
         "SELECT DISTINCT ON (product_id) product_id, image_url
          FROM images_product WHERE product_id = ANY($1)
@@ -167,7 +168,7 @@ pub struct VariationTitles{
 /// `product_seller` (los "borrados") no salen.
 pub async fn get_panel_products(seller_filter:Option<&[Uuid]>,pool: &DbPool) -> Result<Vec<(Products,String)>,Error>{
     use crate::schema::{product_seller,products,seller};
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let mut query = products::table
         .inner_join(product_seller::table.inner_join(seller::table))
         .select((Products::as_select(), seller::store_name))

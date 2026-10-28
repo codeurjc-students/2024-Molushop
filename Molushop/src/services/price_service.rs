@@ -12,6 +12,7 @@ use uuid::Uuid;
 
 use crate::models::components::edit_product_variation_model::PriceData;
 use crate::models::models_x::{Discounts, NewDiscount, NewDiscountHistory, NewPrice, Price};
+use crate::utils::db::get_connection;
 
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -52,7 +53,7 @@ pub async fn get_variation_price(var_id:&Uuid, curr:&String, pool: &DbPool) -> R
 
     //obtener el precio actual, con el descuento?
     //obtener el descuento va aparte
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     let result = prices
         .filter(variation_id.eq(var_id))
         .filter(currency.eq(curr))
@@ -69,7 +70,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
     use crate::schema::discounts;
     use crate::schema::discount_history;
 
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     connection.build_transaction()
         .run(|tx| Box::pin(async move{
@@ -182,7 +183,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
 pub async fn get_variation_discount(var_id:&Uuid,disc_type:&i16,curr:&String,pool:&DbPool)->Result<Discounts,Error>{
     use crate::schema::discounts::dsl::*;
 
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
 
     let result = discounts
         .filter(
@@ -207,7 +208,7 @@ pub async fn get_product_variation_prices(
     use crate::schema::product_variations::dsl as pv;
     use crate::schema::prices::dsl as p;
     
-    let connection = &mut pool.get().await.unwrap();
+    let connection = &mut get_connection(pool).await?;
     
     let results = pv::product_variations
         .inner_join(p::prices.on(pv::id.eq(p::variation_id)))

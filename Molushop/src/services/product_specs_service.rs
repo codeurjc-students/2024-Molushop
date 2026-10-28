@@ -13,6 +13,7 @@ use uuid::Uuid;
 
 use crate::models::components::edit_product::Specs;
 use crate::models::error::ServiceError;
+use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -27,7 +28,7 @@ struct SpecsRow {
 /// Las del producto, separadas en las que propone su categoría (en el orden
 /// de la categoría) y las demás (por nombre).
 pub async fn get_specs(product_id: &Uuid, pool: &DbPool) -> Result<Specs, Error> {
-    let mut conn = pool.get().await.unwrap();
+    let mut conn = get_connection(pool).await?;
     let row = sql_query(
         "SELECT p.specs,
                 (SELECT c.base_specs FROM category_product cp
