@@ -7,7 +7,8 @@ type DbPool = Pool<AsyncPgConnection>;
 
 //use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
 use crate::models::components::edit_product_variation_model::*;
-use crate::services::servicesX::{get_discount_variation, get_stock_variation, get_identifier_options_var, get_product_variation, get_variation_price, get_variation_identifiers};
+use crate::services::price_service::{get_variation_discount, get_variation_price};
+use crate::services::variation_service::{get_variation_stock, get_identifier_options, get_product_variation, get_variation_identifiers};
 use bigdecimal::BigDecimal;
 
 //hacer un vec de variations
@@ -45,7 +46,7 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
     let price_base = get_variation_price(&product_var_id,&currency,&pool).await?;
     let mut sale_price= BigDecimal::from(0);
     let mut sale_active=false;
-    let discount_result  = get_discount_variation(&product_var_id, &0, &"EUR".to_string(), &pool).await;
+    let discount_result  = get_variation_discount(&product_var_id, &0, &"EUR".to_string(), &pool).await;
     match discount_result{
         Ok(disc)=>{
             sale_price=disc.discount_value;
@@ -71,14 +72,14 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
         .map(|a| Identifier{name:a.identifier.clone(),value:a.value.clone()})
         .collect();
 
-    let name_options = get_identifier_options_var(&pool).await?;
+    let name_options = get_identifier_options(&pool).await?;
 
     let identifiers = Identifiers{
         identifiers,
         name_options
     };
 
-    let stock_number = get_stock_variation(&product_var_id, &pool).await?;
+    let stock_number = get_variation_stock(&product_var_id, &pool).await?;
 
     let stock = Stock{
         number:stock_number

@@ -29,7 +29,7 @@ pub struct CategoryCount {
 /// Todas las categorías con su recuento para `patterns` (los de
 /// `CardFilter::like_patterns`; vacío, sin texto) y su nombre en `lang`
 /// (`category_translation`; si no está traducida, el de `category`, en
-/// español). "A la venta" es lo mismo que en `servicesX::get_product_cards`.
+/// español). "A la venta" es lo mismo que en `product_service::get_product_cards`.
 pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
     let connection = &mut pool.get().await.unwrap();
     sql_query(r#"

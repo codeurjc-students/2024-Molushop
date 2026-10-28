@@ -20,6 +20,13 @@ use crate::services::product_specs_service::clean_specs;
 
 type DbPool = Pool<AsyncPgConnection>;
 
+/// Crea el producto ENTERO en una sola transacción: el producto, su vendedor, su
+/// categoría, las variaciones y sus precios. Si falla cualquier paso no queda
+/// nada escrito.
+///
+/// Antes eran cinco escrituras sueltas, cada una con su conexión: un fallo a
+/// mitad dejaba productos sin categoría o, peor, variaciones sin fila en
+/// `prices`, que dejaban la ficha sin selector de variaciones.
 pub async fn create_full_product(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, ServiceError> {
     let mut conn = pool.get().await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;

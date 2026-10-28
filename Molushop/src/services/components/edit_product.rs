@@ -3,7 +3,7 @@ use diesel::result::Error;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 //use crate::schema::products::variations;
-use crate::services::servicesX::get_product_variations;
+use crate::services::variation_service::get_product_variations;
 use crate::services::product_service::get_product_with_images;
 type DbPool = Pool<AsyncPgConnection>;
 use uuid::Uuid;

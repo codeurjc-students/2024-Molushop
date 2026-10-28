@@ -85,6 +85,8 @@ pub async fn save_specs(product_id: &Uuid, raw: &Value, pool: &DbPool) -> Result
     Ok(())
 }
 
+/// Las specs son opcionales: se quitan las que llegan sin nombre o sin valor
+/// (y los espacios de los lados). Sin ninguna queda `{}`.
 pub fn clean_specs(raw: &Value) -> Result<Value, ServiceError> {
     let map = match raw {
         Value::Null => return Ok(json!({})),

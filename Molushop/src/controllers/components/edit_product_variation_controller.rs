@@ -16,7 +16,8 @@ type DbPool = Pool<AsyncPgConnection>;
 use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::variation_access;
 use crate::services::panel_role_service::PanelUser;
-use crate::services::servicesX::{set_variation_identifiers, update_price_variation, set_stock_variation};
+use crate::services::variation_service::{set_variation_identifiers, set_variation_stock};
+use crate::services::price_service::update_variation_price;
 use crate::services::sku_service::{check_variation_sku, normalize_sku, save_variation_general, SaveGeneral};
 use crate::utils::hx::error_modal;
 use actix_web::http::StatusCode as Status;
@@ -281,7 +282,7 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
     let currency = "EUR".to_string();
 
     // Llamar al servicio para actualizar el precio
-    let result_update_price = update_price_variation(&form_new,&var_id, &regular_price, &currency, pool).await;
+    let result_update_price = update_variation_price(&form_new,&var_id, &regular_price, &currency, pool).await;
 
     match result_update_price {
         Ok(_) => {
@@ -314,7 +315,7 @@ let form = data.into_inner();
     };
 
 
-    let result_stock = set_stock_variation(&var_id, &new_stock, &pool).await;
+    let result_stock = set_variation_stock(&var_id, &new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
             let modal_html = MessageModal::new("Stock actualizado").render().unwrap();

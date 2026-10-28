@@ -1,7 +1,8 @@
 pub mod aws;
-pub mod servicesX;
 pub mod category_service;
 pub mod product_service;
+pub mod variation_service;
+pub mod price_service;
 pub mod create_product_variations;
 pub mod products_panel;
 pub mod variations_bulk_service;

@@ -156,7 +156,7 @@ pub async fn bulk_update_variations(
                     .execute(conn).await?;
             }
             BulkAction::Price(price) => {
-                // Como `update_price_variation`: crea el precio si falta y el
+                // Como `update_variation_price`: crea el precio si falta y el
                 // trigger `price_history_trigger` lleva el historial. El WHERE
                 // deja sin tocar las que ya tienen ese precio, para no abrir
                 // en el historial filas que no cambian nada.

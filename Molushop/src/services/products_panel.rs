@@ -1,6 +1,7 @@
 // logica de implementación
 // obtener productos y variaciones
 use serde::{Serialize, Deserialize};
+use diesel::prelude::*;
 use diesel::result::Error;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -11,7 +12,7 @@ use crate::models::data_transfer_objects::product;
 //use crate::schema::products::variations;
 use uuid::Uuid;
 use crate::services::product_service;
-use crate::services::servicesX::{get_panel_products, get_product_variations, get_variations_with_prices};
+use crate::services::variation_service::{get_product_variations, get_variations_with_prices};
 use crate::services::product_service::get_product_categories;
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -160,3 +161,22 @@ pub struct VariationTitles{
 
 
 // obtener los productos de un vendedor 
+
+/// Productos del panel con el nombre de su tienda. `None` = todas las tiendas
+/// (admin); `Some(tiendas)` = solo las de esas tiendas. Los productos sin fila en
+/// `product_seller` (los "borrados") no salen.
+pub async fn get_panel_products(seller_filter:Option<&[Uuid]>,pool: &DbPool) -> Result<Vec<(Products,String)>,Error>{
+    use crate::schema::{product_seller,products,seller};
+    let connection = &mut pool.get().await.unwrap();
+    let mut query = products::table
+        .inner_join(product_seller::table.inner_join(seller::table))
+        .select((Products::as_select(), seller::store_name))
+        // Lo "eliminado" desde el panel ya no se lista.
+        .filter(products::status.ne(crate::constants::product_status::PRODUCT_DELETED))
+        .order_by((seller::store_name, products::name))
+        .into_boxed();
+    if let Some(store_ids) = seller_filter {
+        query = query.filter(product_seller::seller_id.eq_any(store_ids));
+    }
+    query.load::<(Products,String)>(connection).await
+}

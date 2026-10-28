@@ -1,7 +1,7 @@
 
 use crate::models::components::product_card_model::*;
 use crate::services::product_service::get_product;
-use crate::services::servicesX::get_variations_prices_product;
+use crate::services::price_service::get_product_variation_prices;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
 use crate::constants::money::DEFAULT_CURRENCY;
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -29,7 +29,7 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     //Poner siempre el precio más bajo de las variaciones del producto?
     
     //obtener el precio
-    let prices = match get_variations_prices_product(&id,&pool).await{
+    let prices = match get_product_variation_prices(&id,&pool).await{
         Ok(prices)=>prices,
         Err(e)=>{
             println!("Error obteniendo los precios {:?}", e);

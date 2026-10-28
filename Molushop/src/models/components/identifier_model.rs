@@ -16,7 +16,7 @@ pub struct IdentifierBase{
     pub name_options: Vec<String>
 }
 
-use crate::services::servicesX::get_identifier_options_var;
+use crate::services::variation_service::get_identifier_options;
 use crate::controllers::components::edit_product_variation_controller::ROUTES;
 impl IdentifierBase{
     pub fn empty()->Self{
@@ -50,7 +50,7 @@ impl IdentifierBase{
                 delete_identifier:&ROUTES.delete_identifier
 
             },
-            name_options: get_identifier_options_var(pool).await.unwrap_or_else(|_| vec![
+            name_options: get_identifier_options(pool).await.unwrap_or_else(|_| vec![
                 "EAN".to_string(), "UPC".to_string()])
         }
     }

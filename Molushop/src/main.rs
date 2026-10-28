@@ -3,7 +3,6 @@ use std::sync::Arc;
 
 mod config; 
 pub mod schema;
-//pub mod servicesX;
 //pub mod routes;
 //pub mod controllersX;
 pub mod models;

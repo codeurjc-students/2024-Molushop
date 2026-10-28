@@ -1,5 +1,6 @@
 //! Imágenes de un producto en el panel (pestaña Imágenes de "Editar producto").
 
+use diesel::insert_into;
 use diesel::result::Error;
 use diesel::sql_query;
 use diesel::sql_types::Uuid as SqlUuid;
@@ -8,6 +9,8 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
+
+use crate::models::models_x::NewImageProduct2;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -128,4 +131,18 @@ pub async fn product_has_variations(product_id: &Uuid, pool: &DbPool) -> Result<
         .get_result(&mut conn)
         .await?;
     Ok(row.in_use)
+}
+
+pub async fn insert_product_images(image_products:Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
+    let connection = &mut pool.get().await.unwrap();
+    use crate::schema::images_product::dsl::*;
+    let result = insert_into(images_product).values(image_products).execute(connection).await;
+    match result{
+        Ok(num)=>{
+            return Ok(num)
+        },
+        Err(e)=>{
+            return Err(e);
+        }
+    }
 }

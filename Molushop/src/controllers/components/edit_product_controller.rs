@@ -15,7 +15,7 @@ use super::scope::SCOPE_PANEL_COMPONENTS;
 use super::panel_access::product_access;
 use crate::services::panel_role_service::PanelUser;
 use crate::services::product_service::update_product_general;
-use crate::services::servicesX::update_multiple_images_2;
+use crate::services::product_images_service::insert_product_images;
 use crate::services::variations_bulk_service::{bulk_update_variations, BulkAction, BulkOutcome};
 use crate::services::image_variations_service::set_image_variations;
 use crate::services::product_images_service::{set_main_image, delete_image as delete_product_image, product_has_variations};
@@ -417,7 +417,7 @@ let client_data_x = client_data.get_ref().as_ref();
         variation_ids: Vec::new(),
     }).collect();
 
-    let result_multiple = update_multiple_images_2(vec_images2, pool).await;
+    let result_multiple = insert_product_images(vec_images2, pool).await;
     match result_multiple{
         Ok(_) => {
             let has_variations = product_has_variations(&product_id, pool).await.unwrap_or_else(|e| {
