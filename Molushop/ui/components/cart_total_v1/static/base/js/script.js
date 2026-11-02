@@ -324,6 +324,11 @@ const CART_TOTAL_V1 = {
                     this.updateBadge(data.cartCount);
                 } else if (data.ok) {
                     this.root().outerHTML = this.takeToasts(data.html);
+                    // Con outerHTML htmx no se entera: sin esto, los corazones
+                    // de favoritos (hx-post) del carrito nuevo no hacen nada.
+                    // process() no lanza htmx:load, así que no vuelve a pasar
+                    // por mount() y no se pierde la selección.
+                    htmx.process(this.root());
                     this.updateBadge(data.cartCount);
                     // El HTML nuevo viene con todo marcado: hay que devolverle
                     // al usuario la selección que tenía
