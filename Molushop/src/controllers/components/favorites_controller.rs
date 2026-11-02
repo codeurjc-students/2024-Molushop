@@ -63,7 +63,9 @@ fn user_or_401(req: &HttpRequest) -> Result<Uuid, HttpResponse> {
 /// detrás un toast. Al guardar, el corazón late y el toast lleva a la página
 /// de favoritos, salvo si ya se está en ella.
 fn button(i18n: &I18n, req: &HttpRequest, product_id: Uuid, active: bool) -> HttpResponse {
-    let fav = FavoriteButton::new(product_id, active);
+    // synced: también los demás corazones del producto (en el carrito, otras
+    // variaciones suyas)
+    let fav = FavoriteButton::new(product_id, active).synced();
     let (fav, toast) = if active {
         let mut toast = Toast::translated(i18n, "favorites-added-toast");
         if !on_favorites_page(req) {
