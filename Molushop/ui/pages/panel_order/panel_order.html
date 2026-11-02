@@ -29,32 +29,32 @@
         {% if !all_lines %}
         <p class="m-hint admin-hint">Solo se muestran los artículos de esta tienda; el pedido puede llevar más de otras.</p>
         {% endif %}
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Artículo</th>
-                    {% if all_lines %}<th>Tienda</th>{% endif %}
-                    <th>Cantidad</th>
-                    <th>Precio</th>
-                    <th>Total</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+        <table class="admin-table" role="table">
+            <thead role="rowgroup">
+                <tr role="row">
+                    <th role="columnheader">Artículo</th>
+                    {% if all_lines %}<th role="columnheader">Tienda</th>{% endif %}
+                    <th role="columnheader">Cantidad</th>
+                    <th role="columnheader">Precio</th>
+                    <th role="columnheader">Total</th>
+                    <th role="columnheader">Estado</th>
+                    <th role="columnheader">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
                 {% for line in order.lines %}
-                <tr>
-                    <td>
+                <tr role="row">
+                    <td role="cell" class="admin-table__title">
                         {{line.product_name}}
                         {% if !line.variation_label.is_empty() %}<p class="m-hint admin-hint">{{line.variation_label}}</p>{% endif %}
                         {% if !line.sku.is_empty() %}<p class="m-hint admin-hint">Ref. {{line.sku}}</p>{% endif %}
                     </td>
-                    {% if all_lines %}<td>{{line.store_name}}</td>{% endif %}
-                    <td>{{line.quantity}}</td>
-                    <td>{{ order.unit_price_tag(line) }}</td>
-                    <td>{{ order.line_total_tag(line) }}</td>
-                    <td><span class="m-badge m-badge--{{line.status_variant()}}">{{line.status_label()}}</span></td>
-                    <td>
+                    {% if all_lines %}<td role="cell" data-label="Tienda">{{line.store_name}}</td>{% endif %}
+                    <td role="cell" data-label="Cantidad">{{line.quantity}}</td>
+                    <td role="cell" data-label="Precio">{{ order.unit_price_tag(line) }}</td>
+                    <td role="cell" data-label="Total">{{ order.line_total_tag(line) }}</td>
+                    <td role="cell" class="admin-table__status"><span class="m-badge m-badge--{{line.status_variant()}}">{{line.status_label()}}</span></td>
+                    <td role="cell" class="admin-table__actions">
                         {# 1 confirmado -> 3 enviado -> 4 entregado; 2 cancelado solo desde confirmado #}
                         <form method="post" action="{{base_url}}/{{order.id}}/lines/{{line.id}}/status" class="admin-actions">
                             {% if line.can_ship() %}

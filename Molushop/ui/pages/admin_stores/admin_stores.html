@@ -33,27 +33,27 @@
         {% if stores.is_empty() %}
         <p class="m-alert m-alert--info panel-home-note">Todavía no hay ninguna tienda.</p>
         {% else %}
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Tienda</th>
-                    <th>Estado</th>
-                    <th>Alta</th>
-                    <th>Usuarios</th>
-                    <th>Acciones</th>
+        <table class="admin-table" role="table">
+            <thead role="rowgroup">
+                <tr role="row">
+                    <th role="columnheader">Tienda</th>
+                    <th role="columnheader">Estado</th>
+                    <th role="columnheader">Alta</th>
+                    <th role="columnheader">Usuarios</th>
+                    <th role="columnheader">Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
                 {% for item in stores %}
-                <tr>
-                    <td>
+                <tr role="row">
+                    <td role="cell" class="admin-table__title">
                         <a href="/panel/stores/{{item.store.id}}/products">{{item.store.store_name}}</a>
                     </td>
-                    <td>
+                    <td role="cell" class="admin-table__status">
                         <span class="m-badge m-badge--{{item.store.status_variant()}}">{{item.store.status_label()}}</span>
                     </td>
-                    <td>{{item.created}}</td>
-                    <td>
+                    <td role="cell" data-label="Alta">{{item.created}}</td>
+                    <td role="cell" class="admin-table__wide" data-label="Usuarios">
                         {% if item.members.is_empty() %}
                         <p class="m-hint admin-hint">Sin usuarios</p>
                         {% endif %}
@@ -72,7 +72,7 @@
                             <button type="submit" class="m-btn m-btn--secondary m-btn--sm">Asignar</button>
                         </form>
                     </td>
-                    <td>
+                    <td role="cell" class="admin-table__actions">
                         <form method="post" action="/admin/stores/{{item.store.id}}/status" class="admin-actions">
                             {# 0 pendiente, 1 activa, 2 inactiva, 3 rechazada #}
                             {% if item.store.status == 0 %}

@@ -9,32 +9,32 @@
         {% if orders.is_empty() %}
         <p class="m-alert m-alert--info panel-home-note">Todavía no hay ningún pedido.</p>
         {% else %}
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Pedido</th>
-                    <th>Fecha</th>
-                    <th>Comprador</th>
-                    <th>Artículos</th>
-                    <th>Importe</th>
-                    <th>Estado</th>
+        <table class="admin-table" role="table">
+            <thead role="rowgroup">
+                <tr role="row">
+                    <th role="columnheader">Pedido</th>
+                    <th role="columnheader">Fecha</th>
+                    <th role="columnheader">Comprador</th>
+                    <th role="columnheader">Artículos</th>
+                    <th role="columnheader">Importe</th>
+                    <th role="columnheader">Estado</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody role="rowgroup">
                 {% for order in orders %}
-                <tr>
-                    <td><a href="{{base_url}}/{{order.id}}">Nº {{order.order_number}}</a></td>
-                    <td>{{order.created}}</td>
-                    <td>{{order.buyer}}</td>
-                    <td>
+                <tr role="row">
+                    <td role="cell" class="admin-table__title"><a href="{{base_url}}/{{order.id}}">Nº {{order.order_number}}</a></td>
+                    <td role="cell" data-label="Fecha">{{order.created}}</td>
+                    <td role="cell" data-label="Comprador">{{order.buyer}}</td>
+                    <td role="cell" class="admin-table__wide" data-label="Artículos">
                         <ul class="admin-members">
                             {% for line in order.lines %}
                             <li>{{line.product_name}} x{{line.quantity}}</li>
                             {% endfor %}
                         </ul>
                     </td>
-                    <td>{{ order.lines_total_tag() }}</td>
-                    <td><span class="m-badge m-badge--{{order.status_variant()}}">{{order.status_label()}}</span></td>
+                    <td role="cell" data-label="Importe">{{ order.lines_total_tag() }}</td>
+                    <td role="cell" class="admin-table__status"><span class="m-badge m-badge--{{order.status_variant()}}">{{order.status_label()}}</span></td>
                 </tr>
                 {% endfor %}
             </tbody>
