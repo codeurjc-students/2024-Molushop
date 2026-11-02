@@ -5,7 +5,6 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-3);
-    padding: var(--space-4);
     min-width: 0;
 }
 
@@ -234,9 +233,14 @@
     display: none;
 }
 
+/* minmax(0, 1fr): sin columna fijada, la implícita (auto) crece hasta lo
+   que mide el editor abierto (sus pestañas no se parten) y toda la tabla se
+   desliza de lado. Así se queda al ancho de la caja y las pestañas se
+   desplazan dentro de su barra. */
 .ve-table,
 .ve-table tbody {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-2);
 }
 
