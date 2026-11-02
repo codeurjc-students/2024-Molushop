@@ -2,7 +2,8 @@
    src/models/components/variations_explorer.rs. Las filas llevan sus valores
    en data-a0, data-a1…: el JS filtra la tabla y monta la matriz con ellas.
    Necesita styles.html y scripts.html de este componente en la página. #}
-<div class="c-variations-explorer">
+{# data-url-state: en la página de edición los filtros van en la URL (script.js) #}
+<div class="c-variations-explorer"{% if edit.is_some() %} data-url-state{% endif %}>
     <div class="ve-toolbar">
         {% for (i, title, values) in filters() %}
         <label class="ve-field">

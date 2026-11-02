@@ -45,16 +45,83 @@
             root.querySelectorAll('[data-filter-attr]').forEach((select) => { select.value = ''; });
             root.querySelectorAll('[data-filter-state]').forEach((b) => b.setAttribute('aria-pressed', 'false'));
         } else if (view) {
-            root.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b === view)));
-            root.querySelectorAll('[data-panel]').forEach((panel) => {
-                panel.hidden = panel.dataset.panel !== view.dataset.view;
-            });
+            setView(root, view.dataset.view);
+            saveToUrl(root);
             return;
         } else {
             return;
         }
         refreshExplorer(root);
     });
+
+    function setView(root, name) {
+        root.querySelectorAll('[data-view]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === name)));
+        root.querySelectorAll('[data-panel]').forEach((panel) => {
+            panel.hidden = panel.dataset.panel !== name;
+        });
+    }
+
+    // El nombre de un atributo, el de la etiqueta de su filtro
+    function attrTitle(root, i) {
+        return root.querySelector(`[data-filter-attr="${i}"]`).closest('label').querySelector('.m-label').textContent;
+    }
+
+    // ---- Filtros en la URL ----
+    // Solo en la página de edición (data-url-state; en el listado hay un
+    // explorador por producto): recargar o compartir el enlace deja la misma
+    // vista. ?Color=Rojo&state=active,out&view=matrix&rows=Talla&cols=Color.
+    // Los atributos van por su nombre; los demás parámetros de la URL se
+    // respetan. history.replaceState: filtrar no llena el historial.
+    const URL_KEYS = ['state', 'view', 'rows', 'cols'];
+
+    function saveToUrl(root) {
+        if (!root.hasAttribute('data-url-state')) return;
+        const params = new URLSearchParams(location.search);
+        const selects = [...root.querySelectorAll('[data-filter-attr]')];
+        URL_KEYS.forEach((key) => params.delete(key));
+        selects.forEach((select) => params.delete(attrTitle(root, select.dataset.filterAttr)));
+
+        selects.filter((select) => select.value)
+            .forEach((select) => params.set(attrTitle(root, select.dataset.filterAttr), select.value));
+        const states = [...root.querySelectorAll('[data-filter-state][aria-pressed="true"]')]
+            .map((b) => b.dataset.filterState.replace('is-', ''));
+        if (states.length) params.set('state', states.join(','));
+        if (root.querySelector('[data-view="matrix"][aria-pressed="true"]')) {
+            params.set('view', 'matrix');
+            params.set('rows', attrTitle(root, root.querySelector('[data-axis="rows"]').value));
+            params.set('cols', attrTitle(root, root.querySelector('[data-axis="cols"]').value));
+        }
+
+        // La coma de state=active,out sin codificar (%2C): se lee mejor
+        const query = params.toString().replace(/%2C/gi, ',');
+        history.replaceState(history.state, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    }
+
+    // Lo contrario, al cargar. Lo que no encaja (un valor o un atributo que
+    // ya no existe) se ignora.
+    function loadFromUrl(root) {
+        if (!root.hasAttribute('data-url-state')) return;
+        const params = new URLSearchParams(location.search);
+        const indexOf = (title) => [...root.querySelectorAll('[data-filter-attr]')]
+            .map((select) => select.dataset.filterAttr)
+            .find((i) => attrTitle(root, i) === title);
+
+        root.querySelectorAll('[data-filter-attr]').forEach((select) => {
+            const value = params.get(attrTitle(root, select.dataset.filterAttr));
+            select.value = [...select.options].some((o) => o.value === value) ? value : '';
+        });
+        const states = (params.get('state') || '').split(',').map((s) => 'is-' + s);
+        root.querySelectorAll('[data-filter-state]').forEach((b) => {
+            b.setAttribute('aria-pressed', String(states.includes(b.dataset.filterState)));
+        });
+        if (params.get('view') === 'matrix' && root.querySelector('[data-view="matrix"]')) {
+            [['rows', params.get('rows')], ['cols', params.get('cols')]].forEach(([axis, title]) => {
+                const i = indexOf(title);
+                if (i !== undefined) root.querySelector(`[data-axis="${axis}"]`).value = i;
+            });
+            setView(root, 'matrix');
+        }
+    }
 
     function refreshExplorer(root) {
         const attrs = [...root.querySelectorAll('[data-filter-attr]')]
@@ -88,6 +155,7 @@
         updateSkuMissing(root);
 
         renderMatrix(root, rows);
+        saveToUrl(root);
     }
 
     // Si una celda junta varias variaciones (atributos sin fijar), su color es el
@@ -113,7 +181,7 @@
             const select = filterOf(i);
             return select.value ? [select.value] : [...select.options].slice(1).map((o) => o.value);
         };
-        const titleOf = (i) => filterOf(i).closest('label').querySelector('.m-label').textContent;
+        const titleOf = (i) => attrTitle(root, i);
         const usual = usualPrice(rows);
 
         const table = el('table', 've-matrix');
@@ -655,9 +723,13 @@
     // Al final: STATE_ORDER (const) tiene que existir ya cuando se monta la matriz.
     // htmx.onLoad corre con la página y con cada trozo que htmx mete o restaura
     // (volver atrás desde "Editar"): ahí los selectores vuelven a "Todos" pero las
-    // filas guardan su `hidden`, así que se recalcula todo.
+    // filas guardan su `hidden`, así que se recalcula todo. En la página de
+    // edición, antes, los filtros de la URL.
     htmx.onLoad((elt) => {
         const explorers = elt.matches?.('.c-variations-explorer') ? [elt] : elt.querySelectorAll('.c-variations-explorer');
-        explorers.forEach(refreshExplorer);
+        explorers.forEach((root) => {
+            loadFromUrl(root);
+            refreshExplorer(root);
+        });
     });
 })();
