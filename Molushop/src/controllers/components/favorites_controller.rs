@@ -13,6 +13,7 @@ use super::scope::SCOPE_COMPONENTS;
 use crate::i18n::I18n;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::favorite_button::{FavoriteButton, FavoriteButtonBody, FavoritesRoutes};
+use crate::models::components::toast::Toast;
 use crate::models::error::ServiceError;
 use crate::services::favorites_service::{add_favorite, remove_favorite};
 use crate::utils::hx::error_modal_t;
@@ -58,12 +59,31 @@ fn user_or_401(req: &HttpRequest) -> Result<Uuid, HttpResponse> {
         })
 }
 
-/// El botón ya cambiado, que sustituye al pulsado (`hx-swap="outerHTML"`).
-fn button(i18n: &I18n, product_id: Uuid, active: bool) -> HttpResponse {
-    let body = FavoriteButtonBody { fav: FavoriteButton::new(product_id, active), i18n }
-        .render()
-        .unwrap();
-    HttpResponse::Ok().body(body)
+/// El botón ya cambiado, que sustituye al pulsado (`hx-swap="outerHTML"`), y
+/// detrás un toast. Al guardar, el corazón late y el toast lleva a la página
+/// de favoritos, salvo si ya se está en ella.
+fn button(i18n: &I18n, req: &HttpRequest, product_id: Uuid, active: bool) -> HttpResponse {
+    let fav = FavoriteButton::new(product_id, active);
+    let (fav, toast) = if active {
+        let mut toast = Toast::translated(i18n, "favorites-added-toast");
+        if !on_favorites_page(req) {
+            toast = toast.with_link(i18n.url("/favorites"), i18n.t("favorites-view"));
+        }
+        (fav.popped(), toast)
+    } else {
+        (fav, Toast::translated(i18n, "favorites-removed-toast"))
+    };
+    let body = FavoriteButtonBody { fav, i18n }.render().unwrap();
+    HttpResponse::Ok().body(body + &toast.oob())
+}
+
+/// La página desde la que se pulsa (htmx manda su URL en `HX-Current-URL`).
+fn on_favorites_page(req: &HttpRequest) -> bool {
+    req.headers()
+        .get("HX-Current-URL")
+        .and_then(|v| v.to_str().ok())
+        .and_then(|url| url.split('?').next())
+        .is_some_and(|url| url.ends_with("/favorites"))
 }
 
 #[post("/add/{product_id}")]
@@ -80,7 +100,7 @@ async fn add(
     let product_id = path.into_inner();
 
     match add_favorite(&user_id, &product_id, pool_data.get_ref()).await {
-        Ok(()) => button(&i18n, product_id, true),
+        Ok(()) => button(&i18n, &req, product_id, true),
         // Se ha retirado de la venta con la ficha abierta (o el POST es a mano)
         Err(ServiceError::ProductNotFound) => {
             error_modal_t(StatusCode::NOT_FOUND, &i18n, "favorites-error-gone")
@@ -106,7 +126,7 @@ async fn remove(
     let product_id = path.into_inner();
 
     match remove_favorite(&user_id, &product_id, pool_data.get_ref()).await {
-        Ok(()) => button(&i18n, product_id, false),
+        Ok(()) => button(&i18n, &req, product_id, false),
         Err(e) => {
             tracing::error!(error = %e, "could not remove the favorite");
             error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, &i18n, "favorites-error")

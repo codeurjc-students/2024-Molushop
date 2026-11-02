@@ -1,0 +1,102 @@
+/* Átomo: toast. Aviso pequeño abajo que se quita solo, para confirmar algo
+   que ya se ve (guardar en favoritos). Los errores y las preguntas siguen
+   siendo modales (modal.css).
+
+     <div id="m-toasts" class="m-toasts" aria-live="polite">   (layout1.html)
+         <div class="m-toast">
+             <span class="m-toast__text">Guardado en favoritos.</span>
+             <a class="m-toast__link" href="/favorites">Ver favoritos</a>
+             <button class="m-toast__close" aria-label="Cerrar">&times;</button>
+         </div>
+     </div>
+
+   El HTML lo pinta el struct Toast (models/components/toast.rs). Móvil: a
+   todo el ancho, abajo; desde 600px, abajo a la derecha. */
+
+.m-toasts {
+    position: fixed;
+    right: var(--space-4);
+    bottom: var(--space-4);
+    left: var(--space-4);
+    z-index: 1100; /* encima de los modales (1000) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    pointer-events: none; /* el hueco sin avisos no tapa la página */
+}
+
+.m-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 420px;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-inverse);
+    box-shadow: var(--shadow-lg);
+    color: var(--color-text-invert);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-base);
+    animation: m-toast-in 200ms ease;
+}
+
+.m-toast__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.m-toast__link {
+    flex-shrink: 0;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+.m-toast__link:hover { text-decoration: underline; }
+
+.m-toast__close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--color-text-invert-muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+.m-toast__close:hover { color: var(--color-text-invert); }
+
+.m-toast__link:focus-visible,
+.m-toast__close:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* ---- Cierre ---- */
+
+.m-toast.closing { animation: m-toast-out 150ms ease forwards; }
+
+@keyframes m-toast-in  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes m-toast-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    /* Sin movimiento, pero con animación: el cierre espera su animationend */
+    .m-toast, .m-toast.closing { animation-duration: 1ms; }
+}
+
+@media (min-width: 600px) {
+    .m-toasts {
+        left: auto;
+        align-items: flex-end;
+    }
+    .m-toast { width: auto; }
+}

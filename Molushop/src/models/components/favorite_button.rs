@@ -15,11 +15,20 @@ pub struct FavoriteButton {
     /// Lleno (ya está en favoritos) o vacío. Sin sesión, siempre vacío: al
     /// pulsarlo, el 401 abre el login.
     pub active: bool,
+    /// Late una vez al pintarse: solo el que devuelve "guardar", no los que
+    /// ya estaban llenos al cargar la página.
+    #[serde(default)]
+    pub pop: bool,
 }
 
 impl FavoriteButton {
     pub fn new(product_id: Uuid, active: bool) -> Self {
-        Self { product_id, active }
+        Self { product_id, active, pop: false }
+    }
+
+    pub fn popped(mut self) -> Self {
+        self.pop = true;
+        self
     }
 
     /// Lo que hace el botón al pulsarlo: quitar si está lleno, guardar si no.

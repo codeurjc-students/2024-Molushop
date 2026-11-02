@@ -1,7 +1,8 @@
 {# Corazón de favoritos. Necesita `fav` (FavoriteButton) e `i18n`. La respuesta
    del POST es este mismo botón ya cambiado (outerHTML); sin sesión, un 401 con
-   HX-Trigger "auth-required" que abre el login (login_modal.js). #}
-<button type="button" class="fav-btn{% if fav.active %} is-active{% endif %}"
+   HX-Trigger "auth-required" que abre el login (login_modal.js). Detrás del
+   botón llega un toast (hx-swap-oob, favorites_controller). #}
+<button type="button" class="fav-btn{% if fav.active %} is-active{% endif %}{% if fav.pop %} fav-btn--pop{% endif %}"
     hx-post="{{ fav.action_url() }}"
     hx-swap="outerHTML"
     aria-pressed="{% if fav.active %}true{% else %}false{% endif %}"

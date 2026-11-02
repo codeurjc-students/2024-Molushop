@@ -42,6 +42,9 @@ home-hero-cta = See products
 ## Favorites
 favorites-add = Save to favorites
 favorites-remove = Remove from favorites
+favorites-added-toast = Saved to favorites.
+favorites-removed-toast = Removed from favorites.
+favorites-view = View favorites
 favorites-error-gone = This product is no longer for sale.
 favorites-error = We couldn't update your favorites. Please try again.
 favorites-page-title = My favorites | Molushop

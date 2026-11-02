@@ -26,6 +26,7 @@
             <a href="#tarjetas">Tarjetas</a>
             <a href="#estrellas">Estrellas</a>
             <a href="#modales">Modales</a>
+            <a href="#toast">Toast</a>
             <a href="#precio">Precio</a>
             <a href="#cantidad">Cantidad</a>
         </nav>
@@ -427,6 +428,20 @@ ConfirmModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: 
 
 // quien lo pide
 &lt;button hx-get="..." hx-target="body" hx-swap="beforeend"&gt;Eliminar&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="toast">
+        <h2>Toast</h2>
+        <p class="ui-catalog-note">Aviso pequeño abajo que se quita solo a los 5 s (o con la ×). Para confirmar algo que ya se ve y se puede deshacer, como guardar en favoritos; los errores y las preguntas siguen siendo modales. Lo pinta el struct <code>Toast</code> (<code>models/components/toast.rs</code>) y va detrás de otra respuesta de htmx con <code>oob()</code>, que lo mete en <code>#m-toasts</code> (<code>layout1.html</code>). Móvil: a todo el ancho; desde 600px, abajo a la derecha.</p>
+
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--secondary" data-demo-toast="demo-toast">Enseñar toast</button>
+        </div>
+        <template id="demo-toast">{{ demo_toast()|safe }}</template>
+        <pre class="ui-code"><code>// detrás de lo que devuelve el controlador
+let toast = Toast::translated(&amp;i18n, "favorites-added-toast")
+    .with_link(i18n.url("/favorites"), i18n.t("favorites-view"));
+HttpResponse::Ok().body(body + &amp;toast.oob())</code></pre>
     </section>
 
     <section id="precio">

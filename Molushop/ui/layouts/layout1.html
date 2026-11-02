@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="/static/styles/atoms/card.css">
     <link rel="stylesheet" href="/static/styles/atoms/stars.css">
     <link rel="stylesheet" href="/static/styles/atoms/modal.css">
+    <link rel="stylesheet" href="/static/styles/atoms/toast.css">
     <link rel="stylesheet" href="/static/styles/atoms/price.css">
     <link rel="stylesheet" href="/static/styles/atoms/quantity.css">
     <script src="/static/utils/base.js"></script>
@@ -59,5 +60,9 @@
     <footer class="full-width-footer">
         {% block footer %}{% endblock %}
     </footer>
+    {# Toasts (átomo m-toast): las respuestas de htmx los añaden aquí con
+       hx-swap-oob (Toast::oob). aria-live: el lector de pantalla lee cada uno
+       al llegar. #}
+    <div id="m-toasts" class="m-toasts" aria-live="polite"></div>
 </body>
 </html>

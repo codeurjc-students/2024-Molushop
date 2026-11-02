@@ -3,6 +3,7 @@ use askama::Template;
 use crate::models::components::stars::Stars;
 use crate::models::components::message_modal::MessageModal;
 use crate::models::components::confirm_modal::ConfirmModal;
+use crate::models::components::toast::Toast;
 use crate::models::components::price::Price;
 use crate::models::components::quantity::Quantity;
 use bigdecimal::BigDecimal;
@@ -30,6 +31,16 @@ impl UiCatalogPage {
     /// Selector de cantidad de ejemplo; `max` 0 = sin tope.
     pub fn demo_quantity(&self, value: i32, min: i32, max: i32) -> Quantity {
         Quantity::new(value, min, (max > 0).then_some(max))
+    }
+
+    /// Toast de ejemplo, con enlace.
+    pub fn demo_toast(&self) -> Toast {
+        Toast {
+            text: "Guardado en favoritos.".to_string(),
+            link: None,
+            close: "Cerrar".to_string(),
+        }
+        .with_link("/favorites".to_string(), "Ver favoritos".to_string())
     }
 
     /// El modal de confirmación de ejemplo: sin htmx, el "Sí" solo lo cierra.

@@ -22,3 +22,4 @@ pub mod price;
 pub mod variations_explorer;
 pub mod quantity;
 pub mod favorite_button;
+pub mod toast;

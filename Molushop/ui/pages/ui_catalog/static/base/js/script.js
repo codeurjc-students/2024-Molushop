@@ -85,3 +85,14 @@ document.addEventListener("click", (event) => {
         _hyperscript.processNode(document.body.lastElementChild);
     }
 });
+
+// Toast de ejemplo: al contenedor #m-toasts, como hace htmx con hx-swap-oob.
+document.addEventListener("click", (event) => {
+    let button = event.target.closest("[data-demo-toast]");
+    if (button == null) { return; }
+    let toasts = document.getElementById("m-toasts");
+    toasts.insertAdjacentHTML("beforeend", document.getElementById(button.dataset.demoToast).innerHTML);
+    if (typeof _hyperscript !== "undefined") {
+        _hyperscript.processNode(toasts.lastElementChild);
+    }
+});
