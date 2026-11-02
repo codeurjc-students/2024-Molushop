@@ -87,7 +87,7 @@ async fn spawn(path: web::Path<Uuid>, panel_user: web::ReqData<PanelUser>, pool_
             return HttpResponse::Ok().body(edit_product_variation)
         },
         Err(e)=>{
-            println!("Error: {}",e);
+            tracing::error!(error = %e, "could not load the variation");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error al abrir la variación")
         }
     }
@@ -164,7 +164,7 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
             error_modal(Status::CONFLICT, "Esta variación no tiene precio: pónselo en la pestaña Precio antes de activarla. No se ha guardado nada")
         }
         Err(e) => {
-            println!("Ha ocurrido un error: {}",e);
+            tracing::error!(error = %e, "could not save the variation");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Algo ha ido mal: no se ha guardado nada")
         }
     }
@@ -195,7 +195,7 @@ async fn sku_check(path: web::Path<Uuid>, query: web::Query<SkuQuery>, panel_use
         Ok(problem) => HttpResponse::Ok().body(SkuCheck { problem }.render().unwrap()),
         // Es solo una ayuda: sin aviso, y al guardar se comprueba igual
         Err(e) => {
-            println!("Error al comprobar el SKU: {}", e);
+            tracing::error!(error = %e, "could not check the SKU");
             HttpResponse::InternalServerError().finish()
         }
     }
@@ -224,11 +224,10 @@ let form_identifiers = data.into_inner();
         Ok(_numero) =>{
             //aqui añadir a que 
             let modal_html = MessageModal::new("Identificadores editados correctamente").render().unwrap();
-            println!("Todo correcto");
             HttpResponse::Ok().body(modal_html)
         },
         Err(e)=>{
-            println!("Ha ocurrido un error: {}",e);
+            tracing::error!(error = %e, "could not save the identifiers");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Ha habido un error al editar los identificadores")
         }
     }
@@ -251,22 +250,20 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
 // Convertir los valores string a BigDecimal
     let regular_price = match form.regular.parse::<BigDecimal>() {
         Ok(price) => price,
-        Err(e) => {
-            println!("Error al convertir precio regular: {}", e);
+        Err(_) => {
             return error_modal(Status::BAD_REQUEST, "El precio no es válido: usa un número con punto, por ejemplo 12.50");
         }
     };
     let discounted_price = match form.discount.parse::<BigDecimal>() {
         Ok(price) => price,
-        Err(e) => {
-            println!("Error al convertir precio regular: {}", e);
+        Err(_) => {
             return error_modal(Status::BAD_REQUEST, "El precio de oferta no es válido: usa un número con punto, por ejemplo 9.99");
         }
     };
     let is_active = match form.discount_active.parse::<bool>() {
         Ok(value) => value,
         Err(e) => {
-            println!("{}",e);
+            tracing::warn!(error = %e, "invalid discount_active value, using false");
             false // valor predeterminado
         }
     };
@@ -295,7 +292,7 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user:
                 .body(modal_html)
         },
         Err(e) => {
-            println!("Error al actualizar precio: {}", e);
+            tracing::error!(error = %e, "could not update the price");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Error al actualizar el precio")
         }
     }
@@ -327,7 +324,7 @@ let form = data.into_inner();
                 .body(modal_html)
         },
         Err(e)=>{
-            println!("{}",e);
+            tracing::error!(error = %e, "could not save the stock");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error al guardar el stock")
         }
     }
@@ -362,7 +359,6 @@ async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
     }.render().unwrap();
     remove target
     */
-    println!("{:?}",params);
     let warning_modal = ConfirmModal{
         method:params.method.clone(),
         message:params.message.clone(),
@@ -378,7 +374,6 @@ async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
 
 #[delete("/delete-identifier/{id_variation}")]
 async fn delete_identifier(_pool_data:web::Data<DbPool>)->HttpResponse{
-    println!("BORRANDO IDENTIFICADOR");
     HttpResponse::Ok().finish()
 }
 

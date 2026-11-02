@@ -105,7 +105,7 @@ match result{
                 .body(modal_render)
         },
         Err(e) => {
-            println!("Error! -> {}",e);
+            tracing::error!(error = %e, "could not save the product changes");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
 }
@@ -164,7 +164,7 @@ async fn bulk_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUse
             error_modal(Status::CONFLICT, &text)
         }
         Err(e) => {
-            println!("Panel: error en la edición en bloque de {}: {}", product_id, e);
+            tracing::error!(%product_id, error = %e, "could not apply the bulk edit");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha cambiado nada")
         }
     }
@@ -226,7 +226,7 @@ async fn bulk_skus(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,for
         }
         Ok(SaveSkus::NotOwned) => error_modal(Status::BAD_REQUEST, "Alguna variación no es de este producto: no se ha cambiado nada"),
         Err(e) => {
-            println!("Panel: error al guardar los SKU de {}: {}", product_id, e);
+            tracing::error!(%product_id, error = %e, "could not save the SKUs");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada")
         }
     }
@@ -253,7 +253,7 @@ async fn edit_specs(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,fo
         Ok(()) => modal("Especificaciones guardadas"),
         Err(ServiceError::InvalidSpecs) => error_modal(Status::BAD_REQUEST, "Las especificaciones no tienen un formato válido: no se ha guardado nada"),
         Err(e) => {
-            println!("Panel: error al guardar las specs de {}: {}", product_id, e);
+            tracing::error!(%product_id, error = %e, "could not save the specs");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada")
         }
     }
@@ -284,7 +284,7 @@ async fn main_image(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,fo
         }
         Ok(false) => error_modal(Status::BAD_REQUEST, "Esa imagen no es de este producto: no se ha cambiado nada"),
         Err(e) => {
-            println!("Panel: error al cambiar la imagen principal de {}: {}", product_id, e);
+            tracing::error!(%product_id, error = %e, "could not change the main image");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha cambiado nada")
         }
     }
@@ -331,7 +331,7 @@ async fn image_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUs
         }
         Ok(false) => error_modal(Status::BAD_REQUEST, "La imagen o alguna variación no son de este producto: no se ha cambiado nada"),
         Err(e) => {
-            println!("Panel: error al asignar variaciones a la imagen {}: {}", form.image_id, e);
+            tracing::error!(image_id = %form.image_id, error = %e, "could not assign variations to the image");
             error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha cambiado nada")
         }
     }
@@ -385,7 +385,6 @@ let client_data_x = client_data.get_ref().as_ref();
             is_main: false,
             display_order: 1
         });
-        println!("Archivo subido!");
     }
 
     /* 
@@ -421,7 +420,7 @@ let client_data_x = client_data.get_ref().as_ref();
     match result_multiple{
         Ok(_) => {
             let has_variations = product_has_variations(&product_id, pool).await.unwrap_or_else(|e| {
-                println!("Panel: error al mirar las variaciones de {}: {}", product_id, e);
+                tracing::error!(%product_id, error = %e, "could not check whether the product has variations");
                 true
             });
             let modal_render = MessageModal::new("Imagen actualizada correctamente!").render().unwrap();
@@ -446,7 +445,7 @@ let client_data_x = client_data.get_ref().as_ref();
                 .body(modal_render + &tiles)
         },
         Err(e) => {
-            println!("Error! -> {}",e);
+            tracing::error!(error = %e, "could not save the product changes");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
     /* Prueba */
@@ -455,12 +454,11 @@ let client_data_x = client_data.get_ref().as_ref();
     let result_update= update_image(&product_id, &tipo, &image_url, pool).await;
     match result_update{
         Ok(_) => {
-            println!("Producto editado correctamente");
             let modal_render = MessageModal::new("Imagen actualizada correctamente!").render().unwrap();
             HttpResponse::Ok().body(modal_render)
         },
         Err(e) => {
-            println!("Error! -> {}",e);
+            tracing::error!(error = %e, "could not save the product changes");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
     */
@@ -505,7 +503,7 @@ async fn delete_image(path: web::Path<Uuid>,query: web::Query<DeleteImageQuery>,
         Ok(Some(deleted)) => deleted,
         Ok(None) => return error_modal(Status::NOT_FOUND, "Esa imagen ya no existe o no es de este producto"),
         Err(e) => {
-            println!("Panel: error al borrar la imagen {}: {}", query.image_id, e);
+            tracing::error!(image_id = %query.image_id, error = %e, "could not delete the image");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha borrado nada");
         }
     };
@@ -514,9 +512,9 @@ async fn delete_image(path: web::Path<Uuid>,query: web::Query<DeleteImageQuery>,
         let client = client_data.get_ref().as_ref();
         match client.key_from_url(&deleted.image_url) {
             Some(key) => if !client.delete_file(&key).await {
-                println!("Panel: no se ha podido borrar de S3 {} (queda huérfano)", key);
+                tracing::warn!(%key, "could not delete the image from S3, it is left orphaned");
             },
-            None => println!("Panel: {} no es del bucket, no se borra de S3", deleted.image_url),
+            None => tracing::warn!(image_url = %deleted.image_url, "image is not in the bucket, not deleted from S3"),
         }
     }
 

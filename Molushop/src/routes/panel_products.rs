@@ -49,7 +49,7 @@ pub async fn store_or_response(
         Ok(Some(store)) => Ok(store),
         Ok(None) => Err(html(StatusCode::NOT_FOUND, "Tienda no encontrada".to_string())),
         Err(e) => {
-            println!("Panel: {}", e);
+            tracing::error!(error = %e, "could not load the store");
             Err(html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando la tienda".to_string()))
         }
     }
@@ -95,7 +95,7 @@ async fn products_list(
             html(StatusCode::OK, page)
         }
         Err(e) => {
-            println!("Panel: error cargando productos de la tienda {}: {}", store.id, e);
+            tracing::error!(store_id = %store.id, error = %e, "could not load the store products");
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando los productos".to_string())
         }
     }
@@ -124,7 +124,7 @@ async fn products_create(
             html(StatusCode::OK, page)
         }
         Err(e) => {
-            println!("Panel: error cargando categorías: {}", e);
+            tracing::error!(error = %e, "could not load the categories");
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando las categorías".to_string())
         }
     }
@@ -149,7 +149,7 @@ async fn products_edit(
         Ok(true) => {}
         Ok(false) => return html(StatusCode::NOT_FOUND, "Producto no encontrado".to_string()),
         Err(e) => {
-            println!("Panel: {}", e);
+            tracing::error!(%product_id, error = %e, "could not check product ownership");
             return html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando el producto".to_string());
         }
     }
@@ -162,7 +162,7 @@ async fn products_edit(
     let (product_edit, panel_product) = match loaded {
         Ok(loaded) => loaded,
         Err(e) => {
-            println!("Panel: error cargando el producto {}: {}", product_id, e);
+            tracing::error!(%product_id, error = %e, "could not load the product");
             return html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando el producto".to_string());
         }
     };

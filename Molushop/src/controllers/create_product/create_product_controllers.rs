@@ -19,7 +19,6 @@ use crate::models::extra::BaseSpecs;
 use crate::models::components::create_product::*;
 
 
-use std::time::Instant;
 
 //use diesel_async::pooled_connection::bb8::Pool;
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -75,9 +74,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 #[get("/category-children/{category_id}")]
 async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>) -> impl Responder {
     let pool = pool_data.get_ref();
-    //testeo tiempo
-    let now = Instant::now();
-    //
     let category_id= path.into_inner();
     let categories_result = get_child_categories(&category_id,pool).await;
     let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = get_category_ancestors(&category_id,pool).await;
@@ -90,24 +86,18 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
                 &ROUTES
             );
             let rendered = list_category_base.render().unwrap();
-            
-            //Testeo tiempo
-            let elapsed = now.elapsed();
-            println!("Elapsed: {:.2?}", elapsed);
-            //Testeo tiempo
-            HttpResponse::Ok().body(rendered)
+                        HttpResponse::Ok().body(rendered)
         },
         (Err(e), Ok(_)) => {
-            println!("Error loading categories: {}", e);
+            tracing::error!(%category_id, error = %e, "could not load the child categories");
             return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         },
         (Ok(_), Err(e)) => {
-            println!("Error loading ancestors: {}", e);
+            tracing::error!(%category_id, error = %e, "could not load the category ancestors");
             return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         },
         (Err(e1), Err(e2)) => {
-            println!("Error loading categories: {}", e1);
-            println!("Error loading ancestors: {}", e2);
+            tracing::error!(%category_id, categories_error = %e1, ancestors_error = %e2, "could not load the child categories nor the ancestors");
             return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         }
     }
@@ -124,7 +114,7 @@ async fn reset_category(pool_data: web::Data<DbPool>) -> impl Responder {
             HttpResponse::Ok().body(rendered)
         },
         Err(e) => {
-            println!("Error loading categories: {}", e);
+            tracing::error!(error = %e, "could not load the root categories");
             return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         }
     }
@@ -144,7 +134,7 @@ async fn next_category(path: web::Path<String>, pool_data: web::Data<DbPool>) ->
                 .and_then(|specs| match serde_json::from_value::<BaseSpecs>(specs) {
                     Ok(base_specs) => Some(base_specs),
                     Err(e) => {
-                        println!("base_specs de {} con formato no válido: {}", category_id, e);
+                        tracing::warn!(%category_id, error = %e, "invalid base_specs format");
                         None
                     }
                 })
@@ -153,11 +143,10 @@ async fn next_category(path: web::Path<String>, pool_data: web::Data<DbPool>) ->
             HttpResponse::Ok().body(base_product.render().unwrap())
         },
         Ok(_) => {
-            println!("Categoría {} no encontrada", category_id);
             error_modal(StatusCode::NOT_FOUND, "No se ha encontrado la categoría")
         },
         Err(e) => {
-            println!("Error loading category: {}", e);
+            tracing::error!(%category_id, error = %e, "could not load the category");
             return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las categorías");
         }
     }
@@ -176,7 +165,7 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
             Ok(Some(store)) => store.id,
             Ok(None) => return error_modal(StatusCode::FORBIDDEN, SIN_TIENDA),
             Err(e) => {
-                println!("Panel: {}", e);
+                tracing::error!(error = %e, "could not load the seller store");
                 return error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al crear el producto");
             }
         },
@@ -184,17 +173,14 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
     };
 
     let category_id= path.into_inner();
-    println!("{:?}",category_id);
     let pool = pool_data.get_ref();
-    //hacer print del tipo que es data
     let datox = data.into_inner();
-    println!("{:?}",datox);
     //match insert_product(&datox,pool).await{
     // Producto, vendedor, categoría, variaciones y precios van en UNA
     // transacción: o se crea todo o no se crea nada.
     match create_full_product(seller_id,&datox,&category_id,pool).await{
         Ok(new_id) => {
-            println!("Producto creado con sus variaciones: {:?}",&new_id);
+            tracing::info!(product_id = %new_id, "product created");
             // A su página de edición: el formulario ya no sirve (enviarlo otra
             // vez crearía otro producto) y allí se siguen sus imágenes y stock.
             HttpResponse::Ok()
@@ -208,7 +194,7 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
             error_modal(StatusCode::BAD_REQUEST, "Las specs del producto no tienen un formato válido")
         },
         Err(e) => {
-            println!("Error al crear el producto (no se ha guardado nada): {}", e);
+            tracing::error!(error = %e, "could not create the product");
             error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Error al crear el producto")
         }
     }

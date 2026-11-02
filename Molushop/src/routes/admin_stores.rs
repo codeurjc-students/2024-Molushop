@@ -69,7 +69,7 @@ fn back(result: Result<&'static str, AdminStoreError>) -> HttpResponse {
         Ok(code) => format!("{}?ok={}", ADMIN_STORES, code),
         Err(e) => {
             if let AdminStoreError::Db(detail) = &e {
-                println!("Admin tiendas: {}", detail);
+                tracing::error!(error = %detail, "could not update the store");
             }
             format!("{}?error={}", ADMIN_STORES, e.code())
         }
@@ -87,7 +87,7 @@ async fn stores_page(
     let stores = match list_stores(pool_data.get_ref()).await {
         Ok(stores) => stores,
         Err(e) => {
-            println!("Admin tiendas: {:?}", e);
+            tracing::error!(error = ?e, "could not load the stores");
             return HttpResponse::InternalServerError()
                 .content_type("text/html; charset=utf-8")
                 .body("Error cargando las tiendas");
@@ -96,7 +96,7 @@ async fn stores_page(
 
     // Sin sugerencias la página sigue sirviendo: se escribe el username a mano.
     let usernames = list_usernames(pool_data.get_ref()).await.unwrap_or_else(|e| {
-        println!("Admin tiendas, usernames: {:?}", e);
+        tracing::error!(error = ?e, "could not load the usernames");
         Vec::new()
     });
 

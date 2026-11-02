@@ -60,7 +60,7 @@ async fn variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,po
     match get_panel_product(&Uuid::nil(), &product_id, pool).await {
         Ok(product) => HttpResponse::Ok().body(product.variations_explorer().render().unwrap()),
         Err(e) => {
-            println!("Panel: error al cargar las variaciones de {}: {}", product_id, e);
+            tracing::error!(%product_id, error = %e, "could not load the variations");
             error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se han podido cargar las variaciones")
         }
     }
@@ -91,7 +91,7 @@ async fn delete_product(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser
         },
         Ok(false) => error_modal(StatusCode::NOT_FOUND, "Ese producto ya no existe o no es de tus tiendas"),
         Err(e) => {
-            println!("Error! -> {}",e);
+            tracing::error!(%product_id, error = %e, "could not delete the product");
             error_modal(StatusCode::INTERNAL_SERVER_ERROR, "No se ha podido eliminar el producto")
         }
     }

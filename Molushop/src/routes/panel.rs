@@ -92,7 +92,7 @@ async fn panel_login(
                     .finish();
             }
             Ok(_) => logged_without_access = true,
-            Err(e) => println!("Login del panel: {}", e),
+            Err(e) => tracing::error!(error = %e, "could not check panel access at login"),
         }
     }
 
