@@ -26,6 +26,42 @@ pub struct Nav1Data{
     pub search: String
 }
 
+impl Nav1Data {
+    pub fn cart_badge(&self) -> CartBadge {
+        CartBadge::new(self.cart_count)
+    }
+}
+
+/// El número del carrito del menú (`#cart-badge`). Con 0 no se ve. Las
+/// respuestas que cambian el carrito lo mandan con `oob()` y htmx sustituye
+/// el del menú; `bumped()` le da el bote (al añadir desde la ficha).
+#[derive(Template, Clone, Debug)]
+#[template(path = "components/nav1/templates/cart_badge.html")]
+pub struct CartBadge {
+    pub count: i64,
+    pub bump: bool,
+    pub oob: bool,
+}
+
+impl CartBadge {
+    pub fn new(count: i64) -> Self {
+        Self { count, bump: false, oob: false }
+    }
+
+    pub fn bumped(mut self) -> Self {
+        self.bump = true;
+        self
+    }
+
+    /// Para ir detrás de otra respuesta (`hx-swap-oob`).
+    pub fn oob(mut self) -> String {
+        self.oob = true;
+        self.render().unwrap_or_default()
+    }
+}
+
+impl askama::filters::HtmlSafe for CartBadge {}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
     pub home: String,
@@ -51,4 +87,24 @@ pub struct SearchSuggestions<'a>{
     pub all_url: String,
     /// El de la página desde la que se pide (`HX-Current-URL`).
     pub i18n: &'a crate::i18n::I18n,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Con 0 se esconde; el de la respuesta lleva hx-swap-oob y, al añadir, el bote
+    #[test]
+    fn cart_badge_renders_hidden_at_zero_and_oob_with_bump() {
+        let html = CartBadge::new(0).render().unwrap();
+        assert!(html.contains("style=\"display:none;\""), "{}", html);
+        assert!(!html.contains("hx-swap-oob"), "{}", html);
+
+        let html = CartBadge::new(3).bumped().oob();
+        assert!(html.contains("id=\"cart-badge\""), "{}", html);
+        assert!(html.contains("cart-badge is-bumped"), "{}", html);
+        assert!(html.contains("hx-swap-oob=\"true\""), "{}", html);
+        assert!(html.contains(">3</span>"), "{}", html);
+        assert!(!html.contains("display:none"), "{}", html);
+    }
 }

@@ -38,11 +38,7 @@
       <div class="cart">
         <a class="cart-icon" href="{{ i18n.url(nav1.routes.cart) }}" aria-label="{{ i18n.t("nav-cart") }}">
           <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
-          {% if nav1.cart_count > 0 %}
-          <span id="cart-badge" class="cart-badge">{{nav1.cart_count}}</span>
-          {% else %}
-          <span id="cart-badge" class="cart-badge" style="display:none;">0</span>
-          {% endif %}
+          {{ nav1.cart_badge() }}
         </a>
       </div>
       <div class="profile">

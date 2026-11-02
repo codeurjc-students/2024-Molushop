@@ -2,7 +2,6 @@ use actix_web::{delete, post, web, http::StatusCode, HttpMessage, HttpRequest, H
 use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
 use serde::Deserialize;
 use uuid::Uuid;
-use askama::Template;
 use lazy_static::lazy_static;
 
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -11,6 +10,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::toast::Toast;
+use crate::models::components::nav1_model::CartBadge;
 use crate::utils::hx::error_modal_t;
 use crate::i18n::I18n;
 use crate::models::components::cart_total_v1::CartRoutes;
@@ -58,7 +58,7 @@ pub struct AddToCartForm {
 #[post("/add")]
 async fn add_to_cart(
     i18n: I18n,
-    form: web::Json<AddToCartForm>,
+    form: web::Form<AddToCartForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
 ) -> HttpResponse {
@@ -83,13 +83,13 @@ async fn add_to_cart(
     match cart_add_service::add_to_cart(&user_id, &form_data.product_var_id, form_data.quantity, pool).await {
         Ok(_) => {
             let cart_count = get_cart_item_count(&user_id, pool).await;
-            // Toast y no modal: ha salido bien y el número del carrito ya sube.
-            // Sin oob(): la ficha lo pide con fetch y lo mete en #m-toasts.
+            // Toast y no modal: ha salido bien y el número del carrito ya sube
+            // (con bote). Los dos por OOB: el botón de la ficha va con
+            // hx-swap="none".
             let toast = Toast::translated(&i18n, "cart-added")
                 .with_link(i18n.url("/cart"), i18n.t("cart-view"));
             HttpResponse::Ok()
-                .insert_header(("X-Cart-Count", cart_count.to_string()))
-                .body(toast.render().unwrap())
+                .body(toast.oob() + &CartBadge::new(cart_count).bumped().oob())
         }
         Err(ServiceError::VariationNotFound) => {
             error_modal_t(StatusCode::BAD_REQUEST, &i18n, "cart-error-variation")
@@ -110,29 +110,25 @@ pub struct UpdateCartForm {
     pub quantity: i32,
 }
 
-/// Devuelve el cuerpo del carrito re-renderizado junto al nuevo contador,
-/// que es lo que consumen tanto el componente como el badge del nav. Si se ha
-/// borrado una línea (`removed`), detrás va el toast para deshacerlo.
+/// El carrito re-renderizado y, por OOB, el número del menú. Si se ha borrado
+/// una línea (`removed`), también el toast para deshacerlo. El JS del carrito
+/// lo pinta con htmx.swap, que reparte lo OOB.
 async fn cart_body_response(i18n: &I18n, user_id: &Uuid, pool: &DbPool, removed: Option<&CartProduct>) -> HttpResponse {
     let cart_count = get_cart_item_count(user_id, pool).await;
     let mut body = get_cart_total_body_render(i18n, Some(user_id), pool).await;
+    body.push_str(&CartBadge::new(cart_count).oob());
     if let Some(line) = removed {
         body.push_str(&removed_toast(i18n, line).oob());
     }
-    HttpResponse::Ok()
-        .insert_header(("X-Cart-Count", cart_count.to_string()))
-        .body(body)
+    HttpResponse::Ok().body(body)
 }
 
 /// "Producto eliminado · Deshacer". El botón lleva lo que manda el JS a
-/// `/restore` (RestoreCartForm), tal cual.
+/// `/restore` (RestoreCartForm), ya como formulario.
 fn removed_toast(i18n: &I18n, line: &CartProduct) -> Toast {
-    let restore = serde_json::json!({
-        "product_var_id": line.product_var_id,
-        "quantity": line.quantity,
-    });
+    let restore = format!("product_var_id={}&quantity={}", line.product_var_id, line.quantity);
     Toast::translated(i18n, "cart-removed-toast")
-        .with_action(i18n.t("cart-undo"), "cart-restore", restore.to_string())
+        .with_action(i18n.t("cart-undo"), "cart-restore", restore)
 }
 
 fn cart_error_response(i18n: &I18n, e: ServiceError) -> HttpResponse {
@@ -167,7 +163,7 @@ fn unauthorized() -> HttpResponse {
 #[post("/update")]
 async fn update_cart_item(
     i18n: I18n,
-    form: web::Json<UpdateCartForm>,
+    form: web::Form<UpdateCartForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
 ) -> HttpResponse {
@@ -218,7 +214,7 @@ pub struct RestoreCartForm {
 #[post("/restore")]
 async fn restore_cart_item(
     i18n: I18n,
-    form: web::Json<RestoreCartForm>,
+    form: web::Form<RestoreCartForm>,
     pool_data: web::Data<DbPool>,
     req: HttpRequest,
 ) -> HttpResponse {

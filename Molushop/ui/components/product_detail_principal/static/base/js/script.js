@@ -212,82 +212,50 @@ const PRODUCT_DETAIL = {
         el.hidden = !message;
     },
 
-    addToCart: function() {
+    // Lo que se va a añadir ({ product_var_id, quantity }) o null, con el
+    // aviso bajo el botón si falta algo. Lo comprueba antes de pedir nada:
+    // sin variación o sin precio, el servidor la rechazaría igual.
+    cartValues: function() {
         this.showError(null);
-        let selectedAttrs = this.getSelectedAttrs();
-        let variant = this.findVariantByAttrs(selectedAttrs);
-
+        let variant = this.findVariantByAttrs(this.getSelectedAttrs());
         if (!variant) {
             this.showError(this.text("PickVariation", "Selecciona una variación válida."));
-            return;
+            return null;
         }
-        // El servidor la rechazaría igual ("No price found"); así el aviso se
-        // entiende y no se hace la petición.
         if (variant.price == null) {
             this.showError(this.text("VariationUnavailable", "Esta variación no está disponible ahora mismo."));
-            return;
+            return null;
         }
-
         let quantityInput = this.element.querySelector(".quantity-product .m-qty__input");
         let quantity = parseInt(quantityInput.value) || 1;
-
         if (quantity <= 0) {
             this.showError(this.text("QuantityPositive", "La cantidad debe ser mayor que 0."));
-            return;
+            return null;
         }
+        return { product_var_id: variant.id, quantity: quantity };
+    },
 
-        let btn = this.element.querySelector(".add-to-cart-btn");
-        let url = btn.dataset.addUrl;
-
-        fetch(url, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "HX-Request": "true" },
-            body: JSON.stringify({
-                product_var_id: variant.id,
-                quantity: quantity
-            })
-        })
-        .then(response => {
-            if (response.status === 401) {
-                // Se guarda lo que quería añadir para reintentarlo cuando vuelva
-                // identificado (el login recarga la página y se perdería).
-                this.savePendingAdd(variant.id, quantity);
-                // Lo recoge el login_modal y abre el login
-                document.dispatchEvent(new CustomEvent("auth-required"));
-                return null;
+    // "Añadir al carrito" va con htmx (hx-post en el botón, true.html). Aquí:
+    // - htmx:confirm: si falta algo, no se pide nada;
+    // - htmx:configRequest: la variación y la cantidad elegidas;
+    // - htmx:afterRequest: con un 401 se guarda lo que quería añadir para
+    //   reintentarlo al volver identificado (el login recarga la página). El
+    //   login lo abre el HX-Trigger "auth-required" de la respuesta.
+    // Lo demás lo hace el servidor: el toast y el número del menú (OOB) o,
+    // si falla (sin stock...), el modal de error.
+    init_add_to_cart: function(btn) {
+        btn.addEventListener("htmx:confirm", (event) => {
+            this.adding = this.cartValues();
+            if (this.adding == null) { event.preventDefault(); }
+        });
+        btn.addEventListener("htmx:configRequest", (event) => {
+            event.detail.parameters.product_var_id = this.adding.product_var_id;
+            event.detail.parameters.quantity = this.adding.quantity;
+        });
+        btn.addEventListener("htmx:afterRequest", (event) => {
+            if (event.detail.xhr.status === 401) {
+                this.savePendingAdd(this.adding.product_var_id, this.adding.quantity);
             }
-            let cartCount = response.headers.get("X-Cart-Count");
-            return response.text().then(html => ({ html, cartCount, ok: response.ok }));
-        })
-        .then(data => {
-            if (data === null) return;
-            if (data.ok) {
-                // Añadido: un toast (átomo m-toast) en #m-toasts. htmx.swap procesa
-                // su hyperscript (se quita solo).
-                htmx.swap(document.getElementById('m-toasts'), data.html, { swapStyle: 'beforeend' });
-            } else {
-                // Error (sin stock, variación que ya no existe...): el aviso, un modal
-                document.body.insertAdjacentHTML('beforeend', data.html);
-                let modal = document.getElementById('myModal');
-                if (modal && typeof _hyperscript !== 'undefined') {
-                    _hyperscript.processNode(modal);
-                }
-            }
-            if (data.cartCount) {
-                let badge = document.getElementById('cart-badge');
-                if (badge) {
-                    badge.textContent = data.cartCount;
-                    badge.style.display = 'flex';
-                    // "Bote" del número (nav1/styles.css): se quita la clase y se
-                    // fuerza un reflow para que la animación vuelva a empezar
-                    badge.classList.remove('is-bumped');
-                    void badge.offsetWidth;
-                    badge.classList.add('is-bumped');
-                }
-            }
-        })
-        .catch(err => {
-            console.error("Error al añadir al carrito:", err);
         });
     },
 
@@ -345,7 +313,7 @@ const PRODUCT_DETAIL = {
         }
 
         // El mismo camino que el botón: si ya no hay stock, sale el modal de error del servidor
-        this.addToCart();
+        this.element.querySelector(".add-to-cart-btn")?.click();
     },
 
     init_product_selection: function() {
@@ -356,7 +324,7 @@ const PRODUCT_DETAIL = {
         // Botón añadir al carrito
         let addBtn = this.element.querySelector(".add-to-cart-btn");
         if (addBtn) {
-            addBtn.addEventListener("click", () => this.addToCart());
+            this.init_add_to_cart(addBtn);
         }
     }
 };

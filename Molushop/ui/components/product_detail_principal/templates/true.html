@@ -81,7 +81,10 @@
                     {{ product_data.quantity_tag().localized(i18n) }}
                 </div>
                 <div class="button-container-add">
-                    <button type="button" class="m-btn m-btn--primary m-btn--block add-to-cart-btn" data-add-url="{{product_data.cart_add_url()}}">
+                    {# htmx: la variación y la cantidad las pone el JS (htmx:configRequest,
+                       PRODUCT_DETAIL); la respuesta es el toast y el número del menú, por OOB #}
+                    <button type="button" class="m-btn m-btn--primary m-btn--block add-to-cart-btn"
+                        hx-post="{{product_data.cart_add_url()}}" hx-swap="none">
                         <span>{{ i18n.t("card-add-to-cart") }}</span>
                     </button>
                 </div>

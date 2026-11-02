@@ -96,8 +96,12 @@ const CART_TOTAL_V1 = {
     },
 
     // Una vez por carrito (COMPONENT.mount, base.js). El servidor lo pinta
-    // todo marcado: se olvida lo desmarcado en una visita anterior.
+    // todo marcado: se olvida lo desmarcado en una visita anterior. No al
+    // repintarlo tras un cambio (send): ahí se le devuelve la selección.
+    repainting: false,
+
     mount: function() {
+        if (this.repainting) { return; }
         this.unselected.clear();
         this.refreshSelection();
     },
@@ -244,11 +248,7 @@ const CART_TOTAL_V1 = {
 
         this.send(card.dataset.lineId, this.root().dataset.updateUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                cart_product_id: card.dataset.lineId,
-                quantity: quantity
-            })
+            body: new URLSearchParams({ cart_product_id: card.dataset.lineId, quantity: quantity })
         });
     },
 
@@ -260,36 +260,27 @@ const CART_TOTAL_V1 = {
         this.send(card.dataset.lineId, url, { method: "DELETE" });
     },
 
-    // Vuelve a añadir una línea borrada (el JSON del botón, RestoreCartForm)
-    // y cierra el toast. El botón se apaga: dos clics la añadirían dos veces.
+    // Vuelve a añadir una línea borrada (el formulario del botón,
+    // RestoreCartForm) y cierra el toast. El botón se apaga: dos clics la
+    // añadirían dos veces.
     restore: function(button) {
         if (button.disabled) { return; }
         button.disabled = true;
         button.closest(".m-toast")?.dispatchEvent(new CustomEvent("closeToast"));
 
-        let line = JSON.parse(button.dataset.cartRestore);
-        this.send(`restore-${line.product_var_id}`, this.root().dataset.restoreUrl, {
+        let line = new URLSearchParams(button.dataset.cartRestore);
+        this.send(`restore-${line.get("product_var_id")}`, this.root().dataset.restoreUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: button.dataset.cartRestore
+            body: line
         });
-    },
-
-    // Los toasts que trae la respuesta (Toast::oob(), "Producto eliminado"),
-    // a #m-toasts; devuelve el resto, que es el carrito. htmx.swap procesa su
-    // hyperscript (se quitan solos).
-    takeToasts: function(html) {
-        let template = document.createElement("template");
-        template.innerHTML = html;
-        let box = document.getElementById("m-toasts");
-        template.content.querySelectorAll("[hx-swap-oob]").forEach(oob => {
-            if (box != null) { htmx.swap(box, oob.innerHTML, { swapStyle: "beforeend" }); }
-            oob.remove();
-        });
-        return template.innerHTML;
     },
 
     // `key`: la línea. Si hay una petición en curso, espera en la cola.
+    // Va con fetch y no con hx-post: la cola guarda lo último de cada línea y
+    // no repinta con una respuesta vieja (con htmx, al repintar el carrito se
+    // perderían los clics que esperan). Lo que llega se pinta con htmx.swap,
+    // que reparte lo que viene por OOB (el número del menú, el toast de
+    // "Producto eliminado") y engancha htmx y hyperscript en lo nuevo.
     send: function(key, url, options) {
         if (this.pending) {
             this.queue.set(key, { url, options });
@@ -306,36 +297,30 @@ const CART_TOTAL_V1 = {
                     document.dispatchEvent(new CustomEvent("auth-required"));
                     return null;
                 }
-                let cartCount = response.headers.get("X-Cart-Count");
-                return response.text().then(html => ({
-                    html,
-                    cartCount,
-                    ok: response.ok
-                }));
+                return response.text().then(html => ({ html, ok: response.ok }));
             })
             .then(data => {
                 if (data === null) { return; }
 
-                // Con algo en cola, esta respuesta ya está vieja: repintar
-                // devolvería el número de antes de los últimos clics.
-                // El toast sí: el borrado ya está hecho.
                 if (data.ok && this.queue.size > 0) {
-                    this.takeToasts(data.html);
-                    this.updateBadge(data.cartCount);
+                    // Con algo en cola, el carrito de esta respuesta ya está
+                    // viejo: repintarlo devolvería el número de antes de los
+                    // últimos clics. Lo OOB sí (el toast: el borrado ya está hecho).
+                    htmx.swap(this.root(), data.html, { swapStyle: "none" });
                 } else if (data.ok) {
-                    this.root().outerHTML = this.takeToasts(data.html);
-                    // Con outerHTML htmx no se entera: sin esto, los corazones
-                    // de favoritos (hx-post) del carrito nuevo no hacen nada.
-                    // process() no lanza htmx:load, así que no vuelve a pasar
-                    // por mount() y no se pierde la selección.
-                    htmx.process(this.root());
-                    this.updateBadge(data.cartCount);
+                    // El carrito nuevo es otro #cart-total-1: htmx:load y
+                    // mount(), que no debe olvidar la selección (repainting).
+                    // settleDelay 0: htmx:load llega dentro de swap(), con
+                    // repainting aún puesto.
+                    this.repainting = true;
+                    htmx.swap(this.root(), data.html, { swapStyle: "outerHTML", settleDelay: 0 });
+                    this.repainting = false;
                     // El HTML nuevo viene con todo marcado: hay que devolverle
                     // al usuario la selección que tenía
                     this.refreshSelection();
                 } else {
-                    // El cuerpo del error es un modal ya renderizado
-                    this.showModal(data.html);
+                    // Un error es un modal ya pintado (error_modal_t)
+                    htmx.swap(document.body, data.html, { swapStyle: "beforeend" });
                 }
             })
             .catch(err => {
@@ -351,23 +336,6 @@ const CART_TOTAL_V1 = {
                 }
             });
     },
-
-    updateBadge: function(cartCount) {
-        if (cartCount === null) { return; }
-        let badge = document.getElementById("cart-badge");
-        if (badge == null) { return; }
-
-        badge.textContent = cartCount;
-        badge.style.display = parseInt(cartCount) > 0 ? "flex" : "none";
-    },
-
-    showModal: function(html) {
-        document.body.insertAdjacentHTML("beforeend", html);
-        let modal = document.getElementById("myModal");
-        if (modal && typeof _hyperscript !== "undefined") {
-            _hyperscript.processNode(modal);
-        }
-    }
 };
 
 CART_TOTAL_V1.init();
