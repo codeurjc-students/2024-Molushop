@@ -21,15 +21,18 @@ pub fn error_response(status: StatusCode) -> HttpResponseBuilder {
     builder
 }
 
-/// El aviso (MessageModal) con su código de error de verdad.
+/// El aviso (MessageModal) con su código de error de verdad y la referencia
+/// de la petición ("Error 500 · ref. 7f3a9c2e").
 pub fn error_modal(status: StatusCode, text: &str) -> HttpResponse {
-    error_response(status).body(MessageModal::new(text).render().unwrap())
+    let modal = MessageModal::new(text).with_error_ref(status, I18n::default_ref());
+    error_response(status).body(modal.render().unwrap())
 }
 
 /// Como `error_modal`, en el idioma de la página: `key` es una clave de
 /// `locales/*` y el botón va traducido.
 pub fn error_modal_t(status: StatusCode, i18n: &I18n, key: &str) -> HttpResponse {
-    error_response(status).body(MessageModal::translated(i18n, key).render().unwrap())
+    let modal = MessageModal::translated(i18n, key).with_error_ref(status, i18n);
+    error_response(status).body(modal.render().unwrap())
 }
 
 /// El JSON de `HX-Trigger` solo con ASCII: una cabecera HTTP no admite tildes

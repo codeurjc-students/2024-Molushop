@@ -34,6 +34,8 @@ askama = "0.15.4"
 fluent-templates = "0.15.1"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+# Sin emit_event_on_error: la línea de cada petición (con su error) la escribe middleware/request_log.rs
+tracing-actix-web = { version = "0.7.25", default-features = false }
 
 [dependencies.uuid]
 version = "1.10.0"

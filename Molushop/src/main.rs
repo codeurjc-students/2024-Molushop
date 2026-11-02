@@ -30,6 +30,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::AsyncPgConnection;
 
 use dotenvy::dotenv;
+use tracing_actix_web::TracingLogger;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -52,9 +53,7 @@ async fn main() -> std::io::Result<()> {
             // hasta un Ctrl+Shift+R. Con no-cache pregunta siempre, y el ETag lo resuelve en 304.
             .wrap_fn(|req, srv| {
                 use actix_web::dev::Service;
-                let is_static = ["/static/", "/assets/", "/css/"]
-                    .iter()
-                    .any(|prefix| req.path().starts_with(prefix));
+                let is_static = middleware::request_log::is_static(req.path());
                 let fut = srv.call(req);
                 async move {
                     let mut res = fut.await?;
@@ -69,6 +68,10 @@ async fn main() -> std::io::Result<()> {
             })
             // Contra CSRF: los POST/PUT/PATCH/DELETE tienen que venir de esta web.
             .wrap(actix_web::middleware::from_fn(middleware::origin_check::origin_check))
+            // Una línea de log por petición con su id (X-Request-Id). Lo último que se
+            // envuelve va por fuera: TracingLogger abre el span y request_log, dentro, escribe.
+            .wrap(actix_web::middleware::from_fn(middleware::request_log::request_log))
+            .wrap(TracingLogger::<middleware::request_log::RequestSpan>::new())
             .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)

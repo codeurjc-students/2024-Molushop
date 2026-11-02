@@ -92,7 +92,7 @@ fn too_many(req: &ServiceRequest, wait_secs: u64) -> HttpResponse {
     let message = i18n.t_args("rate-limit-wait", &[("minutes", wait_minutes(wait_secs).into())]);
     let htmx = req.headers().contains_key("HX-Request");
     let body = if htmx {
-        let mut modal = MessageModal::from_string(message.clone());
+        let mut modal = MessageModal::from_string(message.clone()).with_error_ref(StatusCode::TOO_MANY_REQUESTS, &i18n);
         modal.accept = i18n.t("modal-accept");
         modal.close = i18n.t("modal-close");
         modal.render().unwrap_or(message)

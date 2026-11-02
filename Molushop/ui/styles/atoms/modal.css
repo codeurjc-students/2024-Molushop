@@ -81,6 +81,14 @@
 }
 .m-modal__body p { margin: 0; }
 
+/* Referencia de un aviso de error ("Error 500 · ref. 7f3a9c2e"), para soporte */
+.m-modal__body .m-modal__ref {
+    margin-top: var(--space-2);
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
 /* Icono delante del texto (el ⚠️ de la pregunta) */
 .m-modal__icon {
     flex-shrink: 0;
