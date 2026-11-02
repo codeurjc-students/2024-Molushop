@@ -200,6 +200,20 @@ document.addEventListener('htmx:beforeSwap', (event) => {
     }
 });
 
+// Un aviso que llega al final de <body> con un <dialog> abierto con
+// showModal() (el login) saldría detrás: el <dialog> va en la top layer, por
+// encima de cualquier z-index, y deja inerte lo de fuera. Se pasa dentro del
+// <dialog>. Vale para todos: hx-target="body", los 4xx de response-targets y
+// los que llegan con HX-Retarget: body (429, 403, 500). Se mueve después de
+// pintarlo y no en beforeSwap porque response-targets fija el destino de los
+// errores detrás de este manejador.
+document.addEventListener('htmx:afterSwap', (event) => {
+    if (event.detail.boosted || event.detail.target !== document.body) return;
+    const dialog = document.querySelector('dialog:modal');
+    if (!dialog) return;
+    document.querySelectorAll('body > .m-modal').forEach((modal) => dialog.append(modal));
+});
+
 // Mientras dura una petición de htmx, el botón que la lanza (o los de envío
 // de su formulario) se apaga y lleva spinner (aria-busy, button.css): sin
 // esto, un doble clic manda dos veces. Para las que salen de htmx.ajax con un
