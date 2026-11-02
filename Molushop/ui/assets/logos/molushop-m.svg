@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-154 -1778 2100 2100" role="img" aria-label="Molushop">
+  <title>Molushop</title>
+  <!-- Icono de la pestaña (favicon): la M de molushop.svg sobre un cuadrado redondeado
+       con el verde de la marca (green-500). M casi negra, como en molushop-on-green.svg:
+       a 16 px el contorno del logo grande no se distingue. -->
+  <rect x="-154" y="-1778" width="2100" height="2100" rx="420" fill="#4ce693"/>
+  <path d="M276 -1456H546L896 -415L1245 -1456H1515L1005 0H786ZM120 -1456H395L446 -377V0H120ZM1396 -1456H1672V0H1345V-377Z" fill="#111111"/>
+</svg>
