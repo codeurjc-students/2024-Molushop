@@ -16,6 +16,15 @@ let login_modal = {
             login_modal.open("login");
         }
 
+        // Escape con un aviso abierto dentro (contraseña mala): se cierra solo el aviso,
+        // que lo quita su propio hyperscript (keyup), y el login sigue abierto. Se para en el
+        // keydown: el "cancel" del <dialog> Chrome no deja cancelarlo sin un clic reciente.
+        dialog.addEventListener("keydown",(event)=>{
+            if(event.key==="Escape" && dialog.querySelector(".m-modal")){
+                event.preventDefault();
+            }
+        });
+
         dialog.addEventListener("click",(event)=>{
             if(event.target===dialog){
                 dialog.close();

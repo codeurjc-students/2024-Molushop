@@ -1,6 +1,9 @@
 {% let routes = login_base_data.routes %}
 {# Identificarse y crear cuenta (dentro del modal de login). Textos en
-   locales/*/auth.ftl; `i18n` lo pone la página (o LoginProduct). #}
+   locales/*/auth.ftl; `i18n` lo pone la página (o LoginProduct).
+   Los avisos de la respuesta se añaden dentro de .login-base y no al <body>:
+   el <dialog> abierto con showModal() va en la top layer, por encima de
+   cualquier z-index, y deja inerte lo de fuera (el aviso saldría detrás). #}
 
 <div class="login-base">
     <div class="cont-total">
@@ -8,9 +11,9 @@
         <div class="container-ext login" hx-ext="response-targets">
             <form
                 hx-post="{{routes.login}}"
-                hx-target="body"
-                hx-target-4*="body"
-                hx-target-5*="body"
+                hx-target="closest .login-base"
+                hx-target-4*="closest .login-base"
+                hx-target-5*="closest .login-base"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
                 hx-on::after-request="login_base.do_after_login(event)"
@@ -56,9 +59,9 @@
         <div class="container-ext register disabled" hx-ext="response-targets">
             <form
                 hx-post="{{routes.create_user}}"
-                hx-target="body"
-                hx-target-4*="body"
-                hx-target-5*="body"
+                hx-target="closest .login-base"
+                hx-target-4*="closest .login-base"
+                hx-target-5*="closest .login-base"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
             >
