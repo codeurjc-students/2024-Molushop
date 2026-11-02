@@ -6,6 +6,16 @@
         <p class="m-hint admin-hint">De cada pedido solo se muestran los artículos de esta tienda.</p>
         {% endif %}
 
+        {# La lista se actualiza sola: cada 30 s con la pestaña a la vista y al
+           volver a ella. Pide la misma página y se queda solo con este bloque
+           (hx-select), así que no hace falta otra ruta. Si la sesión ha
+           caducado, el guard del panel responde con HX-Redirect al login; si
+           falla, htmx no pinta nada y se reintenta a los 30 s. #}
+        <div id="panel-orders-list"
+            hx-get="{{base_url}}"
+            hx-trigger="every 30s [document.visibilityState === 'visible'], visibilitychange[document.visibilityState === 'visible'] from:document"
+            hx-select="#panel-orders-list"
+            hx-swap="outerHTML">
         {% if orders.is_empty() %}
         <p class="m-alert m-alert--info panel-home-note">Todavía no hay ningún pedido.</p>
         {% else %}
@@ -40,5 +50,6 @@
             </tbody>
         </table>
         {% endif %}
+        </div>
     </div>
 {% endblock %}
