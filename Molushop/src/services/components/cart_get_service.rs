@@ -103,7 +103,7 @@ pub async fn get_cart_total_object(user_id: Option<&Uuid>, pool: &DbPool) -> Car
     let rows = match get_cart_items(uid, pool).await {
         Ok(r) => r,
         Err(e) => {
-            println!("Error obteniendo el carrito: {:?}", e);
+            tracing::error!(error = ?e, "could not load the cart");
             return CartTotalData::default();
         }
     };
@@ -115,7 +115,7 @@ pub async fn get_cart_total_object(user_id: Option<&Uuid>, pool: &DbPool) -> Car
     let product_ids: Vec<Uuid> = items.iter().map(|i| i.product_id).collect();
     match favorite_ids_among(uid, &product_ids, pool).await {
         Ok(favorites) => items.iter_mut().for_each(|i| i.is_favorite = favorites.contains(&i.product_id)),
-        Err(e) => println!("Error leyendo los favoritos del carrito: {:?}", e),
+        Err(e) => tracing::error!(error = ?e, "could not load the favorites of the cart"),
     }
 
     CartTotalData::from_items(items)

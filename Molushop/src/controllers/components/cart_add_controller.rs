@@ -92,7 +92,7 @@ async fn add_to_cart(
             error_modal_t(StatusCode::BAD_REQUEST, &i18n, "cart-error-stock")
         }
         Err(e) => {
-            println!("Error al añadir al carrito: {}", e);
+            tracing::error!(error = %e, "could not add to the cart");
             error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, &i18n, "cart-error-add")
         }
     }
@@ -126,7 +126,7 @@ fn cart_error_response(i18n: &I18n, e: ServiceError) -> HttpResponse {
             error_modal_t(StatusCode::BAD_REQUEST, i18n, "cart-error-stock")
         }
         e => {
-            println!("Error al modificar el carrito: {}", e);
+            tracing::error!(error = %e, "could not update the cart");
             error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, i18n, "cart-error-update")
         }
     }

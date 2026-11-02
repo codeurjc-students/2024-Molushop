@@ -45,7 +45,7 @@ async fn get_favorites(
         Some(user_id) => match favorite_cards(user_id, pool).await {
             Ok(products) => products,
             Err(e) => {
-                println!("Error cargando los favoritos: {}", e);
+                tracing::error!(error = %e, "could not load the favorites");
                 return HttpResponse::InternalServerError().finish();
             }
         },

@@ -86,7 +86,7 @@ async fn add(
             error_modal_t(StatusCode::NOT_FOUND, &i18n, "favorites-error-gone")
         }
         Err(e) => {
-            println!("Error guardando el favorito: {}", e);
+            tracing::error!(error = %e, "could not add the favorite");
             error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, &i18n, "favorites-error")
         }
     }
@@ -108,7 +108,7 @@ async fn remove(
     match remove_favorite(&user_id, &product_id, pool_data.get_ref()).await {
         Ok(()) => button(&i18n, product_id, false),
         Err(e) => {
-            println!("Error quitando el favorito: {}", e);
+            tracing::error!(error = %e, "could not remove the favorite");
             error_modal_t(StatusCode::INTERNAL_SERVER_ERROR, &i18n, "favorites-error")
         }
     }

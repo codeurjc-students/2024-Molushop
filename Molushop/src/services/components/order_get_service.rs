@@ -32,7 +32,7 @@ pub async fn get_order_object(
     let connection = &mut match pool.get().await {
         Ok(c) => c,
         Err(e) => {
-            println!("Error obteniendo conexión para el pedido: {:?}", e);
+            tracing::error!(error = ?e, "could not get a connection for the order");
             return OrderData::not_found_logged();
         }
     };
@@ -54,7 +54,7 @@ pub async fn get_order_object(
     {
         Ok(i) => i,
         Err(e) => {
-            println!("Error obteniendo las líneas del pedido: {:?}", e);
+            tracing::error!(error = ?e, "could not load the order lines");
             Vec::new()
         }
     };
@@ -71,7 +71,7 @@ pub async fn get_order_object(
     {
         Ok(rows) => rows.into_iter().collect(),
         Err(e) => {
-            println!("Error obteniendo los productos de las líneas del pedido: {:?}", e);
+            tracing::error!(error = ?e, "could not load the products of the order lines");
             HashMap::new()
         }
     };
@@ -99,7 +99,7 @@ pub async fn get_orders_list_object(
     let connection = &mut match pool.get().await {
         Ok(c) => c,
         Err(e) => {
-            println!("Error obteniendo conexión para la lista de pedidos: {:?}", e);
+            tracing::error!(error = ?e, "could not get a connection for the order list");
             return OrderListData::empty_logged();
         }
     };
@@ -112,7 +112,7 @@ pub async fn get_orders_list_object(
     {
         Ok(o) => o,
         Err(e) => {
-            println!("Error obteniendo los pedidos del usuario: {:?}", e);
+            tracing::error!(error = ?e, "could not load the user orders");
             return OrderListData::empty_logged();
         }
     };
@@ -130,7 +130,7 @@ pub async fn get_orders_list_object(
     {
         Ok(i) => i,
         Err(e) => {
-            println!("Error obteniendo las líneas de los pedidos: {:?}", e);
+            tracing::error!(error = ?e, "could not load the lines of the orders");
             Vec::new()
         }
     };

@@ -38,7 +38,7 @@ async fn get_first_address(user_id: &Uuid, pool: &DbPool) -> AddressData {
     let connection = &mut match pool.get().await {
         Ok(c) => c,
         Err(e) => {
-            println!("Error obteniendo conexión para la dirección: {:?}", e);
+            tracing::error!(error = ?e, "could not get a connection for the address");
             return AddressData::default();
         }
     };
@@ -78,7 +78,7 @@ pub async fn get_checkout_object(
     let rows = match get_cart_items(uid, pool).await {
         Ok(r) => r,
         Err(e) => {
-            println!("Error obteniendo el carrito para el checkout: {:?}", e);
+            tracing::error!(error = ?e, "could not load the cart for the checkout");
             return CheckoutData::default();
         }
     };

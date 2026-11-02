@@ -114,7 +114,7 @@ async fn confirm(
         }
 
         Err(e) => {
-            println!("Error al confirmar el pedido: {}", e);
+            tracing::error!(error = %e, "could not place the order");
             let message = i18n.t("checkout-error");
             repaint(i18n, &user_id, &form, &message, None, pool).await
         }

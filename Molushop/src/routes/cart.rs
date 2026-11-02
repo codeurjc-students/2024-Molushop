@@ -47,13 +47,11 @@ async fn get_cart(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
                 user_name = user.username;
                 user_logged = true;
             }
-            Err(_e)=>{
-                println!("Ha ocurrido un error con la base de datos!");
+            Err(e)=>{
+                tracing::error!(error = ?e, "could not load the logged user");
             }
         }
 
-    }else {
-        println!("Usuario sin loggear")
     }
     //let user_data = "cosas";
 

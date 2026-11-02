@@ -147,7 +147,7 @@ async fn save_product_review(
         Err(ServiceError::NotPurchased) => HttpResponse::Forbidden()
             .body(form_error(&i18n.t("reviews-buyers-only"))),
         Err(e) => {
-            println!("Error al guardar la opinión: {}", e);
+            tracing::error!(error = %e, "could not save the review");
             HttpResponse::InternalServerError()
                 .body(form_error(&i18n.t("reviews-error-save")))
         }
@@ -185,7 +185,7 @@ async fn delete_product_review(
             HttpResponse::Ok().body(body)
         }
         Err(e) => {
-            println!("Error al borrar la opinión: {}", e);
+            tracing::error!(error = %e, "could not delete the review");
             HttpResponse::InternalServerError()
                 .body(form_error(&i18n.t("reviews-error-delete")))
         }

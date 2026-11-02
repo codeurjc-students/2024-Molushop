@@ -80,7 +80,7 @@ async fn orders_list(
             html(StatusCode::OK, page)
         }
         Err(e) => {
-            println!("Panel: error cargando los pedidos de la tienda {}: {:?}", store.id, e);
+            tracing::error!(store_id = %store.id, error = ?e, "could not load the store orders");
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando los pedidos".to_string())
         }
     }
@@ -118,7 +118,7 @@ async fn order_detail(
         }
         Ok(None) => html(StatusCode::NOT_FOUND, "Pedido no encontrado".to_string()),
         Err(e) => {
-            println!("Panel: error cargando el pedido {}: {:?}", order_id, e);
+            tracing::error!(%order_id, error = ?e, "could not load the order");
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando el pedido".to_string())
         }
     }
@@ -152,7 +152,7 @@ pub fn back(order_url: &str, result: Result<(), PanelOrderError>) -> HttpRespons
         Ok(()) => format!("{}?ok=status", order_url),
         Err(e) => {
             if let PanelOrderError::Db(detail) = &e {
-                println!("Panel pedidos: {}", detail);
+                tracing::error!(error = %detail, "could not change the order line status");
             }
             format!("{}?error={}", order_url, e.code())
         }

@@ -39,7 +39,7 @@ pub async fn get_product_reviews_object(
     let connection = &mut match pool.get().await {
         Ok(c) => c,
         Err(e) => {
-            println!("Error obteniendo conexión para las opiniones: {:?}", e);
+            tracing::error!(error = ?e, "could not get a connection for the reviews");
             return ProductReviewsData::empty(*product_id, logged, false);
         }
     };
@@ -50,7 +50,7 @@ pub async fn get_product_reviews_object(
         Some(uid) => match has_purchased(uid, product_id, connection).await {
             Ok(b) => b,
             Err(e) => {
-                println!("Error comprobando la compra para opinar: {:?}", e);
+                tracing::error!(error = ?e, "could not check whether the user bought the product");
                 false
             }
         },
@@ -80,7 +80,7 @@ pub async fn get_product_reviews_object(
     {
         Ok(s) => s,
         Err(e) => {
-            println!("Error obteniendo el resumen de opiniones: {:?}", e);
+            tracing::error!(error = ?e, "could not load the review summary");
             return ProductReviewsData::empty(*product_id, logged, can_review);
         }
     };
@@ -112,7 +112,7 @@ pub async fn get_product_reviews_object(
     {
         Ok(r) => r,
         Err(e) => {
-            println!("Error obteniendo las opiniones del producto: {:?}", e);
+            tracing::error!(error = ?e, "could not load the product reviews");
             return ProductReviewsData::empty(*product_id, logged, can_review);
         }
     };
@@ -140,7 +140,7 @@ pub async fn get_product_reviews_object(
         {
             Ok(row) => row.map(review_from_row),
             Err(e) => {
-                println!("Error obteniendo la opinión del usuario: {:?}", e);
+                tracing::error!(error = ?e, "could not load the user review");
                 None
             }
         },
@@ -266,7 +266,6 @@ pub async fn save_review(
             _,
         )) => Err(ServiceError::ProductNotFound),
         Err(e) => {
-            println!("Error guardando la opinión: {:?}", e);
             Err(ServiceError::InternalServerError(e.to_string()))
         }
     }

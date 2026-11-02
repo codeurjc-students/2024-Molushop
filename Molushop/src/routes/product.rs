@@ -52,13 +52,11 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
                 user_name = user.username;
                 user_logged = true;
             }
-            Err(_e)=>{
-                println!("Ha ocurrido un error con la base de datos!");
+            Err(e)=>{
+                tracing::error!(error = ?e, "could not load the logged user");
             }
         }
 
-    }else {
-        println!("Usuario sin loggear")
     }
     //let user_data = "cosas";
 
@@ -85,7 +83,7 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
     if let Some(user_id) = user_id_opt.as_ref() {
         match favorite_ids_among(user_id, &[product_id], pool).await {
             Ok(ids) => product_data.is_favorite = ids.contains(&product_id),
-            Err(e) => println!("Error leyendo los favoritos de la ficha: {}", e),
+            Err(e) => tracing::error!(error = %e, "could not load the favorites of the product page"),
         }
     }
 

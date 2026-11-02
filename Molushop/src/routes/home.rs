@@ -76,7 +76,7 @@ async fn home_categories(lang: Lang, pool: &DbPool) -> Vec<CategoryLink> {
     let categories = match category_counts(&[], lang, pool).await {
         Ok(categories) => categories,
         Err(e) => {
-            println!("Home: error cargando las categorías: {}", e);
+            tracing::error!(error = %e, "could not load the home categories");
             return Vec::new();
         }
     };
@@ -110,13 +110,11 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
                 user_name = user.username;
                 user_logged = true;
             }
-            Err(_e)=>{
-                println!("Ha ocurrido un error con la base de datos!");
+            Err(e)=>{
+                tracing::error!(error = ?e, "could not load the logged user");
             }
         }
 
-    }else {
-        println!("Usuario sin loggear")
     }
     //let user_data = "cosas";
 

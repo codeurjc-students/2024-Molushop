@@ -49,7 +49,7 @@ async fn orders_list(
             html(StatusCode::OK, page)
         }
         Err(e) => {
-            println!("Admin pedidos: {:?}", e);
+            tracing::error!(error = ?e, "could not load the orders");
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando los pedidos".to_string())
         }
     }
@@ -80,7 +80,7 @@ async fn order_detail(
         }
         Ok(None) => html(StatusCode::NOT_FOUND, "Pedido no encontrado".to_string()),
         Err(e) => {
-            println!("Admin pedidos: error cargando el pedido {}: {:?}", order_id, e);
+            tracing::error!(%order_id, error = ?e, "could not load the order");
             html(StatusCode::INTERNAL_SERVER_ERROR, "Error cargando el pedido".to_string())
         }
     }
