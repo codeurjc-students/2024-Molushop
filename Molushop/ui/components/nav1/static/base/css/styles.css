@@ -204,6 +204,11 @@
       font-weight: bold;
       pointer-events: none;
     }
+    /* Al añadir desde la ficha: el número da un bote (el toast sale abajo y
+       así se ve también arriba que ha cambiado) */
+    .cart-badge.is-bumped{
+      animation: cart-badge-bump 300ms ease;
+    }
   }
 
   .profile{
@@ -340,4 +345,14 @@
       }
     }
   }
+}
+
+@keyframes cart-badge-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-badge.is-bumped { animation: none; }
 }

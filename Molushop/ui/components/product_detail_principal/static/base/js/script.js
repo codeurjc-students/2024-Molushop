@@ -257,20 +257,32 @@ const PRODUCT_DETAIL = {
                 return null;
             }
             let cartCount = response.headers.get("X-Cart-Count");
-            return response.text().then(html => ({ html, cartCount }));
+            return response.text().then(html => ({ html, cartCount, ok: response.ok }));
         })
         .then(data => {
             if (data === null) return;
-            document.body.insertAdjacentHTML('beforeend', data.html);
-            let modal = document.getElementById('myModal');
-            if (modal && typeof _hyperscript !== 'undefined') {
-                _hyperscript.processNode(modal);
+            if (data.ok) {
+                // Añadido: un toast (átomo m-toast) en #m-toasts. htmx.swap procesa
+                // su hyperscript (se quita solo).
+                htmx.swap(document.getElementById('m-toasts'), data.html, { swapStyle: 'beforeend' });
+            } else {
+                // Error (sin stock, variación que ya no existe...): el aviso, un modal
+                document.body.insertAdjacentHTML('beforeend', data.html);
+                let modal = document.getElementById('myModal');
+                if (modal && typeof _hyperscript !== 'undefined') {
+                    _hyperscript.processNode(modal);
+                }
             }
             if (data.cartCount) {
                 let badge = document.getElementById('cart-badge');
                 if (badge) {
                     badge.textContent = data.cartCount;
                     badge.style.display = 'flex';
+                    // "Bote" del número (nav1/styles.css): se quita la clase y se
+                    // fuerza un reflow para que la animación vuelva a empezar
+                    badge.classList.remove('is-bumped');
+                    void badge.offsetWidth;
+                    badge.classList.add('is-bumped');
                 }
             }
         })

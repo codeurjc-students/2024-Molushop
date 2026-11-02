@@ -66,6 +66,7 @@ cart-estimated-total = Estimated total
 cart-vat-included = VAT included
 cart-continue = Continue
 cart-added = Added to your cart.
+cart-view = View cart
 cart-error-variation = We couldn't find that option.
 cart-error-stock = There isn't enough stock.
 cart-error-add = We couldn't add it to your cart. Please try again.

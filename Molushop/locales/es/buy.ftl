@@ -66,6 +66,7 @@ cart-estimated-total = Estimación total
 cart-vat-included = IVA incluido
 cart-continue = Continuar
 cart-added = Producto añadido al carrito.
+cart-view = Ver carrito
 cart-error-variation = No se ha encontrado esa variación.
 cart-error-stock = No hay suficiente stock.
 cart-error-add = No se ha podido añadir al carrito. Inténtalo de nuevo.

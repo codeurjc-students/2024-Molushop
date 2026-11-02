@@ -10,7 +10,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::middleware::auth::{Auth, SessionData};
-use crate::models::components::message_modal::MessageModal;
+use crate::models::components::toast::Toast;
 use crate::utils::hx::error_modal_t;
 use crate::i18n::I18n;
 use crate::models::components::cart_total_v1::CartRoutes;
@@ -80,10 +80,13 @@ async fn add_to_cart(
     match cart_add_service::add_to_cart(&user_id, &form_data.product_var_id, form_data.quantity, pool).await {
         Ok(_) => {
             let cart_count = get_cart_item_count(&user_id, pool).await;
-            let modal_render = MessageModal::translated(&i18n, "cart-added").render().unwrap();
+            // Toast y no modal: ha salido bien y el número del carrito ya sube.
+            // Sin oob(): la ficha lo pide con fetch y lo mete en #m-toasts.
+            let toast = Toast::translated(&i18n, "cart-added")
+                .with_link(i18n.url("/cart"), i18n.t("cart-view"));
             HttpResponse::Ok()
                 .insert_header(("X-Cart-Count", cart_count.to_string()))
-                .body(modal_render)
+                .body(toast.render().unwrap())
         }
         Err(ServiceError::VariationNotFound) => {
             error_modal_t(StatusCode::BAD_REQUEST, &i18n, "cart-error-variation")
