@@ -35,19 +35,32 @@ const CART_TOTAL_V1 = {
     init: function() {
         document.addEventListener("click", (event) => {
             let root = this.root();
-            if (root == null || !root.contains(event.target)) { return; }
+            if (root == null) { return; }
+
+            // "Deshacer" del toast (va en #m-toasts, fuera del carrito)
+            let restore = event.target.closest("[data-cart-restore]");
+            if (restore) { this.restore(restore); return; }
+
+            if (!root.contains(event.target)) { return; }
 
             let trash = event.target.closest(".trash");
             if (trash) { this.remove(trash.closest(".card")); }
         });
 
         // − y + del selector (átomo QUANTITY, base.js): ya ha cambiado el
-        // input sin salirse de 0..stock. Varios clics seguidos van en una sola
+        // input sin salirse de 1..stock. Varios clics seguidos van en una sola
         // petición con el valor final.
         document.addEventListener("m-qty-change", (event) => {
             let root = this.root();
             if (root == null || !root.contains(event.target)) { return; }
             this.later(event.target.closest(".card"), 300);
+        });
+
+        // El − con 1 unidad es una papelera (Quantity::removable): borra la línea
+        document.addEventListener("m-qty-remove", (event) => {
+            let root = this.root();
+            if (root == null || !root.contains(event.target)) { return; }
+            this.remove(event.target.closest(".card"));
         });
 
         // Cantidad escrita a mano: se espera a que el usuario deje de teclear
@@ -247,6 +260,35 @@ const CART_TOTAL_V1 = {
         this.send(card.dataset.lineId, url, { method: "DELETE" });
     },
 
+    // Vuelve a añadir una línea borrada (el JSON del botón, RestoreCartForm)
+    // y cierra el toast. El botón se apaga: dos clics la añadirían dos veces.
+    restore: function(button) {
+        if (button.disabled) { return; }
+        button.disabled = true;
+        button.closest(".m-toast")?.dispatchEvent(new CustomEvent("closeToast"));
+
+        let line = JSON.parse(button.dataset.cartRestore);
+        this.send(`restore-${line.product_var_id}`, this.root().dataset.restoreUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: button.dataset.cartRestore
+        });
+    },
+
+    // Los toasts que trae la respuesta (Toast::oob(), "Producto eliminado"),
+    // a #m-toasts; devuelve el resto, que es el carrito. htmx.swap procesa su
+    // hyperscript (se quitan solos).
+    takeToasts: function(html) {
+        let template = document.createElement("template");
+        template.innerHTML = html;
+        let box = document.getElementById("m-toasts");
+        template.content.querySelectorAll("[hx-swap-oob]").forEach(oob => {
+            if (box != null) { htmx.swap(box, oob.innerHTML, { swapStyle: "beforeend" }); }
+            oob.remove();
+        });
+        return template.innerHTML;
+    },
+
     // `key`: la línea. Si hay una petición en curso, espera en la cola.
     send: function(key, url, options) {
         if (this.pending) {
@@ -276,10 +318,12 @@ const CART_TOTAL_V1 = {
 
                 // Con algo en cola, esta respuesta ya está vieja: repintar
                 // devolvería el número de antes de los últimos clics.
+                // El toast sí: el borrado ya está hecho.
                 if (data.ok && this.queue.size > 0) {
+                    this.takeToasts(data.html);
                     this.updateBadge(data.cartCount);
                 } else if (data.ok) {
-                    this.root().outerHTML = data.html;
+                    this.root().outerHTML = this.takeToasts(data.html);
                     this.updateBadge(data.cartCount);
                     // El HTML nuevo viene con todo marcado: hay que devolverle
                     // al usuario la selección que tenía

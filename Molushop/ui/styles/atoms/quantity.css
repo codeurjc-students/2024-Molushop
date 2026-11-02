@@ -12,7 +12,9 @@
 
    Tamaños: (normal, mide lo mismo que un m-btn), --sm (líneas del carrito)
    Apagado: el botón lleva `disabled` en el límite (lo pone el servidor y lo
-   mantiene el JS). */
+   mantiene el JS).
+   Con papelera (Quantity::removable, el carrito): en el mínimo el − no se
+   apaga, lleva .is-remove y se ve la papelera. */
 
 .m-qty {
     display: inline-flex;
@@ -82,6 +84,27 @@
 .m-qty__input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
+}
+
+/* ---- Con papelera ---- */
+
+.m-qty__trash {
+    display: none;
+    width: 1em;
+    height: 1em;
+    fill: currentColor;
+}
+
+.m-qty__btn.is-remove {
+    color: var(--color-danger);
+}
+
+.m-qty__btn.is-remove .m-qty__minus {
+    display: none;
+}
+
+.m-qty__btn.is-remove .m-qty__trash {
+    display: block;
 }
 
 /* ---- Tamaños ---- */

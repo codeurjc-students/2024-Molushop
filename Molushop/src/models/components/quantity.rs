@@ -22,6 +22,9 @@ pub struct Quantity {
     /// `None` = sin tope.
     pub max: Option<i32>,
     pub small: bool,
+    /// En el mínimo, el − es una papelera que avisa con `m-qty-remove` (el
+    /// carrito: con 1 unidad, quitar la línea). Si no, en el mínimo se apaga.
+    pub removable: bool,
     /// Las etiquetas de los botones y del campo (`localized`).
     pub lang: Lang,
 }
@@ -35,12 +38,18 @@ impl Quantity {
         if let Some(m) = max {
             value = value.min(m);
         }
-        Quantity { value, min, max, small: false, lang: Lang::DEFAULT }
+        Quantity { value, min, max, small: false, removable: false, lang: Lang::DEFAULT }
     }
 
     /// El del carrito, más bajo.
     pub fn sm(mut self) -> Self {
         self.small = true;
+        self
+    }
+
+    /// Con papelera en el mínimo (ver `removable`).
+    pub fn removable(mut self) -> Self {
+        self.removable = true;
         self
     }
 
@@ -57,6 +66,16 @@ impl Quantity {
 
     pub fn at_min(&self) -> bool {
         self.value <= self.min
+    }
+
+    /// El − apagado: en el mínimo y sin papelera.
+    pub fn minus_disabled(&self) -> bool {
+        self.at_min() && !self.removable
+    }
+
+    /// El − es ahora la papelera.
+    pub fn minus_removes(&self) -> bool {
+        self.at_min() && self.removable
     }
 
     pub fn at_max(&self) -> bool {
@@ -89,6 +108,21 @@ mod tests {
         let html = Quantity::new(3, 1, Some(3)).sm().render().unwrap();
         assert!(html.contains("data-step=\"1\" disabled"), "{}", html);
         assert!(html.contains("m-qty--sm"), "{}", html);
+    }
+
+    /// En el mínimo no se apaga: es la papelera, con su etiqueta, y lleva las
+    /// dos etiquetas para que el JS las cambie
+    #[test]
+    fn removable_turns_minus_into_trash_at_min() {
+        let html = Quantity::new(1, 1, Some(3)).removable().render().unwrap();
+        assert!(!html.contains("disabled"), "{}", html);
+        assert!(html.contains("m-qty__btn is-remove"), "{}", html);
+        assert!(html.contains("aria-label=\"Eliminar\""), "{}", html);
+        assert!(html.contains("data-label-remove=\"Eliminar\""), "{}", html);
+
+        let html = Quantity::new(2, 1, Some(3)).removable().render().unwrap();
+        assert!(!html.contains("is-remove"), "{}", html);
+        assert!(html.contains("aria-label=\"Quitar una unidad\""), "{}", html);
     }
 
     #[test]

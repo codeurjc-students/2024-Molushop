@@ -17,6 +17,7 @@ use crate::models::components::cart_total_v1::CartRoutes;
 use crate::constants::urls::CHECKOUT_URL;
 use super::scope::SCOPE_COMPONENTS;
 use crate::models::error::ServiceError;
+use crate::models::models_x::CartProduct;
 use crate::services::components::cart_add_service::{self, get_cart_item_count};
 use crate::services::components::cart_get_service::get_cart_total_body_render;
 use crate::services::components::cart_update_service;
@@ -29,6 +30,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         add: format!("{}{}/add", SCOPE_COMPONENTS, SCOPE),
         update: format!("{}{}/update", SCOPE_COMPONENTS, SCOPE),
         remove: format!("{}{}/remove", SCOPE_COMPONENTS, SCOPE),
+        restore: format!("{}{}/restore", SCOPE_COMPONENTS, SCOPE),
         checkout: CHECKOUT_URL.to_string()
     };
 
@@ -44,6 +46,7 @@ fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(add_to_cart);
     cfg.service(update_cart_item);
     cfg.service(remove_cart_item);
+    cfg.service(restore_cart_item);
 }
 
 #[derive(Deserialize)]
@@ -108,13 +111,28 @@ pub struct UpdateCartForm {
 }
 
 /// Devuelve el cuerpo del carrito re-renderizado junto al nuevo contador,
-/// que es lo que consumen tanto el componente como el badge del nav.
-async fn cart_body_response(i18n: &I18n, user_id: &Uuid, pool: &DbPool) -> HttpResponse {
+/// que es lo que consumen tanto el componente como el badge del nav. Si se ha
+/// borrado una línea (`removed`), detrás va el toast para deshacerlo.
+async fn cart_body_response(i18n: &I18n, user_id: &Uuid, pool: &DbPool, removed: Option<&CartProduct>) -> HttpResponse {
     let cart_count = get_cart_item_count(user_id, pool).await;
-    let body = get_cart_total_body_render(i18n, Some(user_id), pool).await;
+    let mut body = get_cart_total_body_render(i18n, Some(user_id), pool).await;
+    if let Some(line) = removed {
+        body.push_str(&removed_toast(i18n, line).oob());
+    }
     HttpResponse::Ok()
         .insert_header(("X-Cart-Count", cart_count.to_string()))
         .body(body)
+}
+
+/// "Producto eliminado · Deshacer". El botón lleva lo que manda el JS a
+/// `/restore` (RestoreCartForm), tal cual.
+fn removed_toast(i18n: &I18n, line: &CartProduct) -> Toast {
+    let restore = serde_json::json!({
+        "product_var_id": line.product_var_id,
+        "quantity": line.quantity,
+    });
+    Toast::translated(i18n, "cart-removed-toast")
+        .with_action(i18n.t("cart-undo"), "cart-restore", restore.to_string())
 }
 
 fn cart_error_response(i18n: &I18n, e: ServiceError) -> HttpResponse {
@@ -162,7 +180,7 @@ async fn update_cart_item(
     let pool = pool_data.get_ref();
 
     match cart_update_service::update_cart_item(&user_id, &form_data.cart_product_id, form_data.quantity, pool).await {
-        Ok(_) => cart_body_response(&i18n, &user_id, pool).await,
+        Ok(removed) => cart_body_response(&i18n, &user_id, pool, removed.as_ref()).await,
         Err(e) => cart_error_response(&i18n, e),
     }
 }
@@ -183,7 +201,41 @@ async fn remove_cart_item(
     let pool = pool_data.get_ref();
 
     match cart_update_service::remove_cart_item(&user_id, &cart_product_id, pool).await {
-        Ok(_) => cart_body_response(&i18n, &user_id, pool).await,
+        Ok(line) => cart_body_response(&i18n, &user_id, pool, Some(&line)).await,
+        Err(e) => cart_error_response(&i18n, e),
+    }
+}
+
+#[derive(Deserialize)]
+pub struct RestoreCartForm {
+    pub product_var_id: Uuid,
+    pub quantity: i32,
+}
+
+/// El "Deshacer" del toast de una línea borrada: la vuelve a añadir con sus
+/// unidades. Con el alta de siempre, así que comprueba el stock y entra con el
+/// precio de ahora; si mientras tanto se ha vuelto a añadir, se suman.
+#[post("/restore")]
+async fn restore_cart_item(
+    i18n: I18n,
+    form: web::Json<RestoreCartForm>,
+    pool_data: web::Data<DbPool>,
+    req: HttpRequest,
+) -> HttpResponse {
+    let user_id = match session_user_id(&req) {
+        Some(id) => id,
+        None => return unauthorized(),
+    };
+
+    let form_data = form.into_inner();
+    let pool = pool_data.get_ref();
+
+    if form_data.quantity <= 0 {
+        return error_modal_t(StatusCode::BAD_REQUEST, &i18n, "product-quantity-positive");
+    }
+
+    match cart_add_service::add_to_cart(&user_id, &form_data.product_var_id, form_data.quantity, pool).await {
+        Ok(_) => cart_body_response(&i18n, &user_id, pool, None).await,
         Err(e) => cart_error_response(&i18n, e),
     }
 }

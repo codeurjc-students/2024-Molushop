@@ -10,8 +10,11 @@
          </div>
      </div>
 
-   El HTML lo pinta el struct Toast (models/components/toast.rs). Móvil: a
-   todo el ancho, abajo; desde 600px, abajo a la derecha. */
+   El HTML lo pinta el struct Toast (models/components/toast.rs). Abajo y
+   centrado: en móvil a todo el ancho; desde 600px, al ancho de su texto. No
+   arriba: taparía la barra (buscador, cesta) y el "Deshacer" quedaría lejos.
+   Desde 600px, además, no tapan el pie: el contenedor cuelga de
+   .m-toasts-anchor, que va justo antes del <footer> (layout1.html). */
 
 .m-toasts {
     position: fixed;
@@ -57,6 +60,17 @@
 }
 .m-toast__link:hover { text-decoration: underline; }
 
+/* El botón ("Deshacer") se ve como el enlace */
+.m-toast__action {
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+
 .m-toast__close {
     flex-shrink: 0;
     display: inline-flex;
@@ -94,9 +108,23 @@
 }
 
 @media (min-width: 600px) {
-    .m-toasts {
-        left: auto;
-        align-items: flex-end;
-    }
     .m-toast { width: auto; }
+
+    /* El ancla no mide nada y es sticky: pegada abajo de la pantalla mientras
+       el pie no se ve; cuando sube, se queda encima de él y los toasts con
+       ella. top: no sube de la mitad de la pantalla; si el pie ocupa más,
+       los toasts lo tapan antes que salirse por arriba. */
+    .m-toasts-anchor {
+        position: sticky;
+        top: 50vh;
+        bottom: 0;
+        z-index: 1100; /* encima de los modales (1000) */
+        height: 0;
+    }
+
+    /* Crecen hacia arriba desde el ancla */
+    .m-toasts {
+        position: absolute;
+        bottom: var(--space-4);
+    }
 }

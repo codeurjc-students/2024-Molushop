@@ -49,17 +49,31 @@ const QUANTITY = {
         return value;
     },
 
-    // Apaga − en el mínimo y + en el máximo
+    // Apaga − en el mínimo y + en el máximo. Con papelera (data-label-remove,
+    // Quantity::removable), el − en el mínimo no se apaga: pasa a papelera.
     refresh: function(input) {
         let box = input.closest(".m-qty");
         if (box == null) { return; }
         let { min, max } = this.limits(input);
         let value = parseInt(input.value);
-        box.querySelector('.m-qty__btn[data-step="-1"]').disabled = !isNaN(min) && value <= min;
+        let minus = box.querySelector('.m-qty__btn[data-step="-1"]');
+        let atMin = !isNaN(min) && value <= min;
+        if (minus.dataset.labelRemove) {
+            minus.disabled = false;
+            minus.classList.toggle("is-remove", atMin);
+            minus.setAttribute("aria-label", atMin ? minus.dataset.labelRemove : minus.dataset.labelDecrease);
+        } else {
+            minus.disabled = atMin;
+        }
         box.querySelector('.m-qty__btn[data-step="1"]').disabled = !isNaN(max) && value >= max;
     },
 
     step: function(button) {
+        // La papelera no resta: avisa y el componente decide (el carrito borra)
+        if (button.classList.contains("is-remove")) {
+            button.dispatchEvent(new CustomEvent("m-qty-remove", { bubbles: true }));
+            return;
+        }
         let input = button.closest(".m-qty").querySelector(".m-qty__input");
         let current = parseInt(input.value) || 0;
         let value = this.clamp(input, current + parseInt(button.dataset.step));

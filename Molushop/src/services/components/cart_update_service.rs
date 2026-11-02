@@ -45,15 +45,16 @@ async fn touch_cart(cart_id: &Uuid, conn: &mut AsyncPgConnection) -> Result<(), 
 }
 
 /// Fija la cantidad de una línea. Una cantidad <= 0 elimina la línea,
-/// que es lo que espera el usuario al bajar el contador hasta 0.
+/// que es lo que espera el usuario al escribir 0; entonces devuelve la línea
+/// borrada (para el toast de "Deshacer").
 pub async fn update_cart_item(
     user_id: &Uuid,
     cart_product_id: &Uuid,
     quantity: i32,
     pool: &DbPool,
-) -> Result<(), ServiceError> {
+) -> Result<Option<CartProduct>, ServiceError> {
     if quantity <= 0 {
-        return remove_cart_item(user_id, cart_product_id, pool).await;
+        return remove_cart_item(user_id, cart_product_id, pool).await.map(Some);
     }
 
     let mut conn = pool.get().await
@@ -79,14 +80,16 @@ pub async fn update_cart_item(
 
     touch_cart(&cp.cart_id, &mut conn).await?;
 
-    Ok(())
+    Ok(None)
 }
 
+/// Devuelve la línea borrada: su variación y sus unidades son lo que vuelve a
+/// añadir el "Deshacer".
 pub async fn remove_cart_item(
     user_id: &Uuid,
     cart_product_id: &Uuid,
     pool: &DbPool,
-) -> Result<(), ServiceError> {
+) -> Result<CartProduct, ServiceError> {
     let mut conn = pool.get().await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
@@ -99,5 +102,5 @@ pub async fn remove_cart_item(
 
     touch_cart(&cp.cart_id, &mut conn).await?;
 
-    Ok(())
+    Ok(cp)
 }

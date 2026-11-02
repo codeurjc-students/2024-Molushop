@@ -36,6 +36,7 @@ impl UiCatalogPage {
     /// Toast de ejemplo, con enlace.
     pub fn demo_toast(&self) -> Toast {
         Toast {
+            action: None,
             text: "Guardado en favoritos.".to_string(),
             link: None,
             close: "Cerrar".to_string(),

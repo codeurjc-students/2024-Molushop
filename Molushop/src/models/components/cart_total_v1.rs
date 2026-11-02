@@ -34,6 +34,8 @@ pub struct CartRoutes{
     pub add: String,
     pub update: String,
     pub remove: String,
+    /// "Deshacer" del toast de una línea borrada: la vuelve a añadir.
+    pub restore: String,
     /// Página de checkout. No es un endpoint del componente, pero se expone aquí
     /// porque el botón "Continuar" del resumen es quien lleva a ella.
     pub checkout: String
@@ -164,7 +166,9 @@ impl CartItemData {
     /// lo que hay en el carrito, el tope es la cantidad actual: así el input
     /// enseña lo que de verdad hay (y lo que suma el total), no el stock.
     pub fn quantity_tag(&self) -> Quantity {
-        Quantity::new(self.quantity, 0, Some(self.stock.max(self.quantity))).sm()
+        // Mínimo 1 y papelera en él: bajar de 1 es quitar la línea (con el
+        // toast de "Deshacer"), no dejarla a 0
+        Quantity::new(self.quantity, 1, Some(self.stock.max(self.quantity))).sm().removable()
     }
 }
 

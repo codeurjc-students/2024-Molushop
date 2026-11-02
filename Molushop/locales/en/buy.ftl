@@ -4,6 +4,7 @@
 price-unavailable = Unavailable
 qty-label = Quantity
 qty-decrease = Remove one
+qty-remove = Remove
 qty-increase = Add one
 
 ## Product page
@@ -67,6 +68,8 @@ cart-vat-included = VAT included
 cart-continue = Continue
 cart-added = Added to your cart.
 cart-view = View cart
+cart-removed-toast = Removed from your cart.
+cart-undo = Undo
 cart-error-variation = We couldn't find that option.
 cart-error-stock = There isn't enough stock.
 cart-error-add = We couldn't add it to your cart. Please try again.
