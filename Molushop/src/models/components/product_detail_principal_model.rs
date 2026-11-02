@@ -267,7 +267,7 @@ fn parse_json<T: serde::de::DeserializeOwned>(value: Option<Value>, field: &str,
     match from_value::<T>(value?) {
         Ok(parsed) => Some(parsed),
         Err(e) => {
-            println!("Ficha {}: no se pudo leer `{}`: {}", product_id, field, e);
+            tracing::warn!(%product_id, field, error = %e, "could not parse a product page field");
             None
         }
     }

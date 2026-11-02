@@ -58,7 +58,7 @@ pub async fn get_product_card_group_page(page: i64, filter: &CardFilter, user_id
             (cards, more_url)
         },
         Err(e) => {
-            println!("Error getting the product cards!! --> {}",e);
+            tracing::error!(error = %e, "could not load the product cards");
             (Vec::new(), None)
         }
     }
@@ -72,7 +72,7 @@ pub async fn mark_favorites(cards: &mut [ProductCardData], user_id: Option<&Uuid
     let ids: Vec<Uuid> = cards.iter().map(|c| c.id).collect();
     match favorite_ids_among(user_id, &ids, pool).await {
         Ok(favorites) => cards.iter_mut().for_each(|c| c.is_favorite = favorites.contains(&c.id)),
-        Err(e) => println!("Error leyendo los favoritos de las tarjetas: {}", e),
+        Err(e) => tracing::error!(error = %e, "could not load the favorites of the product cards"),
     }
 }
 
@@ -92,7 +92,7 @@ pub async fn get_product_card_group_render_all(i18n: &crate::i18n::I18n, user_id
     match object_product_card.render(){
         Ok(render) => render,
         Err(e) => {
-            println!("Error en el renderizado de ProductCardGroup! --> {}",e);
+            tracing::error!(error = %e, "could not render the product cards");
             return "".to_string()
         }
     }

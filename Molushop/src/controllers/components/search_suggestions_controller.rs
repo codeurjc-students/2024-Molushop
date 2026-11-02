@@ -60,7 +60,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
     let products = match get_product_cards(MAX_PRODUCTS, 0, &filter.like_patterns(), None, pool).await {
         Ok(cards) => cards.into_iter().map(ProductCardData::from).collect(),
         Err(e) => {
-            println!("Sugerencias: error cargando los productos: {}", e);
+            tracing::error!(error = %e, "could not load the suggested products");
             Vec::new()
         }
     };
@@ -76,7 +76,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
             })
             .collect(),
         Err(e) => {
-            println!("Sugerencias: error cargando las categorías: {}", e);
+            tracing::error!(error = %e, "could not load the suggested categories");
             Vec::new()
         }
     };
@@ -88,7 +88,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
         all_url: filter.url(SEARCH_URL, None),
         i18n: &i18n,
     }.render().unwrap_or_else(|e| {
-        println!("Error en el renderizado de SearchSuggestions! --> {}", e);
+        tracing::error!(error = %e, "could not render the search suggestions");
         String::new()
     });
     HttpResponse::Ok().content_type("text/html; charset=utf-8").body(render)

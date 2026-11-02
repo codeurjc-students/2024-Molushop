@@ -13,7 +13,7 @@ pub async fn get_product_object(product_id:&Uuid,pool:&DbPool) -> Result<Option<
         Ok(product) => Ok(Some(ProductDetailPrincipalData::from(product))),
         Err(diesel::result::Error::NotFound) => Ok(None),
         Err(e) => {
-            println!("Error fetching product: {:?}", e);
+            tracing::error!(%product_id, error = ?e, "could not load the product page");
             Err(e)
         }
     }

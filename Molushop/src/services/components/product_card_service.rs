@@ -19,7 +19,7 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     let product = match get_product(&id, &pool).await {
         Ok(p) => p,
         Err(e) => {
-            println!("Error fetching product: {:?}", e);
+            tracing::error!(product_id = %id, error = ?e, "could not load the product card");
             return ProductCardData::default(); // O maneja el error de otra manera
         }
     };
@@ -32,7 +32,7 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     let prices = match get_product_variation_prices(&id,&pool).await{
         Ok(prices)=>prices,
         Err(e)=>{
-            println!("Error obteniendo los precios {:?}", e);
+            tracing::error!(product_id = %id, error = ?e, "could not load the product card prices");
             return ProductCardData::default();
         }
     };
