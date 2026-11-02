@@ -29,16 +29,7 @@ type DbPool = Pool<AsyncPgConnection>;
             attributes: Some(&json_attributes),
         };
         new_ids.push(new_id);
-        let result = insert_into(product_variations).values(new_variation).execute(connection).await;
-        match result {
-            Ok(num) => {
-                println!("Data inserted {}",num);
-            },
-            Err(e) => {
-                println!("Error inserting data: {}",e);
-                return Err(e);
-            }
-        }
+        insert_into(product_variations).values(new_variation).execute(connection).await?;
     }
     Ok(new_ids)
  }

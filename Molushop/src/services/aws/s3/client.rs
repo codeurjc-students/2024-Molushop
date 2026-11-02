@@ -129,7 +129,7 @@ impl Client {
             .filter_map(|key| ObjectIdentifier::builder().key(key).build().ok())
             .collect();
 
-        let delete = Delete::builder().set_objects(Some(objects)).build().map_err(|err|{println!("Error: {:?}",err); err})?;
+        let delete = Delete::builder().set_objects(Some(objects)).build().map_err(|err| { tracing::error!(error = ?err, "could not build the S3 delete request"); err })?;
 
         let fin= self
             .s3
@@ -142,7 +142,7 @@ impl Client {
         match fin {
             Ok(_) => Ok(()),
             Err(e) => {
-                println!("Error deleting objects: {:?}",e);
+                tracing::error!(error = ?e, "could not delete the objects from S3");
                 Err(Box::new(e))
             }
         }
@@ -172,7 +172,7 @@ impl Client {
                         Ok(keys)
                     },
                     None => {
-                        println!("No contents");
+                        tracing::debug!("the S3 bucket is empty");
                         //Ok(Vec::new())
                         //Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "No contents")))
                         Err("No content")?
@@ -180,7 +180,7 @@ impl Client {
                 }
             },
             Err(e) => {
-                println!("Error listing objects: {:?}",e);
+                tracing::error!(error = ?e, "could not list the S3 objects");
                 Err(Box::new(e))
             }
         }

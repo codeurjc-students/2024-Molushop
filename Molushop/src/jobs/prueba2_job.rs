@@ -7,6 +7,6 @@ impl Job for MyJob2 {
     }
 
     fn run(&mut self) {
-        println!("Otro job");
+        tracing::debug!("example job 2 ran");
     }
 }

@@ -35,7 +35,6 @@ pub async fn get_category_ancestors(id_category:&String, pool: &DbPool) -> Resul
     use crate::models::models_x::Category;
     //let connection = &mut establish_connection();
     let connection = &mut get_connection(pool).await?;
-    println!("ID: {}",id_category);
     //el placeholder $1 es para evitar sql injection
     let ancestors:Result<Vec<Category>, Error>  = sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, base_specs, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.base_specs, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
     .bind::<Text,_>(id_category.to_string()).get_results(connection).await;

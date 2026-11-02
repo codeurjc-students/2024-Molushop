@@ -146,7 +146,7 @@ impl Lang {
 
     fn lookup(self, key: &str, args: Option<&HashMap<Cow<'static, str>, FluentValue>>) -> String {
         LOCALES.try_lookup_complete(&self.langid(), key, args).unwrap_or_else(|| {
-            println!("i18n: falta la clave \"{}\" ({})", key, self.code());
+            tracing::warn!(key, lang = self.code(), "missing i18n key");
             key.to_string()
         })
     }

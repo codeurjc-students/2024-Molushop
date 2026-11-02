@@ -7,6 +7,6 @@ impl Job for MyJob {
     }
 
     fn run(&mut self) {
-        println!("Sending an email to all our clients...");
+        tracing::debug!("example job 1 ran");
     }
 }
