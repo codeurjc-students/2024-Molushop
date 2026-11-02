@@ -73,8 +73,7 @@ where
     fn call(&self, req: ServiceRequest) -> Self::Future {
         // Obtener el pool desde app_data
         let pool = req.app_data::<web::Data<DbPool>>().cloned();
-        
-        println!("Hi from start. You requested: {}", req.path());
+
         let service = self.service.clone();
 
         Box::pin(async move {
@@ -86,9 +85,7 @@ where
                 }
             }
 
-            let res = service.call(req).await?;
-            println!("Hi from response");
-            Ok(res)
+            service.call(req).await
         })
     }
 }
@@ -109,16 +106,15 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
         match validate_local_token(&token,&claims_data){
             Ok(jti)=>{
                 if jti != "".to_string(){
-                    println!("El uuid es: {}",jti);
                     match check_session(&jti,&pool).await{
                         Ok(us)=>{
                             //verificar que: no esté revoked
                             // esté dentro de los plazos
                             let now = Utc::now().naive_utc();
                             if us.is_revoked{
-                                println!("Token ha sido invalidado!");
+                                tracing::debug!("session token was revoked");
                             }else if !(now >= us.issued_at && now<=us.expires_at){
-                                println!("El token ha expirado!");
+                                tracing::debug!("session token has expired");
                                 //ver si aquí ponemos que se revoque el token
                             }else{
                                 //user_id=us.user_id.to_string();
@@ -126,8 +122,7 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
                             }
                         },
                         Err(e)=>{
-                            // de momento un print --> 
-                            println!("Peto SQL!--> {}",e); 
+                            tracing::error!(error = %e, "could not check the session");
                         }
                     }
                     //user_logged=true;
@@ -135,12 +130,10 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
                 }
             },
             Err(e)=>{
-               println!("Peto!--> {}",e);
+                tracing::debug!(error = %e, "invalid session token");
             }
         }
         // en funcioón de si el token es normal --> no devuelva nada especial
-    }else {
-        println!("la cookie no existe!");
     }
     return None
 }

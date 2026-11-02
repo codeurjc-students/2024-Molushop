@@ -106,7 +106,7 @@ where
                 Ok(pu) if require_admin => pu.is_admin,
                 Ok(pu) => pu.has_panel_access(),
                 Err(e) => {
-                    println!("PanelGuard: {}", e);
+                    tracing::error!(error = %e, "could not check panel access");
                     false
                 }
             };

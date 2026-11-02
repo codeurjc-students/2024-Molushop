@@ -131,7 +131,9 @@ async fn forgot_submit(i18n: I18n, form: web::Form<ForgotForm>, pool_data: web::
     match request_reset(&form.email, i18n.lang, pool_data.get_ref()).await {
         Ok(()) => redirect(format!("{}?sent=1", i18n.url(FORGOT_URL))),
         Err(e) => {
-            println!("Recuperar contraseña: {:?}", e);
+            if let ResetError::Db(detail) = &e {
+                tracing::error!(error = %detail, "could not request a password reset");
+            }
             redirect(format!("{}?error={}", i18n.url(FORGOT_URL), e.code()))
         }
     }
@@ -148,7 +150,7 @@ async fn reset_page(
     let token = query.token.unwrap_or_default();
     let token_valid = !token.is_empty()
         && token_is_valid(&token, pool).await.unwrap_or_else(|e| {
-            println!("Recuperar contraseña, token: {:?}", e);
+            tracing::error!(error = ?e, "could not check the password reset token");
             false
         });
     let (user_logged, nav1) = nav_parts(opt_session_data, pool).await;
@@ -172,7 +174,9 @@ async fn reset_submit(i18n: I18n, form: web::Form<ResetForm>, pool_data: web::Da
         // Sin token en la URL: la página dice que el enlace no vale.
         Err(ResetError::InvalidToken) => redirect(i18n.url(RESET_URL)),
         Err(e) => {
-            println!("Recuperar contraseña: {:?}", e);
+            if let ResetError::Db(detail) = &e {
+                tracing::error!(error = %detail, "could not reset the password");
+            }
             // El token ya viajaba en la URL del email: volver con él no expone nada nuevo.
             redirect(format!("{}?token={}&error={}", i18n.url(RESET_URL), form.token, e.code()))
         }

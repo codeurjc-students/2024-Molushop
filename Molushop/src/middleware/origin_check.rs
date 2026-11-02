@@ -64,7 +64,7 @@ pub async fn origin_check(
         if let Some(source) = source {
             let host = req.connection_info().host().to_string();
             if !same_site(&source, &host, &allowed_origins()) {
-                println!("Origin rechazado: {} {} desde {}", req.method(), req.path(), source);
+                tracing::warn!(origin = %source, "cross-site request rejected");
                 // Con htmx, el aviso: htmx no pintaría la página de error
                 let res = if req.headers().contains_key("HX-Request") {
                     error_modal(StatusCode::FORBIDDEN, "Petición rechazada: no viene de esta web.")

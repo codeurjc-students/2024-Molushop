@@ -71,7 +71,7 @@ async fn render(
         Some(session) => match get_username(&session.id, pool).await {
             Ok(username) => Some(username),
             Err(e) => {
-                println!("Registro de tienda: {:?}", e);
+                tracing::error!(error = ?e, "could not load the username");
                 return html(
                     actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
                     "Error cargando la página".to_string(),
@@ -139,7 +139,7 @@ async fn register_submit(
                     }
                     // La cuenta ya existe: si falla la sesión, que entre a mano.
                     Err(e) => {
-                        println!("Registro de tienda, sesión: {}", e);
+                        tracing::error!(error = %e, "could not start the session after registering");
                         Ok(format!("{}?registered=1", PANEL_LOGIN))
                     }
                 },
@@ -152,7 +152,7 @@ async fn register_submit(
         Ok(location) => redirect(location),
         Err(e) => {
             if let StoreRequestError::Db(detail) = &e {
-                println!("Registro de tienda: {}", detail);
+                tracing::error!(error = %detail, "could not register the store");
             }
             render(&opt_session_data, &form, Some(&e), pool).await
         }

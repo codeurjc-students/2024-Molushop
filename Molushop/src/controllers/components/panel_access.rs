@@ -21,7 +21,7 @@ fn to_response(result: Result<bool, String>) -> Result<(), HttpResponse> {
         Ok(true) => Ok(()),
         Ok(false) => Err(error_modal(StatusCode::NOT_FOUND, "Producto no encontrado")),
         Err(e) => {
-            println!("Panel: {}", e);
+            tracing::error!(error = %e, "could not check product ownership");
             Err(error_modal(StatusCode::INTERNAL_SERVER_ERROR, "Ha ocurrido un error"))
         }
     }

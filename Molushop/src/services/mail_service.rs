@@ -37,6 +37,9 @@ pub async fn send(mail: &Mail) -> Result<(), MailError> {
     let provider = env::var("MAIL_PROVIDER").unwrap_or_else(|_| "log".to_string());
     match provider.as_str() {
         // Sin proveedor: a la consola. No sale ningún email de verdad.
+        // println! y no tracing a propósito: es un buzón de mentira para
+        // desarrollo y el cuerpo lleva el enlace con el token, que no debe
+        // acabar en el log. En producción, MAIL_PROVIDER=log está prohibido.
         "log" => {
             println!(
                 "\n===== EMAIL (MAIL_PROVIDER=log, no se envía) =====\nPara: {}\nAsunto: {}\n\n{}\n==================================================\n",

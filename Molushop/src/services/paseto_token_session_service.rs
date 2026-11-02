@@ -18,10 +18,8 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
 pub fn generate_local_token()->Result<String,Error>{
     let mut claims = Claims::new()?;
     claims.add_additional("data", "A secret, encrypted message")?;
-    //println!("{}",&*LOCAL_SECRET);
     // Generate the key and encrypt the claims.
     //let sk= SymmetricKey::<V4>::from("bWkQ3pDwtMhdfzcNEGyUA6sx2nqL5vHV".as_bytes())?;
-    println!("hola");
     let token = local::encrypt(&SK, &claims, None, Some(b"implicit assertion"))?;
     Ok(token)
 }
@@ -31,8 +29,6 @@ pub fn generate_local_token_duration(time:&Duration,claims_data:&HashMap<String,
     //claims.add_additional("data", "A secret, encrypted message")?;
     
     claims_mapper(&mut claims,claims_data)?;
-
-    println!("{:?}",claims);
 
     let token = local::encrypt(&SK, &claims, None, Some(b"implicit assertion"))?;
     
@@ -102,7 +98,6 @@ pub fn validate_local_token(token:&String,claims_data:&HashMap<String,String>)->
         None=>"".to_string()
         
     };*/
-    println!("{:?}",claims);
     //claim.contains_claims --> para verificar si tiene un determinado claim!
     Ok(jti)
     //devolver el jti

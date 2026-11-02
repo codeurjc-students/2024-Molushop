@@ -30,14 +30,11 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
 
 }
 
-//
-use crate::middleware::prueba::*;
 use actix_web::dev::{ServiceFactory, ServiceRequest, ServiceResponse};
 
 //en el scope se puede poner el middleware
 pub fn scope1() -> Scope<impl ServiceFactory<ServiceRequest, Config = (), Response = ServiceResponse, Error = actix_web::Error, InitError = ()>> {
     web::scope(SCOPE1)
-    .wrap(SayHi::new())
     .configure(config1)
 }
 
@@ -74,7 +71,7 @@ async fn logout(i18n: I18n, req: HttpRequest, pool_data: web::Data<DbPool>) -> H
 
     if let Some(session) = session {
         if let Err(e) = revoke_session(&session.jti, &session.id, pool_data.get_ref()).await {
-            println!("Error al revocar la sesión: {}", e);
+            tracing::error!(error = %e, "could not revoke the session");
             let modal_render = MessageModal::translated(&i18n, "auth-logout-failed").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
@@ -126,7 +123,7 @@ async fn create_user(i18n: I18n, form:web::Json<FormRegister>,pool_data:web::Dat
     let hashed_pass = match hash_password(&form_register.pass){
         Ok(pass)=> pass,
         Err(e)=>{
-            println!("Error! -> {}",e);
+            tracing::error!(error = %e, "could not hash the password");
             let modal_render = MessageModal::translated(&i18n, "auth-error").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
@@ -140,7 +137,7 @@ async fn create_user(i18n: I18n, form:web::Json<FormRegister>,pool_data:web::Dat
             return HttpResponse::Ok().body(modal_render)
         },
         Err(e)=>{
-            println!("Error! -> {}",e);
+            tracing::error!(error = %e, "could not create the user");
             let modal_render = MessageModal::translated(&i18n, "auth-register-failed").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }
@@ -157,7 +154,10 @@ async fn login(i18n: I18n, form:web::Json<FormLogin>,pool_data:web::Data<DbPool>
     let user_data= match get_user_by_username(&form_login.username,&pool).await{
         Ok(user)=> user,
         Err(e)=>{
-            println!("Error! -> {}",e);
+            // Un usuario que no existe no es un fallo: no se apunta (ni su nombre)
+            if !matches!(e, diesel::result::Error::NotFound) {
+                tracing::error!(error = %e, "could not load the user to log in");
+            }
             // El mismo aviso que con la contraseña mala: no se dice qué usuarios existen.
             let modal_render = MessageModal::translated(&i18n, "auth-login-wrong").render().unwrap();
             return HttpResponse::Unauthorized().body(modal_render)
@@ -176,7 +176,7 @@ async fn login(i18n: I18n, form:web::Json<FormLogin>,pool_data:web::Data<DbPool>
                             .body(modal_render)
                     },
                     Err(e) => {
-                        println!("Login: {}", e);
+                        tracing::error!(error = %e, "could not start the session");
                         let modal_render = MessageModal::translated(&i18n, "auth-login-failed").render().unwrap();
                         return HttpResponse::InternalServerError().body(modal_render)
                     }
@@ -187,7 +187,7 @@ async fn login(i18n: I18n, form:web::Json<FormLogin>,pool_data:web::Data<DbPool>
             }
         },
         Err(e)=>{
-            println!("Error! -> {}",e);
+            tracing::error!(error = %e, "could not verify the password");
             let modal_render = MessageModal::translated(&i18n, "auth-error").render().unwrap();
             return HttpResponse::InternalServerError().body(modal_render)
         }

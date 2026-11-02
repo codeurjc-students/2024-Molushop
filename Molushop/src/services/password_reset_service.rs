@@ -121,7 +121,7 @@ pub async fn request_reset(email: &str, lang: Lang, pool: &DbPool) -> Result<(),
     // El enlace lleva a la página en el mismo idioma que el email.
     let link = format!("{}{}{}?token={}", public_base_url(), lang.prefix(), RESET_URL, token);
     if let Err(e) = send_password_reset(&user_email, &username, &link, RESET_MINUTES, lang).await {
-        println!("Recuperar contraseña, email: {:?}", e);
+        tracing::error!(error = ?e, "could not send the password reset email");
     }
     Ok(())
 }

@@ -18,7 +18,7 @@ use actix_web::middleware::from_fn;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::middleware::rate_limit::limit_password_change;
 use crate::models::pages_models::account_page_model::AccountPage;
-use crate::services::account_service::{change_password, other_sessions_count, revoke_other_sessions};
+use crate::services::account_service::{change_password, other_sessions_count, revoke_other_sessions, AccountError};
 use crate::services::components::login_base_service;
 use crate::services::components::nav1_service::get_nav1_object;
 use crate::services::user_service::get_user_by_id;
@@ -101,7 +101,7 @@ async fn account_page(
             user_logged = true;
         }
         other_sessions = other_sessions_count(&session.id, &session.jti, pool).await.unwrap_or_else(|e| {
-            println!("Mi cuenta, sesiones: {:?}", e);
+            tracing::error!(error = ?e, "could not count the other sessions");
             0
         });
     }
@@ -137,7 +137,9 @@ async fn password_submit(
     match change_password(&session.id, &session.jti, &form.current, &form.new, &form.new2, pool_data.get_ref()).await {
         Ok(closed) => back_to_account(&i18n, &format!("ok=password&n={}", closed)),
         Err(e) => {
-            println!("Mi cuenta, contraseña: {:?}", e);
+            if let AccountError::Db(detail) = &e {
+                tracing::error!(error = %detail, "could not change the password");
+            }
             back_to_account(&i18n, &format!("error={}", e.code()))
         }
     }
@@ -154,7 +156,9 @@ async fn sessions_submit(
     match revoke_other_sessions(&session.id, &session.jti, pool_data.get_ref()).await {
         Ok(closed) => back_to_account(&i18n, &format!("ok=sessions&n={}", closed)),
         Err(e) => {
-            println!("Mi cuenta, sesiones: {:?}", e);
+            if let AccountError::Db(detail) = &e {
+                tracing::error!(error = %detail, "could not close the other sessions");
+            }
             back_to_account(&i18n, &format!("error={}", e.code()))
         }
     }
