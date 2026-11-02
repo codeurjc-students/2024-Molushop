@@ -37,6 +37,12 @@ pub struct CardFilter {
 const MAX_WORDS: usize = 6;
 const MAX_QUERY_CHARS: usize = 100;
 
+/// Una palabra de hasta estas letras solo cuenta al principio de una palabra
+/// del nombre o de la marca ("h": HeadPhonesPro sí, SuperPhone no); con más,
+/// en cualquier sitio ("phone": también SuperPhone). Si no, con una o dos
+/// letras salía casi todo.
+pub const SHORT_WORD_CHARS: usize = 2;
+
 impl CardFilter {
     /// Sin espacios de más; un campo vacío cuenta como si no viniera.
     pub fn new(q: Option<String>, category: Option<String>) -> Self {
@@ -46,14 +52,31 @@ impl CardFilter {
         CardFilter { q: clean(q), category: clean(category) }
     }
 
-    /// Un patrón de ILIKE por palabra (`%palabra%`), con `\`, `%` y `_`
-    /// escapados para que se busquen tal cual. Sin texto, ninguno.
+    /// Un patrón de ILIKE por palabra, con `\`, `%` y `_` escapados para que se
+    /// busquen tal cual. Sin texto, ninguno. Las consultas los comparan con el
+    /// campo con un espacio delante (`' ' || nombre`): así `% h%` es "una
+    /// palabra que empieza por h", también la primera. Las cortas
+    /// (`SHORT_WORD_CHARS`), así; las demás, `%palabra%`.
     pub fn like_patterns(&self) -> Vec<String> {
-        self.q.as_deref().unwrap_or("")
-            .split_whitespace()
-            .take(MAX_WORDS)
-            .map(|word| format!("%{}%", word.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_")))
+        self.words()
+            .map(|word| if word.chars().count() <= SHORT_WORD_CHARS {
+                format!("% {}%", escape_like(word))
+            } else {
+                format!("%{}%", escape_like(word))
+            })
             .collect()
+    }
+
+    /// El texto para ordenar por parecido (las palabras con un espacio entre
+    /// ellas, escapadas para ILIKE): antes lo que empieza por él, luego lo que
+    /// tiene una palabra que empieza por él. Sin texto, `None`.
+    pub fn rank_text(&self) -> Option<String> {
+        let words: Vec<String> = self.words().map(escape_like).collect();
+        (!words.is_empty()).then(|| words.join(" "))
+    }
+
+    fn words(&self) -> impl Iterator<Item = &str> {
+        self.q.as_deref().unwrap_or("").split_whitespace().take(MAX_WORDS)
     }
 
     /// El mismo filtro con otra categoría (`None`: todas).
@@ -80,6 +103,11 @@ impl CardFilter {
     }
 }
 
+/// `\`, `%` y `_` escapados para que ILIKE los busque tal cual.
+fn escape_like(word: &str) -> String {
+    word.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -95,6 +123,20 @@ mod tests {
     fn like_patterns_escape_wildcards() {
         let filter = CardFilter::new(Some(" 50%  off_x ".into()), None);
         assert_eq!(filter.like_patterns(), vec!["%50\\%%", "%off\\_x%"]);
+    }
+
+    /// Una o dos letras: al principio de una palabra (el espacio del patrón);
+    /// tres o más: en cualquier sitio. Cuenta letras, no bytes ("ñu" son dos).
+    #[test]
+    fn short_words_match_only_at_the_start_of_a_word() {
+        let filter = CardFilter::new(Some("h ñu pho".into()), None);
+        assert_eq!(filter.like_patterns(), vec!["% h%", "% ñu%", "%pho%"]);
+    }
+
+    #[test]
+    fn rank_text_joins_the_escaped_words() {
+        assert_eq!(CardFilter::new(Some("  super   50% ".into()), None).rank_text().as_deref(), Some("super 50\\%"));
+        assert_eq!(CardFilter::new(None, None).rank_text(), None);
     }
 
     #[test]

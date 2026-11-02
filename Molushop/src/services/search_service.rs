@@ -12,6 +12,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::i18n::Lang;
+use crate::models::components::product_card_group_model::SHORT_WORD_CHARS;
 use crate::utils::db::get_connection;
 
 #[derive(QueryableByName, Debug, Clone)]
@@ -47,7 +48,7 @@ pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> 
             where p.status = 1
             and not exists (
                 select 1 from unnest($1::text[]) w
-                where not (f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
+                where not (' ' || f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or ' ' || f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
             )
         )
         select cat.id::text as id, coalesce(ct.name, cat.name) as name, cat.parent::text as parent,
@@ -88,14 +89,21 @@ pub fn children<'a>(categories: &'a [CategoryCount], parent: Option<&str>) -> Ve
 }
 
 /// Las que tienen productos y cuyo nombre lleva todas las palabras de `q`,
-/// sin contar mayúsculas ni acentos (como `f_unaccent` en las consultas).
+/// sin contar mayúsculas ni acentos (como `f_unaccent` en las consultas) y con
+/// la regla de las palabras cortas de `CardFilter::like_patterns`: hasta
+/// `SHORT_WORD_CHARS` letras, al principio de una palabra del nombre.
 /// Para las sugerencias del buscador: las categorías son pocas y se filtran aquí.
 pub fn named_like<'a>(categories: &'a [CategoryCount], q: &str) -> Vec<&'a CategoryCount> {
     let words: Vec<String> = q.split_whitespace().map(fold).collect();
     if words.is_empty() { return Vec::new(); }
+    let matches = |name: &str, word: &str| if word.chars().count() <= SHORT_WORD_CHARS {
+        name.split_whitespace().any(|part| part.starts_with(word))
+    } else {
+        name.contains(word)
+    };
     categories.iter()
         .filter(|c| c.products > 0)
-        .filter(|c| { let name = fold(&c.name); words.iter().all(|w| name.contains(w.as_str())) })
+        .filter(|c| { let name = fold(&c.name); words.iter().all(|w| matches(&name, w)) })
         .collect()
 }
 
@@ -147,5 +155,17 @@ mod tests {
         assert_eq!(ids("pádel"), ["PADEL"]);
         assert!(ids("tele").is_empty(), "sin productos no sale");
         assert!(ids("   ").is_empty());
+    }
+
+    /// Como en los productos: "el" no encuentra "Pádel" (está en medio), "pa" sí.
+    #[test]
+    fn named_like_short_words_only_at_the_start_of_a_word() {
+        let mut all = vec![category("ELEC", None, 3), category("PADEL", Some("SPORT"), 1)];
+        all[0].name = "Electrónica".into();
+        all[1].name = "Pádel".into();
+        let ids = |q: &str| named_like(&all, q).iter().map(|c| c.id.as_str()).collect::<Vec<_>>();
+        assert_eq!(ids("el"), ["ELEC"]);
+        assert_eq!(ids("pa"), ["PADEL"]);
+        assert_eq!(ids("del"), ["PADEL"], "con tres letras, en cualquier sitio");
     }
 }

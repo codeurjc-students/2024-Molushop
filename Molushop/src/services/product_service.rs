@@ -136,10 +136,12 @@ pub async fn update_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPo
 
 /// Las tarjetas de la portada, de `limit` en `limit` ("Cargar más").
 /// Tarjetas de la portada y de la búsqueda. `patterns`: un ILIKE por palabra
-/// (`CardFilter::like_patterns`; vacío, sin filtrar); `category`: esa
-/// categoría o cualquiera por debajo de ella. Lo que cuenta como "a la venta"
-/// lo repite `search_service::category_counts`: si cambia aquí, también allí.
-pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
+/// (`CardFilter::like_patterns`; vacío, sin filtrar); `rank`: el texto para
+/// ordenar por parecido (`CardFilter::rank_text`; `None`, por nombre);
+/// `category`: esa categoría o cualquiera por debajo de ella. Lo que cuenta
+/// como "a la venta" y la búsqueda los repite `search_service::category_counts`:
+/// si cambian aquí, también allí.
+pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], rank: Option<&str>, category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
     let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         select p.id,
@@ -177,10 +179,12 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], cat
         join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
         -- Búsqueda: cada palabra tiene que salir en el nombre o en la marca,
-        -- sin contar acentos (f_unaccent, migración unaccent_search).
+        -- sin contar acentos (f_unaccent, migración unaccent_search). Con un
+        -- espacio delante del campo: "% h%" es una palabra que empieza por h
+        -- (CardFilter::like_patterns).
         and not exists (
             select 1 from unnest($3::text[]) w
-            where not (f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
+            where not (' ' || f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or ' ' || f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
         )
         and ($4::text is null or exists (
             with recursive sub as (
@@ -191,15 +195,24 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], cat
             select 1 from category_product cp
             where cp.product_id = p.id and cp.category_id in (select id from sub)
         ))
+        -- Con texto, por parecido: antes los nombres que empiezan por él, luego
+        -- los que tienen una palabra que empieza por él, luego el resto.
         -- p.id desempata: sin él, dos productos con el mismo nombre podrían
         -- salir en dos tandas o en ninguna.
-        order by p.name, p.id
+        order by case
+                when $5::text is null then 0
+                when f_unaccent(p.name) ilike (f_unaccent($5) || '%') then 0
+                when ' ' || f_unaccent(p.name) ilike ('% ' || f_unaccent($5) || '%') then 1
+                else 2
+            end,
+            p.name, p.id
         limit $1 offset $2;
     "#)
         .bind::<diesel::sql_types::BigInt, _>(limit)
         .bind::<diesel::sql_types::BigInt, _>(offset)
         .bind::<diesel::sql_types::Array<Text>, _>(patterns)
         .bind::<diesel::sql_types::Nullable<Text>, _>(category)
+        .bind::<diesel::sql_types::Nullable<Text>, _>(rank)
         .load::<ProductCard1>(connection).await?;
     Ok(results)
 }

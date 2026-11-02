@@ -57,7 +57,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
     };
 
     // Si algo falla, se sugiere lo que haya: "Buscar" sigue funcionando igual.
-    let products = match get_product_cards(MAX_PRODUCTS, 0, &filter.like_patterns(), None, pool).await {
+    let products = match get_product_cards(MAX_PRODUCTS, 0, &filter.like_patterns(), filter.rank_text().as_deref(), None, pool).await {
         Ok(cards) => cards.into_iter().map(ProductCardData::from).collect(),
         Err(e) => {
             tracing::error!(error = %e, "could not load the suggested products");
