@@ -356,3 +356,27 @@
 @media (prefers-reduced-motion: reduce) {
   .cart-badge.is-bumped { animation: none; }
 }
+
+/* Cabecera de la tienda que se esconde al bajar y vuelve al subir
+   (nav1_headroom, script.js): sticky arriba y, con .is-hidden, fuera de la
+   pantalla. Por debajo de los modales (1000) y de los toasts (1100).
+   Con el foco dentro (tabulando) se ve siempre. */
+.full-width-header:has(> .nav1) {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  transition: transform 200ms ease;
+}
+
+.full-width-header.is-hidden:not(:focus-within) {
+  transform: translateY(-100%);
+}
+
+/* Un salto a un ancla (#...) no queda debajo de la cabecera */
+html:has(.nav1) {
+  scroll-padding-top: var(--header-height, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .full-width-header:has(> .nav1) { transition: none; }
+}

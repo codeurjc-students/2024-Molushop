@@ -144,6 +144,76 @@ let nav1_search = {
     }
 }
 
+// Cabecera que se esconde al bajar y vuelve en cuanto se sube un poco (el CSS
+// está en styles.css). No se esconde en los primeros TOP píxeles ni mientras
+// se usa el buscador o el menú del perfil. Los cambios de menos de DELTA
+// píxeles no cuentan: si no, temblaría con el scroll suave del trackpad.
+// Deja en <html> lo que mide (--header-height, para los saltos a un ancla) y
+// lo que se ve de ella (--header-visible-height, para los toasts).
+let nav1_headroom = {
+    TOP: 200,
+    DELTA: 10,
+    last: 0,
+    ticking: false,
+
+    header: function(){
+        return document.querySelector(".nav1")?.closest(".full-width-header");
+    },
+
+    // El buscador con el foco o sus sugerencias abiertas, o el menú abierto
+    busy: function(){
+        const {input, box} = nav1_search.parts();
+        const {menu} = nav1_menu.parts();
+        return document.activeElement === input || (box && !box.hidden) || (menu && !menu.hidden);
+    },
+
+    set_hidden: function(header, hidden){
+        header.classList.toggle("is-hidden", hidden);
+        const root = document.documentElement.style;
+        root.setProperty("--header-height", `${header.offsetHeight}px`);
+        root.setProperty("--header-visible-height", hidden ? "0px" : `${header.offsetHeight}px`);
+    },
+
+    update: function(){
+        nav1_headroom.ticking = false;
+        const header = nav1_headroom.header();
+        if(!header){
+            return
+        }
+        const y = window.scrollY;
+        const diff = y - nav1_headroom.last;
+        if(y < nav1_headroom.TOP){
+            nav1_headroom.set_hidden(header, false);
+        }else if(Math.abs(diff) < nav1_headroom.DELTA){
+            return
+        }else{
+            nav1_headroom.set_hidden(header, diff > 0 && !nav1_headroom.busy());
+        }
+        nav1_headroom.last = y;
+    },
+
+    // Una vez por cabecera (COMPONENT.mount, base.js): con hx-boost llega
+    // nueva con cada página, visible.
+    init: function(nav){
+        const header = nav.closest(".full-width-header");
+        if(!header){
+            return
+        }
+        nav1_headroom.last = window.scrollY;
+        nav1_headroom.set_hidden(header, false);
+        // En móvil mide más (el buscador baja de fila) y cambia al girarlo
+        new ResizeObserver(() => nav1_headroom.set_hidden(header, header.classList.contains("is-hidden"))).observe(header);
+    }
+}
+
+// Una vez por vuelta de pintado, por mucho scroll que llegue
+window.addEventListener("scroll",()=>{
+    if(!nav1_headroom.ticking){
+        nav1_headroom.ticking = true;
+        requestAnimationFrame(nav1_headroom.update);
+    }
+},{passive: true});
+
 // Sobre document, una sola vez: sirven para la cabecera que haya en cada momento.
 document.addEventListener("click",(event)=>{
     const {menu} = nav1_menu.parts();
@@ -166,3 +236,4 @@ document.addEventListener("keydown",(event)=>{
 
 COMPONENT.mount(".nav1", nav1_menu.init);
 COMPONENT.mount(".nav1", nav1_search.init);
+COMPONENT.mount(".nav1", nav1_headroom.init);

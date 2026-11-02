@@ -16,13 +16,16 @@
    después del <header> (layout1.html). */
 
 /* El ancla no mide nada y es sticky: al principio de la página está debajo
-   del nav; al bajar, se queda pegada arriba de la pantalla. El nav no es
-   fijo, así que no hay que dejarle hueco. */
+   del nav; al bajar, se queda pegada arriba de la pantalla, debajo de la
+   cabecera si se está viendo. --header-visible-height: lo que mide la
+   cabecera de la tienda mientras se ve y 0 escondida (nav1_headroom, en el
+   script del nav1); sin ella, 0. */
 .m-toasts-anchor {
     position: sticky;
-    top: 0;
+    top: var(--header-visible-height, 0px);
     z-index: 1100; /* encima de los modales (1000) */
     height: 0;
+    transition: top 200ms ease;
 }
 
 /* Crecen hacia abajo desde el ancla */
@@ -114,6 +117,7 @@
 @media (prefers-reduced-motion: reduce) {
     /* Sin movimiento, pero con animación: el cierre espera su animationend */
     .m-toast, .m-toast.closing { animation-duration: 1ms; }
+    .m-toasts-anchor { transition: none; }
 }
 
 @media (min-width: 600px) {
