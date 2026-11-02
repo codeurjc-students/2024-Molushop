@@ -48,21 +48,18 @@ pub async fn insert_variation_prices(
         .await
 }
 
-pub async fn get_variation_price(var_id:&Uuid, curr:&String, pool: &DbPool) -> Result<Price,Error>{
-    use crate::schema::prices::dsl::*;
-
-    //obtener el precio actual, con el descuento?
-    //obtener el descuento va aparte
+/// El precio de la variación en esa moneda, sin descuento (va aparte:
+/// `get_variation_discount`).
+pub async fn get_variation_price(variation_id: &Uuid, currency: &str, pool: &DbPool) -> Result<Price, Error> {
     let connection = &mut get_connection(pool).await?;
-    let result = prices
-        .filter(variation_id.eq(var_id))
-        .filter(currency.eq(curr))
+    crate::schema::prices::table
+        .filter(crate::schema::prices::variation_id.eq(variation_id))
+        .filter(crate::schema::prices::currency.eq(currency))
         .first::<Price>(connection)
-        .await;
-    result
+        .await
 }
 
-pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: &BigDecimal,currency_insert: &String,pool:&DbPool)-> Result<usize,Error>{
+pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: &BigDecimal,currency_insert: &str,pool:&DbPool)-> Result<usize,Error>{
     use crate::schema::prices;
      //::dsl::nombre
     
@@ -89,7 +86,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                 .values((
                     prices::dsl::variation_id.eq(&var_id),
                     prices::dsl::price.eq(&price_insert),
-                    prices::dsl::currency.eq(&currency_insert),
+                    prices::dsl::currency.eq(currency_insert),
                     prices::dsl::start_date.eq(&now)
                 ))
                 .on_conflict((prices::dsl::variation_id, prices::dsl::currency))
@@ -106,7 +103,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                 diesel::delete(discounts::dsl::discounts)
                     .filter(discounts::dsl::variation_id.eq(&var_id))
                     .filter(discounts::dsl::discount_type.eq(0))
-                    .filter(discounts::dsl::currency.eq(&currency_insert))
+                    .filter(discounts::dsl::currency.eq(currency_insert))
                     .execute(tx)
                     .await?;
 
@@ -117,7 +114,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                     .select(alias_d_h.field(discount_history::dsl::id))
                     .filter(alias_d_h.field(discount_history::dsl::variation_id).eq(&var_id))
                     .filter(alias_d_h.field(discount_history::dsl::discount_type).eq(0))
-                    .filter(alias_d_h.field(discount_history::dsl::currency).eq(&currency_insert))
+                    .filter(alias_d_h.field(discount_history::dsl::currency).eq(currency_insert))
                     .filter(alias_d_h.field(discount_history::dsl::end_date).is_null())
                     .order_by(alias_d_h.field(discount_history::dsl::created_at).desc())
                     .limit(1)
@@ -140,7 +137,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                     percentage: None,
                     quantity:None,
                     discount_value:&form.discount,
-                    currency:&currency_insert,
+                    currency:currency_insert,
                     start_date:Some(&now),
                     end_date:None,
                 };
@@ -150,7 +147,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                     percentage: None,
                     quantity:None,
                     discount_value:&form.discount,
-                    currency:&currency_insert,
+                    currency:currency_insert,
                     start_date:Some(&now),
                     end_date:None,
                     created_at:&now
@@ -180,19 +177,15 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
         })).await
 }
 
-pub async fn get_variation_discount(var_id:&Uuid,disc_type:&i16,curr:&String,pool:&DbPool)->Result<Discounts,Error>{
-    use crate::schema::discounts::dsl::*;
-
+pub async fn get_variation_discount(variation_id: &Uuid, discount_type: i16, currency: &str, pool: &DbPool) -> Result<Discounts, Error> {
+    use crate::schema::discounts;
     let connection = &mut get_connection(pool).await?;
-
-    let result = discounts
-        .filter(
-            variation_id.eq(var_id).and(
-            discount_type.eq(disc_type)).and(
-            currency.eq(curr))
-        )
-        .first::<Discounts>(connection).await;
-    result
+    discounts::table
+        .filter(discounts::variation_id.eq(variation_id))
+        .filter(discounts::discount_type.eq(discount_type))
+        .filter(discounts::currency.eq(currency))
+        .first::<Discounts>(connection)
+        .await
 }
 
 #[derive(Queryable, Debug, Clone)]

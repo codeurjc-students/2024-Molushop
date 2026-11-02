@@ -312,7 +312,7 @@ let form = data.into_inner();
     };
 
 
-    let result_stock = set_variation_stock(&var_id, &new_stock, &pool).await;
+    let result_stock = set_variation_stock(&var_id, new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
             let modal_html = MessageModal::new("Stock actualizado").render().unwrap();

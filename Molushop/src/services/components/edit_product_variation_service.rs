@@ -46,7 +46,7 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
     let price_base = get_variation_price(&product_var_id,&currency,&pool).await?;
     let mut sale_price= BigDecimal::from(0);
     let mut sale_active=false;
-    let discount_result  = get_variation_discount(&product_var_id, &0, &"EUR".to_string(), &pool).await;
+    let discount_result  = get_variation_discount(&product_var_id, 0, &currency, &pool).await;
     match discount_result{
         Ok(disc)=>{
             sale_price=disc.discount_value;

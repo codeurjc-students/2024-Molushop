@@ -61,7 +61,7 @@ fn check_new_password(current: &str, new: &str, new2: &str) -> Result<(), Accoun
     if new != new2 {
         return Err(AccountError::PasswordMismatch);
     }
-    if !is_password_strong(&new.to_string()) {
+    if !is_password_strong(new) {
         return Err(AccountError::PasswordWeak);
     }
     if new == current {

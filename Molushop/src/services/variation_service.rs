@@ -42,58 +42,43 @@ type DbPool = Pool<AsyncPgConnection>;
         product_id: prod_id,
         attributes: None,
     };
-    let result = insert_into(product_variations).values(new_variation).execute(connection).await;
-    match result{
-        Ok(_) => {
-            Ok(new_id)
-        },
-        Err(e) => {
-            Err(e)
-        }
-    }
+    insert_into(product_variations).values(new_variation).execute(connection).await?;
+    Ok(new_id)
  }
 
-pub async fn get_product_variations(id_product:&Uuid,pool:&DbPool) -> Result<Vec<ProductVariation>,Error> {
-    use crate::schema::product_variations::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn get_product_variations(product_id: &Uuid, pool: &DbPool) -> Result<Vec<ProductVariation>, Error> {
+    use crate::schema::product_variations as pv;
     let connection = &mut get_connection(pool).await?;
-    let results = product_variations
-        .filter(product_id.eq(id_product))
-        .load::<ProductVariation>(connection).await;
-    results
+    pv::table.filter(pv::product_id.eq(product_id)).load::<ProductVariation>(connection).await
 }
 
-pub async fn get_product_variation(id_variation:&Uuid,pool:&DbPool) -> Result<ProductVariation,Error> {
-    use crate::schema::product_variations::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn get_product_variation(variation_id: &Uuid, pool: &DbPool) -> Result<ProductVariation, Error> {
+    use crate::schema::product_variations as pv;
     let connection = &mut get_connection(pool).await?;
-    let result = product_variations.filter(id.eq(id_variation)).first::<ProductVariation>(connection).await;
-    result
+    pv::table.find(variation_id).first::<ProductVariation>(connection).await
 }
 
-pub async fn get_variations_with_prices(prod_id:&Uuid,curr:&String,pool: &DbPool) -> Result<Vec<(ProductVariation, Price)>, Error> {
-    use crate::schema::product_variations::dsl as pv;
-    use crate::schema::prices::dsl as p;
-    
+/// Las variaciones del producto con su precio en esa moneda (las que no
+/// tienen precio no salen).
+pub async fn get_variations_with_prices(product_id: &Uuid, currency: &str, pool: &DbPool) -> Result<Vec<(ProductVariation, Price)>, Error> {
+    use crate::schema::product_variations as pv;
+    use crate::schema::prices as p;
     let connection = &mut get_connection(pool).await?;
-    
-    let results = pv::product_variations
-        .inner_join(p::prices.on(pv::id.eq(p::variation_id)))
-        .filter(p::currency.eq(curr))
-        .filter(pv::product_id.eq(prod_id))
+    pv::table
+        .inner_join(p::table.on(pv::id.eq(p::variation_id)))
+        .filter(p::currency.eq(currency))
+        .filter(pv::product_id.eq(product_id))
         .load::<(ProductVariation, Price)>(connection)
-        .await?;
-    
-    Ok(results)
+        .await
 }
 
-pub async fn get_variation_identifiers(var_id:&Uuid, pool:&DbPool) -> Result<Vec<IdentifierVariation>,Error>{
-    use crate::schema::product_variations_identifiers::dsl::*;
+pub async fn get_variation_identifiers(variation_id: &Uuid, pool: &DbPool) -> Result<Vec<IdentifierVariation>, Error> {
+    use crate::schema::product_variations_identifiers as pvi;
     let connection = &mut get_connection(pool).await?;
-    let result = product_variations_identifiers
-        .filter(product_variation_id.eq(var_id))
-        .load::<IdentifierVariation>(connection).await;
-    result
+    pvi::table
+        .filter(pvi::product_variation_id.eq(variation_id))
+        .load::<IdentifierVariation>(connection)
+        .await
 }
 
 ////NUEVO///
@@ -145,54 +130,39 @@ pub async fn set_variation_identifiers(
                 })
                 .collect();
             
-            let result = insert_into(product_variations_identifiers)
+            insert_into(product_variations_identifiers)
                 .values(&insert_identifiers)
                 .on_conflict((product_variation_id, identifier))
                 .do_update()
                 .set(value.eq(excluded(value)))
                 .execute(tx)
-                .await;
-                
-            result
+                .await
         }))
         .await
 }
 
+/// Los nombres de identificador que se ofrecen al elegir (EAN, ISBN...).
 pub async fn get_identifier_options(pool: &DbPool) -> Result<Vec<String>, Error> {
-    use crate::schema::identifiers_var::dsl::*;
-    
+    use crate::schema::identifiers_var;
     let connection = &mut get_connection(pool).await?;
-    let results = identifiers_var
-        .select(value)
-        .order_by(value.asc())
+    identifiers_var::table
+        .select(identifiers_var::value)
+        .order_by(identifiers_var::value.asc())
         .load::<String>(connection)
-        .await;
-    
-    results
+        .await
 }
 
-pub async fn get_variation_stock(var_id:&Uuid,pool:&DbPool)->Result<i32,Error>{
-    use crate::schema::product_variations::dsl::*;
-
+pub async fn get_variation_stock(variation_id: &Uuid, pool: &DbPool) -> Result<i32, Error> {
+    use crate::schema::product_variations as pv;
     let connection = &mut get_connection(pool).await?;
-
-    let result = product_variations
-        .filter(id.eq(var_id))
-        .select(stock)
-        .first::<i32>(connection)
-        .await;
-    //obtener solo el stock
-    result
+    pv::table.find(variation_id).select(pv::stock).first::<i32>(connection).await
 }
 
-pub async fn set_variation_stock(var_id:&Uuid,new_stock:&i32,pool:&DbPool)->Result<usize,Error>{
-    use crate::schema::product_variations::dsl::*;
+pub async fn set_variation_stock(variation_id: &Uuid, stock: i32, pool: &DbPool) -> Result<usize, Error> {
+    use crate::schema::product_variations as pv;
     let connection = &mut get_connection(pool).await?;
-
-    let result = update(product_variations)
-        .filter(id.eq(var_id))
-        .set(stock.eq(new_stock))
+    update(pv::table.find(variation_id))
+        .set(pv::stock.eq(stock))
         .execute(connection)
-        .await;
-    result
+        .await
 }

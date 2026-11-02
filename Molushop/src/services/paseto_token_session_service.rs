@@ -77,7 +77,7 @@ pub fn claims_validator_mapper(validation_rules:&mut ClaimsValidationRules, clai
     Ok(())
 }
 
-pub fn validate_local_token(token:&String,claims_data:&HashMap<String,String>)->Result<String,Error>{
+pub fn validate_local_token(token: &str, claims_data: &HashMap<String, String>) -> Result<String, Error> {
     let mut validation_rules = ClaimsValidationRules::new();
     claims_validator_mapper(&mut validation_rules, claims_data)?;
 

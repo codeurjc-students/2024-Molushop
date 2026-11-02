@@ -174,11 +174,10 @@ async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,pane
 
     let category_id= path.into_inner();
     let pool = pool_data.get_ref();
-    let datox = data.into_inner();
-    //match insert_product(&datox,pool).await{
+    let form = data.into_inner();
     // Producto, vendedor, categoría, variaciones y precios van en UNA
     // transacción: o se crea todo o no se crea nada.
-    match create_full_product(seller_id,&datox,&category_id,pool).await{
+    match create_full_product(seller_id, &form, &category_id, pool).await{
         Ok(new_id) => {
             tracing::info!(product_id = %new_id, "product created");
             // A su página de edición: el formulario ya no sirve (enviarlo otra

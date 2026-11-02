@@ -28,27 +28,33 @@ type DbPool = Pool<AsyncPgConnection>;
 /// Antes eran cinco escrituras sueltas, cada una con su conexión: un fallo a
 /// mitad dejaba productos sin categoría o, peor, variaciones sin fila en
 /// `prices`, que dejaban la ficha sin selector de variaciones.
-pub async fn create_full_product(id_seler:Uuid,form:&ProductForm,category_id:&String, pool:&DbPool) -> Result<Uuid, ServiceError> {
+pub async fn create_full_product(seller_id: Uuid, form: &ProductForm, category_id: &str, pool: &DbPool) -> Result<Uuid, ServiceError> {
     let mut conn = pool.get().await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
     conn.transaction::<Uuid, ServiceError, _>(|conn| async move {
-        let id_product = insert_product(form, conn).await?;
-        insert_product_seller(&id_seler, &id_product, conn).await?;
-        insert_product_category(&id_product, category_id, conn).await?;
-        create_product_variations(form, id_product, conn).await?;
-        Ok(id_product)
+        let product_id = insert_product(form, conn).await?;
+        insert_product_seller(&seller_id, &product_id, conn).await?;
+        insert_product_category(&product_id, category_id, conn).await?;
+        create_product_variations(form, product_id, conn).await?;
+        Ok(product_id)
     }.scope_boxed()).await
 }
 
-pub async fn insert_product_category(id_product:&Uuid, id_category:&String, connection:&mut AsyncPgConnection) -> Result<usize,Error> {
-    use crate::schema::category_product::dsl::*;
-    insert_into(category_product).values((category_id.eq(id_category),product_id.eq(id_product))).execute(connection).await
+pub async fn insert_product_category(product_id: &Uuid, category_id: &str, connection: &mut AsyncPgConnection) -> Result<usize, Error> {
+    use crate::schema::category_product as cp;
+    insert_into(cp::table)
+        .values((cp::category_id.eq(category_id), cp::product_id.eq(product_id)))
+        .execute(connection)
+        .await
 }
 
-pub async fn insert_product_seller(id_seler:&Uuid, id_product:&Uuid, connection:&mut AsyncPgConnection) -> Result<usize,Error> {
-    use crate::schema::product_seller::dsl::*;
-    insert_into(product_seller).values((product_id.eq(id_product),seller_id.eq(id_seler))).execute(connection).await
+pub async fn insert_product_seller(seller_id: &Uuid, product_id: &Uuid, connection: &mut AsyncPgConnection) -> Result<usize, Error> {
+    use crate::schema::product_seller as ps;
+    insert_into(ps::table)
+        .values((ps::product_id.eq(product_id), ps::seller_id.eq(seller_id)))
+        .execute(connection)
+        .await
 }
 
 pub async fn insert_product(form:&ProductForm,connection:&mut AsyncPgConnection) -> Result<Uuid, ServiceError> {
@@ -84,54 +90,39 @@ pub async fn insert_product(form:&ProductForm,connection:&mut AsyncPgConnection)
         variation_titles: titles.as_ref(), //de momento, cambiar
         images: form.images.as_ref(),
     };
-    let result = insert_into(products).values(new_product).execute(connection).await;
-    match result {
-        Ok(_) => {
-            //println!("Data inserted {}",num);
-            Ok(new_id)
-        },
-        Err(e) => {
-            //println!("Error inserting data: {}",e);
-            Err(e.into())
-        }
-    }
+    insert_into(products).values(new_product).execute(connection).await?;
+    Ok(new_id)
 }
 
-pub async fn get_product(id_product:&Uuid, pool:&DbPool) -> Result<Products,Error> {
-    use crate::schema::products::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn get_product(product_id: &Uuid, pool: &DbPool) -> Result<Products, Error> {
+    use crate::schema::products;
     let connection = &mut get_connection(pool).await?;
-    let result = products.filter(id.eq(id_product)).first::<Products>(connection).await;
-    result
+    products::table.find(product_id).first::<Products>(connection).await
 }
 
-pub async fn get_product_categories(id_product:&Uuid,pool:&DbPool) -> Result<Vec<Category>,Error> {
-    use crate::schema::category_product::dsl::*;
-    use crate::schema::category::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn get_product_categories(product_id: &Uuid, pool: &DbPool) -> Result<Vec<Category>, Error> {
+    use crate::schema::{category, category_product};
     let connection = &mut get_connection(pool).await?;
-    let results = category
-        .inner_join(category_product.on(id.eq(category_id)))
-        .filter(product_id.eq(id_product))
+    category::table
+        .inner_join(category_product::table.on(category::id.eq(category_product::category_id)))
+        .filter(category_product::product_id.eq(product_id))
         .select(Category::as_select())
-        .load::<Category>(connection).await;
-    results
+        .load::<Category>(connection)
+        .await
 }
 
-pub async fn update_product_general(id_product:&Uuid,form:FormGeneral,pool:&DbPool) -> Result<usize,Error> {
-    use crate::schema::products::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn update_product_general(product_id: &Uuid, form: FormGeneral, pool: &DbPool) -> Result<usize, Error> {
+    use crate::schema::products;
     let connection = &mut get_connection(pool).await?;
-
-    let result = update(products.filter(id.eq(id_product)))
+    update(products::table.find(product_id))
         .set((
-            name.eq(form.name),
-            description.eq(form.description),
-            brand.eq(form.brand),
-            status.eq(form.status)
+            products::name.eq(form.name),
+            products::description.eq(form.description),
+            products::brand.eq(form.brand),
+            products::status.eq(form.status),
         ))
-        .execute(connection).await;
-    result
+        .execute(connection)
+        .await
 }
 
 /// Las tarjetas de la portada, de `limit` en `limit` ("Cargar más").

@@ -1,20 +1,17 @@
+use std::sync::OnceLock;
+
 use regex::Regex;
 
-pub fn is_valid_email(email:&String)->bool{
-    let regex_str = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.+[a-zA-Z0-9-]{1,})*\.[a-zA-Z]{2,}$";
-    let regex = Regex::new(regex_str).unwrap();
-    regex.is_match(email)
+pub fn is_valid_email(email: &str) -> bool {
+    // Se compila una vez, no en cada alta
+    static EMAIL: OnceLock<Regex> = OnceLock::new();
+    EMAIL
+        .get_or_init(|| Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9-]+(\.+[a-zA-Z0-9-]{1,})*\.[a-zA-Z]{2,}$").unwrap())
+        .is_match(email)
 }
 
-// pub fn is_password_strong(pass:&String)->bool{
-//     //Tiene que cumplir las condiciones
-//     let regex_str = r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()\-_=+{};:,<.>]).{8,}$";
-//     let regex = Regex::new(regex_str).unwrap();
-//     regex.is_match(pass)
-// }
-
-
-pub fn is_password_strong(pass: &String) -> bool {
+/// Al menos 8 caracteres, con minúscula, mayúscula, número y un carácter especial.
+pub fn is_password_strong(pass: &str) -> bool {
     // Verifica que la contraseña tenga al menos 8 caracteres
     if pass.len() < 8 {
         return false;

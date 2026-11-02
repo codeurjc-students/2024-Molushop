@@ -144,7 +144,7 @@ fn check_new_password(new: &str, new2: &str) -> Result<(), ResetError> {
     if new != new2 {
         return Err(ResetError::PasswordMismatch);
     }
-    if !is_password_strong(&new.to_string()) {
+    if !is_password_strong(new) {
         return Err(ResetError::PasswordWeak);
     }
     Ok(())

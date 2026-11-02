@@ -19,6 +19,7 @@ use ipnet::IpNet;
 use uuid::Uuid;
 
 use crate::models::models_x::{NewUserSession, UserSession};
+use crate::schema::user_sessions;
 use crate::services::paseto_token_session_service::generate_local_token_duration;
 
 use crate::utils::tokens::sha256_hex;
@@ -80,38 +81,27 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
     Ok(cookie)
 }
 
-pub async fn insert_session<'a>(session_data: NewUserSession<'a>, pool:&DbPool) -> Result<usize, Error> {
-    use crate::schema::user_sessions::dsl::*;
+pub async fn insert_session(session_data: NewUserSession<'_>, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut get_connection(pool).await?;
-
-    let result = insert_into(user_sessions)
-        .values(session_data)
-        .execute(connection).await;
-    result
+    insert_into(user_sessions::table).values(session_data).execute(connection).await
 }
 
-pub async fn check_session(jti_x:&String, pool:&DbPool)-> Result<UserSession,Error>{
-    use crate::schema::user_sessions::dsl::*;
+/// La sesión de ese `jti`. Si está revocada o caducada lo mira quien llama
+/// (el middleware), para poder decirlo en el log.
+pub async fn check_session(jti: &str, pool: &DbPool) -> Result<UserSession, Error> {
     let connection = &mut get_connection(pool).await?;
-
-    //let now = Utc::now().naive_utc();
-
-    let result = user_sessions
-        .filter(jti.eq(jti_x))
-        // .filter(is_revoked.eq(false))
-        // .filter(issued_at.lt(now))
-        // .filter(expires_at.gt(now))
-        .first::<UserSession>(connection).await;
-    result
+    user_sessions::table
+        .filter(user_sessions::jti.eq(jti))
+        .first::<UserSession>(connection)
+        .await
 }
 
-/// Revoca la sesión `jti_x`. Se filtra también por usuario para que nunca pueda revocarse
+/// Revoca la sesión `jti`. Se filtra también por usuario para que nunca pueda revocarse
 /// una sesión ajena, aunque el `jti` llegue de otro sitio que no sea el middleware.
-pub async fn revoke_session(jti_x:&String, user_id_x:&Uuid, pool:&DbPool)-> Result<usize,Error>{
-    use crate::schema::user_sessions::dsl::*;
+pub async fn revoke_session(jti: &str, user_id: &Uuid, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut get_connection(pool).await?;
-
-    update(user_sessions.filter(jti.eq(jti_x)).filter(user_id.eq(user_id_x)))
-        .set(is_revoked.eq(true))
-        .execute(connection).await
+    update(user_sessions::table.filter(user_sessions::jti.eq(jti)).filter(user_sessions::user_id.eq(user_id)))
+        .set(user_sessions::is_revoked.eq(true))
+        .execute(connection)
+        .await
 }

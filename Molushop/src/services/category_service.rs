@@ -8,36 +8,28 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
 use crate::models::models_x::Category;
+use crate::schema::category;
 use crate::utils::db::get_connection;
 
 
 type DbPool = Pool<AsyncPgConnection>;
 
-pub async fn get_root_categories(pool:&DbPool) -> Result<Vec<Category>,Error> {
-    
-    use crate::schema::category::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn get_root_categories(pool: &DbPool) -> Result<Vec<Category>, Error> {
     let connection = &mut get_connection(pool).await?;
-    let results = category.filter(depth.eq(0)).load::<Category>(connection).await;
-    results
+    category::table.filter(category::depth.eq(0)).load::<Category>(connection).await
 }
 
-pub async fn get_child_categories(id_category:&String, pool: &DbPool) -> Result<Vec<Category>,Error> {
-    use crate::schema::category::dsl::*;
-    //let connection = &mut establish_connection();
+pub async fn get_child_categories(category_id: &str, pool: &DbPool) -> Result<Vec<Category>, Error> {
     let connection = &mut get_connection(pool).await?;
-    //let connection = &mut establish_connection();
-    let results = category.filter(parent.eq(id_category)).load::<Category>(connection).await;
-    results
+    category::table.filter(category::parent.eq(category_id)).load::<Category>(connection).await
 }
 
-pub async fn get_category_ancestors(id_category:&String, pool: &DbPool) -> Result<Vec<Category>,Error> {
-    use crate::models::models_x::Category;
-    //let connection = &mut establish_connection();
+/// La categoría y todas las de encima, de la raíz hacia abajo.
+pub async fn get_category_ancestors(category_id: &str, pool: &DbPool) -> Result<Vec<Category>, Error> {
     let connection = &mut get_connection(pool).await?;
-    //el placeholder $1 es para evitar sql injection
-    let ancestors:Result<Vec<Category>, Error>  = sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, base_specs, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.base_specs, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
-    .bind::<Text,_>(id_category.to_string()).get_results(connection).await;
-    
-    ancestors
+    // $1: el id va como parámetro, nunca dentro del texto de la consulta
+    sql_query("WITH RECURSIVE Ancestors AS (SELECT id, name, parent, depth, base_specs, is_parent FROM Category WHERE id = $1 UNION ALL  SELECT c.id, c.name, c.parent, c.depth, c.base_specs, c.is_parent FROM Category c INNER JOIN Ancestors a ON c.id = a.parent) SELECT * FROM Ancestors order by depth")
+        .bind::<Text, _>(category_id)
+        .get_results(connection)
+        .await
 }

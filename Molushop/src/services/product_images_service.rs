@@ -134,16 +134,7 @@ pub async fn product_has_variations(product_id: &Uuid, pool: &DbPool) -> Result<
     Ok(row.in_use)
 }
 
-pub async fn insert_product_images(image_products:Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
+pub async fn insert_product_images(image_products: Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut get_connection(pool).await?;
-    use crate::schema::images_product::dsl::*;
-    let result = insert_into(images_product).values(image_products).execute(connection).await;
-    match result{
-        Ok(num)=>{
-            return Ok(num)
-        },
-        Err(e)=>{
-            return Err(e);
-        }
-    }
+    insert_into(crate::schema::images_product::table).values(image_products).execute(connection).await
 }
