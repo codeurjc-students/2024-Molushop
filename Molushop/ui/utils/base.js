@@ -104,6 +104,88 @@ const QUANTITY = {
 };
 QUANTITY.init();
 
+// Toasts (átomo m-toast, toast.css): también se quitan deslizándolos hacia un
+// lado. Siguen al dedo (o al ratón) y, al soltar, se van si se han arrastrado
+// más de un tercio de su ancho o se han lanzado rápido; si no, vuelven a su
+// sitio. Un gesto que empieza en vertical es scroll (touch-action: pan-y) y
+// desde un enlace o un botón ("Deshacer", la ×) es un clic. Mientras se
+// arrastra no se cierra solo: el closeToast de los 5 s espera a soltarlo.
+const TOAST_SWIPE = {
+    THRESHOLD: 1 / 3,
+    FLICK: 0.5,   // px/ms
+    SLOP: 8,      // px antes de decidir si es arrastre o scroll
+    drag: null,
+
+    start: function(event) {
+        let toast = event.target.closest(".m-toast");
+        if (toast == null || event.button !== 0 || event.target.closest("a, button")) { return; }
+        this.drag = { toast, id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, vx: 0, lastX: event.clientX, lastT: event.timeStamp, moving: false };
+    },
+
+    move: function(event) {
+        let d = this.drag;
+        if (d == null || event.pointerId !== d.id) { return; }
+        let dx = event.clientX - d.x;
+        let dy = event.clientY - d.y;
+        if (!d.moving) {
+            if (Math.abs(dx) < this.SLOP && Math.abs(dy) < this.SLOP) { return; }
+            if (Math.abs(dy) > Math.abs(dx)) { this.drag = null; return; }
+            d.moving = true;
+            d.toast.classList.add("is-dragging");
+            // Para seguir recibiendo el movimiento aunque el dedo se salga del
+            // toast. Falla si el puntero ya no existe: entonces sin captura.
+            try { d.toast.setPointerCapture(d.id); } catch (e) { }
+        }
+        let dt = event.timeStamp - d.lastT;
+        if (dt > 0) { d.vx = (event.clientX - d.lastX) / dt; }
+        d.lastX = event.clientX;
+        d.lastT = event.timeStamp;
+        d.dx = dx;
+        d.toast.style.transform = `translateX(${dx}px)`;
+        d.toast.style.opacity = 1 - Math.min(Math.abs(dx) / d.toast.offsetWidth, 1) * 0.7;
+    },
+
+    end: function(event, cancelled) {
+        let d = this.drag;
+        if (d == null || event.pointerId !== d.id) { return; }
+        this.drag = null;
+        if (!d.moving) { return; }
+
+        let toast = d.toast;
+        toast.classList.remove("is-dragging");
+        let width = toast.offsetWidth;
+        let flick = Math.abs(d.vx) > this.FLICK && Math.sign(d.vx) === Math.sign(d.dx);
+        if (!cancelled && (Math.abs(d.dx) > width * this.THRESHOLD || flick)) {
+            // Sale por su lado; sin transición (movimiento reducido), al momento
+            toast.style.transform = `translateX(${Math.sign(d.dx) * width * 1.2}px)`;
+            toast.style.opacity = 0;
+            let done = () => toast.remove();
+            toast.addEventListener("transitionend", done, { once: true });
+            setTimeout(done, 250);
+        } else {
+            toast.style.transform = "";
+            toast.style.opacity = "";
+            // Se le acabaron los 5 s mientras se arrastraba
+            if (toast.dataset.expired) { toast.dispatchEvent(new CustomEvent("closeToast")); }
+        }
+    },
+
+    init: function() {
+        document.addEventListener("pointerdown", (event) => this.start(event));
+        document.addEventListener("pointermove", (event) => this.move(event));
+        document.addEventListener("pointerup", (event) => this.end(event, false));
+        document.addEventListener("pointercancel", (event) => this.end(event, true));
+        // En captura, antes que el "on closeToast" del toast (hyperscript)
+        document.addEventListener("closeToast", (event) => {
+            if (event.target.classList?.contains("is-dragging")) {
+                event.stopPropagation();
+                event.target.dataset.expired = "1";
+            }
+        }, true);
+    }
+};
+TOAST_SWIPE.init();
+
 // hx-boost en la tienda (layout1). Con él, los enlaces piden la página con
 // htmx y sustituyen el body, así que hay que cuidar lo que una recarga daba
 // hecho:
