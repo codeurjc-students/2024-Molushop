@@ -22,6 +22,9 @@ dialog.login_modal{
     justify-content: center;
     .cont-total{
         max-width: 350px;
+        /* Hijo de un flex: sin esto no encoge por debajo de su contenido y, en
+           un móvil pequeño, el <dialog> se desplaza en horizontal */
+        min-width: 0;
     }
 
     .container-ext{
@@ -49,6 +52,11 @@ dialog.login_modal{
     /* El aspecto de los botones es del átomo m-btn; aquí solo la separación */
     .m-btn {
         margin: 8px 0;
+    }
+    /* "¿No tienes cuenta? Regístrate": m-btn no parte el texto (nowrap) y es
+       más ancho que el modal en un móvil pequeño. Aquí, en dos líneas. */
+    .change {
+        white-space: normal;
     }
 
     /* Center the avatar image inside this container */
