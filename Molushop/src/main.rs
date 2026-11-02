@@ -8,7 +8,6 @@ pub mod models;
 pub mod routes;
 pub mod controllers;
 pub mod services;
-pub mod jobs;
 pub mod utils;
 pub mod middleware;
 pub mod constants;
@@ -27,7 +26,6 @@ use tracing_actix_web::TracingLogger;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    //init_jobs();
     dotenv().ok();
     logging::init();
 
