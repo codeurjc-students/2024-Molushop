@@ -10,7 +10,7 @@
         <p class="m-alert m-alert--danger admin-msg" role="alert">{{msg}}</p>
         {% endif %}
 
-        <section class="m-card admin-box">
+        <section class="m-card admin-box" id="crear-tienda">
             <h2>Crear tienda</h2>
             {# Sugerencias para todos los campos de username de la página #}
             <datalist id="admin-usernames">
@@ -23,11 +23,12 @@
                 </label>
                 <label class="m-field">
                     <span class="m-label">Usuario que la gestiona (opcional)</span>
-                    <input class="m-input" type="text" name="username" placeholder="username" list="admin-usernames" autocomplete="off">
+                    {# Con el del admin ya puesto: desde el panel, lo normal es crearla para gestionarla él #}
+                    <input class="m-input" type="text" name="username" value="{{panel_nav.username}}" placeholder="username" list="admin-usernames" autocomplete="off">
                 </label>
                 <button type="submit" class="m-btn m-btn--primary">Crear tienda</button>
             </form>
-            <p class="m-hint admin-hint">Las tiendas que creas tú nacen activas. Las que solicita un vendedor llegan aquí como pendientes.</p>
+            <p class="m-hint admin-hint">Las tiendas que creas tú nacen activas. El usuario viene con el tuyo: cámbialo si la tienda es de otro, o bórralo para crearla sin nadie. Las que solicita un vendedor llegan aquí como pendientes.</p>
         </section>
 
         {% if stores.is_empty() %}

@@ -34,7 +34,12 @@
     </ul>
     <div class="panel-nav-right" id="panel-nav-right">
         <span class="panel-nav-user">{{panel_nav.username}}{% if panel_nav.is_admin %} <span class="panel-nav-role">admin</span>{% endif %}</span>
+        {# El admin no solicita tiendas: las crea ya activas en /admin/stores #}
+        {% if panel_nav.is_admin %}
+        <a href="/admin/stores#crear-tienda">Crear tienda</a>
+        {% else %}
         <a href="/panel/register">Solicitar tienda</a>
+        {% endif %}
         <a href="/home">Ver tienda</a>
         <button type="button" class="panel-nav-logout" hx-post="{{panel_nav.logout_url}}" hx-swap="none">Cerrar sesión</button>
     </div>

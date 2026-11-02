@@ -4,6 +4,8 @@
 //! - Sin sesión: crea la cuenta y la tienda a la vez, y entra ya con ella.
 //! - Con sesión: solo pide el nombre de la tienda ("abrir mi tienda").
 //! En los dos casos la tienda nace pendiente de aprobación.
+//! - Un admin no la solicita (se la aprobaría a sí mismo): va a crearla, ya
+//!   activa, en `/admin/stores`.
 
 use actix_web::{http::header, web, HttpRequest, HttpResponse};
 use askama::Template;
@@ -20,12 +22,16 @@ use crate::middleware::rate_limit::limit_register;
 use crate::middleware::panel_guard::PANEL_LOGIN;
 use crate::models::components::login_base_model::FormRegister;
 use crate::models::pages_models::panel_register_page_model::PanelRegisterPage;
+use crate::services::panel_role_service::get_panel_user;
 use crate::services::session_service::start_session;
 use crate::services::store_request_service::{
     get_username, register_seller, request_store_for_user, StoreRequestError,
 };
 
 pub static PANEL_REGISTER: &str = "/panel/register";
+
+/// Donde crea tiendas el admin (el formulario "Crear tienda").
+static ADMIN_CREATE_STORE: &str = "/admin/stores#crear-tienda";
 
 /// Hay que registrarlo ANTES que el scope `/panel`, igual que el login.
 pub fn config(cfg: &mut web::ServiceConfig) {
@@ -99,10 +105,26 @@ async fn render(
     html(status, page)
 }
 
+/// Si quien tiene la sesión es admin. Si no se puede saber, como si no lo
+/// fuera: solo decide a qué página va, no da acceso a nada.
+async fn is_admin(session: &Option<web::ReqData<SessionData>>, pool: &DbPool) -> bool {
+    let Some(session) = session else { return false };
+    match get_panel_user(&session.id, pool).await {
+        Ok(user) => user.is_admin,
+        Err(e) => {
+            tracing::error!(error = %e, "could not load the panel roles");
+            false
+        }
+    }
+}
+
 async fn register_page(
     pool_data: web::Data<DbPool>,
     opt_session_data: Option<web::ReqData<SessionData>>,
 ) -> HttpResponse {
+    if is_admin(&opt_session_data, pool_data.get_ref()).await {
+        return redirect(ADMIN_CREATE_STORE.to_string());
+    }
     render(&opt_session_data, &RegisterForm::default(), None, pool_data.get_ref()).await
 }
 
@@ -114,6 +136,10 @@ async fn register_submit(
 ) -> HttpResponse {
     let form = form.into_inner();
     let pool = pool_data.get_ref();
+
+    if is_admin(&opt_session_data, pool).await {
+        return redirect(ADMIN_CREATE_STORE.to_string());
+    }
 
     let result = match &opt_session_data {
         // Con sesión: la tienda es para quien la pide; el resto del formulario se ignora.

@@ -23,6 +23,10 @@
             {% endfor %}
         </div>
         {% endif %}
+        {% if panel_nav.is_admin %}
+        <p><a href="/admin/stores#crear-tienda">Crear una tienda nueva</a></p>
+        {% else %}
         <p><a href="/panel/register">Solicitar una tienda nueva</a></p>
+        {% endif %}
     </div>
 {% endblock %}
