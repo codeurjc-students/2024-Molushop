@@ -5,7 +5,7 @@ use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 
 use crate::schema::customer_address;
-use crate::models::models_x::CustomerAddress;
+use crate::models::db::CustomerAddress;
 use crate::models::components::cart_total_v1::{CartTotalData, CartItemData};
 use crate::models::components::checkout_v1::{CheckoutData, AddressData};
 use crate::controllers::components::checkout_controller::ROUTES;

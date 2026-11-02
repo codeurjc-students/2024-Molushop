@@ -7,7 +7,7 @@ use diesel::sql_types::Text;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 
-use crate::models::models_x::Category;
+use crate::models::db::Category;
 use crate::schema::category;
 use crate::utils::db::get_connection;
 

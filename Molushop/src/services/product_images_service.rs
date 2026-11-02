@@ -10,7 +10,7 @@ use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
-use crate::models::models_x::NewImageProduct2;
+use crate::models::db::NewProductImage;
 use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -134,7 +134,7 @@ pub async fn product_has_variations(product_id: &Uuid, pool: &DbPool) -> Result<
     Ok(row.in_use)
 }
 
-pub async fn insert_product_images(image_products: Vec<NewImageProduct2>, pool: &DbPool) -> Result<usize, Error> {
+pub async fn insert_product_images(image_products: Vec<NewProductImage>, pool: &DbPool) -> Result<usize, Error> {
     let connection = &mut get_connection(pool).await?;
     insert_into(crate::schema::images_product::table).values(image_products).execute(connection).await
 }

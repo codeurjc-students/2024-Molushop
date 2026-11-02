@@ -17,7 +17,7 @@ use crate::models::components::cart_total_v1::CartRoutes;
 use crate::constants::urls::CHECKOUT_URL;
 use super::scope::SCOPE_COMPONENTS;
 use crate::models::error::ServiceError;
-use crate::models::models_x::CartProduct;
+use crate::models::db::CartProduct;
 use crate::services::components::cart_add_service::{self, get_cart_item_count};
 use crate::services::components::cart_get_service::get_cart_total_body_render;
 use crate::services::components::cart_update_service;

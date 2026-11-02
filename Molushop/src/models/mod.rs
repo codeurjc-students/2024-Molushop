@@ -3,7 +3,7 @@ pub mod extra;
 pub mod forms;
 pub mod components;
 pub mod product_variation;
-pub mod models_x;
+pub mod db;
 pub mod data_transfer_objects;
 pub mod error;
 pub mod pages_models;

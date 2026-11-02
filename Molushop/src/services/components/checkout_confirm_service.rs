@@ -8,7 +8,7 @@ use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
 use crate::schema::{carts, cart_products, customer_address, orders, order_items};
-use crate::models::models_x::{Cart, CartItem1, NewCart, NewCustomerAddress, NewOrder, NewOrderItem};
+use crate::models::db::{Cart, CartItemRow, NewCart, NewCustomerAddress, NewOrder, NewOrderItem};
 use crate::models::components::cart_total_v1::{CartTotalData, CartItemData};
 use crate::models::components::checkout_v1::ConfirmForm;
 use crate::models::components::order_detail_v1::ORDER_CONFIRMED;
@@ -76,7 +76,7 @@ pub async fn confirm_order(
         // depende del `is_empty()` de la plantilla, y esa invariante no puede
         // vivir en el HTML cuando lo que hay detrás mueve stock y dinero.
         let wanted = parse_line_ids(Some(&form.lines)).ok_or(ServiceError::EmptyCart)?;
-        let rows: Vec<CartItem1> = rows.into_iter().filter(|r| wanted.contains(&r.id)).collect();
+        let rows: Vec<CartItemRow> = rows.into_iter().filter(|r| wanted.contains(&r.id)).collect();
 
         if rows.is_empty() {
             return Err(ServiceError::EmptyCart);

@@ -7,7 +7,7 @@ use diesel::result::Error;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use crate::models::data_transfer_objects::product::Product;
-use crate::models::models_x::{ProductVariation,Category,Price,Products};
+use crate::models::db::{ProductVariation,Category,Price,Products};
 use crate::models::data_transfer_objects::product;
 use uuid::Uuid;
 use crate::services::product_service;

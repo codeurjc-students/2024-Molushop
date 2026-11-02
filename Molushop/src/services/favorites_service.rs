@@ -10,7 +10,7 @@ use uuid::Uuid;
 use crate::constants::product_status::PRODUCT_ACTIVE;
 use crate::models::components::product_card_model::ProductCardData;
 use crate::models::error::ServiceError;
-use crate::models::models_x::ProductCard1;
+use crate::models::db::ProductCardRow;
 use crate::schema::{favorites, products};
 
 type DbPool = Pool<AsyncPgConnection>;
@@ -135,7 +135,7 @@ pub async fn favorite_product_ids(
 #[derive(QueryableByName)]
 struct FavoriteCardRow {
     #[diesel(embed)]
-    card: ProductCard1,
+    card: ProductCardRow,
     #[diesel(sql_type = diesel::sql_types::Bool)]
     available: bool,
 }

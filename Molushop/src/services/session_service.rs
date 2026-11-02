@@ -18,7 +18,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use ipnet::IpNet;
 use uuid::Uuid;
 
-use crate::models::models_x::{NewUserSession, UserSession};
+use crate::models::db::{NewUserSession, UserSession};
 use crate::schema::user_sessions;
 use crate::services::paseto_token_session_service::generate_local_token_duration;
 

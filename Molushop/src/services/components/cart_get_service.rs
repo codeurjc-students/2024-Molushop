@@ -7,7 +7,7 @@ use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 use askama::Template;
 
-use crate::models::models_x::CartItem1;
+use crate::models::db::CartItemRow;
 use crate::models::components::cart_total_v1::{CartTotalV1, CartTotalV1Body, CartTotalData, CartItemData};
 use crate::utils::db::get_connection;
 
@@ -19,7 +19,7 @@ type DbPool = Pool<AsyncPgConnection>;
 /// Pide su propia conexión al pool. **Dentro de una transacción hay que usar
 /// `get_cart_items_conn`**: si no, la lectura caería fuera de ella y no tendría
 /// sus garantías.
-pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartItem1>, Error> {
+pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartItemRow>, Error> {
     let connection = &mut get_connection(pool).await?;
     get_cart_items_conn(user_id, connection).await
 }
@@ -33,7 +33,7 @@ pub async fn get_cart_items(user_id: &Uuid, pool: &DbPool) -> Result<Vec<CartIte
 pub async fn get_cart_items_conn(
     user_id: &Uuid,
     connection: &mut AsyncPgConnection
-) -> Result<Vec<CartItem1>, Error> {
+) -> Result<Vec<CartItemRow>, Error> {
     let results = sql_query(r#"
         SELECT
             cp.id,
@@ -88,7 +88,7 @@ pub async fn get_cart_items_conn(
         WHERE c.user_id = $1 AND c.status = 1
         ORDER BY cp.added_at ASC
     "#).bind::<diesel::sql_types::Uuid, _>(user_id)
-        .load::<CartItem1>(connection).await?;
+        .load::<CartItemRow>(connection).await?;
     Ok(results)
 }
 

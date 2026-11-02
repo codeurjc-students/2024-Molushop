@@ -1,6 +1,6 @@
 use askama::Template;
 use uuid::Uuid;
-use crate::models::models_x::{Category2,Category};
+use crate::models::db::{CategoryInfo,Category};
 use crate::models::components::create_product::Routes;
 use crate::models::components::panel_nav::PanelNav;
 
@@ -10,7 +10,7 @@ use crate::models::components::panel_nav::PanelNav;
 #[template(path="pages/panel_product_create/panel_product_create.html")]
 pub struct PanelProductCreatePage {
     pub user_logged:bool,
-    categories: Vec<Category2>,
+    categories: Vec<CategoryInfo>,
     routes: &'static Routes,
     page_name: String,
     panel_nav: PanelNav,
@@ -30,7 +30,7 @@ impl PanelProductCreatePage {
         ) -> Self {
         PanelProductCreatePage {
             user_logged: false,
-            categories: categories.iter().map(|c| c.to_category2().unwrap()).collect(),
+            categories: categories.iter().map(|c| c.to_info()).collect(),
             routes, page_name: "Categorias".to_string(),
             panel_nav,
             store_id,
@@ -39,6 +39,6 @@ impl PanelProductCreatePage {
     }
 
     pub fn set_categories_from_category(&mut self, categories: Vec<Category>) {
-        self.categories = categories.iter().map(|c| c.to_category2().unwrap()).collect();
+        self.categories = categories.iter().map(|c| c.to_info()).collect();
     }
 }

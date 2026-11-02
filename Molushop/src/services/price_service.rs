@@ -11,7 +11,7 @@ use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
 use crate::models::components::edit_product_variation_model::PriceData;
-use crate::models::models_x::{Discounts, NewDiscount, NewDiscountHistory, NewPrice, Price};
+use crate::models::db::{Discounts, NewDiscount, NewDiscountHistory, NewPrice, Price};
 use crate::utils::db::get_connection;
 
 type DbPool = Pool<AsyncPgConnection>;

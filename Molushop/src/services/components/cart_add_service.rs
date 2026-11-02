@@ -9,7 +9,7 @@ use crate::schema::{carts, cart_products, product_seller, product_variations, pr
 use crate::constants::product_status::PRODUCT_ACTIVE;
 use crate::services::panel_role_service::STORE_ACTIVE;
 use diesel::OptionalExtension;
-use crate::models::models_x::{Cart, ProductVariation, Price};
+use crate::models::db::{Cart, ProductVariation, Price};
 use crate::models::error::ServiceError;
 
 type DbPool = Pool<AsyncPgConnection>;

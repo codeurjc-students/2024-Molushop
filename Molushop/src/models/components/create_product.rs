@@ -1,7 +1,7 @@
 // todos los modelos de la pagina que se harán en el context de create product se harán aquí
 use askama::Template;
 use serde::Serialize;
-use super::super::models_x::{Category2,Category};
+use super::super::db::{CategoryInfo,Category};
 use super::super::extra::{BaseSpecs};
 //const BASE_PATH: &str = "create_product/";
 //poner una variable como path de la plantilla?
@@ -20,8 +20,8 @@ pub struct Routes{
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/create_product/templates/list-category-base.html")]
 pub struct ListCategoryBase{
-    ancestors : Vec<Category2>,
-    categories: Vec<Category2>,
+    ancestors : Vec<CategoryInfo>,
+    categories: Vec<CategoryInfo>,
     routes: &'static Routes,
 }
 
@@ -32,8 +32,8 @@ impl ListCategoryBase {
             routes: &'static Routes,
         ) -> Self {
         ListCategoryBase {
-            ancestors: ancestors.iter().map(|c| c.to_category2().unwrap()).collect(),
-            categories: categories.iter().map(|c| c.to_category2().unwrap()).collect(),
+            ancestors: ancestors.iter().map(|c| c.to_info()).collect(),
+            categories: categories.iter().map(|c| c.to_info()).collect(),
             routes
         }
     }
@@ -42,14 +42,14 @@ impl ListCategoryBase {
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/create_product/templates/base-category.html")]
 pub struct BaseCategory{
-    categories: Vec<Category2>,
+    categories: Vec<CategoryInfo>,
     routes: &'static Routes,
 }
 
 impl BaseCategory{
     pub fn new(categories: Vec<Category>,routes: &'static Routes) -> Self {
         BaseCategory {
-            categories: categories.iter().map(|c| c.to_category2().unwrap()).collect(),
+            categories: categories.iter().map(|c| c.to_info()).collect(),
             routes
         }
     }
@@ -62,7 +62,7 @@ pub struct BaseProducto{
     category_id: String,
     routes : &'static Routes,
     /// De la raíz a la categoría elegida (incluida), para la miga de pan.
-    ancestors: Vec<Category2>,
+    ancestors: Vec<CategoryInfo>,
 }
 
 impl BaseProducto{
@@ -71,7 +71,7 @@ impl BaseProducto{
             specs: specsx.specs,
             category_id: id,
             routes,
-            ancestors: ancestors.iter().map(|c| c.to_category2().unwrap()).collect(),
+            ancestors: ancestors.iter().map(|c| c.to_info()).collect(),
         }
     }
 

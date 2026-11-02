@@ -12,7 +12,7 @@ use crate::models::components::product_reviews_v1::{
 };
 use crate::models::components::order_detail_v1::ORDER_DELIVERED;
 use crate::models::error::ServiceError;
-use crate::models::models_x::RatingSummaryRow;
+use crate::models::db::RatingSummaryRow;
 use crate::schema::{base_user, order_items, orders, product_variations, ratings};
 
 type DbPool = Pool<AsyncPgConnection>;

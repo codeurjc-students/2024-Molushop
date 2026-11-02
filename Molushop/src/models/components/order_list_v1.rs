@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::models::components::price::Price;
 use crate::constants::urls::{HOME_URL, ORDER_URL_PREFIX};
-use crate::models::models_x::{Order, OrderItem};
+use crate::models::db::{Order, OrderItem};
 use crate::models::components::order_detail_v1::{OrderLineData, cancelled_total, mixed_status, status_key, status_label, status_variant};
 
 #[derive(Template,Clone,Debug)]

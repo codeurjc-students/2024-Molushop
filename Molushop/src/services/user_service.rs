@@ -8,7 +8,7 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::{AsyncPgConnection, RunQueryDsl};
 use uuid::Uuid;
 
-use crate::models::models_x::{NewBaseUserSimple, UserAuth};
+use crate::models::db::{NewBaseUserSimple, UserAuth};
 use crate::schema::base_user;
 use crate::utils::db::get_connection;
 

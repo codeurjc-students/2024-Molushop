@@ -13,7 +13,7 @@ use uuid::Uuid;
 
 use crate::controllers::components::edit_product_controller::FormGeneral;
 use crate::models::error::ServiceError;
-use crate::models::models_x::{Category, NewProduct, ProductCard1, ProductForPage1, ProductForm, ProductWithImages1, Products};
+use crate::models::db::{Category, NewProduct, ProductCardRow, ProductForPageRow, ProductForm, ProductWithImagesRow, Products};
 use crate::services::create_product_variations::create_product_variations;
 use crate::services::product_specs_service::clean_specs;
 use crate::utils::db::get_connection;
@@ -132,7 +132,7 @@ pub async fn update_product_general(product_id: &Uuid, form: FormGeneral, pool: 
 /// `category`: esa categoría o cualquiera por debajo de ella. Lo que cuenta
 /// como "a la venta" y la búsqueda los repite `search_service::category_counts`:
 /// si cambian aquí, también allí.
-pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], rank: Option<&str>, category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCard1>,Error>{
+pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], rank: Option<&str>, category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCardRow>,Error>{
     let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         select p.id,
@@ -204,13 +204,13 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], ran
         .bind::<diesel::sql_types::Array<Text>, _>(patterns)
         .bind::<diesel::sql_types::Nullable<Text>, _>(category)
         .bind::<diesel::sql_types::Nullable<Text>, _>(rank)
-        .load::<ProductCard1>(connection).await?;
+        .load::<ProductCardRow>(connection).await?;
     Ok(results)
 }
 
 /// No filtra por vendedor: quien llame tiene que haber comprobado antes la
 /// propiedad (`panel_role_service::can_edit_product`).
-pub async fn get_product_with_images(product_id: &Uuid, pool:&DbPool)->Result<ProductWithImages1,Error>{
+pub async fn get_product_with_images(product_id: &Uuid, pool:&DbPool)->Result<ProductWithImagesRow,Error>{
     let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         select p.*,
@@ -229,11 +229,11 @@ pub async fn get_product_with_images(product_id: &Uuid, pool:&DbPool)->Result<Pr
         WHERE p.id = $1
         GROUP BY p.id
     "#).bind::<diesel::sql_types::Uuid,_>(product_id)
-        .get_result::<ProductWithImages1>(connection).await?;
+        .get_result::<ProductWithImagesRow>(connection).await?;
     Ok(results)
 }
 
-pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<ProductForPage1,Error>{
+pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<ProductForPageRow,Error>{
     let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         WITH variacion_prioritaria AS (
@@ -342,6 +342,6 @@ pub async fn get_product_for_page(product_id: &Uuid, pool:&DbPool)->Result<Produ
         WHERE p.id = $1 AND p.status = 1
         GROUP BY p.id, p.name, p.brand, pr.currency, s.store_name, s.id, img_agg.lista_imagenes;
     "#).bind::<diesel::sql_types::Uuid,_>(product_id)
-        .get_result::<ProductForPage1>(connection).await?;
+        .get_result::<ProductForPageRow>(connection).await?;
     Ok(results)
 }

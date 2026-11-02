@@ -1,6 +1,6 @@
 //aqui estará la los modelos de la página de create produc
 use serde::{Deserialize, Serialize};
-use crate::models::models_x;
+use crate::models::db;
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
 use crate::models::components::price::Price;
@@ -73,7 +73,7 @@ pub struct ProductVariation{
 impl ProductVariation{
     /// `currency` es la que se ha pedido: la de `otro_p` o, si falta el
     /// precio, la que se le pintará al lado de "No disponible".
-    pub fn from(otro_pv:&models_x::ProductVariation,otro_p:Option<&models_x::Price>,currency:&str)->Self{
+    pub fn from(otro_pv:&db::ProductVariation,otro_p:Option<&db::Price>,currency:&str)->Self{
         let vars: Vec<Variation> = match &otro_pv.attributes {
             Some(vars_xtra) => serde_json::from_value(vars_xtra.clone()).unwrap(),
             None => Vec::new()

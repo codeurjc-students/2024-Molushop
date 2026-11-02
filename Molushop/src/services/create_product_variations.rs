@@ -1,4 +1,4 @@
-use crate::models::models_x::ProductForm;
+use crate::models::db::ProductForm;
 use crate::models::product_variation::{ProductVariation,VariationValue};
 use uuid::Uuid;
 use crate::services::variation_service::{insert_product_variation, insert_product_variations};

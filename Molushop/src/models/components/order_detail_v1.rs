@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::constants::money::DEFAULT_CURRENCY;
 use crate::models::components::price::Price;
 use crate::constants::urls::{CART_URL, PRODUCT_URL_PREFIX};
-use crate::models::models_x::{Order, OrderItem};
+use crate::models::db::{Order, OrderItem};
 
 // Valores de `orders.status` y de `order_items.status` (CHECK 0-4). El del pedido
 // es el resumen de los de sus líneas.

@@ -1,5 +1,5 @@
 use askama::Template;
-use crate::models::models_x::ProductForPage1;
+use crate::models::db::ProductForPageRow;
 use serde_json::{Value, from_value};
 use crate::controllers::components::cart_add_controller::ROUTES as CART_ROUTES;
 use serde::{Deserialize, Serialize};
@@ -230,8 +230,8 @@ impl ProductDetailPrincipalData {
     }
 }
 
-impl From<ProductForPage1> for ProductDetailPrincipalData {
-    fn from(db: ProductForPage1) -> Self {
+impl From<ProductForPageRow> for ProductDetailPrincipalData {
+    fn from(db: ProductForPageRow) -> Self {
         let default = ProductDetailPrincipalData::default();
 
         Self {

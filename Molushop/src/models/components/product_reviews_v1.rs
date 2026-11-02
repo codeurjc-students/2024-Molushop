@@ -4,7 +4,7 @@ use serde::Serialize;
 use uuid::Uuid;
 
 use crate::controllers::components::product_reviews_controller::ROUTES;
-use crate::models::models_x::RatingSummaryRow;
+use crate::models::db::RatingSummaryRow;
 use crate::models::components::stars::Stars;
 use crate::i18n::I18n;
 

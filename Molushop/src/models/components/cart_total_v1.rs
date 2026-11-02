@@ -4,7 +4,7 @@ use bigdecimal::BigDecimal;
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
-use crate::models::models_x::CartItem1;
+use crate::models::db::CartItemRow;
 use crate::constants::urls::{HOME_URL, PRODUCT_URL_PREFIX};
 use crate::constants::money::DEFAULT_CURRENCY;
 use crate::models::components::price::Price;
@@ -181,8 +181,8 @@ fn currency_code(code: Option<String>) -> String {
     }
 }
 
-impl From<CartItem1> for CartItemData {
-    fn from(db: CartItem1) -> Self {
+impl From<CartItemRow> for CartItemData {
+    fn from(db: CartItemRow) -> Self {
         let available = db.on_sale && db.store_name.is_some() && db.price.is_some();
         let price = db.price.unwrap_or_else(|| BigDecimal::from(0));
         // Si la consulta no pudo calcular el subtotal (producto sin precio) lo recalculamos aquí

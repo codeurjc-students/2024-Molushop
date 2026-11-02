@@ -10,7 +10,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use crate::models::components::edit_product_variation_model::Identifier;
-use crate::models::models_x::{IdentifierVariation, NewIdentifierVariation, NewProductVariation1, Price, ProductVariation};
+use crate::models::db::{IdentifierVariation, NewIdentifierVariation, NewProductVariation, Price, ProductVariation};
 use crate::models::product_variation::VariationValue;
 use crate::utils::db::get_connection;
 
@@ -23,7 +23,7 @@ type DbPool = Pool<AsyncPgConnection>;
     for combination in combinations{
         let new_id = Uuid::new_v4();
         let json_attributes:Value = serde_json::to_value(&combination).unwrap();
-        let new_variation = NewProductVariation1{
+        let new_variation = NewProductVariation{
             id: &new_id,
             product_id: prod_id,
             attributes: Some(&json_attributes),
@@ -37,7 +37,7 @@ type DbPool = Pool<AsyncPgConnection>;
  pub async fn insert_product_variation(prod_id:&Uuid, connection:&mut AsyncPgConnection) -> Result<Uuid,Error>{
     use crate::schema::product_variations::dsl::*;
     let new_id = Uuid::new_v4();
-    let new_variation = NewProductVariation1{
+    let new_variation = NewProductVariation{
         id: &new_id,
         product_id: prod_id,
         attributes: None,

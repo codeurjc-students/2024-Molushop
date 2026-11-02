@@ -5,7 +5,7 @@ use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 
 use crate::schema::{carts, cart_products, product_variations};
-use crate::models::models_x::{Cart, CartProduct, ProductVariation};
+use crate::models::db::{Cart, CartProduct, ProductVariation};
 use crate::models::error::ServiceError;
 
 type DbPool = Pool<AsyncPgConnection>;

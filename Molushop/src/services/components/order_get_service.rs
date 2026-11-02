@@ -7,7 +7,7 @@ use diesel_async::pg::AsyncPgConnection;
 use uuid::Uuid;
 
 use crate::schema::{orders, order_items, product_variations};
-use crate::models::models_x::{Order, OrderItem};
+use crate::models::db::{Order, OrderItem};
 use crate::models::components::order_detail_v1::OrderData;
 use crate::models::components::order_list_v1::OrderListData;
 

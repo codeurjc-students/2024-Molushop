@@ -2,7 +2,7 @@ use askama::Template;
 
 use uuid::Uuid;
 use bigdecimal::BigDecimal;
-use crate::models::models_x::ProductCard1;
+use crate::models::db::ProductCardRow;
 use crate::constants::urls::PRODUCT_URL_PREFIX;
 use crate::models::components::stars::Stars;
 use crate::models::components::price::Price;
@@ -76,8 +76,8 @@ impl Default for ProductCardData {
 }
 //se podrá usar una constane para hacer la concatenación y asi formar la URL del producto
 
-impl From<ProductCard1> for ProductCardData {
-    fn from(db: ProductCard1) -> Self {
+impl From<ProductCardRow> for ProductCardData {
+    fn from(db: ProductCardRow) -> Self {
         Self {
             id: db.id,
             // Si el nombre es None, usamos un string vacío o un valor por defecto

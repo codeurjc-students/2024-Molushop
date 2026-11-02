@@ -344,7 +344,7 @@ pub struct ImageData2{
     pub url: String,
     pub main: bool,
 }
-use crate::models::models_x::NewImageProduct2;
+use crate::models::db::NewProductImage;
 #[post("/edit-images/{product_id}")]
 async fn edit_images(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,client_data: web::Data<Arc<Client>>,
     MultipartForm(form): MultipartForm<UploadForm>,pool_data: web::Data<DbPool>) -> HttpResponse {
@@ -355,11 +355,11 @@ async fn edit_images(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,c
         return resp;
     }
 let client_data_x = client_data.get_ref().as_ref();
-    let mut vec_images2:Vec<NewImageProduct2> = Vec::new();
+    let mut vec_images2:Vec<NewProductImage> = Vec::new();
 
     for f in form.files {
         let uploaded_file = client_data_x.upload(&f,"").await;
-        vec_images2.push(NewImageProduct2{
+        vec_images2.push(NewProductImage{
             id: Uuid::new_v4(),
             product_id: product_id.clone(),
             image_url: uploaded_file.s3_url.clone(),

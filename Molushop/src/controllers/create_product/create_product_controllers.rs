@@ -10,7 +10,7 @@ use crate::services::product_service::create_full_product;
 use crate::services::panel_role_service::{resolve_store, PanelUser};
 use crate::utils::hx::error_modal;
 
-use crate::models::models_x::ProductForm;
+use crate::models::db::ProductForm;
 use crate::models::extra::BaseSpecs;
 
 use crate::models::components::create_product::*;
@@ -58,7 +58,7 @@ async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>)
     let pool = pool_data.get_ref();
     let category_id= path.into_inner();
     let categories_result = get_child_categories(&category_id,pool).await;
-    let ancestors_result: Result<Vec<crate::models::models_x::Category>, diesel::result::Error> = get_category_ancestors(&category_id,pool).await;
+    let ancestors_result: Result<Vec<crate::models::db::Category>, diesel::result::Error> = get_category_ancestors(&category_id,pool).await;
     match (categories_result, ancestors_result) {
         (Ok(categories), Ok(ancestors)) => {
 
