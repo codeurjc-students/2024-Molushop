@@ -163,9 +163,16 @@
                 }
                 .button-container-add{
                     /* El aspecto del botón es del átomo m-btn; aquí solo su hueco.
-                       Ocupa lo que queda al lado de la cantidad. */
+                       Ocupa lo que queda al lado de la cantidad. min-width: 0 deja
+                       que encoja por debajo del ancho del texto: si no, en un móvil
+                       pequeño la fila no cabe y el corazón se sale por la derecha. */
                     display: flex;
                     flex: 1;
+                    min-width: 0;
+                    .add-to-cart-btn{
+                        /* m-btn no parte el texto (nowrap): aquí, si no cabe, en dos líneas */
+                        white-space: normal;
+                    }
                 }
             }
         }
