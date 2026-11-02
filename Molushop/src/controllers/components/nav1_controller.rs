@@ -32,12 +32,10 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
 
 pub fn scope() -> Scope {
     web::scope(SCOPE)
-    //.wrap(SayHi::new()) SI quiero meter middeware
     .configure(config)
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(spawn);
 }

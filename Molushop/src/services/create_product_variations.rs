@@ -1,8 +1,6 @@
 use crate::models::models_x::ProductForm;
 use crate::models::product_variation::{ProductVariation,VariationValue};
-//use crate::schema::product_variations::attributes;
 use uuid::Uuid;
-//use serde_json::Value;
 use crate::services::variation_service::{insert_product_variation, insert_product_variations};
 use crate::services::price_service::insert_variation_prices;
 use diesel::result::Error;
@@ -31,7 +29,6 @@ pub async fn create_product_variations(product: &ProductForm, product_id: Uuid, 
 
         }
     }
-    //let variations_stuct = serde_json::from_value::<Vec<ProductVariation>>(variations).unwrap;
 }
 fn generate_combinations(
     variations: &[ProductVariation],

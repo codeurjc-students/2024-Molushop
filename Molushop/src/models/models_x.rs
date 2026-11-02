@@ -38,8 +38,6 @@ pub struct NewBaseUser<'a> {
     pub email:&'a str,
     pub password:&'a str,
     pub birthdate: &'a NaiveDate,
-    //pub created: &'a NaiveDateTime,
-    //pub modified: &'a NaiveDateTime,
 }
 #[derive(Insertable)]
 #[diesel(table_name = base_user)]
@@ -48,8 +46,6 @@ pub struct NewBaseUserSimple<'a> {
     pub username:&'a str,
     pub email:&'a str,
     pub password:&'a str
-    //pub created: &'a NaiveDateTime,
-    //pub modified: &'a NaiveDateTime,
 }
 
 #[derive(Queryable, Debug, Identifiable)]
@@ -85,7 +81,6 @@ impl Category {
     }
 }
 
-
 #[derive(serde::Serialize)]
 #[derive(Clone,Debug)]
 pub struct Category2 {
@@ -104,8 +99,6 @@ pub struct Category2 {
 pub struct BaseSpecs {
     pub base_specs: Option<Value>,
 }
-
-
 
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(primary_key(category_id, product_id))]
@@ -208,14 +201,8 @@ pub struct ProductVariation {
 pub struct NewProductVariation1<'a> {
     pub id: &'a Uuid,
     pub product_id : &'a Uuid,
-    //pub identifiers: Option<&'a Value>,
-    //pub sku: Option<&'a str>,
     pub attributes: Option<&'a Value>,
-    //pub stock: &'a i32,
-    //pub images: Option<&'a Value>,
 }
-
-
 
 #[derive(Queryable, Debug)]
 #[diesel(table_name = product_attributes)]
@@ -413,19 +400,6 @@ pub struct NewUserSession2{
     pub user_agent: Option<String>,
     pub device_info: Option<String>,
 }
-/* 
-#[derive(Queryable, Debug,QueryableByName)]
-pub struct ProductCard1{
-    pub id:Uuid,
-    pub name :String,
-    pub brand : String,
-    pub image_url : String,
-    pub price : BigDecimal,
-    pub currency : String,
-    pub store_name : String,
-    pub store_id : Uuid
-}
-*/
 // ---- Cart models ----
 #[derive(Queryable, Debug, Identifiable)]
 #[diesel(table_name = carts)]
@@ -682,7 +656,6 @@ pub struct CartItem1{
     #[diesel(sql_type = Nullable<Numeric>)]
     pub subtotal: Option<BigDecimal>
 }
-
 
 // ---- Reseñas de producto ----
 // Resumen de las estrellas de un producto: media, total y cuántas hay de cada

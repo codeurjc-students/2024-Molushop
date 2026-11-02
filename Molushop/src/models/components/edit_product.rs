@@ -37,10 +37,8 @@ pub struct Routes{
     pub edit_specs: &'static str,
     pub delete_image_modal: &'static str,
     pub delete_image: &'static str,
-    //pub delete_product_modal: &'static str,
     //images
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductEdit{
@@ -123,8 +121,6 @@ impl ImageCategories2 {
         self.variation_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",")
     }
 }
-
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Categories{

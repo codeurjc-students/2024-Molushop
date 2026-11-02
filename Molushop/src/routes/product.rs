@@ -21,7 +21,6 @@ use crate::services::favorites_service::favorite_ids_among;
 use crate::middleware::auth::Auth;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         // En inglés es /en/producto/{id}: routes::config_routes la registra
         // también bajo /en (src/i18n.rs).
@@ -29,7 +28,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
             "/producto/{product_id}",
             web::get().to(get_product).wrap(Auth::new())
         );
-        //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
 
@@ -42,11 +40,8 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
 
     if let Some(req_session_data) = opt_session_data{
         let session_data = req_session_data.into_inner();
-        //si el usuario está loggeado, obtener los datos del usuario.
-        //llamar al servicio para que me obtenga los datos de los favoritos y
         let user_id = session_data.id;
         user_id_opt = Some(user_id);
-                //datos del usuario
         match get_user_by_id(&user_id,&pool).await{
             Ok(user)=>{
                 user_name = user.username;
@@ -58,11 +53,6 @@ async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPo
         }
 
     }
-    //let user_data = "cosas";
-
-    
-
-    //hacer el render directamente o 
 
     let mut product_data = match get_product_object(&product_id,&pool).await {
         Ok(Some(product_data)) => product_data,

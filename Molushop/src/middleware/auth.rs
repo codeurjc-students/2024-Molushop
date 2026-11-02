@@ -97,11 +97,9 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
     claims_data.insert("aud".to_string(),"Molushop/user".to_string());
     //verificar que la request tiene la cookie que queremos
     let cookie1 = req.cookie("sesion_token");
-    //if cookie1.is_some(){
     if let Some(c) = cookie1{
         let token = c.value().to_string();
         // El token no se escribe en el log: con él se entra como el usuario.
-        //hacer la validación de la cookie
         
         match validate_local_token(&token,&claims_data){
             Ok(jti)=>{
@@ -117,7 +115,6 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
                                 tracing::debug!("session token has expired");
                                 //ver si aquí ponemos que se revoque el token
                             }else{
-                                //user_id=us.user_id.to_string();
                                 return Some(SessionData{id:us.user_id.clone(), jti:jti.clone()})
                             }
                         },
@@ -125,8 +122,6 @@ async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
                             tracing::error!(error = %e, "could not check the session");
                         }
                     }
-                    //user_logged=true;
-                    //poner aqui la función de  verificación de sesión de la base de datos
                 }
             },
             Err(e)=>{

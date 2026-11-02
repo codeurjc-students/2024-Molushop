@@ -6,7 +6,6 @@ const imageManager = {
     contenedor: null,
 
     init(elemento) {
-        console.log("Loding image Manager");
         if (this.contenedor!=null&&this.contenedor==elemento){
             return
         }else{
@@ -65,7 +64,6 @@ const imageManager = {
     },
 
     handleDrop(e) {
-        console.log("handle_Drop");
         let dt = e.dataTransfer;
         let files = dt.files;
         
@@ -111,16 +109,13 @@ const imageManager = {
         if (validFiles.length === 0) {
             return;
         }
-        console.log("Handle");
         validFiles.forEach((file, index) => this.previewFile(file, index));
     },
 
     previewFile(file, index) {
         let reader = new FileReader();
         reader.readAsDataURL(file);
-        console.log("Hola?");
         reader.onloadend = () => {
-            console.log("Imagen load?");
             let imageContainer = document.createElement('div');
             imageContainer.className = 'image-container';
             imageContainer.dataset.fileIndex = index;

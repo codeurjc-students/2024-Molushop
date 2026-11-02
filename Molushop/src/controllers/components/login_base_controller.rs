@@ -39,7 +39,6 @@ pub fn scope1() -> Scope<impl ServiceFactory<ServiceRequest, Config = (), Respon
 }
 
 fn config1(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(login)
         .service(spawn)
@@ -55,7 +54,6 @@ pub fn scope2() -> Scope {
         .configure(config2)
 }
 fn config2(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(create_user);
 }
@@ -89,7 +87,6 @@ async fn logout(i18n: I18n, req: HttpRequest, pool_data: web::Data<DbPool>) -> H
         .finish()
 }
 
-
 #[get("/spawn")]
 async fn spawn()->HttpResponse	{
     //service que me cargue datos del login
@@ -112,7 +109,6 @@ async fn create_user(i18n: I18n, form:web::Json<FormRegister>,pool_data:web::Dat
     // Validar los datos
     let is_validated = form_register_validation(&form_register,&pool).await.unwrap();
     //Si esta todo correcto, crear el usuario
-
 
     if !is_validated.is_valid {
         let modal_render = MessageModal::translated(&i18n, "auth-register-invalid").render().unwrap();

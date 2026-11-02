@@ -5,7 +5,6 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-//use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
 use crate::models::components::edit_product_variation_model::*;
 use crate::services::price_service::{get_variation_discount, get_variation_price};
 use crate::services::variation_service::{get_variation_stock, get_identifier_options, get_product_variation, get_variation_identifiers};
@@ -84,10 +83,6 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
     let stock = Stock{
         number:stock_number
     };
-    /* E
-    let images = Images{
-        images:
-    }*/
 
     let product_variation_edit = ProductVariationEdit{
         id: product_var_id.clone(),

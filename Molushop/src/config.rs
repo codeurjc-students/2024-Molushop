@@ -1,8 +1,6 @@
 use actix_files as fs;
 use actix_web::web;
-//use std::fs;
 use std::path::Path;
-
 
 pub fn static_config(cfg: &mut web::ServiceConfig) {
     //Se agregan las rutas estáticas de los componentes y páginas, se añaden automáticamente si siguen la estrucutra:
@@ -36,7 +34,6 @@ fn configure_static_routes(cfg: &mut web::ServiceConfig, path: &Path) -> std::io
                 if base_path.exists() {
                     let xtra = path.strip_prefix("./ui").unwrap().to_str().unwrap().replace("\\", "/");
                     let route = format!("/static/{}", xtra);
-                    //println!("Configurando ruta estática: {}", route);
                     cfg.service(fs::Files::new(&route, &base_path).show_files_listing());
                 }
             }
@@ -44,7 +41,6 @@ fn configure_static_routes(cfg: &mut web::ServiceConfig, path: &Path) -> std::io
     }
     Ok(())
 }
-
 
 //hacer un método que te recorra recursivamente las subcarpetas que no tengan el nombre "static" si tiene más carpetas 
 fn configure_static_routes_recursive(cfg: &mut web::ServiceConfig, path: &Path) -> std::io::Result<()> {
@@ -61,7 +57,6 @@ fn configure_static_routes_recursive(cfg: &mut web::ServiceConfig, path: &Path) 
         if let Ok(relative_path) = path.strip_prefix("./ui") {
             let xtra = relative_path.to_str().unwrap_or("").replace("\\", "/");
             let route = format!("/static/{}", xtra);
-            //println!("Configurando ruta estática: {}", route);
             cfg.service(fs::Files::new(&route, &base_path).show_files_listing());
         }
     }
@@ -75,7 +70,6 @@ fn configure_static_routes_recursive(cfg: &mut web::ServiceConfig, path: &Path) 
             // Verificar que no sea una carpeta llamada "static"
             if let Some(dir_name) = entry_path.file_name() {
                 if dir_name != "static" && dir_name != "templates" {
-                    //println!("AAAAAAAAA {}",&entry_path.to_str().unwrap());
                     configure_static_routes_recursive(cfg, &entry_path)?;
                 }
             }

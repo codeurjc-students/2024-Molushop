@@ -4,11 +4,9 @@ use serde::{Serialize,Deserialize};
 use crate::models::components::product_card_model::ProductCardData;
 use crate::models::pages_models::search_page_model::CategoryLink;
 
-
 #[derive(Template,Clone,Debug)]
 #[template(path="components/nav1/templates/nav1.html")]
 pub struct Nav1<'a>{
-    //pub login_base_data: Nav1Data
     pub nav1: Nav1Data,
     /// nav1.html enlaza en el idioma de la página (en las páginas lo pone la página).
     pub i18n: &'a crate::i18n::I18n,

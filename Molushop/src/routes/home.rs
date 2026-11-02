@@ -1,4 +1,3 @@
-//dependecias 
 use actix_web::{web, HttpResponse,HttpRequest};
 use crate::i18n::{I18n, Lang, LANG_COOKIE};
 use uuid::Uuid;
@@ -9,17 +8,8 @@ type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 use crate::middleware::auth::Auth;
 use crate::constants::urls::{HOME_URL, SEARCH_URL};
-//scope ??
-// --> dispatcher --> ---> /home
-
-//cada página tiene su modelo, eso es vrd --> organizarlo tmb
-// pub fn scope() -> Scope {
-//     web::scope(SCOPE)
-//         .configure(config)
-// }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .route(
             "/home", 
@@ -27,7 +17,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         )
         .route("/", web::get().to(redirect_home))
         ;
-        //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
 
@@ -55,14 +44,12 @@ pub async fn redirect_home(req: HttpRequest) -> HttpResponse {
         .finish()
 }
 
-//el modelo lo creo aqui o en la pagina de modelos
 use crate::models::pages_models::home_page_model::*;
 use crate::services::components::{
     product_card_group_service::*,
     nav1_service::*
 };
 use crate::services::user_service::get_user_by_id;
-
 
 use crate::middleware::auth::SessionData;
 use crate::services::components::login_base_service;
@@ -100,11 +87,8 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
 
     if let Some(req_session_data) = opt_session_data{
         let session_data = req_session_data.into_inner();
-        //si el usuario está loggeado, obtener los datos del usuario.
-        //llamar al servicio para que me obtenga los datos de los favoritos y
         let user_id = session_data.id;
         user_id_opt = Some(user_id);
-                //datos del usuario
         match get_user_by_id(&user_id,&pool).await{
             Ok(user)=>{
                 user_name = user.username;
@@ -116,13 +100,7 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
         }
 
     }
-    //let user_data = "cosas";
 
-
-    // aqui renderizas la página
-    // y colocas los componentes que quieras 
-    //renderizar la pagina HOME
-    
     let home_render = Home{
         user_logged,
         page_name:i18n.t("home-page-title"),
@@ -132,7 +110,6 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n
     }.render().unwrap();
-    
 
     HttpResponse::Ok().body(home_render)
 

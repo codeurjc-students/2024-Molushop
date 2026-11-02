@@ -12,19 +12,11 @@ use crate::utils::hx::error_modal;
 
 use crate::models::models_x::ProductForm;
 use crate::models::extra::BaseSpecs;
-//use crate::models::product_variation::{VariationValue,Attribute};
-//use crate::models::get_product::ProductForm;
-
 
 use crate::models::components::create_product::*;
 
-
-
-//use diesel_async::pooled_connection::bb8::Pool;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-//use bb8::Pool;
-//type DbPool = Pool<AsyncDieselConnectionManager<AsyncPgConnection>>;
 type DbPool = Pool<AsyncPgConnection>;
 
 static SCOPE: &str = "/create-product";
@@ -40,15 +32,6 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     //IDs de ejemplo
     static ref ID_BASE:Uuid =Uuid::parse_str("95022733-f013-301a-0ada-abc18f151006").unwrap();
     static ref ID_BASE_JOKER:Uuid =Uuid::parse_str("95023733-f013-301a-0ada-abc18f151006").unwrap();  
-    /* 
-    static ref CATEGORY_CHILDREN_URL: String = format!("{}/category-children", SCOPE);
-    static ref RESET_CATEGORY_URL: String = format!("{}/reset-category", SCOPE);
-    static ref NEXT_SELECT_URL: String = format!("{}/next-select", SCOPE);
-    static ref CREATE_PRODUCT_URL: String = format!("{}/create-product", SCOPE);
-    static ref ADD_VARIATION_URL: String = format!("{}/add-variations", SCOPE);
-    static ref ADD_VARIATION_VALUE_URL: String = format!("{}/add-variations-attributes", SCOPE);
-    static ref ADD_SPECS_URL: String = format!("{}/add-specs", SCOPE);
-    */
     pub static ref ROUTES: Routes = Routes{
         category_children: Box::leak(format!("{}/category-children", SCOPE_FULL).into_boxed_str()),
             reset_category: Box::leak(format!("{}/reset-category", SCOPE_FULL).into_boxed_str()),
@@ -69,7 +52,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(next_category);
     cfg.service(create_product);
 }
-
 
 #[get("/category-children/{category_id}")]
 async fn category_children(path: web::Path<String>, pool_data:web::Data<DbPool>) -> impl Responder {

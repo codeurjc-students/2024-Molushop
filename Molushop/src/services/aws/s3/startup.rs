@@ -29,17 +29,3 @@ pub async fn configure_and_return_s3_client() -> Client {
     let aws_config = aws_config_builder.build();
     Client::new(aws_config)
 }
-/* 
-async fn run(
-    listener: std::net::TcpListener,
-    db_pool: sqlx::postgres::PgPool,
-    settings: crate::settings::Settings,
-) -> Result<actix_web::dev::Server, std::io::Error> {
-    // For S3 client: create singleton S3 client
-    let s3_client = actix_web::web::Data::new(configure_and_return_s3_client().await);
-    
-    // S3 client
-    .app_data(s3_client.clone())
-    
-}
-    */

@@ -34,15 +34,12 @@ pub fn scope() -> Scope {
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(delete_product)
         .service(variations)
         .service(delete_product_modal);
-        //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
-
 
 /// El explorador de variaciones de una tarjeta del listado. El listado ya no
 /// lo pinta al entrar (con muchos productos eran miles de filas ocultas y el JS

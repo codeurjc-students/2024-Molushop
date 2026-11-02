@@ -1,15 +1,10 @@
-//use serde::de::value::Error;
 // backend/src/uploads/client.rs
 use tokio::io::AsyncReadExt as _;
-//use crate::upload::UploadedFile;
-//use crate::services::aws::s3::upload::UploadedFile;
 use super::upload::UploadedFile;
 use chrono::prelude::*;
 
 use aws_sdk_s3::types::{Delete, ObjectIdentifier};
-//use aws_sdk_s3::output::DeleteObjectsOutput;
 use std::error::Error;
-
 
 /// S3 client wrapper to expose semantic upload operations.
 #[derive(Debug, Clone)]
@@ -60,7 +55,6 @@ impl Client {
         let file_type = self.check_extension(filename);
 
         //si el filename tiene espacios, cambiar los espacios por +
-       // let filename_new = filename.replace(" ", "+");
         
         //hacer un timestamp para el nombre del archivo
         let timestamp = Utc::now().timestamp();
@@ -149,7 +143,6 @@ impl Client {
         
     }
 
-
     pub async fn list_objects(&self) -> Result<Vec<String>,Box<dyn Error>> {
         let list_objects = self
             .s3
@@ -173,8 +166,6 @@ impl Client {
                     },
                     None => {
                         tracing::debug!("the S3 bucket is empty");
-                        //Ok(Vec::new())
-                        //Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "No contents")))
                         Err("No content")?
                     }
                 }
@@ -185,7 +176,6 @@ impl Client {
             }
         }
         
-        //Ok(keys)
     }
 
     fn check_extension(&self, filename: &str) -> String {

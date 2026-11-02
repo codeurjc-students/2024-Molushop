@@ -2,7 +2,6 @@ use diesel::result::Error;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-//use crate::schema::products::variations;
 use crate::services::variation_service::get_product_variations;
 use crate::services::product_service::get_product_with_images;
 type DbPool = Pool<AsyncPgConnection>;
@@ -49,15 +48,6 @@ pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,
         },
         None =>  Vec::new()
     };
-    
-    /*Images{
-        vec: match product.images{
-            Some(imgs) => {
-                let images = 
-            },
-            None => Vec::new()
-        }
-    };*/
 
     let specs = crate::services::product_specs_service::get_specs(product_id, pool).await?;
 

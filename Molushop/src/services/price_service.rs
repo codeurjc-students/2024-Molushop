@@ -14,7 +14,6 @@ use crate::models::components::edit_product_variation_model::PriceData;
 use crate::models::models_x::{Discounts, NewDiscount, NewDiscountHistory, NewPrice, Price};
 use crate::utils::db::get_connection;
 
-
 type DbPool = Pool<AsyncPgConnection>;
 
 pub async fn insert_variation_prices(
@@ -63,7 +62,6 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
     use crate::schema::prices;
      //::dsl::nombre
     
-    //use crate::schema::discount_history::dsl::*;
     use crate::schema::discounts;
     use crate::schema::discount_history;
 
@@ -130,7 +128,6 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                 
             }else{
     
-                //let result
                 let new_discount = NewDiscount{
                     variation_id:var_id,
                     discount_type:&0,
@@ -152,8 +149,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
                     end_date:None,
                     created_at:&now
                 };
-    
-    
+
                 let _result_discount = insert_into(discounts::dsl::discounts)
                     .values(new_discount)
                     .on_conflict(( discounts::dsl::variation_id,discounts::dsl::discount_type,discounts::dsl::currency))

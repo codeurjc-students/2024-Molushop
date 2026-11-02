@@ -5,7 +5,6 @@ use uuid::Uuid;
 use serde::Deserialize;
 use serde_json::json;
 
-//use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
 use crate::models::components::confirm_modal::ConfirmModal;
 use crate::models::components::edit_product::{Routes, UploadedImages, ImageCategories2};
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -58,7 +57,6 @@ pub fn scope() -> Scope {
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(edit_general)
         .service(bulk_variations)
@@ -69,8 +67,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(delete_image_modal)
         .service(delete_image)
         .service(edit_images);
-        //.service(delete_product_modal);
-        //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
 
@@ -337,24 +333,10 @@ async fn image_variations(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUs
     }
 }
 
-/* 
-#[derive(Debug, MultipartForm)]
-struct UploadForm {
-    #[multipart(limit = "100MB")]
-    file: TempFile,
-}
-*/
 #[derive(Debug, MultipartForm)]
 struct UploadForm {
     #[multipart(rename = "file")]
     files: Vec<TempFile>,
-}
-
-
-#[derive(Debug)]
-pub struct ImageData {
-    pub tipo: String,
-    pub url: String,
 }
 
 #[derive(Debug)]
@@ -373,7 +355,6 @@ async fn edit_images(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,c
         return resp;
     }
 let client_data_x = client_data.get_ref().as_ref();
-    let _vec_images:Vec<ImageData> = Vec::new();
     let mut vec_images2:Vec<NewImageProduct2> = Vec::new();
 
     for f in form.files {
@@ -387,26 +368,6 @@ let client_data_x = client_data.get_ref().as_ref();
         });
     }
 
-    /* 
-    let texto = format!("Nombre del archivo: {} y link del archivo: {}", uploaded_file.filename, uploaded_file.s3_url);
-    let image_url = uploaded_file.s3_url;
-    let tipo = "TipoPrueba".to_string();
-    /* Prueba */
-    let images = vec![
-        ImageData {
-            tipo: "principal".to_string(),
-            url: "https://ejemplo.com/principal.jpg".to_string(),
-        },
-        ImageData {
-            tipo: "secundaria".to_string(),
-            url: "https://ejemplo.com/secundaria.jpg".to_string(),
-        },
-        ImageData {
-            tipo: "thumbnail".to_string(),
-            url: "https://ejemplo.com/thumbnail.jpg".to_string(),
-        },
-    ];
-    */
     // Las nuevas, para pintarlas en la galería con sus botones (uploaded_images.html)
     let new_images: Vec<ImageCategories2> = vec_images2.iter().map(|img| ImageCategories2{
         id: img.id,
@@ -448,20 +409,7 @@ let client_data_x = client_data.get_ref().as_ref();
             tracing::error!(error = %e, "could not save the product changes");
             return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
         }
-    /* Prueba */
 
-    /* 
-    let result_update= update_image(&product_id, &tipo, &image_url, pool).await;
-    match result_update{
-        Ok(_) => {
-            let modal_render = MessageModal::new("Imagen actualizada correctamente!").render().unwrap();
-            HttpResponse::Ok().body(modal_render)
-        },
-        Err(e) => {
-            tracing::error!(error = %e, "could not save the product changes");
-            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error: no se ha guardado nada");}
-        }
-    */
 }
 
 #[derive(Deserialize)]

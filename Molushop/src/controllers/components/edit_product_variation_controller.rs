@@ -6,7 +6,6 @@ use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-//use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
 use crate::models::components::confirm_modal::ConfirmModal;
 use crate::models::components::edit_product_variation_model::Routes;
 use diesel_async::pooled_connection::deadpool::Pool;
@@ -21,7 +20,6 @@ use crate::services::price_service::update_variation_price;
 use crate::services::sku_service::{check_variation_sku, normalize_sku, save_variation_general, SaveGeneral};
 use crate::utils::hx::error_modal;
 use actix_web::http::StatusCode as Status;
-
 
 static SCOPE: &str = "/edit-product-variation";
 
@@ -49,7 +47,6 @@ pub fn scope() -> Scope {
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(spawn)
         .service(edit_identifiers)
@@ -60,8 +57,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
         .service(edit_price)
         .service(edit_stock)
         .service(delete_identifier);
-        //.service(delete_product_modal);
-        //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
 use crate::models::components::edit_product_variation_model::{EditProductVariation, SkuCheck};
@@ -103,15 +98,6 @@ async fn new_identifier(pool_data:web::Data<DbPool>)->HttpResponse{
     return HttpResponse::Ok().body(render);
 }
 
-/* 
-pub struct FormIdentifier{
-    identifiers: Vec<Identifier>
-} 
-
-pub struct Identifier{
-    name: String,
-    value: String
-}*/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GeneralForm{
     // Un producto sin variaciones tiene una única variación sin atributos: el
@@ -127,7 +113,6 @@ pub struct AttributeForm{
     name:String,
     value:String
 }
-
 
 #[post("/edit-general/{id_variation}")]
 async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form: web::Json<GeneralForm>)-> HttpResponse{
@@ -169,10 +154,6 @@ async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_use
         }
     }
     //aqui añadir headers a la respuesta
-    /* 
-    println!("{:?}",form_general);
-    let modal_html = MessageModal::new("Prueba de edit_general, hecha correctamente").render().unwrap();
-    HttpResponse::Ok().body(modal_html)*/
 }
 
 #[derive(Deserialize)]
@@ -311,7 +292,6 @@ let form = data.into_inner();
         _ => return error_modal(Status::BAD_REQUEST, "El stock debe ser un número entero, 0 o más"),
     };
 
-
     let result_stock = set_variation_stock(&var_id, new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
@@ -329,9 +309,7 @@ let form = data.into_inner();
         }
     }
 
-
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WarningParameters{
@@ -344,21 +322,9 @@ pub struct WarningParameters{
     pub htmx_active:bool
 }
 
-
 #[get("/pop-warning")]
 async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
     //obtener el warning
-    /* 
-    let warning_modal = ConfirmModal{
-        method:params.method.clone(),
-        message:"Seguro que quieres eliminar el identificador?".to_string(),
-        endpoint:params.endpoint.clone(),
-        target:params.target.clone(),
-        swap:params.swap.clone(),
-        htmx_active:false,
-    }.render().unwrap();
-    remove target
-    */
     let warning_modal = ConfirmModal{
         method:params.method.clone(),
         message:params.message.clone(),
@@ -376,8 +342,3 @@ async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
 async fn delete_identifier(_pool_data:web::Data<DbPool>)->HttpResponse{
     HttpResponse::Ok().finish()
 }
-
-/* 
-#[post("/create-product/{category_id}")]
-async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
-*/

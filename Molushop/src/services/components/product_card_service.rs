@@ -14,7 +14,6 @@ use serde::{Serialize, Deserialize};
 //le pasamos los parámetros que necesita?
 pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
     //llamda a la base de datos
-    //let product = get_product(id,pool).await;
     
     let product = match get_product(&id, &pool).await {
         Ok(p) => p,
@@ -74,7 +73,6 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
 }
 pub async fn get_product_card_render(id:&Uuid,pool:&DbPool)->String{
     //llamda a la base de datos
-    //let product = get_product(id,pool).await;
     let data = get_product_card_object(&id,&pool).await;
 
     let render  = ProductCard{

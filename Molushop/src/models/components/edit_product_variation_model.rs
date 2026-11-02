@@ -11,13 +11,11 @@ pub struct EditProductVariation{
     pub routes_edit_product: &'static Routes,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
     pub edit_general: &'static str,
     pub edit_price: &'static str,
     pub edit_stock: &'static str,
-    //pub edit_images: &'static str,
     pub new_identifier: &'static str,
     pub edit_identifiers: &'static str,
     pub warning: &'static str,
@@ -40,7 +38,6 @@ pub struct ProductVariationEdit{
     pub prices: Prices,
     pub stock: Stock,
     pub identifiers: Identifiers,
-    //pub images: Images,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -65,7 +62,6 @@ pub struct Attribute{
     pub value:String
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Prices{
     pub actual_price: BigDecimal, // o bigdecimal ?
@@ -84,7 +80,6 @@ pub struct Identifier{
     pub name: String,
     pub value: String,
 }
-
 
 #[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct PriceForm{
@@ -107,14 +102,3 @@ pub struct StockForm{
     pub stock: String
 }
 //hacer un impl a PriceData
-/* 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Images{
-    pub images: Vec<ImageCategories>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ImageCategories{
-    pub url: String,
-    pub tipo: String,
-}*/

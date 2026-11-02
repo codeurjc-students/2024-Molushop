@@ -15,7 +15,6 @@ pub struct RoutesProductPanelGroup{
     //images
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Product{
     pub variations: Vec<ProductVariation>,
@@ -56,8 +55,6 @@ impl Product {
     }
 }
 
-
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductVariation{
     pub id: Uuid,
@@ -82,7 +79,6 @@ impl ProductVariation{
             None => Vec::new()
         };
         
-        //let vars:Vec<Variation> =serde_json::from_value(otro.attributes).unwrap(); 
         ProductVariation{
             id: otro_pv.id,
             price: otro_p.map(|p| p.price.clone()),
@@ -104,18 +100,3 @@ pub struct Variation{
     pub name: String,
     pub value: String,
 }
-/*
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Variations {
-    pub variations: Vec<ProductVariation>,
-} 
-
-impl IntoIterator for Variations {
-    type Item = Variation;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-*/

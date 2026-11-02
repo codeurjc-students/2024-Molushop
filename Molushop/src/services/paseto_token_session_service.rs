@@ -19,7 +19,6 @@ pub fn generate_local_token()->Result<String,Error>{
     let mut claims = Claims::new()?;
     claims.add_additional("data", "A secret, encrypted message")?;
     // Generate the key and encrypt the claims.
-    //let sk= SymmetricKey::<V4>::from("bWkQ3pDwtMhdfzcNEGyUA6sx2nqL5vHV".as_bytes())?;
     let token = local::encrypt(&SK, &claims, None, Some(b"implicit assertion"))?;
     Ok(token)
 }
@@ -85,19 +84,10 @@ pub fn validate_local_token(token: &str, claims_data: &HashMap<String, String>) 
     let sk= SymmetricKey::<V4>::from(&LOCAL_SECRET.as_bytes())?;
     //si no se decripta salta un error
     let trusted_token = local::decrypt(&sk, &untrusted_token, &validation_rules, None, Some(b"implicit assertion"))?;
-    //assert_eq!(&claims, trusted_token.payload_claims().unwrap());
 
     let claims = trusted_token.payload_claims().unwrap();
 
     let jti = claims.get_claim("jti").unwrap().as_str().unwrap_or("").to_string();
-        /* 
-        {
-        Ok(value)=>{
-            value
-        },
-        None=>"".to_string()
-        
-    };*/
     //claim.contains_claims --> para verificar si tiene un determinado claim!
     Ok(jti)
     //devolver el jti

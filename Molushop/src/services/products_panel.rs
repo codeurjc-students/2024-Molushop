@@ -9,7 +9,6 @@ use diesel_async::pg::AsyncPgConnection;
 use crate::models::data_transfer_objects::product::Product;
 use crate::models::models_x::{ProductVariation,Category,Price,Products};
 use crate::models::data_transfer_objects::product;
-//use crate::schema::products::variations;
 use uuid::Uuid;
 use crate::services::product_service;
 use crate::services::variation_service::{get_product_variations, get_variations_with_prices};
@@ -159,7 +158,6 @@ async fn get_main_images(product_ids: &[Uuid], pool: &DbPool) -> Result<HashMap<
 pub struct VariationTitles{
     pub titulos: Vec<String>,
 }
-
 
 // obtener los productos de un vendedor 
 
