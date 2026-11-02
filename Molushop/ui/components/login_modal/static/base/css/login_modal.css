@@ -1,0 +1,20 @@
+/* El <dialog> del login y el aviso de sesión terminada. El formulario de
+   dentro es del componente login_base (login_base.css). */
+
+dialog.login_modal{
+    /* Quita el borde nativo (la "línea negra") */
+    border: none;
+    /* Quita el fondo por defecto (a veces blanco) */
+    /* Quita el padding/margin nativo */
+    background: transparent;
+    padding: 0;
+}
+
+/* Aviso de sesión terminada. El aspecto es del átomo m-alert; aquí solo el
+   tamaño y la colocación sobre el formulario. Sin "display": si lo tuviera,
+   le ganaría al atributo hidden. */
+.m-alert.login_modal-notice{
+    max-width: 350px;
+    margin: 0 auto 0.5em auto;
+    text-align: center;
+}
