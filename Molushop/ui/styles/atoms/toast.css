@@ -1,4 +1,4 @@
-/* Átomo: toast. Aviso pequeño abajo que se quita solo, para confirmar algo
+/* Átomo: toast. Aviso pequeño arriba que se quita solo, para confirmar algo
    que ya se ve (guardar en favoritos). Los errores y las preguntas siguen
    siendo modales (modal.css).
 
@@ -10,18 +10,27 @@
          </div>
      </div>
 
-   El HTML lo pinta el struct Toast (models/components/toast.rs). Abajo y
-   centrado: en móvil a todo el ancho; desde 600px, al ancho de su texto. No
-   arriba: taparía la barra (buscador, cesta) y el "Deshacer" quedaría lejos.
-   Desde 600px, además, no tapan el pie: el contenedor cuelga de
-   .m-toasts-anchor, que va justo antes del <footer> (layout1.html). */
+   El HTML lo pinta el struct Toast (models/components/toast.rs). Arriba y
+   centrado, debajo del nav: en móvil a todo el ancho; desde 600px, al ancho
+   de su texto. El contenedor cuelga de .m-toasts-anchor, que va justo
+   después del <header> (layout1.html). */
 
-.m-toasts {
-    position: fixed;
-    right: var(--space-4);
-    bottom: var(--space-4);
-    left: var(--space-4);
+/* El ancla no mide nada y es sticky: al principio de la página está debajo
+   del nav; al bajar, se queda pegada arriba de la pantalla. El nav no es
+   fijo, así que no hay que dejarle hueco. */
+.m-toasts-anchor {
+    position: sticky;
+    top: 0;
     z-index: 1100; /* encima de los modales (1000) */
+    height: 0;
+}
+
+/* Crecen hacia abajo desde el ancla */
+.m-toasts {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    left: var(--space-4);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -99,7 +108,7 @@
 
 .m-toast.closing { animation: m-toast-out 150ms ease forwards; }
 
-@keyframes m-toast-in  { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes m-toast-in  { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @keyframes m-toast-out { from { opacity: 1; } to { opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
@@ -109,22 +118,4 @@
 
 @media (min-width: 600px) {
     .m-toast { width: auto; }
-
-    /* El ancla no mide nada y es sticky: pegada abajo de la pantalla mientras
-       el pie no se ve; cuando sube, se queda encima de él y los toasts con
-       ella. top: no sube de la mitad de la pantalla; si el pie ocupa más,
-       los toasts lo tapan antes que salirse por arriba. */
-    .m-toasts-anchor {
-        position: sticky;
-        top: 50vh;
-        bottom: 0;
-        z-index: 1100; /* encima de los modales (1000) */
-        height: 0;
-    }
-
-    /* Crecen hacia arriba desde el ancla */
-    .m-toasts {
-        position: absolute;
-        bottom: var(--space-4);
-    }
 }

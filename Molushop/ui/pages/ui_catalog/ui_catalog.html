@@ -432,7 +432,7 @@ ConfirmModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: 
 
     <section id="toast">
         <h2>Toast</h2>
-        <p class="ui-catalog-note">Aviso pequeño abajo que se quita solo a los 5 s (o con la ×). Para confirmar algo que ya se ve y se puede deshacer, como guardar en favoritos; los errores y las preguntas siguen siendo modales. Lo pinta el struct <code>Toast</code> (<code>models/components/toast.rs</code>) y va detrás de otra respuesta de htmx con <code>oob()</code>, que lo mete en <code>#m-toasts</code> (<code>layout1.html</code>). Abajo y centrado: en móvil a todo el ancho; desde 600px, al ancho de su texto y, al final de la página, encima del pie.</p>
+        <p class="ui-catalog-note">Aviso pequeño que se quita solo a los 5 s (o con la ×). Para confirmar algo que ya se ve y se puede deshacer, como guardar en favoritos; los errores y las preguntas siguen siendo modales. Lo pinta el struct <code>Toast</code> (<code>models/components/toast.rs</code>) y va detrás de otra respuesta de htmx con <code>oob()</code>, que lo mete en <code>#m-toasts</code> (<code>layout1.html</code>). Arriba y centrado, debajo del nav (al bajar, pegado arriba de la pantalla): en móvil a todo el ancho; desde 600px, al ancho de su texto.</p>
 
         <div class="ui-demo">
             <button type="button" class="m-btn m-btn--secondary" data-demo-toast="demo-toast">Enseñar toast</button>

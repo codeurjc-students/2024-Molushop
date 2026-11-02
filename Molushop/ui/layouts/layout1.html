@@ -54,17 +54,17 @@
     <header class="full-width-header">
         {% block header %}{% endblock %}
     </header>
-    <main class="content-wrapper">
-        {% block content %}{% endblock %}
-    </main>
     {# Toasts (átomo m-toast): las respuestas de htmx los añaden aquí con
        hx-swap-oob (Toast::oob). aria-live: el lector de pantalla lee cada uno
-       al llegar. Va justo antes del pie a propósito: desde 600px el ancla es
-       sticky y así, al final de la página, los toasts quedan encima del pie
-       (toast.css). #}
+       al llegar. Va justo después de la cabecera a propósito: el ancla es
+       sticky y así salen debajo del nav y, al bajar, pegados arriba de la
+       pantalla (toast.css). #}
     <div class="m-toasts-anchor">
         <div id="m-toasts" class="m-toasts" aria-live="polite"></div>
     </div>
+    <main class="content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
     <footer class="full-width-footer">
         {% block footer %}{% endblock %}
     </footer>

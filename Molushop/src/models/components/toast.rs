@@ -1,7 +1,7 @@
 use askama::Template;
 use crate::i18n::I18n;
 
-/// Átomo toast (`ui/styles/atoms/toast.css`): aviso pequeño abajo que se quita
+/// Átomo toast (`ui/styles/atoms/toast.css`): aviso pequeño arriba que se quita
 /// solo. Para confirmar algo que ya se ve y se puede deshacer (guardar en
 /// favoritos); los errores y las preguntas siguen siendo modales.
 ///
