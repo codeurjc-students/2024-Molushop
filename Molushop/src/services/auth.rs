@@ -1,20 +1,16 @@
 use argon2::{
-    password_hash::{
-        rand_core::OsRng,
-        PasswordHash, PasswordHasher, PasswordVerifier, SaltString
-    },
+    password_hash::{phc::PasswordHash, PasswordHasher, PasswordVerifier},
     Argon2
 };
 use crate::models::error::*;
 
+/// Hash argon2id con los parámetros por defecto y una sal aleatoria del
+/// sistema (la genera argon2 con `getrandom`).
 pub fn hash_password(password: &str)-> Result<String, ServiceError>{
-    let salt = SaltString::generate(&mut OsRng);
-    let argon2 = Argon2::default();
-    let password_hash = match argon2.hash_password(password.as_bytes(),&salt){
-        Ok(hash) => hash.to_string(),
-        Err(e)=> return Err(ServiceError::InternalServerError(format!("Error hashing password: {}", e))),
-    }; //pasarlo a to_string
-    Ok(password_hash)
+    let hash: PasswordHash = Argon2::default()
+        .hash_password(password.as_bytes())
+        .map_err(|e| ServiceError::InternalServerError(format!("Error hashing password: {}", e)))?;
+    Ok(hash.to_string())
 }
 
 pub fn verify_password(password: &str,hash:&str)-> Result<bool,ServiceError>{
@@ -45,6 +41,8 @@ mod tests {
     #[test]
     fn hash_then_verify() {
         let hash = hash_password("Una-Clave-1").unwrap();
+        // Mismo algoritmo y parámetros que los hashes ya guardados en la BD
+        assert!(hash.starts_with("$argon2id$v=19$m=19456,t=2,p=1$"), "{}", hash);
         assert!(verify_password("Una-Clave-1", &hash).unwrap());
     }
 }

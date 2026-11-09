@@ -92,3 +92,47 @@ pub fn validate_local_token(token: &str, claims_data: &HashMap<String, String>) 
     Ok(jti)
     //devolver el jti
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const TEST_KEY: &[u8; 32] = b"molushop-test-key-32-bytes-long!";
+
+    /// Token creado con pasetors 0.7.4 (sub = 42, jti = "jti-de-prueba",
+    /// caduca en 2100). Si este test falla tras actualizar pasetors, las
+    /// sesiones abiertas dejarían de valer: no actualizar sin revisarlo.
+    const OLD_TOKEN: &str = "v4.local.OJIOCisivhZjku07VLyAT0WouBFg4QnAbSEeWTuyVg0fdrcIogaZjVh7nCkA1HpVWli21XefEC-I6GWoYMiS2o2C0INzRJJ6-rGosOHjn5sozy6czExbtQEtg72Q-tBfHmxH7dO1gYeHOZw7AQT2c_vr1XcTGYp2AgfDZuNkOcs3vzs7x_t7pmYCV92AWxZWZykyViQ9rJ2NyO74qOdrSlEAzqpou0ARotlrdOTiFRdTe0ohqWuq9pzBs7hM-Q";
+
+    fn decrypt_jti(token: &str, claims_data: &HashMap<String, String>) -> Result<String, Error> {
+        let key = SymmetricKey::<V4>::from(TEST_KEY)?;
+        let mut rules = ClaimsValidationRules::new();
+        claims_validator_mapper(&mut rules, claims_data)?;
+        let untrusted = UntrustedToken::<Local, V4>::try_from(token)?;
+        let trusted = local::decrypt(&key, &untrusted, &rules, None, Some(b"implicit assertion"))?;
+        Ok(trusted.payload_claims().unwrap().get_claim("jti").unwrap().as_str().unwrap().to_string())
+    }
+
+    #[test]
+    fn token_from_previous_version_still_validates() {
+        let data = HashMap::from([("sub".to_string(), "42".to_string())]);
+        assert_eq!(decrypt_jti(OLD_TOKEN, &data).unwrap(), "jti-de-prueba");
+    }
+
+    #[test]
+    fn token_with_wrong_subject_is_rejected() {
+        let data = HashMap::from([("sub".to_string(), "43".to_string())]);
+        assert!(decrypt_jti(OLD_TOKEN, &data).is_err());
+    }
+
+    #[test]
+    fn new_token_round_trip() {
+        let key = SymmetricKey::<V4>::from(TEST_KEY).unwrap();
+        let mut claims = Claims::new_expires_in(&Duration::from_secs(60)).unwrap();
+        claims.subject("7").unwrap();
+        claims.token_identifier("nuevo").unwrap();
+        let token = local::encrypt(&key, &claims, None, Some(b"implicit assertion")).unwrap();
+        let data = HashMap::from([("sub".to_string(), "7".to_string())]);
+        assert_eq!(decrypt_jti(&token, &data).unwrap(), "nuevo");
+    }
+}
