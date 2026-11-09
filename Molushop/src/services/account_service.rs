@@ -113,12 +113,17 @@ pub async fn revoke_other_sessions(user_id: &Uuid, current_jti: &str, pool: &DbP
     revoke_others(user_id, current_jti, conn).await
 }
 
+/// Mismos filtros que `other_sessions_count`: solo las sesiones abiertas de verdad.
+/// Las caducadas ya no sirven para entrar; si se revocaran aquí, el aviso diría
+/// "se han cerrado 7" cuando la página enseñaba 1 abierta.
 async fn revoke_others(user_id: &Uuid, current_jti: &str, conn: &mut AsyncPgConnection) -> Result<usize, AccountError> {
+    let now = Utc::now().naive_utc();
     Ok(diesel::update(
         user_sessions::table
             .filter(user_sessions::user_id.eq(user_id))
             .filter(user_sessions::jti.ne(current_jti))
-            .filter(user_sessions::is_revoked.eq(false)),
+            .filter(user_sessions::is_revoked.eq(false))
+            .filter(user_sessions::expires_at.gt(now)),
     )
     .set(user_sessions::is_revoked.eq(true))
     .execute(conn)
