@@ -29,6 +29,15 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     logging::init();
 
+    // Sin una clave de sesión válida nadie podría entrar: mejor no arrancar.
+    if let Err(problem) = services::paseto_token_session_service::check_local_secret() {
+        tracing::error!(%problem, "invalid configuration, the server will not start");
+        std::process::exit(1);
+    }
+    // Dónde escucha: 127.0.0.1:8080 detrás de un proxy en la misma máquina (lo de
+    // siempre); 0.0.0.0:8080 dentro de Docker o en una plataforma (PaaS).
+    let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
+
     let config: AsyncDieselConnectionManager<AsyncPgConnection> = AsyncDieselConnectionManager::<AsyncPgConnection>::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set"));
     let pool:Pool<AsyncPgConnection> = Pool::builder(config).build().unwrap();
     let pool_data = web::Data::new(pool);
@@ -77,7 +86,7 @@ async fn main() -> std::io::Result<()> {
             // Cualquier URL que no exista: la 404 de la tienda, con la sesión
             .default_service(web::to(routes::not_found::default_not_found).wrap(middleware::auth::Auth::new()))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(bind_addr.as_str())?
     .run()
     .await
 }

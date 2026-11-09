@@ -8,11 +8,26 @@ use std::time::Duration;
 use lazy_static::lazy_static;
 use std::env;
 use std::collections::HashMap;
-//cargar del env --> secret key?
-//lazy constantes ? --> se debería leer del env solo 1 vez?
-lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
-    pub static ref LOCAL_SECRET: String = env::var("PASETO_LOCAL_SECRET").unwrap_or("bru".to_string());
-    pub static ref SK:SymmetricKey::<V4> = SymmetricKey::<V4>::from(&LOCAL_SECRET.as_bytes()).unwrap();
+// La clave se lee del entorno una sola vez. `main` llama a `check_local_secret`
+// al arrancar, así que aquí ya se sabe que existe y mide 32 bytes.
+lazy_static! {
+    static ref SK: SymmetricKey<V4> = SymmetricKey::<V4>::from(
+        env::var("PASETO_LOCAL_SECRET").unwrap_or_default().as_bytes()
+    ).expect("PASETO_LOCAL_SECRET is checked at startup");
+}
+
+/// Comprueba `PASETO_LOCAL_SECRET` antes de arrancar el servidor. Sin ella, o con
+/// otra longitud, nadie podría iniciar sesión: mejor no arrancar.
+pub fn check_local_secret() -> Result<(), String> {
+    validate_secret(env::var("PASETO_LOCAL_SECRET").ok().as_deref())
+}
+
+fn validate_secret(secret: Option<&str>) -> Result<(), String> {
+    match secret {
+        None | Some("") => Err("PASETO_LOCAL_SECRET is not set".to_string()),
+        Some(s) if s.len() != 32 => Err(format!("PASETO_LOCAL_SECRET must be 32 bytes long, it has {}", s.len())),
+        Some(_) => Ok(()),
+    }
 }
 
 pub fn generate_local_token()->Result<String,Error>{
@@ -81,9 +96,8 @@ pub fn validate_local_token(token: &str, claims_data: &HashMap<String, String>) 
     claims_validator_mapper(&mut validation_rules, claims_data)?;
 
     let untrusted_token = UntrustedToken::<Local, V4>::try_from(token)?;
-    let sk= SymmetricKey::<V4>::from(&LOCAL_SECRET.as_bytes())?;
     //si no se decripta salta un error
-    let trusted_token = local::decrypt(&sk, &untrusted_token, &validation_rules, None, Some(b"implicit assertion"))?;
+    let trusted_token = local::decrypt(&SK, &untrusted_token, &validation_rules, None, Some(b"implicit assertion"))?;
 
     let claims = trusted_token.payload_claims().unwrap();
 
@@ -111,6 +125,14 @@ mod tests {
         let untrusted = UntrustedToken::<Local, V4>::try_from(token)?;
         let trusted = local::decrypt(&key, &untrusted, &rules, None, Some(b"implicit assertion"))?;
         Ok(trusted.payload_claims().unwrap().get_claim("jti").unwrap().as_str().unwrap().to_string())
+    }
+
+    #[test]
+    fn secret_must_exist_and_be_32_bytes() {
+        assert!(validate_secret(None).is_err());
+        assert!(validate_secret(Some("")).is_err());
+        assert!(validate_secret(Some("bru")).is_err());
+        assert!(validate_secret(Some("molushop-test-key-32-bytes-long!")).is_ok());
     }
 
     #[test]
