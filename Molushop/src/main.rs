@@ -38,6 +38,13 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move|| {
         App::new()
+            // `HttpResponse::Ok().body(html)` no pone Content-Type y el navegador tenía que
+            // adivinarlo. DefaultHeaders solo la añade si la respuesta no trae una: JSON,
+            // estáticos (actix-files) y los que ya ponen la suya no cambian.
+            .wrap(
+                actix_web::middleware::DefaultHeaders::new()
+                    .add((actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")),
+            )
             // Los estáticos salen de actix-files solo con ETag/Last-Modified. Sin Cache-Control
             // el navegador reutiliza a ciegas su copia vieja y un cambio de JS/CSS "no hace nada"
             // hasta un Ctrl+Shift+R. Con no-cache pregunta siempre, y el ETag lo resuelve en 304.
