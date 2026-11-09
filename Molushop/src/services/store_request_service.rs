@@ -8,7 +8,6 @@ use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -122,7 +121,7 @@ pub async fn request_store_for_user(
         .await
         .map_err(|e| StoreRequestError::Db(format!("Error obteniendo conexión: {:?}", e)))?;
 
-    conn.transaction::<Uuid, StoreRequestError, _>(|conn| async move {
+    conn.transaction::<Uuid, StoreRequestError, _>(async move |conn| {
         let already_pending = diesel::select(diesel::dsl::exists(
             store_members::table
                 .inner_join(seller::table)
@@ -136,7 +135,7 @@ pub async fn request_store_for_user(
         }
 
         insert_pending_store(&store_name, user_id, conn).await
-    }.scope_boxed())
+    })
     .await
 }
 
@@ -181,7 +180,7 @@ pub async fn register_seller(
         .await
         .map_err(|e| StoreRequestError::Db(format!("Error obteniendo conexión: {:?}", e)))?;
 
-    conn.transaction::<Uuid, StoreRequestError, _>(|conn| async move {
+    conn.transaction::<Uuid, StoreRequestError, _>(async move |conn| {
         let user_id = Uuid::new_v4();
         diesel::insert_into(base_user::table)
             .values((
@@ -202,6 +201,6 @@ pub async fn register_seller(
             })?;
 
         insert_pending_store(&store_name, &user_id, conn).await.map(|_| user_id)
-    }.scope_boxed())
+    })
     .await
 }

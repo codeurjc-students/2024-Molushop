@@ -68,7 +68,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
     let connection = &mut get_connection(pool).await?;
 
     connection.build_transaction()
-        .run(|tx| Box::pin(async move{
+        .run(async move |tx| {
             //Primero actualizar el precio 
             let now = chrono::Utc::now().naive_utc();
 
@@ -170,7 +170,7 @@ pub async fn update_variation_price(form:&PriceData, var_id:&Uuid,price_insert: 
             }
     
             Ok(1)
-        })).await
+        }).await
 }
 
 pub async fn get_variation_discount(variation_id: &Uuid, discount_type: i16, currency: &str, pool: &DbPool) -> Result<Discounts, Error> {

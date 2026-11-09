@@ -6,7 +6,6 @@ use diesel::sql_query;
 use diesel::sql_types::Text;
 use diesel::{insert_into, update};
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
 use serde_json::{json, Value};
 use uuid::Uuid;
@@ -32,13 +31,13 @@ pub async fn create_full_product(seller_id: Uuid, form: &ProductForm, category_i
     let mut conn = pool.get().await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
-    conn.transaction::<Uuid, ServiceError, _>(|conn| async move {
+    conn.transaction::<Uuid, ServiceError, _>(async move |conn| {
         let product_id = insert_product(form, conn).await?;
         insert_product_seller(&seller_id, &product_id, conn).await?;
         insert_product_category(&product_id, category_id, conn).await?;
         create_product_variations(form, product_id, conn).await?;
         Ok(product_id)
-    }.scope_boxed()).await
+    }).await
 }
 
 pub async fn insert_product_category(product_id: &Uuid, category_id: &str, connection: &mut AsyncPgConnection) -> Result<usize, Error> {

@@ -14,7 +14,6 @@ use chrono::{Duration, Utc};
 use diesel::prelude::*;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -94,7 +93,7 @@ pub async fn request_reset(email: &str, lang: Lang, pool: &DbPool) -> Result<(),
     let now = Utc::now().naive_utc();
     let expires_at = now + Duration::minutes(RESET_MINUTES);
 
-    conn.transaction::<(), ResetError, _>(|conn| async move {
+    conn.transaction::<(), ResetError, _>(async move |conn| {
         // Solo vale el último enlace pedido.
         diesel::update(
             password_resets::table
@@ -115,7 +114,7 @@ pub async fn request_reset(email: &str, lang: Lang, pool: &DbPool) -> Result<(),
             .execute(conn)
             .await?;
         Ok(())
-    }.scope_boxed())
+    })
     .await?;
 
     // El enlace lleva a la página en el mismo idioma que el email.
@@ -159,7 +158,7 @@ pub async fn reset_password(token: &str, new: &str, new2: &str, pool: &DbPool) -
     let token_hash = sha256_hex(token);
 
     let conn = &mut connection(pool).await?;
-    conn.transaction::<(), ResetError, _>(|conn| async move {
+    conn.transaction::<(), ResetError, _>(async move |conn| {
         let now = Utc::now().naive_utc();
         let (reset_id, user_id): (Uuid, Uuid) = password_resets::table
             .filter(password_resets::token_hash.eq(&token_hash))
@@ -191,7 +190,7 @@ pub async fn reset_password(token: &str, new: &str, new2: &str, pool: &DbPool) -
         .execute(conn)
         .await?;
         Ok(())
-    }.scope_boxed())
+    })
     .await
 }
 

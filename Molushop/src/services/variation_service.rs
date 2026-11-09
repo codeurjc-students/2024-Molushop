@@ -92,7 +92,7 @@ pub async fn set_variation_identifiers(
     
     // Iniciamos una transacción para garantizar atomicidad
     connection.build_transaction()
-        .run(|tx| Box::pin(async move {
+        .run(async move |tx| {
             // 1. Primero: Obtener los identificadores actuales para esta variación
             let current_identifiers = product_variations_identifiers
                 .filter(product_variation_id.eq(var_id))
@@ -137,7 +137,7 @@ pub async fn set_variation_identifiers(
                 .set(value.eq(excluded(value)))
                 .execute(tx)
                 .await
-        }))
+        })
         .await
 }
 

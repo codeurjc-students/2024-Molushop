@@ -9,7 +9,6 @@ use chrono::Utc;
 use diesel::prelude::*;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -98,13 +97,13 @@ pub async fn change_password(
     let new_hash = hash_password(new)
         .map_err(|e| AccountError::Db(format!("Error hasheando la contraseña: {}", e)))?;
 
-    conn.transaction::<usize, AccountError, _>(|conn| async move {
+    conn.transaction::<usize, AccountError, _>(async move |conn| {
         diesel::update(base_user::table.find(user_id))
             .set(base_user::password.eq(&new_hash))
             .execute(conn)
             .await?;
         revoke_others(user_id, current_jti, conn).await
-    }.scope_boxed())
+    })
     .await
 }
 

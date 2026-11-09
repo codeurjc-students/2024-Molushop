@@ -8,7 +8,6 @@ use diesel::OptionalExtension;
 use diesel::sql_types::{Array, BigInt, Nullable, SmallInt, Text, Uuid as SqlUuid};
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use serde::Serialize;
 use crate::constants::product_status::PRODUCT_ACTIVE;
@@ -107,7 +106,7 @@ pub async fn save_variation_general(
     let variation_id = *variation_id;
     let mut conn = get_connection(pool).await?;
 
-    let result = conn.transaction::<SaveGeneral, Error, _>(|conn| async move {
+    let result = conn.transaction::<SaveGeneral, Error, _>(async move |conn| {
         // Solo al pasar a activa: una que ya lo estaba sin precio (de antes de
         // esta regla) se puede seguir editando.
         if status == PRODUCT_ACTIVE {
@@ -137,7 +136,7 @@ pub async fn save_variation_general(
             .execute(conn)
             .await?;
         Ok(SaveGeneral::Saved)
-    }.scope_boxed()).await;
+    }).await;
 
     // Dos guardados a la vez pueden pasar los dos la comprobación: el índice
     // único para al segundo.
@@ -232,7 +231,7 @@ pub async fn save_skus(
     let product_id = *product_id;
     let mut conn = get_connection(pool).await?;
 
-    let result = conn.transaction::<SaveSkus, Error, _>(|conn| async move {
+    let result = conn.transaction::<SaveSkus, Error, _>(async move |conn| {
         let owned = sql_query(
             "SELECT count(DISTINCT id) AS n FROM product_variations WHERE product_id = $1 AND id = ANY($2)"
         )
@@ -288,7 +287,7 @@ pub async fn save_skus(
             .map(|(id, sku)| SkuRow { id, sku: sku.unwrap_or_default() })
             .collect();
         Ok(SaveSkus::Saved(rows))
-    }.scope_boxed()).await;
+    }).await;
 
     match result {
         Err(Error::DatabaseError(DatabaseErrorKind::UniqueViolation, _)) => Ok(SaveSkus::Problems(Vec::new())),

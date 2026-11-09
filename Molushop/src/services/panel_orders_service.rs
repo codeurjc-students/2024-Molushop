@@ -17,7 +17,6 @@ use diesel::sql_query;
 use diesel::sql_types::{Integer, Nullable, SmallInt, Uuid as SqlUuid};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -306,7 +305,7 @@ pub async fn set_line_status(
     let from_status = required_status(new_status).ok_or(PanelOrderError::InvalidTransition)?;
     let mut conn = connection(pool).await?;
 
-    conn.transaction::<(), PanelOrderError, _>(|conn| async move {
+    conn.transaction::<(), PanelOrderError, _>(async move |conn| {
         let changed = sql_query(
             "UPDATE order_items \
              SET status = $1 \
@@ -335,7 +334,7 @@ pub async fn set_line_status(
         }
 
         refresh_order_status(order_id, conn).await
-    }.scope_boxed()).await
+    }).await
 }
 
 /// `orders.status` = el estado de la línea más atrasada de las no canceladas, o

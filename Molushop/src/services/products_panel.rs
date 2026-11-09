@@ -19,7 +19,6 @@ use diesel::sql_query;
 use diesel::sql_types::{Array, Nullable, SmallInt, Text, Uuid as SqlUuid};
 use std::collections::HashMap;
 use diesel_async::{AsyncConnection, RunQueryDsl};
-use diesel_async::scoped_futures::ScopedFutureExt;
 use crate::constants::product_status::PRODUCT_DELETED;
 use crate::utils::db::get_connection;
 
@@ -34,7 +33,7 @@ pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool:
     let mut conn = get_connection(pool).await?;
     let store_ids: Option<Vec<Uuid>> = store_ids.map(|ids| ids.to_vec());
 
-    conn.transaction::<bool, Error, _>(|conn| async move {
+    conn.transaction::<bool, Error, _>(async move |conn| {
         let marked = sql_query(
             "UPDATE products SET status = $1              WHERE id = $2 AND status <> $1                AND ($3::uuid[] IS NULL OR EXISTS (                    SELECT 1 FROM product_seller ps                    WHERE ps.product_id = products.id AND ps.seller_id = ANY($3)))"
         )
@@ -61,7 +60,7 @@ pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool:
             .execute(conn)
             .await?;
         Ok(true)
-    }.scope_boxed()).await
+    }).await
 }
 
 /// Productos de una tienda para su listado del panel. Quien llama ya ha

@@ -8,7 +8,6 @@ use diesel::sql_query;
 use diesel::sql_types::{Array, BigInt, Integer, Nullable, Numeric, SmallInt, Text, Uuid as SqlUuid};
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use serde::Serialize;
 use std::str::FromStr;
@@ -107,7 +106,7 @@ pub async fn bulk_update_variations(
     let action = action.clone();
     let mut conn = get_connection(pool).await?;
 
-    conn.transaction::<BulkOutcome, Error, _>(|conn| async move {
+    conn.transaction::<BulkOutcome, Error, _>(async move |conn| {
         let owned = sql_query(
             "SELECT count(*) AS n FROM product_variations WHERE product_id = $1 AND id = ANY($2)"
         )
@@ -186,7 +185,7 @@ pub async fn bulk_update_variations(
             .load::<BulkRow>(conn)
             .await?;
         Ok(BulkOutcome::Updated(rows))
-    }.scope_boxed()).await
+    }).await
 }
 
 #[cfg(test)]

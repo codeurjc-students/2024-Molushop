@@ -6,7 +6,6 @@ use diesel::sql_query;
 use diesel::sql_types::Uuid as SqlUuid;
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -24,7 +23,7 @@ pub async fn set_main_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -
     let image_id = *image_id;
     let mut conn = get_connection(pool).await?;
 
-    conn.transaction::<bool, Error, _>(|conn| async move {
+    conn.transaction::<bool, Error, _>(async move |conn| {
         let marked = sql_query("UPDATE images_product SET is_main = true WHERE id = $1 AND product_id = $2")
             .bind::<SqlUuid, _>(image_id)
             .bind::<SqlUuid, _>(product_id)
@@ -39,7 +38,7 @@ pub async fn set_main_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -
             .execute(conn)
             .await?;
         Ok(true)
-    }.scope_boxed()).await
+    }).await
 }
 
 #[derive(diesel::QueryableByName)]
@@ -84,7 +83,7 @@ pub async fn delete_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -> 
     let image_id = *image_id;
     let mut conn = get_connection(pool).await?;
 
-    conn.transaction::<Option<DeletedImage>, Error, _>(|conn| async move {
+    conn.transaction::<Option<DeletedImage>, Error, _>(async move |conn| {
         let deleted: Option<DeletedRow> = sql_query("DELETE FROM images_product WHERE id = $1 AND product_id = $2 RETURNING image_url, is_main")
             .bind::<SqlUuid, _>(image_id)
             .bind::<SqlUuid, _>(product_id)
@@ -118,7 +117,7 @@ pub async fn delete_image(product_id: &Uuid, image_id: &Uuid, pool: &DbPool) -> 
             .await?;
 
         Ok(Some(DeletedImage { image_url: deleted.image_url, new_main, file_unused: !in_use.in_use }))
-    }.scope_boxed()).await
+    }).await
 }
 
 /// Si el producto tiene atributos de variación (Color, Talla…): sin ellos, la

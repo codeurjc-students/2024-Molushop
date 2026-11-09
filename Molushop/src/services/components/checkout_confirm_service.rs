@@ -3,7 +3,6 @@ use diesel::sql_query;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use bigdecimal::BigDecimal;
 use uuid::Uuid;
 
@@ -46,7 +45,7 @@ pub async fn confirm_order(
     let mut conn = pool.get().await
         .map_err(|e| ServiceError::InternalServerError(e.to_string()))?;
 
-    conn.transaction::<OrderConfirmation, ServiceError, _>(|conn| async move {
+    conn.transaction::<OrderConfirmation, ServiceError, _>(async move |conn| {
         // 1. El carrito ACTIVO del usuario. Si no hay, no hay nada que comprar.
         // FOR UPDATE: dos "Confirmar pedido" casi a la vez (doble clic, dos
         // pestañas) no pueden comprar el mismo carrito. El segundo espera aquí
@@ -240,5 +239,5 @@ pub async fn confirm_order(
         }
 
         Ok(OrderConfirmation { id: order_id, order_number })
-    }.scope_boxed()).await
+    }).await
 }

@@ -7,7 +7,6 @@ use diesel::prelude::*;
 use diesel::result::{DatabaseErrorKind, Error as DieselError};
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 
@@ -168,7 +167,7 @@ pub async fn create_store(
     let username = username.map(|u| u.trim().to_string()).filter(|u| !u.is_empty());
 
     let conn = &mut connection(pool).await?;
-    conn.transaction::<Uuid, AdminStoreError, _>(|conn| async move {
+    conn.transaction::<Uuid, AdminStoreError, _>(async move |conn| {
         let user_id = match &username {
             Some(username) => Some(find_user_id(username, conn).await?),
             None => None,
@@ -195,7 +194,7 @@ pub async fn create_store(
                 .await?;
         }
         Ok(store_id)
-    }.scope_boxed())
+    })
     .await
 }
 
@@ -259,7 +258,7 @@ pub async fn set_store_status(
 pub async fn delete_store(store_id: &Uuid, pool: &DbPool) -> Result<(), AdminStoreError> {
     let conn = &mut connection(pool).await?;
 
-    conn.transaction::<(), AdminStoreError, _>(|conn| async move {
+    conn.transaction::<(), AdminStoreError, _>(async move |conn| {
         let has_products = diesel::select(diesel::dsl::exists(
             product_seller::table
                 .inner_join(products::table)
@@ -279,7 +278,7 @@ pub async fn delete_store(store_id: &Uuid, pool: &DbPool) -> Result<(), AdminSto
             return Err(AdminStoreError::StoreNotFound);
         }
         Ok(())
-    }.scope_boxed())
+    })
     .await
 }
 

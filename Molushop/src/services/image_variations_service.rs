@@ -7,7 +7,6 @@ use diesel::sql_query;
 use diesel::sql_types::{Array, BigInt, Uuid as SqlUuid};
 use diesel_async::pg::AsyncPgConnection;
 use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::scoped_futures::ScopedFutureExt;
 use diesel_async::{AsyncConnection, RunQueryDsl};
 use uuid::Uuid;
 use crate::utils::db::get_connection;
@@ -37,7 +36,7 @@ pub async fn set_image_variations(
     let image_id = *image_id;
     let mut conn = get_connection(pool).await?;
 
-    conn.transaction::<bool, Error, _>(|conn| async move {
+    conn.transaction::<bool, Error, _>(async move |conn| {
         let image = sql_query("SELECT count(*) AS n FROM images_product WHERE id = $1 AND product_id = $2")
             .bind::<SqlUuid, _>(image_id)
             .bind::<SqlUuid, _>(product_id)
@@ -65,5 +64,5 @@ pub async fn set_image_variations(
             .bind::<Array<SqlUuid>, _>(&ids)
             .execute(conn).await?;
         Ok(true)
-    }.scope_boxed()).await
+    }).await
 }
