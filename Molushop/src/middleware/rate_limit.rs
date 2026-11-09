@@ -4,8 +4,8 @@
 //!
 //! Ventana fija: como mucho `max` peticiones por IP cada `window`. Vive en
 //! memoria del proceso (se reinicia con el servidor) y es compartido por todos
-//! los workers (`lazy_static`). La IP es la de la conexión (`peer_addr`): detrás
-//! de un proxy inverso habría que leer la del proxy de confianza.
+//! los workers (`lazy_static`). La IP sale de `utils::client_ip`: detrás de un
+//! proxy, la de la cabecera que diga `CLIENT_IP_HEADER`.
 //!
 //! Se pone por ruta con `from_fn`, solo en el POST:
 //!
@@ -122,7 +122,7 @@ async fn limit(
     next: Next<impl MessageBody + 'static>,
 ) -> Result<ServiceResponse<BoxBody>, Error> {
     // Sin IP (no pasa con TCP) no se limita: mejor eso que bloquear a todos juntos.
-    if let Some(ip) = req.peer_addr().map(|a| a.ip()) {
+    if let Some(ip) = crate::utils::client_ip::client_ip(req.request()) {
         if let Err(wait) = limiter.hit(ip, Instant::now()) {
             let res = too_many(&req, wait);
             return Ok(req.into_response(res));

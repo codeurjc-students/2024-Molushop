@@ -45,7 +45,7 @@ pub async fn start_session(user_id: &Uuid, req: &HttpRequest, pool: &DbPool) -> 
         .map_err(|e| format!("Error generando el token: {}", e))?;
 
     let user_agent = req.headers().get("User-Agent").and_then(|v| v.to_str().ok());
-    let ip: Option<IpNet> = req.peer_addr().map(|addr| addr.ip().into());
+    let ip: Option<IpNet> = crate::utils::client_ip::client_ip(req).map(IpNet::from);
     let now = Utc::now().naive_utc();
     let expires_at = now
         .checked_add_signed(Duration::seconds(SESSION_SECONDS))
