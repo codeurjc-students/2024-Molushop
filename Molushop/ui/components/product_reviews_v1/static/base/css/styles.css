@@ -1,0 +1,238 @@
+.product-reviews-1{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
+    max-width: 70rem;
+    margin: 0 auto;
+
+    .reviews-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1em;
+
+        h2{
+            margin: 0;
+            font-size: 1.3em;
+        }
+        .reviews-count{
+            color: var(--color-text-muted);
+        }
+    }
+    .reviews-empty{
+        color: var(--color-text-muted);
+    }
+
+    .reviews-summary{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2em;
+    }
+    .summary-average{
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.3em;
+        min-width: 150px;
+
+        .average-number{
+            font-size: 2.6em;
+            font-weight: bold;
+            line-height: 1;
+        }
+        .average-total{
+            font-size: 0.9em;
+            color: var(--color-text-muted);
+        }
+    }
+    .summary-bars{
+        display: flex;
+        flex-direction: column;
+        gap: 0.35em;
+        flex: 1;
+        min-width: 220px;
+
+        .bar-row{
+            display: flex;
+            align-items: center;
+            gap: 0.6em;
+        }
+        .bar-star{
+            width: 1.2em;
+            text-align: right;
+            color: var(--color-text-muted);
+        }
+        .bar-track{
+            flex: 1;
+            height: 0.6em;
+            border-radius: var(--radius-pill);
+            background-color: var(--color-border);
+            overflow: hidden;
+        }
+        .bar-fill{
+            height: 100%;
+            background-color: var(--color-rating);
+        }
+        .bar-count{
+            width: 2em;
+            color: var(--color-text-muted);
+            font-size: 0.9em;
+        }
+    }
+
+    /* --- Formulario --- */
+    .review-form{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8em;
+
+        .form-title{
+            font-weight: bold;
+        }
+    }
+    .review-login{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        align-items: flex-start;
+    }
+
+    /* Las estrellas están en el HTML del 5 al 1 y aquí se les da la vuelta:
+       con ellas en ese orden, "~" alcanza a las de MENOR puntuación, que son
+       las que hay que pintar junto con la marcada. */
+    .star-input{
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-end;
+        gap: 0.15em;
+        border: none;
+        margin: 0;
+        padding: 0;
+
+        legend{
+            /* El título va arriba y a la izquierda, no dentro del borde:
+               el fieldset está solo por agrupar los radios. */
+            float: left;
+            width: 100%;
+            padding: 0;
+            margin-bottom: 0.3em;
+            color: var(--color-text-muted);
+        }
+        input{
+            /* Fuera de la vista pero NO display:none: así siguen recibiendo el
+               foco y se pueden marcar con el teclado. */
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        label{
+            cursor: pointer;
+            font-size: 1.8em;
+            line-height: 1;
+            color: var(--color-rating-empty);
+            transition: color 0.1s;
+
+            &::before{
+                content: "\2605"; /* ★ */
+            }
+        }
+        input:checked ~ label,
+        label:hover,
+        label:hover ~ label{
+            color: var(--color-rating);
+        }
+        input:focus-visible + label{
+            outline: 2px solid var(--color-focus);
+            outline-offset: 2px;
+        }
+    }
+
+    .sr-only{
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+    }
+
+    /* El comentario y el aviso de error usan los átomos m-input y m-error.
+       Vacío no ocupa nada: solo aparece cuando el servidor mete un aviso. */
+    .form-error:empty{
+        display: none;
+    }
+
+    .form-actions{
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.8em;
+    }
+    /* Secundario a propósito: publicar es la acción normal, borrar la rara. */
+    /* El aspecto es del átomo m-badge */
+    .mine-tag{
+        margin-left: 0.4em;
+    }
+
+
+    .reviews{
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+    }
+    .review{
+        display: flex;
+        flex-direction: column;
+        gap: 0.6em;
+    }
+    .review-header{
+        display: flex;
+        align-items: center;
+        gap: 0.7em;
+
+        .avatar{
+            width: 2.2em;
+            height: 2.2em;
+            border-radius: 50%;
+            background-color: var(--color-text);
+            color: var(--color-text-invert);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .review-who{
+            display: flex;
+            flex-direction: column;
+            /* Empuja las estrellas al otro extremo de la fila. */
+            flex: 1;
+
+            .author{
+                font-weight: bold;
+            }
+            .review-date{
+                font-size: 0.85em;
+                color: var(--color-text-muted);
+            }
+        }
+    }
+    .review-comment{
+        margin: 0;
+        /* El comentario llega tal cual lo escribió el usuario: los saltos de
+           línea se respetan y las palabras muy largas no desbordan la tarjeta. */
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    /* Botones: el aspecto es del átomo m-btn; aquí solo dónde se colocan */
+    .publish-review{
+        align-self: flex-start;
+    }
+    .more-reviews{
+        align-self: center;
+    }
+}

@@ -1,0 +1,132 @@
+/* Átomo: campo de formulario. Etiqueta, control y mensajes.
+
+     <div class="m-field">
+         <label class="m-label" for="email">Correo electrónico</label>
+         <input class="m-input" id="email" type="email" name="email">
+         <p class="m-hint">Te escribiremos solo por tu pedido.</p>
+     </div>
+
+   Piezas:    m-field (agrupa), m-label, m-input, m-hint, m-error
+   m-input:   vale para <input>, <select> y <textarea>
+   Tamaños:   m-input--sm, (normal)
+   Error:     clase `is-invalid` en el m-input y un m-error debajo
+   Apagado:   atributo `disabled`; `readonly` se ve igual pero deja copiar
+   Casillas:  <label class="m-check"><input type="checkbox"> Texto</label>
+   En línea:  m-field--inline pone la etiqueta y el control en la misma fila */
+
+.m-field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    min-width: 0;
+}
+
+.m-field--inline {
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.m-label {
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-tight);
+}
+
+/* ---- Control ---- */
+
+.m-input {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: var(--font-size-md);
+    line-height: var(--line-height-tight);
+    transition: border-color var(--transition-fast),
+                box-shadow var(--transition-fast);
+}
+
+.m-input::placeholder {
+    color: var(--color-text-muted);
+}
+
+.m-input:hover {
+    border-color: var(--gray-500);
+}
+
+.m-input:focus {
+    outline: none;
+    border-color: var(--color-focus);
+    box-shadow: 0 0 0 3px var(--green-100);
+}
+
+textarea.m-input {
+    min-height: 6rem;
+    line-height: var(--line-height-base);
+    resize: vertical;
+}
+
+.m-input--sm {
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-sm);
+}
+
+/* ---- Mensajes ---- */
+
+.m-hint,
+.m-error {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-tight);
+}
+
+.m-hint  { color: var(--color-text-muted); }
+.m-error { color: var(--color-danger); }
+
+/* ---- Error ---- */
+
+.m-input.is-invalid {
+    border-color: var(--color-danger);
+}
+.m-input.is-invalid:focus {
+    box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+
+/* ---- Casillas y radios ---- */
+
+.m-check {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text);
+    font-size: var(--font-size-md);
+    cursor: pointer;
+}
+
+.m-check input {
+    width: 1.1em;
+    height: 1.1em;
+    margin: 0;
+    accent-color: var(--color-primary-strong);
+    cursor: pointer;
+}
+
+/* ---- Apagado ---- */
+/* Va al final para ganar al :hover. */
+
+.m-input:disabled,
+.m-input[readonly] {
+    background-color: var(--gray-100);
+    border-color: var(--color-border);
+    color: var(--color-text-muted);
+}
+.m-input:disabled {
+    cursor: not-allowed;
+}

@@ -1,19 +1,37 @@
+/* Cada identificador (nombre, valor y Eliminar). Mobile-first: en móvil, uno
+   debajo de otro (en fila no caben y los campos quedaban muy estrechos) y
+   Eliminar a la derecha; desde 600px, en una fila. */
 .variation-edit-container {
     .identifier-row {
         display: flex;
-        gap: 1rem;
-        align-items: flex-end;
-        margin-bottom: 1rem;
-        padding: 1rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
+        flex-direction: column;
+        gap: var(--space-3);
+        margin-bottom: var(--space-4);
     }
-    
+
     .form-group-x {
-        flex: 1;
+        min-width: 0;
     }
-    
+
     .remove-identifier {
-        height: 38px;
+        align-self: flex-end;
+    }
+}
+
+@media (min-width: 600px) {
+    .variation-edit-container {
+        .identifier-row {
+            flex-direction: row;
+            align-items: flex-end;
+        }
+
+        .form-group-x {
+            flex: 1;
+        }
+
+        .remove-identifier {
+            align-self: auto;
+            height: 38px;
+        }
     }
 }

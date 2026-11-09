@@ -1,0 +1,505 @@
+{% extends "layouts/layout1.html" %}
+{# Catálogo del sistema de diseño: enseña las variables de tokens.css y cada
+   átomo con sus variantes. Los colores y medidas no se repiten aquí: el script
+   los lee de las propias variables (atributo data-token). #}
+{% block scripts %}
+    <script src="/static/pages/ui_catalog/js/script.js" defer></script>
+{% endblock%}
+{% block styles %}
+    <link rel="stylesheet" href="/static/pages/ui_catalog/css/styles.css">
+{% endblock %}
+{% block content %}
+<div class="ui-catalog">
+    <header class="ui-catalog-header">
+        <h1>Catálogo de UI</h1>
+        <p>Variables y átomos de Molushop. Antes de escribir un color, un tamaño o un botón nuevo, mira si ya está aquí.</p>
+        <nav class="ui-catalog-index">
+            <a href="#colores">Colores</a>
+            <a href="#tipografia">Tipografía</a>
+            <a href="#espaciado">Espaciado</a>
+            <a href="#radios">Radios</a>
+            <a href="#sombras">Sombras</a>
+            <a href="#botones">Botones</a>
+            <a href="#campos">Campos</a>
+            <a href="#badges">Badges</a>
+            <a href="#avisos">Avisos</a>
+            <a href="#tarjetas">Tarjetas</a>
+            <a href="#estrellas">Estrellas</a>
+            <a href="#modales">Modales</a>
+            <a href="#toast">Toast</a>
+            <a href="#precio">Precio</a>
+            <a href="#cantidad">Cantidad</a>
+        </nav>
+    </header>
+
+    <section id="colores">
+        <h2>Colores</h2>
+
+        <h3>Verde principal</h3>
+        <p class="ui-catalog-note">Tono 148 fijo; solo cambian la saturación y la claridad. <code>--green-500</code> es el color de la marca.</p>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--green-50"></div>
+            <div class="ui-swatch" data-token="--green-100"></div>
+            <div class="ui-swatch" data-token="--green-200"></div>
+            <div class="ui-swatch" data-token="--green-300"></div>
+            <div class="ui-swatch" data-token="--green-400"></div>
+            <div class="ui-swatch" data-token="--green-500"></div>
+            <div class="ui-swatch" data-token="--green-600"></div>
+            <div class="ui-swatch" data-token="--green-700"></div>
+            <div class="ui-swatch" data-token="--green-800"></div>
+            <div class="ui-swatch" data-token="--green-900"></div>
+        </div>
+
+        <h3>Grises</h3>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--gray-0"></div>
+            <div class="ui-swatch" data-token="--gray-50"></div>
+            <div class="ui-swatch" data-token="--gray-100"></div>
+            <div class="ui-swatch" data-token="--gray-200"></div>
+            <div class="ui-swatch" data-token="--gray-300"></div>
+            <div class="ui-swatch" data-token="--gray-500"></div>
+            <div class="ui-swatch" data-token="--gray-700"></div>
+            <div class="ui-swatch" data-token="--gray-900"></div>
+        </div>
+
+        <h3>Colores con significado</h3>
+        <p class="ui-catalog-note">Son los que se usan en los componentes. La escala de arriba solo se toca desde <code>tokens.css</code>.</p>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--color-primary"></div>
+            <div class="ui-swatch" data-token="--color-primary-hover"></div>
+            <div class="ui-swatch" data-token="--color-primary-active"></div>
+            <div class="ui-swatch" data-token="--color-primary-strong"></div>
+            <div class="ui-swatch" data-token="--color-primary-soft"></div>
+            <div class="ui-swatch" data-token="--color-on-primary"></div>
+        </div>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--color-text"></div>
+            <div class="ui-swatch" data-token="--color-text-muted"></div>
+            <div class="ui-swatch" data-token="--color-bg"></div>
+            <div class="ui-swatch" data-token="--color-bg-soft"></div>
+            <div class="ui-swatch" data-token="--color-border"></div>
+            <div class="ui-swatch" data-token="--color-border-strong"></div>
+            <div class="ui-swatch" data-token="--color-bg-inverse"></div>
+            <div class="ui-swatch" data-token="--color-text-invert-muted"></div>
+            <div class="ui-swatch" data-token="--color-border-inverse"></div>
+        </div>
+        <div class="ui-swatches">
+            <div class="ui-swatch" data-token="--color-success"></div>
+            <div class="ui-swatch" data-token="--color-success-soft"></div>
+            <div class="ui-swatch" data-token="--color-danger"></div>
+            <div class="ui-swatch" data-token="--color-danger-hover"></div>
+            <div class="ui-swatch" data-token="--color-danger-soft"></div>
+            <div class="ui-swatch" data-token="--color-warning"></div>
+            <div class="ui-swatch" data-token="--color-warning-soft"></div>
+            <div class="ui-swatch" data-token="--color-info"></div>
+            <div class="ui-swatch" data-token="--color-info-soft"></div>
+            <div class="ui-swatch" data-token="--color-rating"></div>
+            <div class="ui-swatch" data-token="--color-rating-empty"></div>
+            <div class="ui-swatch" data-token="--color-overlay"></div>
+        </div>
+    </section>
+
+    <section id="tipografia">
+        <h2>Tipografía</h2>
+        <p class="ui-catalog-note">Roboto. Los tamaños van en <code>rem</code>.</p>
+        <div class="ui-type-row" data-font-size="--font-size-3xl">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-2xl">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-xl">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-lg">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-md">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-sm">Molushop, productos únicos</div>
+        <div class="ui-type-row" data-font-size="--font-size-xs">Molushop, productos únicos</div>
+
+        <h3>Pesos</h3>
+        <div class="ui-type-row" data-font-weight="--font-weight-regular">El veloz murciélago hindú comía feliz cardillo y kiwi</div>
+        <div class="ui-type-row" data-font-weight="--font-weight-medium">El veloz murciélago hindú comía feliz cardillo y kiwi</div>
+        <div class="ui-type-row" data-font-weight="--font-weight-bold">El veloz murciélago hindú comía feliz cardillo y kiwi</div>
+    </section>
+
+    <section id="espaciado">
+        <h2>Espaciado</h2>
+        <p class="ui-catalog-note">Múltiplos de 4px, para márgenes, rellenos y huecos.</p>
+        <div class="ui-space-row" data-space="--space-1"></div>
+        <div class="ui-space-row" data-space="--space-2"></div>
+        <div class="ui-space-row" data-space="--space-3"></div>
+        <div class="ui-space-row" data-space="--space-4"></div>
+        <div class="ui-space-row" data-space="--space-5"></div>
+        <div class="ui-space-row" data-space="--space-6"></div>
+        <div class="ui-space-row" data-space="--space-7"></div>
+    </section>
+
+    <section id="radios">
+        <h2>Radios</h2>
+        <div class="ui-boxes">
+            <div class="ui-box" data-radius="--radius-sm"></div>
+            <div class="ui-box" data-radius="--radius-md"></div>
+            <div class="ui-box" data-radius="--radius-lg"></div>
+            <div class="ui-box" data-radius="--radius-pill"></div>
+        </div>
+    </section>
+
+    <section id="sombras">
+        <h2>Sombras</h2>
+        <div class="ui-boxes">
+            <div class="ui-box" data-shadow="--shadow-sm"></div>
+            <div class="ui-box" data-shadow="--shadow-md"></div>
+            <div class="ui-box" data-shadow="--shadow-lg"></div>
+        </div>
+    </section>
+
+    <section id="botones">
+        <h2>Botones</h2>
+        <p class="ui-catalog-note">Clase base <code>m-btn</code> más una variante. Vale para <code>&lt;button&gt;</code> y para <code>&lt;a&gt;</code>.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--primary">Añadir al carrito</button>
+            <button type="button" class="m-btn m-btn--secondary">Seguir comprando</button>
+            <button type="button" class="m-btn m-btn--danger">Eliminar</button>
+            <button type="button" class="m-btn m-btn--danger-outline">Borrar mi opinión</button>
+            <button type="button" class="m-btn m-btn--ghost">Cancelar</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary"&gt;Añadir al carrito&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--secondary"&gt;Seguir comprando&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--danger"&gt;Eliminar&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--danger-outline"&gt;Borrar mi opinión&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--ghost"&gt;Cancelar&lt;/button&gt;</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--primary m-btn--sm">Pequeño</button>
+            <button type="button" class="m-btn m-btn--primary">Normal</button>
+            <button type="button" class="m-btn m-btn--primary m-btn--lg">Grande</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary m-btn--sm"&gt;Pequeño&lt;/button&gt;
+&lt;button type="button" class="m-btn m-btn--primary m-btn--lg"&gt;Grande&lt;/button&gt;</code></pre>
+
+        <h3>Apagado</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--primary" disabled>Sin stock</button>
+            <button type="button" class="m-btn m-btn--secondary" disabled>No disponible</button>
+            <a href="#botones" class="m-btn m-btn--primary is-disabled" aria-disabled="true" tabindex="-1">Enlace apagado</a>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary" disabled&gt;Sin stock&lt;/button&gt;
+&lt;a href="..." class="m-btn m-btn--primary is-disabled" aria-disabled="true" tabindex="-1"&gt;Enlace apagado&lt;/a&gt;</code></pre>
+
+        <h3>Como enlace</h3>
+        <div class="ui-demo">
+            <a href="#botones" class="m-btn m-btn--primary">Continuar</a>
+            <a href="#botones" class="m-btn m-btn--secondary">Ver carrito</a>
+        </div>
+        <pre class="ui-code"><code>&lt;a href="/checkout" class="m-btn m-btn--primary"&gt;Continuar&lt;/a&gt;</code></pre>
+
+        <h3>Con aspecto de enlace</h3>
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--danger-link">Borrar tienda</button>
+            <button type="button" class="m-btn m-btn--danger-link m-btn--sm">Quitar</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="submit" class="m-btn m-btn--danger-link m-btn--sm"&gt;Quitar&lt;/button&gt;</code></pre>
+
+        <h3>A todo el ancho</h3>
+        <div class="ui-demo ui-demo--narrow">
+            <button type="button" class="m-btn m-btn--primary m-btn--block">Confirmar pedido</button>
+        </div>
+        <pre class="ui-code"><code>&lt;button type="button" class="m-btn m-btn--primary m-btn--block"&gt;Confirmar pedido&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="campos">
+        <h2>Campos de formulario</h2>
+        <p class="ui-catalog-note"><code>m-field</code> agrupa la etiqueta (<code>m-label</code>), el control (<code>m-input</code>) y sus mensajes. <code>m-input</code> vale para <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code> y <code>&lt;textarea&gt;</code>.</p>
+
+        <h3>Controles</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-texto">Nombre</label>
+                <input class="m-input" id="ui-campo-texto" type="text" placeholder="Tu nombre">
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-select">Estado</label>
+                <select class="m-input" id="ui-campo-select">
+                    <option>Activo</option>
+                    <option>Inactivo</option>
+                    <option>Borrador</option>
+                </select>
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-area">Descripción</label>
+                <textarea class="m-input" id="ui-campo-area" placeholder="Cuenta algo del producto"></textarea>
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;div class="m-field"&gt;
+    &lt;label class="m-label" for="nombre"&gt;Nombre&lt;/label&gt;
+    &lt;input class="m-input" id="nombre" type="text" name="nombre"&gt;
+&lt;/div&gt;</code></pre>
+
+        <h3>Ayuda y error</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-ayuda">Contraseña</label>
+                <input class="m-input" id="ui-campo-ayuda" type="password" aria-describedby="ui-campo-ayuda-hint">
+                <p class="m-hint" id="ui-campo-ayuda-hint">Al menos 8 caracteres.</p>
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-error">Correo electrónico</label>
+                <input class="m-input is-invalid" id="ui-campo-error" type="email" value="correo-sin-arroba" aria-invalid="true" aria-describedby="ui-campo-error-msg">
+                <p class="m-error" id="ui-campo-error-msg">Escribe un correo válido.</p>
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;input class="m-input is-invalid" id="email" type="email" aria-invalid="true" aria-describedby="email-error"&gt;
+&lt;p class="m-error" id="email-error"&gt;Escribe un correo válido.&lt;/p&gt;</code></pre>
+
+        <h3>Apagado y solo lectura</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-apagado">Apagado</label>
+                <input class="m-input" id="ui-campo-apagado" type="text" value="No se puede editar" disabled>
+            </div>
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-lectura">Solo lectura</label>
+                <input class="m-input" id="ui-campo-lectura" type="text" value="Se puede copiar" readonly>
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;input class="m-input" type="text" disabled&gt;
+&lt;input class="m-input" type="text" readonly&gt;</code></pre>
+
+        <h3>Pequeño y en línea</h3>
+        <div class="ui-demo ui-demo--fields">
+            <div class="m-field">
+                <label class="m-label" for="ui-campo-sm">Usuario</label>
+                <input class="m-input m-input--sm" id="ui-campo-sm" type="text" placeholder="username">
+            </div>
+            <div class="m-field m-field--inline">
+                <label class="m-label" for="ui-campo-linea">Cantidad</label>
+                <input class="m-input m-input--sm" id="ui-campo-linea" type="number" value="1" min="1">
+            </div>
+        </div>
+        <pre class="ui-code"><code>&lt;input class="m-input m-input--sm" type="text"&gt;
+&lt;div class="m-field m-field--inline"&gt; ... &lt;/div&gt;</code></pre>
+
+        <h3>Casillas y radios</h3>
+        <div class="ui-demo">
+            <label class="m-check"><input type="checkbox" checked> Habilitar oferta</label>
+            <label class="m-check"><input type="checkbox"> Recordarme</label>
+            <label class="m-check"><input type="radio" name="ui-campo-radio" checked> Envío estándar</label>
+            <label class="m-check"><input type="radio" name="ui-campo-radio"> Envío urgente</label>
+        </div>
+        <pre class="ui-code"><code>&lt;label class="m-check"&gt;&lt;input type="checkbox" name="oferta"&gt; Habilitar oferta&lt;/label&gt;</code></pre>
+    </section>
+
+    <section id="badges">
+        <h2>Badges</h2>
+        <p class="ui-catalog-note">Etiqueta corta para un estado. Clase base <code>m-badge</code> más una variante; no se pulsa.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo">
+            <span class="m-badge m-badge--neutral">Confirmado</span>
+            <span class="m-badge m-badge--warning">Pendiente</span>
+            <span class="m-badge m-badge--info">Enviado</span>
+            <span class="m-badge m-badge--success">Entregado</span>
+            <span class="m-badge m-badge--danger">Cancelado</span>
+        </div>
+        <pre class="ui-code"><code>&lt;span class="m-badge m-badge--neutral"&gt;Confirmado&lt;/span&gt;
+&lt;span class="m-badge m-badge--warning"&gt;Pendiente&lt;/span&gt;
+&lt;span class="m-badge m-badge--info"&gt;Enviado&lt;/span&gt;
+&lt;span class="m-badge m-badge--success"&gt;Entregado&lt;/span&gt;
+&lt;span class="m-badge m-badge--danger"&gt;Cancelado&lt;/span&gt;</code></pre>
+
+        <h3>Grande</h3>
+        <p class="ui-catalog-note">Para el estado que encabeza una página o una tarjeta, como el de un pedido.</p>
+        <div class="ui-demo">
+            <span class="m-badge m-badge--lg m-badge--neutral">Confirmado</span>
+            <span class="m-badge m-badge--lg m-badge--warning">Pendiente</span>
+            <span class="m-badge m-badge--lg m-badge--info">Enviado</span>
+            <span class="m-badge m-badge--lg m-badge--success">Entregado</span>
+            <span class="m-badge m-badge--lg m-badge--danger">Cancelado</span>
+        </div>
+        <pre class="ui-code"><code>&lt;span class="m-badge m-badge--lg m-badge--success"&gt;Entregado&lt;/span&gt;</code></pre>
+    </section>
+
+    <section id="avisos">
+        <h2>Avisos</h2>
+        <p class="ui-catalog-note">Mensaje en bloque dentro de la página. Clase base <code>m-alert</code> más una variante. Para el error de un campo concreto se usa <code>m-error</code>, no esto.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo ui-demo--stack">
+            <p class="m-alert m-alert--info">Solo se muestran los artículos de esta tienda.</p>
+            <p class="m-alert m-alert--success" role="status">Tienda creada.</p>
+            <p class="m-alert m-alert--warning">Tu tienda quedará pendiente hasta que un administrador la apruebe.</p>
+            <p class="m-alert m-alert--danger">No hay suficiente stock de este artículo.</p>
+        </div>
+        <pre class="ui-code"><code>&lt;p class="m-alert m-alert--info"&gt;...&lt;/p&gt;
+&lt;p class="m-alert m-alert--success" role="status"&gt;Tienda creada.&lt;/p&gt;
+&lt;p class="m-alert m-alert--warning"&gt;...&lt;/p&gt;
+&lt;p class="m-alert m-alert--danger" role="alert"&gt;No hay suficiente stock de este artículo.&lt;/p&gt;</code></pre>
+
+        <h3>Con un enlace</h3>
+        <div class="ui-demo ui-demo--stack">
+            <p class="m-alert m-alert--warning">Tu usuario no tiene acceso al panel. Entra con otra cuenta o <a href="#avisos">solicita una tienda</a>.</p>
+        </div>
+        <pre class="ui-code"><code>&lt;p class="m-alert m-alert--warning"&gt;... &lt;a href="/panel/register"&gt;solicita una tienda&lt;/a&gt;.&lt;/p&gt;</code></pre>
+    </section>
+
+    <section id="tarjetas">
+        <h2>Tarjetas</h2>
+        <p class="ui-catalog-note">Caja que agrupa contenido. <code>m-card</code> solo pone el fondo, el borde, las esquinas y el relleno; cómo se coloca lo de dentro es cosa de cada componente.</p>
+
+        <h3>Variantes</h3>
+        <div class="ui-demo ui-demo--cards">
+            <div class="m-card">
+                <strong>Normal</strong>
+                <p class="m-hint">Con borde. La de uso general.</p>
+            </div>
+            <div class="m-card m-card--raised">
+                <strong>Con sombra</strong>
+                <p class="m-hint">Para lo que flota sobre la página.</p>
+            </div>
+            <a href="#tarjetas" class="m-card m-card--link">
+                <strong>Enlace</strong>
+                <p class="m-hint">Toda la tarjeta se pulsa.</p>
+            </a>
+        </div>
+        <pre class="ui-code"><code>&lt;div class="m-card"&gt;...&lt;/div&gt;
+&lt;div class="m-card m-card--raised"&gt;...&lt;/div&gt;
+&lt;a href="/panel/stores/1" class="m-card m-card--link"&gt;...&lt;/a&gt;</code></pre>
+
+        <h3>Relleno</h3>
+        <div class="ui-demo ui-demo--cards">
+            <div class="m-card m-card--sm"><strong>Pequeño</strong></div>
+            <div class="m-card"><strong>Normal</strong></div>
+            <div class="m-card m-card--lg"><strong>Grande</strong></div>
+        </div>
+        <pre class="ui-code"><code>&lt;div class="m-card m-card--sm"&gt;...&lt;/div&gt;
+&lt;div class="m-card m-card--lg"&gt;...&lt;/div&gt;</code></pre>
+
+        <h3>Con otros átomos</h3>
+        <div class="ui-demo ui-demo--cards">
+            <div class="m-card ui-demo-card-stack">
+                <div class="ui-demo-card-head">
+                    <strong>Pedido nº 1042</strong>
+                    <span class="m-badge m-badge--info">Enviado</span>
+                </div>
+                <p class="m-hint">3 artículos · 54,90 €</p>
+                <a href="#tarjetas" class="m-btn m-btn--secondary m-btn--sm">Ver pedido</a>
+            </div>
+        </div>
+    </section>
+
+    <section id="estrellas">
+        <h2>Estrellas</h2>
+        <p class="ui-catalog-note">Valoración de 0 a 5, solo para leer. Es una plantilla de Askama con su struct en Rust (<code>Stars</code>, en <code>models/components/stars.rs</code>): el redondeo a la media estrella más cercana y el texto para lectores de pantalla se calculan allí. Las de opinar son otra cosa (radios en el formulario de opiniones).</p>
+
+        <h3>Notas: 5 · 4,6 · 4,2 · 2,5 · 0</h3>
+        <div class="ui-demo">
+            {{ Stars::new(5) }}
+            {{ Stars::new(4.6) }}
+            {{ Stars::new(4.2) }}
+            {{ Stars::new(2.5) }}
+            {{ Stars::new(0) }}
+        </div>
+        <pre class="ui-code"><code>// en el modelo del componente
+pub fn stars(&amp;self) -&gt; Stars { Stars::new(self.average) }
+
+// en la plantilla
+&#123;&#123; reviews.stars() &#125;&#125;</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            {{ Stars::new(4.5) }}
+            {{ Stars::sm(4.5) }}
+        </div>
+        <pre class="ui-code"><code>pub fn stars(&amp;self) -&gt; Stars { Stars::sm(self.rating) }</code></pre>
+    </section>
+
+    <section id="modales">
+        <h2>Modales</h2>
+        <p class="ui-catalog-note">Ventana que tapa la página. Dos structs con la misma carcasa (<code>components/modal/templates/shell.html</code>): <code>MessageModal</code> para un mensaje y <code>ConfirmModal</code> para pedir confirmación. El controlador devuelve el HTML y se añade al final del <code>body</code>; se cierra con la ×, pulsando fuera, con Escape o con sus botones.</p>
+
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--secondary" data-demo-modal="demo-modal-message">Abrir mensaje</button>
+            <button type="button" class="m-btn m-btn--danger-outline" data-demo-modal="demo-modal-confirm">Abrir confirmación</button>
+        </div>
+        <template id="demo-modal-message">{{ MessageModal::new("Producto añadido al carrito")|safe }}</template>
+        <template id="demo-modal-confirm">{{ demo_confirm()|safe }}</template>
+        <pre class="ui-code"><code>// mensaje
+HttpResponse::Ok().body(MessageModal::new("No hay suficiente stock").render().unwrap())
+
+// confirmación: el "Sí" lanza la petición htmx
+ConfirmModal { method: "hx-delete".into(), endpoint, target, swap, htmx_active: true, .. }
+
+// quien lo pide
+&lt;button hx-get="..." hx-target="body" hx-swap="beforeend"&gt;Eliminar&lt;/button&gt;</code></pre>
+    </section>
+
+    <section id="toast">
+        <h2>Toast</h2>
+        <p class="ui-catalog-note">Aviso pequeño que se quita solo a los 5 s, con la × o deslizándolo hacia un lado. Para confirmar algo que ya se ve y se puede deshacer, como guardar en favoritos; los errores y las preguntas siguen siendo modales. Lo pinta el struct <code>Toast</code> (<code>models/components/toast.rs</code>) y va detrás de otra respuesta de htmx con <code>oob()</code>, que lo mete en <code>#m-toasts</code> (<code>layout1.html</code>). Arriba y centrado, debajo del nav (al bajar, pegado arriba de la pantalla): en móvil a todo el ancho; desde 600px, al ancho de su texto.</p>
+
+        <div class="ui-demo">
+            <button type="button" class="m-btn m-btn--secondary" data-demo-toast="demo-toast">Enseñar toast</button>
+        </div>
+        <template id="demo-toast">{{ demo_toast()|safe }}</template>
+        <pre class="ui-code"><code>// detrás de lo que devuelve el controlador
+let toast = Toast::translated(&amp;i18n, "favorites-added-toast")
+    .with_link(i18n.url("/favorites"), i18n.t("favorites-view"));
+HttpResponse::Ok().body(body + &amp;toast.oob())</code></pre>
+    </section>
+
+    <section id="precio">
+        <h2>Precio</h2>
+        <p class="ui-catalog-note">Importe con su moneda, en formato español: coma decimal y punto de miles a partir de cinco cifras. Lo pinta el struct <code>Price</code> (<code>models/components/price.rs</code>) con <code>format_amount</code>; cuando el JS recalcula un precio usa <code>MONEY.format()</code> (<code>ui/utils/base.js</code>), que da el mismo texto. No fija color: lo decide cada componente.</p>
+
+        <h3>Importes: 9 · 150.99 · 1234.5 · 12345.678</h3>
+        <div class="ui-demo">
+            {{ demo_price("9") }}
+            {{ demo_price("150.99") }}
+            {{ demo_price("1234.5") }}
+            {{ demo_price("12345.678") }}
+            {{ demo_price_missing() }}
+        </div>
+        <pre class="ui-code"><code>// en el modelo
+pub fn price_tag(&amp;self) -&gt; Price { Price::new(&amp;self.price, &amp;self.currency) }
+pub fn price_tag(&amp;self) -&gt; Price { Price::maybe(self.price.as_ref(), &amp;self.currency) }  // puede faltar
+
+// en la plantilla
+&#123;&#123; product.price_tag() &#125;&#125;
+
+// en JS, al recalcular
+el.querySelector(".m-price__amount").textContent = MONEY.format(total);</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            {{ demo_price("150.99") }}
+            {{ demo_price("150.99").lg() }}
+        </div>
+        <pre class="ui-code"><code>Price::new(&amp;precio, &amp;moneda).lg()</code></pre>
+    </section>
+
+    <section id="cantidad">
+        <h2>Cantidad</h2>
+        <p class="ui-catalog-note">Selector − 1 +. Lo pinta el struct <code>Quantity</code> (<code>models/components/quantity.rs</code>), que ajusta el valor a los límites y apaga el botón del límite. Los botones los mueve <code>QUANTITY</code> (<code>ui/utils/base.js</code>), delegado sobre <code>document</code>: no hay que engancharlo. Cada clic lanza el evento <code>m-qty-change</code> desde el input; lo escrito a mano solo se ajusta a los límites al salir del campo.</p>
+
+        <h3>Mínimo 1, máximo 5 · en el máximo · sin tope</h3>
+        <div class="ui-demo">
+            {{ demo_quantity(1, 1, 5) }}
+            {{ demo_quantity(5, 1, 5) }}
+            {{ demo_quantity(12, 0, 0) }}
+        </div>
+        <pre class="ui-code"><code>// en el modelo
+pub fn quantity_tag(&amp;self) -&gt; Quantity { Quantity::new(self.quantity, 0, Some(self.stock)) }
+
+// en la plantilla
+&#123;&#123; item.quantity_tag() &#125;&#125;
+
+// en JS, el componente decide qué hacer con la cantidad
+root.addEventListener("m-qty-change", (event) =&gt; enviar(event.detail.value));</code></pre>
+
+        <h3>Tamaños</h3>
+        <div class="ui-demo">
+            {{ demo_quantity(2, 1, 5) }}
+            {{ demo_quantity(2, 1, 5).sm() }}
+            <button type="button" class="m-btn m-btn--primary">Añadir al carrito</button>
+        </div>
+        <pre class="ui-code"><code>Quantity::new(valor, min, max).sm()</code></pre>
+    </section>
+</div>
+{% endblock %}

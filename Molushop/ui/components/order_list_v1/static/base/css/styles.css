@@ -1,0 +1,116 @@
+.order-list-1{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
+    max-width: 70rem;
+    margin: 0 auto;
+
+    .list-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        gap: 1em;
+
+        h1{
+            margin: 0;
+            font-size: 1.4em;
+        }
+        .list-count{
+            color: var(--color-text-muted);
+        }
+    }
+    .list-empty{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        align-items: flex-start;
+    }
+    .orders{
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+    }
+    .order-card{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8em;
+        color: inherit;
+
+        &:hover{
+            box-shadow: var(--shadow-md);
+        }
+    }
+    .card-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1em;
+
+        .card-id{
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+        }
+        .order-number{
+            font-weight: bold;
+        }
+        .order-date{
+            font-size: 0.9em;
+            color: var(--color-text-muted);
+        }
+    }
+    .lines{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8em;
+    }
+    .line{
+        display: flex;
+        gap: 0.8em;
+        align-items: center;
+
+        .image-cont{
+            width: 60px;
+            height: 60px;
+            border-radius: var(--radius-md);
+            flex: 0 0 auto;
+        }
+        .line-data{
+            flex: 1 1 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+        }
+        .variations, .quantity{
+            font-size: 0.9em;
+            color: var(--color-text-muted);
+        }
+    }
+    .card-footer{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1em;
+        border-top: 1px solid var(--color-border);
+        padding-top: 0.8em;
+
+        .units{
+            font-size: 0.9em;
+            color: var(--color-text-muted);
+        }
+        .card-total{
+            display: flex;
+            gap: 0.5em;
+            align-items: baseline;
+            font-weight: bold;
+        }
+        .money{
+            display: flex;
+            gap: 0.25em;
+        }
+    }
+    .keep-shopping{
+        align-self: flex-start;
+    }
+}

@@ -1,6 +1,13 @@
 pub mod product_panel_group;
 pub mod scope;
+pub mod panel_access;
 pub mod edit_product_controller;
 pub mod edit_product_variation_controller;
-pub mod modal_1_controller;
 pub mod login_base_controller;
+pub mod nav1_controller;
+pub mod cart_add_controller;
+pub mod checkout_controller;
+pub mod product_reviews_controller;
+pub mod product_card_group_controller;
+pub mod search_suggestions_controller;
+pub mod favorites_controller;

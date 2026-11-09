@@ -1,0 +1,107 @@
+<div class="order-detail-1" id="order-detail-1">
+    {% if !order.found %}
+    {% if !order.logged %}
+    <!-- data-login-required: login_modal.js abre el login solo al entrar -->
+    <div class="order-missing" data-login-required>
+        <span>{{ i18n.t("orders-login-prompt") }}</span>
+        <button type="button" class="m-btn m-btn--primary open-login-modal">{{ i18n.t("nav-login") }}</button>
+    </div>
+    {% else %}
+    <div class="order-missing">
+        <span>{{ i18n.t("order-not-found") }}</span>
+        <a href="{{ i18n.url(order.cart_url) }}" class="no-generic-a">{{ i18n.t("order-go-to-cart") }}</a>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="order-header m-card">
+        <div class="order-ok">
+            {% if order.is_new %}
+            <h1>{{ i18n.t("order-confirmed") }}</h1>
+            <span class="order-number">{{ i18n.t1("order-number", "number", order.order_number.to_string()) }}</span>
+            {% else %}
+            <h1>{{ i18n.t1("order-number", "number", order.order_number.to_string()) }}</h1>
+            {% endif %}
+        </div>
+        <span class="m-badge m-badge--lg m-badge--{{order.status_variant()}}">{{ i18n.t(order.status_key()) }}</span>
+    </div>
+
+    <div class="order-body">
+        <div class="order-main m-card">
+            <h2 class="section-title">{{ i18n.t_count("order-items", order.total_units()) }}</h2>
+            <div class="lines">
+                {% for item in order.items %}
+                <div class="line">
+                    <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                    <div class="line-data">
+                        <!-- El nombre es el del pedido (snapshot), aunque el
+                             producto se haya renombrado después. -->
+                        <div class="title">
+                            {% if item.product_url.is_empty() %}
+                            {{item.product_name}}
+                            {% else %}
+                            <a href="{{ i18n.url(item.product_url) }}" class="no-generic-a product-link">{{item.product_name}}</a>
+                            {% endif %}
+                        </div>
+                        {% if !item.variation_label.is_empty() %}
+                        <div class="variations">{{item.variation_label}}</div>
+                        {% endif %}
+                        {% if !item.store_name.is_empty() %}
+                        <div class="shop">{{item.store_name}}</div>
+                        {% endif %}
+                        {% if order.mixed_status() %}
+                        <div><span class="m-badge m-badge--{{item.status_variant()}}">{{ i18n.t(item.status_key()) }}</span></div>
+                        {% endif %}
+                        <!-- Cantidad y total en la misma fila: el precio no
+                             ocupa una columna propia y el nombre gana ancho. -->
+                        <div class="line-bottom">
+                            <div class="quantity">x{{item.quantity}}</div>
+                            <div class="line-money">{{ order.line_total_tag(item).localized(i18n) }}</div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <h2 class="section-title">{{ i18n.t("checkout-address") }}</h2>
+            <div class="address">
+                <div>{{order.ship_street1}}</div>
+                {% if !order.ship_street2.is_empty() %}
+                <div>{{order.ship_street2}}</div>
+                {% endif %}
+                <div>{{order.ship_postal_code}} {{order.ship_city}}</div>
+                <div>{{order.ship_province}}</div>
+            </div>
+        </div>
+
+        <div class="order-side m-card">
+            <h2 class="title-resume">{{ i18n.t("cart-summary") }}</h2>
+            <div class="data-resume">
+                <div class="space">
+                    <span>{{ i18n.t("order-subtotal") }}</span>
+                    <div class="money">{{ order.subtotal_tag().localized(i18n) }}</div>
+                </div>
+                <div class="space">
+                    <span>{{ i18n.t("order-discount") }}</span>
+                    <div class="money">- {{ order.discount_tag().localized(i18n) }}</div>
+                </div>
+                {% if order.has_cancelled() %}
+                {# El total que sigue en pie: lo cancelado no se envía ni se cobra #}
+                <div class="space">
+                    <span>{{ i18n.t("order-cancelled") }}</span>
+                    <div class="money">- {{ order.cancelled_tag().localized(i18n) }}</div>
+                </div>
+                {% endif %}
+                <div class="space">
+                    <span>{{ i18n.t("cart-shipping") }}</span>
+                    <span>{{ i18n.t("cart-shipping-free") }}</span>
+                </div>
+                <div class="space final-total">
+                    <span>{{ i18n.t("order-total") }}</span>
+                    <div class="money">{{ order.total_tag().localized(i18n) }}</div>
+                </div>
+            </div>
+            <a href="{{ i18n.url(order.cart_url) }}" class="no-generic-a back-to-cart">{{ i18n.t("checkout-back-to-cart") }}</a>
+        </div>
+    </div>
+    {% endif %}
+</div>

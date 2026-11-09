@@ -1,0 +1,61 @@
+
+<div class="nav1">
+  <div class="container-nav">
+    <div class="logo">
+      <a class="active" href="{{ i18n.url(nav1.routes.home) }}">
+        <img src="/assets/logos/molushop-on-green.svg" alt="Molushop" />
+      </a>
+    </div>
+    {# Un GET normal a /search (con hx-boost, sin recargar): funciona igual sin JS.
+       Mientras se escribe, el input pide sugerencias y las pinta en #nav1-suggestions
+       (nav1_search, script.js: abrir, cerrar y las flechas del teclado). #}
+    <div class="search-bar">
+      <form action="{{ i18n.url(nav1.routes.search) }}" method="get" role="search">
+        <div class="search-box-container">
+          <input type="search" name="q" value="{{nav1.search}}" placeholder="{{ i18n.t("nav-search-placeholder") }}" aria-label="{{ i18n.t("nav-search-label") }}" maxlength="100" enterkeyhint="search"
+            autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="nav1-suggestions"
+            hx-get="{{nav1.routes.suggestions}}"
+            hx-trigger="input changed delay:250ms[this.value.trim().length >= 2]"
+            hx-target="#nav1-suggestions"
+            hx-sync="this:replace">
+          <button type="submit" class="search-icon" aria-label="{{ i18n.t("nav-search-submit") }}">
+            <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
+          </button>
+        </div>
+      </form>
+      <div id="nav1-suggestions" class="nav1-suggestions" hidden></div>
+    </div>
+    <div class="right-block">
+      <div class="cart">
+        <a class="cart-icon" href="{{ i18n.url(nav1.routes.cart) }}" aria-label="{{ i18n.t("nav-cart") }}">
+          <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
+          {{ nav1.cart_badge() }}
+        </a>
+      </div>
+      <div class="profile">
+        <button type="button" class="user-icon" aria-label="{{ i18n.t("nav-profile") }}" aria-haspopup="true" aria-expanded="false" aria-controls="profile-menu">
+          <p>{{nav1.name}}</p>
+          <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-user" /></svg>
+        </button>
+        <div id="profile-menu" class="profile-menu" hidden>
+          {% if nav1.logged %}
+          <ul class="profile-menu-list">
+            <li><a href="{{ i18n.url(nav1.routes.orders) }}">{{ i18n.t("nav-orders") }}</a></li>
+            <li><a href="{{ i18n.url(nav1.routes.favorites) }}">{{ i18n.t("nav-favorites") }}</a></li>
+            <li><a href="{{ i18n.url(nav1.routes.account) }}">{{ i18n.t("nav-account") }}</a></li>
+          </ul>
+          <button type="button" class="profile-menu-logout"
+            hx-post="{{nav1.routes.logout}}"
+            hx-target="body"
+            hx-target-5*="body"
+            hx-swap="beforeend"
+          >{{ i18n.t("nav-logout") }}</button>
+          {% else %}
+          <button type="button" class="profile-menu-login open-login-modal">{{ i18n.t("nav-login") }}</button>
+          <button type="button" class="profile-menu-register open-register-modal">{{ i18n.t("nav-register") }}</button>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

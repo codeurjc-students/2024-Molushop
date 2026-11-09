@@ -7,141 +7,130 @@
 
 {% let routes = routes_edit_product %}
 
-<div class="variation-edit-container" id="{{id}}" 
-    _="on load log 'revisar'
-    js(me) 
+<div class="m-card variation-edit-container" id="{{id}}" 
+    _="on load
+    js(me,event)
+        if (event.target !== me) return;
         edit_variation.init_edit_variation(me);
     end 
     on variation_update 
     js(me,event)
-        edit_variation.change_status(me,event);
+        edit_variation.update_row(me,event);
     end end"
     
     >
-    <!-- Sidebar de navegación -->
+    <div class="variation-head">
+        <h3 class="variation-head__title">Editando variación:
+            {% for attribute in general.attributes %}{% if !loop.first %} · {% endif %}{{attribute.value}}{% endfor %}
+        </h3>
+        <button type="button" class="m-btn m-btn--ghost m-btn--sm"
+            _="on click js(me) variationsExplorer.closeEditor(me) end end">Cerrar</button>
+    </div>
+
+    <!-- Pestañas -->
     <nav class="sidebar">
         <ul class="nav-list">
-            <li class="nav-item active" data-tab="general">GENERAL</li>
-            <li class="nav-item" data-tab="price">PRICE</li>
-            <li class="nav-item" data-tab="identifiers">IDENTIFIERS</li>
-            <li class="nav-item" data-tab="inventory">INVENTORY</li>
+            <li class="nav-item active" data-tab="ev-general">General</li>
+            <li class="nav-item" data-tab="ev-price">Precio</li>
+            <li class="nav-item" data-tab="ev-identifiers">Identificadores</li>
+            <li class="nav-item" data-tab="ev-inventory">Stock</li>
         </ul>
     </nav>
 
     <!-- Contenido de las pestañas -->
     <div class="tab-content">
         <!-- Pestaña General -->
-        <div class="tab-pane active" id="general">
+        <div class="tab-pane active" id="ev-general">
             <form hx-post="{{routes.edit_general}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
-                class="general-form" id="generalForm">
-                <div class="form-group">
-                    <label>Nombre</label>
-                    <p>{{general.name}}</p>
-                </div>
-                <div class="form-group">
-                    <label>Attributes</label>
-                    <div class="attributes-container">
-                        {%for attribute in general.attributes%}
-                        <div class="attribute-row">
-                            <!-- Campo oculto para enviar el nombre -->
-                            <input type="hidden" 
-                            name="attributes[{{loop.index0}}][name]" 
-                            value="{{attribute.name}}">
-                            
-                            <!-- Texto visible para mostrar el nombre -->
-                            <div class="attribute-label">{{attribute.name}}:</div> 
-                            <select name="attributes[{{loop.index0}}][value]" class="form-control">
-                                <option value="red">{{attribute.value}}</option>
-                                <!-- más opciones -->
-                            </select>
-                        </div>
-                        {%endfor%}
+                class="general-form">
+                {# Los atributos no se cambian una vez creada la variación: si uno está
+                   mal, se desactiva esta y se crea otra. #}
+                {% if !general.attributes.is_empty() %}
+                <dl class="variation-attributes">
+                    {% for attribute in general.attributes %}
+                    <div>
+                        <dt class="m-label">{{attribute.name}}</dt>
+                        <dd>{{attribute.value}}</dd>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select class="form-control" name="status">
-                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Active</option>
-                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactive</option>
+                    {% endfor %}
+                </dl>
+                {% endif %}
+                <div class="m-field form-group">
+                    <label class="m-label">Estado</label>
+                    <select class="m-input" name="status">
+                        <option value="1" {% if general.status == 1 %}selected{% endif %}>Activo</option>
+                        <option value="2" {% if general.status == 2 %}selected{% endif %}>Inactivo</option>
                         <option value="0" {% if general.status == 0 %}selected{% endif %}>Draft</option>
                     </select>
                 </div>
-                <!-- resto del formulario -->
+                {# Las reglas las comprueba el servidor (sku_service::normalize_sku);
+                   pattern y maxlength solo avisan antes de mandar. Mientras se
+                   escribe, el servidor dice si vale o si ya lo tiene otra
+                   variación (sku-check, SkuCheck) en el hueco de debajo:
+                   400 ms sin teclear, y una respuesta vieja no pisa a la nueva. #}
+                <div class="m-field form-group">
+                    <label class="m-label" for="ev-sku-{{variation.id}}">SKU</label>
+                    <input id="ev-sku-{{variation.id}}" class="m-input" name="sku" type="text" value="{{general.sku}}"
+                        maxlength="64" pattern="[A-Za-z0-9._\-]*" autocomplete="off" spellcheck="false"
+                        placeholder="CORT-VER-S"
+                        aria-describedby="ev-sku-check-{{variation.id}}"
+                        hx-get="{{routes.sku_check}}/{{variation.id}}"
+                        hx-trigger="input changed delay:400ms"
+                        hx-sync="this:replace"
+                        hx-target="#ev-sku-check-{{variation.id}}"
+                        hx-swap="innerHTML">
+                    <div id="ev-sku-check-{{variation.id}}" aria-live="polite"></div>
+                    <p class="m-hint">Opcional. El código interno de tu tienda para esta variación; no se puede repetir en la tienda. Letras sin tilde, números, - _ y .</p>
+                </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save General</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar</button>
                 </div>
             </form>
         </div>
 
         <!-- Pestaña Price -->
-        <div class="tab-pane" id="price">
-            <form class="price-form" id="priceForm"
+        <div class="tab-pane" id="ev-price">
+            <form class="price-form"
                 hx-post="{{routes.edit_price}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
+                _="on reset wait 0s js(me) edit_variation.toggle_sale(me.querySelector('.sale-toggle')) end"
                 >
-                <div class="form-group">
-                    <label>Regular Price</label>
-                    <input type="number" class="form-control" step="0.01" name="regular" value="{{prices.actual_price}}">
+                <div class="m-field form-group">
+                    <label class="m-label">Precio (€)</label>
+                    <input type="number" class="m-input" step="0.01" min="0" name="regular" value="{{prices.actual_price}}">
                 </div>
-                <div class="form-group">
-                    <div>
+                <div class="m-field form-group">
+                    <label class="m-check">
+                        <input type="checkbox" class="sale-toggle"
+                            {% if prices.sale_active %}checked{% endif %}
+                            _="on change js(me) edit_variation.toggle_sale(me) end">
                         Habilitar oferta para el producto
-                        <input type="checkbox"  
-                        {% if prices.sale_active %}
-                            checked
-                        {%endif%} 
-                        _="on click  
-                            set container to the closest <div.form-group/>
-                            set objective to <input.discount/> in container
-                            set discountActive to the next <input/>
-                            if me.checked
-                                remove @readonly from objective
-                                set discountActive.value to 'true'
-                            else
-                                add @readonly to objective
-                                set discountActive.value to 'false'
-                        end">
-                        <input 
-                        type="hidden" name="discount_active" 
-                        {% if prices.sale_active %}
-                            value="true"
-                        {%else%}
-                            value="false"
-                        {%endif%}
-                        >    
-                    </div>
-                    <label>Sale Price</label>
+                    </label>
+                    <input type="hidden" class="sale-active" name="discount_active"
+                        value="{% if prices.sale_active %}true{% else %}false{% endif %}">
                     <input type="hidden" name="option" value="0">
-                    <input 
-                    {% if !prices.sale_active %}
-                        readonly
-                    {%endif%} 
-                    type="number" class="form-control discount" step="0.01" name="discount" value="{{prices.sale_price}}">
                 </div>
-                <!--
-                <div class="form-group">
-                    <label>Tax Class</label>
-                    <select class="form-control" name="tax_class">
-                        <option value="standard">Standard</option>
-                        <option value="reduced">Reduced Rate</option>
-                        <option value="zero">Zero Rate</option>
-                    </select>
-                </div> -->
+                <div class="m-field form-group">
+                    <label class="m-label">Precio de oferta (€)</label>
+                    <input type="number" class="m-input sale-price" step="0.01" min="0" name="discount"
+                        {% if !prices.sale_active %}readonly{% endif %}
+                        value="{{prices.sale_price}}">
+                </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Pricing</button>
-                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar precio</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
                 </div>
             </form>
         </div>
 
         <!-- Pestaña Identifiers Para actualizar hay que hacerlo en forma de json-->
-        <div class="tab-pane" id="identifiers">
-            <form class="identifiers-form" id="identifiersForm"
+        <div class="tab-pane" id="ev-identifiers">
+            <form class="identifiers-form"
                 hx-post="{{routes.edit_identifiers}}/{{variation.id}}"
                 hx-target="body"
                 hx-swap="beforeend"
@@ -154,7 +143,7 @@
                     {% include "components/edit_product_variation/templates/identifier.html"%}
                 {% endfor %}
                 <div>
-                    <button
+                    <button type="button" class="m-btn m-btn--secondary"
                         hx-get="{{routes.new_identifier}}"
                         hx-target="closest div"
                         hx-swap="beforebegin"
@@ -163,43 +152,29 @@
                         js(myForm)
                             edit_variation.editNamesIdentifiers(myForm)
                         end end"
-                    >Add identifier</button>
+                    >Añadir identificador</button>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Identifiers</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar identificadores</button>
                 </div>
             </form>
         </div>
         <!-- Pestaña Inventory -->
-        <div class="tab-pane" id="inventory">
-            <form class="inventory-form" id="inventoryForm"
+        <div class="tab-pane" id="ev-inventory">
+            <form class="inventory-form"
                 hx-post="{{routes.edit_stock}}/{{variation.id}}" 
                 hx-target="body"
                 hx-swap="beforeend"
                 hx-ext="json-enc-custom"
             >
-                <div class="form-group">
-                    <label>Stock Quantity</label>
-                    <input type="number" class="form-control" name="stock" value="{{stock.number}}">
+                <div class="m-field form-group">
+                    <label class="m-label">Unidades en stock</label>
+                    <input type="number" class="m-input" min="0" step="1" name="stock" value="{{stock.number}}">
                 </div>
-                <!--
-                <div class="form-group">
-                    <label>Stock Status</label>
-                    <select class="form-control" name="stock_status">
-                        <option value="in_stock">In stock</option>
-                        <option value="out_of_stock">Out of stock</option>
-                        <option value="on_backorder">On backorder</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Low Stock Threshold</label>
-                    <input type="number" class="form-control" name="low_stock_threshold">
-                </div> 
-                -->
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save Inventory</button>
-                    <button type="reset" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="m-btn m-btn--primary">Guardar stock</button>
+                    <button type="reset" class="m-btn m-btn--secondary">Deshacer cambios</button>
                 </div>
             </form>
         </div>

@@ -1,0 +1,53 @@
+{% extends "layouts/shop.html" %}
+{# Búsqueda de la tienda (SearchPage). Su CSS lo carga layouts/shop.html.
+   Las categorías son enlaces normales: con hx-boost cambian la URL sin recargar. #}
+{# El título, para el <title> y el <h1>. #}
+{% macro search_title() %}
+{%- if let Some(q) = query -%}
+    {%- if let Some(name) = category -%}{{ i18n.t2("search-title-query-category", "q", q, "category", name) }}{%- else -%}{{ i18n.t1("search-title-query", "q", q) }}{%- endif -%}
+{%- else if let Some(name) = category -%}{{name}}
+{%- else -%}{{ i18n.t("all-products") }}
+{%- endif -%}
+{% endmacro %}
+{% block title %}{% call search_title() %}{% endcall %} | Molushop{% endblock %}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <section class="search-page">
+        {% if !breadcrumb.is_empty() %}
+        <nav class="search-breadcrumb" aria-label="{{ i18n.t("search-breadcrumb-label") }}">
+            <ol>
+                {% for crumb in breadcrumb %}
+                {% if loop.last %}
+                <li aria-current="page">{{crumb.name}}</li>
+                {% else %}
+                <li><a href="{{ i18n.url(crumb.url) }}">{{crumb.name}}</a></li>
+                {% endif %}
+                {% endfor %}
+            </ol>
+        </nav>
+        {% endif %}
+        <h1 class="search-title">{% call search_title() %}{% endcall %}</h1>
+        {% if let Some(url) = clear_query_url %}
+        <a class="search-clear" href="{{ i18n.url(url) }}">{{ i18n.t("search-clear-query") }}</a>
+        {% endif %}
+        {% if !categories.is_empty() %}
+        <nav class="search-categories" aria-label="{{ i18n.t("search-filter-label") }}">
+            <ul>
+                {% for category in categories %}
+                <li><a class="search-chip" href="{{ i18n.url(category.url) }}">{{category.name}} <span class="search-chip__count">{{category.products}}</span></a></li>
+                {% endfor %}
+            </ul>
+        </nav>
+        {% endif %}
+    </section>
+    {% if has_results %}
+    {{results|safe}}
+    {% else %}
+    <section class="search-empty m-card">
+        <svg class="icn-svg search-empty__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
+        <h2>{{ i18n.t("search-empty-title") }}</h2>
+        <p>{{ i18n.t("search-empty-text") }}</p>
+        <a href="{{ i18n.url(nav1.routes.search) }}" class="m-btn m-btn--primary">{{ i18n.t("see-all-products") }}</a>
+    </section>
+    {% endif %}
+{% endblock %}

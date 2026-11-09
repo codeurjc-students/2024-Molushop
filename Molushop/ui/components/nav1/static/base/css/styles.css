@@ -1,0 +1,382 @@
+/* Barra de la tienda, mobile-first.
+   Verde de la marca, con el logo en su versión para fondo verde (negro con
+   halo verde claro, molushop-on-green.svg):
+   el verde sobre verde solo se leía por el contorno.
+   Móvil: logo y botones arriba, el buscador debajo a todo el ancho; el nombre
+   del usuario no cabe y se queda solo el icono.
+   Desde 600px: todo en una fila y el nombre al lado del icono. */
+.nav1 {
+  background-color: var(--color-primary);
+  color: var(--color-on-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  .container-nav{
+    width: 100%;
+    max-width: 70rem;
+    box-sizing: border-box;
+    padding: var(--space-2) var(--space-3);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2) var(--space-3);
+  }
+
+  .logo{
+    a.active{
+      display: block;
+      width: 8em;
+
+      img{
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+  }
+
+  .search-bar{
+    position: relative;
+    order: 3;
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+
+    form{
+      display: flex;
+      flex-direction: row;
+      width: 100%;
+    }
+    .search-box-container{
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      height: 1.5em;
+      padding: 5px 5px 5px var(--space-3);
+      border: 1px solid transparent;
+      border-radius: var(--radius-md);
+      background-color: var(--color-bg);
+      input{
+        border: none;
+        outline: none;
+        background-color: transparent;
+        width: 100%;
+      }
+    }
+    .search-box-container:focus-within{
+      border-color: var(--color-primary-strong);
+    }
+    .search-icon {
+      display: flex;
+      flex-shrink: 0;
+      width: 26px;
+      height: 26px;
+      padding: 0;
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+      svg {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .search-icon:hover {
+      opacity: 0.8;
+    }
+  }
+
+  /* Sugerencias del buscador: caja flotante bajo el input, de su mismo ancho
+     (en móvil, el de la pantalla). La opción activa con las flechas se marca
+     igual que al pasar el ratón. */
+  .nav1-suggestions{
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 0;
+    right: 0;
+    z-index: 100;
+    max-height: 70vh;
+    overflow-y: auto;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+  }
+  .nav1-suggestions[hidden]{
+    display: none;
+  }
+  .nav1-suggest{
+    padding: var(--space-2) 0;
+  }
+  .nav1-suggest__title{
+    margin: var(--space-2) var(--space-3) var(--space-1);
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .nav1-suggest__item{
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text);
+    text-decoration: none;
+  }
+  .nav1-suggest__item:hover,
+  .nav1-suggest__item[aria-selected="true"]{
+    background-color: var(--color-bg-soft);
+  }
+  .nav1-suggest__icon{
+    flex-shrink: 0;
+    width: 1.25rem;
+    height: 1.25rem;
+  }
+  .nav1-suggest__image{
+    flex-shrink: 0;
+    width: 2.5rem;
+    height: 2.5rem;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+  }
+  .nav1-suggest__name{
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .nav1-suggest__meta{
+    flex-shrink: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+  }
+  .nav1-suggest__all{
+    margin-top: var(--space-2);
+    border-top: 1px solid var(--color-border);
+    font-weight: var(--font-weight-medium);
+  }
+  .nav1-suggest__empty{
+    margin: 0;
+    padding: var(--space-2) var(--space-3);
+    color: var(--color-text-muted);
+  }
+
+  .right-block{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--space-2);
+  }
+
+  .cart{
+    position: relative;
+    width: 2.5em;
+    height: 2.5em;
+    a.cart-icon{
+      display: block;
+      width: 100%;
+      height: 100%;
+      svg{
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+    }
+    .cart-badge{
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background-color: var(--color-danger);
+      color: var(--color-text-invert);
+      border-radius: 50%;
+      width: 1.3em;
+      height: 1.3em;
+      font-size: 0.75em;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      pointer-events: none;
+    }
+    /* Al añadir desde la ficha: el número da un bote (el toast sale abajo y
+       así se ve también arriba que ha cambiado) */
+    .cart-badge.is-bumped{
+      animation: cart-badge-bump 300ms ease;
+    }
+  }
+
+  .profile{
+    position: relative;
+  }
+  .user-icon{
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
+    min-width: 2.5em;
+    height: 2.5em;
+    padding: 0;
+    border: none;
+    background-color: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    p{
+      display: none;
+      margin: 0;
+    }
+    svg{
+      display: block;
+      flex-shrink: 0;
+      width: 2.5em;
+      height: 100%;
+    }
+  }
+
+  /* Iconos de la barra (sprite full.svg, de trazo): del color del logo */
+  .icn-svg{
+    color: var(--color-text);
+  }
+
+  /* Menú flotante del icono de perfil */
+  .profile-menu{
+    position: absolute;
+    top: calc(100% + 0.5em);
+    right: 0;
+    z-index: 100;
+    min-width: 14em;
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+  }
+  /* Sin esto el display:flex de arriba le gana al atributo hidden */
+  .profile-menu[hidden]{
+    display: none;
+  }
+  .profile-menu-login{
+    padding: 0.7em 1em;
+    border: none;
+    border-radius: var(--radius-pill);
+    background-color: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .profile-menu-register{
+    border: none;
+    background-color: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+    cursor: pointer;
+  }
+  .profile-menu-list{
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    a{
+      display: block;
+      padding: 0.5em;
+      border-radius: var(--radius-sm);
+      color: var(--color-text);
+      text-decoration: none;
+    }
+    a:hover{
+      background-color: var(--color-bg-soft);
+    }
+  }
+  .profile-menu-logout{
+    padding: 0.5em;
+    border: none;
+    border-top: 1px solid var(--color-border);
+    background-color: transparent;
+    color: var(--color-text-muted);
+    font-size: 0.9em;
+    text-align: left;
+    cursor: pointer;
+  }
+  .profile-menu-logout:hover{
+    color: var(--color-text);
+  }
+}
+
+@media (min-width: 600px) {
+  .nav1 {
+    .container-nav{
+      flex-wrap: nowrap;
+      gap: var(--space-4);
+      padding: var(--space-2) var(--space-4);
+    }
+    .logo a.active{
+      width: 10em;
+    }
+    .search-bar{
+      order: 0;
+      flex: 1 1 auto;
+      max-width: 40em;
+    }
+    .right-block{
+      gap: var(--space-3);
+    }
+    .cart,
+    .user-icon{
+      height: 3em;
+    }
+    .cart{
+      width: 3em;
+    }
+    .user-icon{
+      min-width: 3em;
+      p{
+        display: block;
+      }
+      svg{
+        width: 3em;
+      }
+    }
+  }
+}
+
+@keyframes cart-badge-bump {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cart-badge.is-bumped { animation: none; }
+}
+
+/* Cabecera de la tienda que se esconde al bajar y vuelve al subir
+   (nav1_headroom, script.js): sticky arriba y, con .is-hidden, fuera de la
+   pantalla. Por debajo de los modales (1000) y de los toasts (1100).
+   Con el foco dentro (tabulando) se ve siempre. */
+.full-width-header:has(> .nav1) {
+  position: sticky;
+  top: 0;
+  z-index: 900;
+  transition: transform 200ms ease;
+}
+
+.full-width-header.is-hidden:not(:focus-within) {
+  transform: translateY(-100%);
+}
+
+/* Un salto a un ancla (#...) no queda debajo de la cabecera */
+html:has(.nav1) {
+  scroll-padding-top: var(--header-height, 0px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .full-width-header:has(> .nav1) { transition: none; }
+}

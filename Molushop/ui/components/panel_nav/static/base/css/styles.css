@@ -1,0 +1,499 @@
+/* Barra del panel, mobile-first.
+   Móvil: arriba "Panel" y el botón Menú; debajo, los enlaces en una fila que
+   se desliza de lado; el bloque de la derecha (usuario, Solicitar tienda,
+   Ver tienda, Cerrar sesión) va plegado y lo abre el botón Menú.
+   Desde 900px: todo en una fila, como siempre, y sin botón Menú. */
+.panel-nav {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: 24px;
+    padding: 0 var(--space-3);
+    min-height: 56px;
+    background: var(--color-bg-inverse);
+    color: var(--color-text-invert);
+}
+
+.panel-nav a {
+    color: var(--color-text-invert-muted);
+    text-decoration: none;
+}
+
+.panel-nav a:hover {
+    color: var(--color-text-invert);
+}
+
+.panel-nav-brand {
+    font-weight: 700;
+    font-size: 1.1rem;
+    line-height: 56px;
+    color: var(--color-text-invert) !important;
+}
+
+/* Botón Menú (solo móvil): tres rayas dibujadas con bordes */
+.panel-nav-menu {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-left: auto;
+    padding: 6px 10px;
+    border: 1px solid var(--color-border-inverse);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--color-text-invert);
+    font: inherit;
+    cursor: pointer;
+}
+
+.panel-nav-menu-icon,
+.panel-nav-menu-icon::before,
+.panel-nav-menu-icon::after {
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: currentColor;
+}
+
+.panel-nav-menu-icon {
+    position: relative;
+}
+
+.panel-nav-menu-icon::before,
+.panel-nav-menu-icon::after {
+    content: "";
+    position: absolute;
+    left: 0;
+}
+
+.panel-nav-menu-icon::before { top: -5px; }
+.panel-nav-menu-icon::after  { top: 5px; }
+
+.panel-nav-menu[aria-expanded="true"] {
+    border-color: var(--color-text-invert-muted);
+}
+
+/* Enlaces: en móvil, una fila a todo el ancho que se desliza de lado */
+.panel-nav-links {
+    order: 3;
+    flex-basis: 100%;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    list-style: none;
+    margin: 0 calc(-1 * var(--space-3));
+    padding: 0 var(--space-3);
+    overflow-x: auto;
+    scrollbar-width: none;
+    border-top: 1px solid var(--color-border-inverse);
+}
+
+.panel-nav-links::-webkit-scrollbar {
+    display: none;
+}
+
+.panel-nav-links li {
+    flex-shrink: 0;
+}
+
+.panel-nav-links a {
+    display: block;
+    padding: 12px 10px;
+    border-bottom: 3px solid transparent;
+    white-space: nowrap;
+}
+
+.panel-nav-links a.active {
+    color: var(--color-text-invert);
+    border-bottom-color: var(--color-primary);
+}
+
+.panel-nav-store {
+    padding: 12px 10px 12px 0;
+    margin-right: 4px;
+    border-right: 1px solid var(--color-border-inverse);
+    color: var(--color-text-invert);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Desplegable de tiendas, cuando hay más de una: sobre la barra oscura */
+.panel-nav-store-select {
+    padding: 4px 8px;
+    border: 1px solid var(--color-border-inverse);
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-inverse);
+    color: var(--color-text-invert);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.panel-nav-store-select:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.panel-nav-store:has(.panel-nav-store-select) {
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
+
+/* Bloque de la derecha: en móvil, plegado debajo de todo hasta pulsar Menú */
+.panel-nav-right {
+    order: 4;
+    flex-basis: 100%;
+    display: none;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--color-border-inverse);
+}
+
+.panel-nav:has(.panel-nav-menu[aria-expanded="true"]) .panel-nav-right {
+    display: flex;
+}
+
+.panel-nav-user {
+    flex-basis: 100%;
+    color: var(--color-text-invert);
+    font-weight: 600;
+}
+
+.panel-nav-role {
+    margin-left: 4px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--color-primary);
+    color: var(--color-on-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.panel-nav-logout {
+    background: transparent;
+    color: var(--color-text-invert-muted);
+    border: 1px solid var(--color-border-inverse);
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font: inherit;
+}
+
+.panel-nav-logout:hover {
+    color: var(--color-text-invert);
+    border-color: var(--color-text-invert-muted);
+}
+
+@media (min-width: 900px) {
+    .panel-nav {
+        flex-wrap: nowrap;
+        padding: 0 24px;
+    }
+
+    .panel-nav-menu {
+        display: none;
+    }
+
+    .panel-nav-links {
+        order: 0;
+        flex: 1;
+        flex-basis: auto;
+        flex-wrap: wrap;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+        border-top: 0;
+    }
+
+    .panel-nav-links a {
+        padding: 18px 12px;
+    }
+
+    .panel-nav-store {
+        padding: 18px 12px 18px 16px;
+        margin: 0 0 0 8px;
+        border-right: 0;
+        border-left: 1px solid var(--color-border-inverse);
+    }
+
+    .panel-nav-store:has(.panel-nav-store-select) {
+        padding-top: 12px;
+        padding-bottom: 12px;
+    }
+
+    .panel-nav-right,
+    .panel-nav:has(.panel-nav-menu[aria-expanded="true"]) .panel-nav-right {
+        order: 0;
+        flex-basis: auto;
+        display: flex;
+        flex-wrap: nowrap;
+        padding: 0;
+        border-top: 0;
+        white-space: nowrap;
+    }
+
+    .panel-nav-user {
+        flex-basis: auto;
+    }
+}
+
+/* Portadas de /panel y /admin */
+.panel-home {
+    max-width: 960px;
+    margin: 24px auto;
+    padding: 0 var(--space-4);
+}
+
+.panel-home-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 24px;
+}
+
+/* La caja es del átomo m-card (m-card--link en las tiendas que se pueden abrir) */
+.panel-home-card h2 {
+    margin: 0 0 8px;
+    font-size: 1.1rem;
+}
+
+.panel-home-card p {
+    margin: 0;
+    color: var(--color-text-muted);
+}
+
+.m-card.panel-home-card-disabled {
+    background-color: var(--color-bg-soft);
+    color: var(--color-text-muted);
+}
+
+/* El aspecto es del átomo m-alert; aquí solo la separación */
+.m-alert.panel-home-note {
+    margin-top: 24px;
+}
+
+/* /admin/stores */
+.admin-stores {
+    max-width: 1100px;
+}
+
+/* La caja es del átomo m-card; aquí solo la separación */
+.m-card.admin-box {
+    margin: 24px 0;
+}
+
+.admin-box h2 {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+}
+
+.admin-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 12px;
+}
+
+.admin-form-inline {
+    margin-top: 8px;
+    gap: 6px;
+}
+
+.admin-form-inline input[type="text"] {
+    width: 130px;
+}
+
+.admin-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* El aspecto es de los átomos m-hint y m-alert; aquí solo la separación */
+.m-hint.admin-hint {
+    margin: 8px 0 0;
+}
+
+.m-alert.admin-msg {
+    margin: 16px 0;
+}
+
+/* Tablas del panel (tiendas, pedidos y detalle de un pedido). Mobile-first:
+   en móvil cada fila es una tarjeta de dos columnas; arriba el título
+   (.admin-table__title) y el estado (.admin-table__status), y cada celda con
+   su etiqueta encima (data-label). Las listas y las acciones, a todo el ancho
+   (.admin-table__wide, .admin-table__actions). Desde 900px, tabla normal.
+   Los role de las plantillas hacen que los lectores de pantalla la sigan
+   leyendo como tabla aunque cambie el display. */
+.admin-table {
+    display: block;
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* La cabecera no se ve en las tarjetas (cada celda lleva su etiqueta), pero
+   sigue ahí para los lectores de pantalla */
+.admin-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+}
+
+.admin-table tbody {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-table tr {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px 16px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+}
+
+.admin-table td {
+    display: block;
+    min-width: 0;
+    padding: 0;
+    overflow-wrap: anywhere;
+}
+
+.admin-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    margin-bottom: 2px;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.admin-table .admin-table__title {
+    grid-column: 1;
+    font-weight: 600;
+}
+
+/* Arriba a la derecha, aunque en la fila vaya más tarde */
+.admin-table .admin-table__status {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+}
+
+.admin-table .admin-table__wide {
+    grid-column: 1 / -1;
+}
+
+.admin-table .admin-table__actions {
+    grid-column: 1 / -1;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+
+/* Una línea sin nada que hacer (entregada, cancelada): sin la franja vacía */
+.admin-table .admin-table__actions:not(:has(button)) {
+    display: none;
+}
+
+.admin-members {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-members li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.admin-members form {
+    display: inline;
+}
+
+.admin-delete {
+    margin-top: 8px;
+}
+
+/* Pedidos del panel */
+.panel-order-address {
+    font-style: normal;
+    line-height: 1.5;
+}
+
+.panel-orders .admin-box h2 + p,
+.panel-orders .admin-box address {
+    margin: 0 0 12px;
+}
+
+.panel-order-total {
+    margin-top: 16px;
+    text-align: right;
+}
+
+@media (min-width: 600px) {
+    .panel-home {
+        margin: 32px auto;
+        padding: 0 24px;
+    }
+}
+
+@media (min-width: 900px) {
+    .admin-table {
+        display: table;
+        background: var(--color-bg);
+    }
+    .admin-table thead {
+        display: table-header-group;
+        position: static;
+        width: auto;
+        height: auto;
+        margin: 0;
+        overflow: visible;
+        clip: auto;
+        white-space: normal;
+    }
+    .admin-table tbody {
+        display: table-row-group;
+    }
+    .admin-table tr {
+        display: table-row;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: none;
+    }
+    .admin-table th,
+    .admin-table td {
+        display: table-cell;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--color-border);
+        text-align: left;
+        vertical-align: top;
+    }
+    .admin-table th {
+        background: var(--color-bg-soft);
+        font-size: 0.85rem;
+    }
+    .admin-table td[data-label]::before {
+        content: none;
+    }
+    .admin-table .admin-table__title {
+        font-weight: normal;
+    }
+    .admin-table .admin-table__actions {
+        padding-top: 10px;
+        border-top: 0;
+    }
+    .admin-table .admin-table__actions:not(:has(button)) {
+        display: table-cell;
+    }
+}

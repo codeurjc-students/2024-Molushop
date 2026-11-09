@@ -1,0 +1,11 @@
+{% extends "layouts/shop.html" %}
+{# 404 de la tienda (NotFoundPage). Su CSS lo carga layouts/shop.html. #}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <section class="not-found m-card">
+        <svg class="icn-svg not-found__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
+        <h1>{{title}}</h1>
+        <p>{{message}}</p>
+        <a href="{{ i18n.url(nav1.routes.home) }}" class="m-btn m-btn--primary">{{ i18n.t("see-all-products") }}</a>
+    </section>
+{% endblock %}

@@ -1,0 +1,156 @@
+/* Tarjeta de producto, mobile-first: en móvil van dos por fila, así que
+   la información y el botón son más compactos; desde 600px, a tamaño normal. */
+
+/* Estilos generales para la tarjeta del producto */
+.product-card {
+    border: 1px solid var(--color-border); /* Borde suave alrededor de la tarjeta */
+    border-radius: var(--radius-md); /* Esquinas redondeadas */
+    overflow: hidden; /* Asegura que el contenido no se salga de las esquinas redondeadas */
+    box-shadow: var(--shadow-md); /* Sombra sutil para un efecto 3D */
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Transición suave al pasar el ratón */
+    max-width: 300px; /* Ancho máximo de la tarjeta para diseño responsivo */
+    /*margin: 15px;  Margen exterior para separar las tarjetas si hay varias */
+    background-color: var(--color-bg); /* Fondo blanco */
+    display: flex; /* Usamos flexbox para organizar el contenido */
+    flex-direction: column; /* Apila los elementos verticalmente */
+    position: relative; /* Para el corazón de favoritos, en la esquina */
+}
+
+/* Ya no se vende (solo en "Mis favoritos"): sin enlace, la foto en gris y sin
+   el levantamiento al pasar el ratón. El corazón sigue igual para quitarlo. */
+.product-card.is-unavailable:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+}
+
+.product-card.is-unavailable img {
+    filter: grayscale(1);
+    opacity: 0.6;
+}
+
+/* Corazón de favoritos (favorite_button) sobre la esquina de la imagen. Va
+   fuera del enlace a la ficha; aquí, redondo, más pequeño y con sombra para
+   que se vea sobre cualquier foto. */
+.product-card__fav {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--space-2);
+    z-index: 1;
+}
+
+.product-card__fav .fav-btn {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1.1rem;
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-sm);
+}
+
+.product-card:hover {
+    transform: translateY(-5px); /* Pequeño levantamiento al pasar el ratón */
+    box-shadow: var(--shadow-lg); /* Sombra más pronunciada al pasar el ratón */
+}
+
+/* Estilos para el enlace principal de la tarjeta */
+.product-card .link {
+    text-decoration: none; /* Quita el subrayado del enlace */
+    color: inherit; /* Hereda el color del texto de su padre */
+    display: flex; /* Para que la imagen y la info se organicen bien */
+    flex-direction: column;
+    height: 100%; /* Asegura que el enlace ocupe todo el espacio de la tarjeta */
+}
+
+/* Estilos para la imagen del producto */
+/* Cuadrada y entera (contain): las fotos de producto no se recortan, y la
+   tarjeta no depende del alto de su contenedor. */
+.product-card img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background-color: var(--color-bg);
+    border-bottom: 1px solid var(--color-border); /* Borde inferior para separar de la info */
+}
+
+/* Estilos para el contenedor de información del producto */
+.product-card .producto-info {
+    padding: var(--space-3); /* Espaciado interno */
+    flex-grow: 1; /* Permite que este contenedor crezca y ocupe el espacio disponible */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Empuja las acciones al final */
+}
+
+/* Estilos para el título del producto */
+.product-card .producto-titulo {
+    font-size: 1em; /* Tamaño de fuente del título */
+    margin-top: 0; /* Elimina margen superior por defecto */
+    margin-bottom: 10px; /* Margen inferior para separar del precio */
+    font-weight: 600; /* Texto más negrita */
+}
+
+.product-card .producto-titulo a {
+    text-decoration: none; /* Quita el subrayado del enlace en el título */
+    color: var(--color-text); /* Color oscuro para el título */
+    transition: color 0.2s ease; /* Transición suave para el color del título */
+}
+
+.product-card .producto-titulo a:hover {
+    color: var(--color-primary-strong); /* Cambia el color al pasar el ratón */
+}
+
+/* Estrellas de la media y número de opiniones */
+.product-card .producto-valoracion {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    min-height: 16px; /* el alto de m-stars--sm, haya opiniones o no */
+    margin-bottom: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+/* Estilos para el precio del producto */
+.product-card .producto-precio {
+    font-size: 1.1em; /* Tamaño de fuente del precio */
+    color: var(--color-primary-strong); /* Verde de la marca para el precio */
+    font-weight: 700; /* Precio más negrita */
+    margin-bottom: 15px; /* Margen inferior para separar de las acciones */
+}
+
+/* Sin precio: no se vende; en gris y sin botón debajo. El margen automático
+   lo deja a la altura del precio de las demás tarjetas, no abajo del todo. */
+.product-card .producto-precio.is-unavailable {
+    margin-bottom: auto;
+    color: var(--color-text-muted);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Estilos para el contenedor de acciones (botón) */
+.product-card .producto-acciones {
+    margin-top: auto; /* Empuja las acciones al final del contenedor */
+    text-align: center; /* Centra el botón */
+}
+
+/* Estilos para el botón de añadir al carrito: en móvil, el texto no cabe
+   con el relleno normal del átomo */
+.product-card .producto-acciones .m-btn {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+    font-size: var(--font-size-sm);
+}
+
+@media (min-width: 600px) {
+    .product-card .producto-info {
+        padding: 15px;
+    }
+    .product-card .producto-titulo {
+        font-size: 1.2em;
+    }
+    .product-card .producto-acciones .m-btn {
+        padding-left: var(--space-4);
+        padding-right: var(--space-4);
+        font-size: var(--font-size-md);
+    }
+}
+

@@ -5,16 +5,15 @@ use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-use crate::controllers::createProduct::product;
-//use crate::models::components::edit_product_variation_model::{ProductVariationEdit,General,Attribute,Prices,Identifier,Identifiers};
 use crate::models::components::edit_product_variation_model::*;
-use crate::services::servicesX::{get_discount_variation,get_stock_variation,get_identifier_options_var,get_product_variation,get_variation_price,get_variation_identifiers};
+use crate::services::price_service::{get_variation_discount, get_variation_price};
+use crate::services::variation_service::{get_variation_stock, get_identifier_options, get_product_variation, get_variation_identifiers};
 use bigdecimal::BigDecimal;
 
 //hacer un vec de variations
  
-pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariationEdit,Error>{
-    //añadir verificación que el producto tenga asociado el usuario!!!
+/// No comprueba propiedad: el handler llama antes a `can_edit_variation`.
+pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariationEdit,Error>{
 
     //primero obtener la variación //se va a obtener a partir del id de la variación directamente
     //va a ser editable por el usuario --> que el usuario
@@ -37,7 +36,8 @@ pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<P
         //el nombre tiene que ser la combianción de atributos
         name,
         attributes,
-        status : product_var.status
+        status : product_var.status,
+        sku: product_var.sku.unwrap_or_default(),
     };
     //obtener el precio actual de la variación a partir de el id de la variación y de su moneda, en este caso EUR
     let currency = String::from("EUR");
@@ -45,18 +45,18 @@ pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<P
     let price_base = get_variation_price(&product_var_id,&currency,&pool).await?;
     let mut sale_price= BigDecimal::from(0);
     let mut sale_active=false;
-    let discount_result  = get_discount_variation(&product_var_id, &0, &"EUR".to_string(), &pool).await;
+    let discount_result  = get_variation_discount(&product_var_id, 0, &currency, &pool).await;
     match discount_result{
         Ok(disc)=>{
             sale_price=disc.discount_value;
             sale_active=true;
         },
-        Err(e)=>{
+        Err(_e)=>{
 
         }
     }
 
-    let big_decimal_aux = BigDecimal::from(20);
+    let _big_decimal_aux = BigDecimal::from(20);
 
     let prices = Prices{
         actual_price: price_base.price,
@@ -71,22 +71,18 @@ pub async fn start(user_id:&Uuid,product_var_id:&Uuid, pool:&DbPool) -> Result<P
         .map(|a| Identifier{name:a.identifier.clone(),value:a.value.clone()})
         .collect();
 
-    let name_options = get_identifier_options_var(&pool).await?;
+    let name_options = get_identifier_options(&pool).await?;
 
     let identifiers = Identifiers{
         identifiers,
         name_options
     };
 
-    let stock_number = get_stock_variation(&product_var_id, &pool).await?;
+    let stock_number = get_variation_stock(&product_var_id, &pool).await?;
 
     let stock = Stock{
         number:stock_number
     };
-    /* E
-    let images = Images{
-        images:
-    }*/
 
     let product_variation_edit = ProductVariationEdit{
         id: product_var_id.clone(),

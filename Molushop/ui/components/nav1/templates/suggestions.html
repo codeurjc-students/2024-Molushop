@@ -1,0 +1,32 @@
+{# Sugerencias del buscador de nav1 (SearchSuggestions), dentro de #nav1-suggestions.
+   Cada opción es un enlace normal (con hx-boost, sin recargar). Las flechas del
+   teclado las recorren desde el input (nav1_search, script.js). #}
+<div class="nav1-suggest" role="listbox" aria-label="{{ i18n.t("suggest-label") }}">
+    {% if !categories.is_empty() %}
+    <div role="group" aria-label="{{ i18n.t("categories") }}">
+        <p class="nav1-suggest__title" aria-hidden="true">{{ i18n.t("categories") }}</p>
+        {% for category in categories %}
+        <a class="nav1-suggest__item" role="option" id="nav1-suggest-c{{loop.index}}" href="{{ i18n.url(category.url) }}">
+            <svg class="icn-svg nav1-suggest__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
+            <span class="nav1-suggest__name">{{category.name}}</span>
+            <span class="nav1-suggest__meta">{{category.products}}</span>
+        </a>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% if !products.is_empty() %}
+    <div role="group" aria-label="{{ i18n.t("products") }}">
+        <p class="nav1-suggest__title" aria-hidden="true">{{ i18n.t("products") }}</p>
+        {% for product in products %}
+        <a class="nav1-suggest__item" role="option" id="nav1-suggest-p{{loop.index}}" href="{{ i18n.url(product.url) }}">
+            <img class="nav1-suggest__image" src="{{product.image}}" alt="" loading="lazy">
+            <span class="nav1-suggest__name">{{product.name}}</span>
+            <span class="nav1-suggest__meta">{% if product.price.is_some() %}{{ product.price_tag().localized(i18n) }}{% else %}{{ i18n.t("card-unavailable") }}{% endif %}</span>
+        </a>
+        {% endfor %}
+    </div>
+    <a class="nav1-suggest__item nav1-suggest__all" role="option" id="nav1-suggest-all" href="{{ i18n.url(all_url) }}">{{ i18n.t1("suggest-all", "q", query) }}</a>
+    {% else if categories.is_empty() %}
+    <p class="nav1-suggest__empty">{{ i18n.t1("suggest-empty", "q", query) }}</p>
+    {% endif %}
+</div>

@@ -1,0 +1,24 @@
+{% extends "layouts/panel.html" %}
+{% block scripts %}
+    {% include "components/product_panel_group/scripts.html"%}
+    {% include "components/edit_product/scripts.html"%}
+    {% include "components/edit_product_variation/scripts.html"%}
+    {% include "components/variations_explorer/scripts.html"%}
+{% endblock%}
+{% block styles %}
+    {% include "components/product_panel_group/styles.html"%}
+    {% include "components/edit_product/styles.html"%}
+    {% include "components/edit_product_variation/styles.html"%}
+    {% include "components/variations_explorer/styles.html"%}
+    <link rel="stylesheet" href="/static/pages/panel_products/css/styles.css">
+{% endblock %}
+{% block content %}
+    <div class="panel-products">
+        <div class="panel-products__header">
+            <h1>Productos de {{store_name}}</h1>
+            <a href="/panel/stores/{{store_id}}/products/create" class="m-btn m-btn--primary">+ Añadir Producto</a>
+        </div>
+    <!--Aqui se incluyen los componentes-->
+    {% include "components/product_panel_group/templates/base.html"%}
+    </div>
+{% endblock %}

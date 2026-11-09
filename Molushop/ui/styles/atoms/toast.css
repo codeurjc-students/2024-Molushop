@@ -1,0 +1,138 @@
+/* Átomo: toast. Aviso pequeño arriba que se quita solo, para confirmar algo
+   que ya se ve (guardar en favoritos). Los errores y las preguntas siguen
+   siendo modales (modal.css).
+
+     <div id="m-toasts" class="m-toasts" aria-live="polite">   (layout1.html)
+         <div class="m-toast">
+             <span class="m-toast__text">Guardado en favoritos.</span>
+             <a class="m-toast__link" href="/favorites">Ver favoritos</a>
+             <button class="m-toast__close" aria-label="Cerrar">&times;</button>
+         </div>
+     </div>
+
+   El HTML lo pinta el struct Toast (models/components/toast.rs). Arriba y
+   centrado, debajo del nav: en móvil a todo el ancho; desde 600px, al ancho
+   de su texto. El contenedor cuelga de .m-toasts-anchor, que va justo
+   después del <header> (layout1.html).
+   Se quitan con la ×, solos a los 5 s o deslizándolos hacia un lado
+   (TOAST_SWIPE, ui/utils/base.js). */
+
+/* El ancla no mide nada y es sticky: al principio de la página está debajo
+   del nav; al bajar, se queda pegada arriba de la pantalla, debajo de la
+   cabecera si se está viendo. --header-visible-height: lo que mide la
+   cabecera de la tienda mientras se ve y 0 escondida (nav1_headroom, en el
+   script del nav1); sin ella, 0. */
+.m-toasts-anchor {
+    position: sticky;
+    top: var(--header-visible-height, 0px);
+    z-index: 1100; /* encima de los modales (1000) */
+    height: 0;
+    transition: top 200ms ease;
+}
+
+/* Crecen hacia abajo desde el ancla */
+.m-toasts {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    left: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+    pointer-events: none; /* el hueco sin avisos no tapa la página */
+}
+
+.m-toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 420px;
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    border-radius: var(--radius-md);
+    background-color: var(--color-bg-inverse);
+    box-shadow: var(--shadow-lg);
+    color: var(--color-text-invert);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-base);
+    animation: m-toast-in 200ms ease;
+    /* Deslizar: el vertical sigue siendo scroll; el horizontal es del JS */
+    touch-action: pan-y;
+    user-select: none;
+    transition: transform 200ms ease, opacity 200ms ease;
+}
+
+/* Mientras se arrastra sigue al dedo, sin transición */
+.m-toast.is-dragging {
+    transition: none;
+    cursor: grabbing;
+}
+
+.m-toast__text {
+    flex: 1;
+    min-width: 0;
+}
+
+.m-toast__link {
+    flex-shrink: 0;
+    color: var(--color-primary);
+    font-weight: 600;
+    text-decoration: none;
+}
+.m-toast__link:hover { text-decoration: underline; }
+
+/* El botón ("Deshacer") se ve como el enlace */
+.m-toast__action {
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    cursor: pointer;
+}
+
+.m-toast__close {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-pill);
+    background: none;
+    color: var(--color-text-invert-muted);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+}
+.m-toast__close:hover { color: var(--color-text-invert); }
+
+.m-toast__link:focus-visible,
+.m-toast__close:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+/* ---- Cierre ---- */
+
+.m-toast.closing { animation: m-toast-out 150ms ease forwards; }
+
+@keyframes m-toast-in  { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@keyframes m-toast-out { from { opacity: 1; } to { opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    /* Sin movimiento, pero con animación: el cierre espera su animationend */
+    .m-toast, .m-toast.closing { animation-duration: 1ms; }
+    .m-toast { transition: none; }
+    .m-toasts-anchor { transition: none; }
+}
+
+@media (min-width: 600px) {
+    .m-toast { width: auto; }
+}

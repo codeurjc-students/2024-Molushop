@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="Sin imagen">
+  <!-- Para productos sin imagen (ProductCardData). Grises de tokens.css. -->
+  <rect width="400" height="400" fill="#f3f4f6"/>
+  <g fill="none" stroke="#9ca3af" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+    <rect x="110" y="120" width="180" height="150" rx="14"/>
+    <circle cx="160" cy="170" r="16"/>
+    <path d="M120 255 l55-55 40 40 25-25 50 50"/>
+  </g>
+</svg>

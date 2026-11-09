@@ -1,0 +1,144 @@
+<div class="cart-total-1" id="cart-total-1" data-update-url="{{cart_total.routes.update}}" data-remove-url="{{cart_total.routes.remove}}" data-restore-url="{{cart_total.routes.restore}}" data-checkout-url="{{ i18n.url(cart_total.routes.checkout) }}">
+    <div class="cart-body">
+        <div class="cart-main">
+            <div class="header-container m-card">
+                <div class="header-container-title">
+                    <h1>{{ i18n.t("cart-title") }}</h1>
+                </div>
+                {% if !cart_total.items.is_empty() %}
+                <div class="header-container-bottom">
+                    <div class="checkbox-select">
+                        <label class="initial-check">
+                            <span class="checkbox1">
+                                <span class="checkbox1-circle">
+                                </span>
+                            </span>
+                            <input id="id1" class="checkbox-input select-all-input" type="checkbox" checked>
+                            <span class="checkbox-text">{{ i18n.t("cart-select-all") }}</span>
+                        </label>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="products-container m-card">
+                {% if cart_total.items.is_empty() %}
+                <div class="empty-cart">
+                    <svg class="icn-svg empty-cart__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
+                    <p class="empty-cart__title">{{ i18n.t("cart-empty-title") }}</p>
+                    <p class="m-hint">{{ i18n.t("cart-empty-text") }}</p>
+                    <a href="{{ i18n.url(cart_total.home_url()) }}" class="m-btn m-btn--primary">{{ i18n.t("home-hero-cta") }}</a>
+                </div>
+                {% else %}
+                {% for item in cart_total.items %}
+                {# data-price lleva el decimal en crudo: el JS nunca parsea el texto visible #}
+                {# Una línea que ya no se vende (is-unavailable) va sin casilla, sin precio
+                   y sin cantidad: no se puede elegir ni cuenta en el resumen. Solo se borra. #}
+                <div class="card{% if !item.available %} is-unavailable{% endif %}" data-line-id="{{item.id}}" data-var-id="{{item.product_var_id}}" data-stock="{{item.stock}}" data-price="{{item.price}}">
+                    <div class="check-cont">
+                        {% if item.available %}
+                        <label>
+                            <span class="checkbox1">
+                                <span class="checkbox1-circle">
+                                </span>
+                            </span>
+                            <input class="checkbox-input line-check" type="checkbox" checked>
+                        </label>
+                        {% endif %}
+                    </div>
+                    <div class="card-content">
+                        <div class="left-side">
+                            <a href="{{ i18n.url(item.url) }}">
+                                <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                            </a>
+                        </div>
+                        <div class="right-side">
+                            <div class="element-data">
+                                <div class="title">
+                                    <a href="{{ i18n.url(item.url) }}">{{item.name}}</a>
+                                </div>
+                                {% if !item.variation_label.is_empty() %}
+                                <div class="variations">{{item.variation_label}}</div>
+                                {% endif %}
+                                {% if item.available %}
+                                <div class="price">{{ item.price_tag().localized(i18n) }}</div>
+                                {% else %}
+                                <p class="m-hint unavailable-note">{{ i18n.t("cart-line-gone") }}</p>
+                                {% endif %}
+                                {% if !item.store_name.is_empty() %}
+                                <div class="shop">
+                                    <span>{{item.store_name}}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="quantity-product">
+                                {% if item.available %}
+                                {{ item.quantity_tag().localized(i18n) }}
+                                {% else %}
+                                <span class="m-badge m-badge--neutral">{{ i18n.t("price-unavailable") }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="buttons-extra">
+                                <div class="trash">
+                                    <svg class="icn-svg">
+                                        <use href="/assets/svg/icons/full.svg#icon-trash" />
+                                    </svg>
+                                </div>
+                                {# "Guardar en favoritos" sin quitarla del carrito. En una línea
+                                   que ya no se vende solo si ya era favorita, para poder
+                                   quitarla: guardarla daría "ya no está a la venta". #}
+                                {% if item.available || item.is_favorite %}
+                                {% let fav = item.favorite_button() %}
+                                {% include "components/favorite_button/templates/button.html" %}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% endif %}
+
+            </div>
+        </div>
+        <div class="cart-side m-card">
+            <div class="total-items">
+                <h2 class="title-resume">{{ i18n.t("cart-summary") }}</h2>
+                <div class="articles-images">
+                    {% for item in cart_total.items %}
+                    {% if item.available %}
+                    <div class="image-resume" data-line-id="{{item.id}}" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;">
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+                </div>
+                {# data-discount para que el recálculo del navegador no dé por hecho que es 0 #}
+                <div class="data-resume" data-discount="{{cart_total.discount}}">
+                    <div class="space total">
+                        <span>{{ i18n.t("cart-items-total") }} (<span class="summary-units">{{cart_total.total_units}}</span>)</span>
+                        {# El JS reescribe el importe al cambiar cantidades o casillas #}
+                        <div class="money summary-total">{{ cart_total.total_tag().localized(i18n) }}</div>
+                    </div>
+                    <div class="space discounts">
+                        <span>{{ i18n.t("cart-discount") }}</span>
+                        <div class="money">- {{ cart_total.discount_tag().localized(i18n) }}</div>
+                    </div>
+                    <div class="space shipment">
+                        <span>{{ i18n.t("cart-shipping") }}</span>
+                        <span>{{ i18n.t("cart-shipping-free") }}</span>
+                    </div>
+                    <div class="space final-total">
+                        <span>{{ i18n.t("cart-estimated-total") }}</span>
+                        <div class="money summary-final-total">{{ cart_total.final_total_tag().localized(i18n) }}</div>
+                    </div>
+                    <div class="iva">
+                        {{ i18n.t("cart-vat-included") }}
+                    </div>
+                    <div class="button-continue">
+                        {# Sin JS el enlace lleva a /checkout a secas, que compra todo el carrito #}
+                        <a href="{{ i18n.url(cart_total.routes.checkout) }}" class="m-btn m-btn--primary m-btn--block">{{ i18n.t("cart-continue") }}</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

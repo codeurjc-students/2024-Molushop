@@ -1,48 +1,42 @@
-use actix_web::{get, post, web,delete,Scope, App, HttpResponse, HttpServer, Responder, http::StatusCode};
+use actix_web::{get, post, web,delete,Scope, HttpResponse};
 use bigdecimal::BigDecimal;
-use diesel::result;
 use lazy_static::lazy_static;
-use rinja::Template;
+use askama::Template;
 use uuid::Uuid;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
-//use crate::{models::data_transfer_objects::product::RoutesProductPanelGroup as Routes, schema::admins::id};
-use crate::{controllers::createProduct::product, models::components::warning_modal::WarningModal};
+use crate::models::components::confirm_modal::ConfirmModal;
 use crate::models::components::edit_product_variation_model::Routes;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
-use super::scope::SCOPE_COMPONENTS;
-use crate::services::servicesX::{set_variation_identifiers,update_variation_status,update_price_variation,set_stock_variation};
-
-use std::sync::Arc;
-use crate::services::aws::s3::client::Client;
-use actix_multipart::{
-    form::{
-        tempfile::{TempFile, TempFileConfig},
-        MultipartForm,
-        json::Json as MpJson
-    },
-    Multipart,
-};
+use super::scope::SCOPE_PANEL_COMPONENTS;
+use super::panel_access::variation_access;
+use crate::services::panel_role_service::PanelUser;
+use crate::services::variation_service::{set_variation_identifiers, set_variation_stock};
+use crate::services::price_service::update_variation_price;
+use crate::services::sku_service::{check_variation_sku, normalize_sku, save_variation_general, SaveGeneral};
+use crate::utils::hx::error_modal;
+use actix_web::http::StatusCode as Status;
 
 static SCOPE: &str = "/edit-product-variation";
 
 lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
     
     pub static ref ROUTES: Routes = Routes{
-        //delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_price: Box::leak(format!("{}{}/edit-price",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_stock: Box::leak(format!("{}{}/edit-stock",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        new_identifier: Box::leak(format!("{}{}/new-identifier",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        edit_identifiers: Box::leak(format!("{}{}/edit-identifiers",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        warning: Box::leak(format!("{}{}/pop-warning",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        delete_identifier: Box::leak(format!("{}{}/delete-identifier",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
-        //edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_COMPONENTS, SCOPE).into_boxed_str()),
+        //delete_product: Box::leak(format!("{}{}/delete-product",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        //delete_product_modal: Box::leak(format!("{}{}/delete-product-modal",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_general: Box::leak(format!("{}{}/edit-general",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_price: Box::leak(format!("{}{}/edit-price",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_stock: Box::leak(format!("{}{}/edit-stock",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        new_identifier: Box::leak(format!("{}{}/new-identifier",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        edit_identifiers: Box::leak(format!("{}{}/edit-identifiers",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        warning: Box::leak(format!("{}{}/pop-warning",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        delete_identifier: Box::leak(format!("{}{}/delete-identifier",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        sku_check: Box::leak(format!("{}{}/sku-check",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
+        //edit_images: Box::leak(format!("{}{}/edit-images",SCOPE_PANEL_COMPONENTS, SCOPE).into_boxed_str()),
     };
 
 }
@@ -53,32 +47,30 @@ pub fn scope() -> Scope {
 }
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    //cfg.service(products_panel_prueba);
     cfg
         .service(spawn)
         .service(edit_identifiers)
         .service(pop_warning)
         .service(new_identifier)
         .service(edit_general)
+        .service(sku_check)
         .service(edit_price)
         .service(edit_stock)
         .service(delete_identifier);
-        //.service(delete_product_modal);
-        //.route(format!("{}/{}",DELETE_PRODUCT, "{id}"), web::get().to(products_panel));
 
 }
-use crate::models::components::edit_product_variation_model::EditProductVariation;
+use crate::models::components::edit_product_variation_model::{EditProductVariation, SkuCheck};
 use crate::services::components::edit_product_variation_service::start;
-use crate::models::components::modal_1_model::Modal1;
+use crate::models::components::message_modal::MessageModal;
 
 #[get("/spawn/{id}")]
-async fn spawn(path: web::Path<Uuid>, pool_data: web::Data<DbPool>) -> HttpResponse {
+async fn spawn(path: web::Path<Uuid>, panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
     let variation_id = path.into_inner();
     let pool = pool_data.get_ref();
-    //hacer un uuid de prueba de user
-    //hacer una función que le pase todos los datos de la variación y me devuelva el template
-    let seller_prueba = Uuid::parse_str("2064d62a-4978-4fe7-bef2-7690ff09bdc8").unwrap();
-    let result_start=  start(&seller_prueba,&variation_id,&pool).await;
+    if let Err(resp) = variation_access(&panel_user, &variation_id, pool).await {
+        return resp;
+    }
+    let result_start=  start(&variation_id,&pool).await;
     match result_start{
         Ok(product_variation)=>{
             //tengo el ProductVariationEdit
@@ -90,11 +82,8 @@ async fn spawn(path: web::Path<Uuid>, pool_data: web::Data<DbPool>) -> HttpRespo
             return HttpResponse::Ok().body(edit_product_variation)
         },
         Err(e)=>{
-            println!("Error: {}",e);
-            let modal_render = Modal1{
-                text:"Ha ocurrido un error!".to_string()
-            }.render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_render)
+            tracing::error!(error = %e, "could not load the variation");
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error al abrir la variación")
         }
     }
 }
@@ -109,19 +98,15 @@ async fn new_identifier(pool_data:web::Data<DbPool>)->HttpResponse{
     return HttpResponse::Ok().body(render);
 }
 
-/* 
-pub struct FormIdentifier{
-    identifiers: Vec<Identifier>
-} 
-
-pub struct Identifier{
-    name: String,
-    value: String
-}*/
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct GeneralForm{
+    // Un producto sin variaciones tiene una única variación sin atributos: el
+    // formulario no manda ningún `attributes[...]` y la clave ni aparece en el JSON.
+    #[serde(default)]
     pub attributes: Vec<AttributeForm>,
-    pub status: String 
+    pub status: String,
+    #[serde(default)]
+    pub sku: String,
 }
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AttributeForm{
@@ -129,45 +114,72 @@ pub struct AttributeForm{
     value:String
 }
 
-
 #[post("/edit-general/{id_variation}")]
-async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,form: web::Json<GeneralForm>)-> HttpResponse{
+async fn edit_general(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,form: web::Json<GeneralForm>)-> HttpResponse{
     let form_general = form.into_inner();
     let id_variation = path.into_inner();
     let pool = pool_data.get_ref();
+    if let Err(resp) = variation_access(&panel_user, &id_variation, pool).await {
+        return resp;
+    }
     let new_status:i16 =  form_general.status.parse().unwrap_or(0);
-    println!("{}",new_status);
-    let result1 = update_variation_status(&id_variation,&new_status,&pool).await;
-    let mut render:String=String::new();
-    match result1{
-        Ok(_)=>{
-            render = Modal1::new("Identificador editado correctamente").render().unwrap();
-        },
-        Err(e)=>{
-            println!("Ha ocurrido un error: {}",e);
-            render = Modal1::new("Algo ha ido mal").render().unwrap();
+    let sku = match normalize_sku(&form_general.sku) {
+        Ok(sku) => sku,
+        Err(text) => return error_modal(Status::BAD_REQUEST, text),
+    };
+    match save_variation_general(&id_variation, new_status, sku.clone(), pool).await {
+        Ok(SaveGeneral::Saved) => {
+            let trigger_value = json!(
+                {
+                    "variation_update": {
+                        "target": ".variation-edit-container",
+                        "status": form_general.status,
+                        "sku": sku.unwrap_or_default()
+                    }
+                }
+            );
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger",trigger_value.to_string()))
+                .body(MessageModal::new("Variación guardada").render().unwrap())
+        }
+        Ok(SaveGeneral::SkuTaken(holder)) => {
+            error_modal(Status::CONFLICT, &format!("Ese SKU ya lo usa {}: no se ha guardado nada", holder))
+        }
+        Ok(SaveGeneral::NoPrice) => {
+            error_modal(Status::CONFLICT, "Esta variación no tiene precio: pónselo en la pestaña Precio antes de activarla. No se ha guardado nada")
+        }
+        Err(e) => {
+            tracing::error!(error = %e, "could not save the variation");
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Algo ha ido mal: no se ha guardado nada")
         }
     }
-    let status_value = form_general.status;
-    let trigger_value = json!(
-        {
-            "variation_update": {
-                "target": ".variation-edit-container",
-                "status": status_value
-            }
-        }
-    );
-
-    HttpResponse::Ok()
-        .insert_header(("HX-Trigger",trigger_value.to_string()))
-        .body(render)
     //aqui añadir headers a la respuesta
-    /* 
-    println!("{:?}",form_general);
-    let modal_respuesta = Modal1{
-        text:"Prueba de edit_general, hecha correctamente".to_string()
-    }.render().unwrap();
-    HttpResponse::Ok().body(modal_respuesta)*/
+}
+
+#[derive(Deserialize)]
+pub struct SkuQuery {
+    #[serde(default)]
+    pub sku: String,
+}
+
+/// El SKU mientras se escribe en la pestaña General: devuelve el aviso que va
+/// bajo el campo, o nada si se puede guardar. No guarda; al guardar se vuelve
+/// a comprobar todo.
+#[get("/sku-check/{variation_id}")]
+async fn sku_check(path: web::Path<Uuid>, query: web::Query<SkuQuery>, panel_user: web::ReqData<PanelUser>, pool_data: web::Data<DbPool>) -> HttpResponse {
+    let variation_id = path.into_inner();
+    let pool = pool_data.get_ref();
+    if let Err(resp) = variation_access(&panel_user, &variation_id, pool).await {
+        return resp;
+    }
+    match check_variation_sku(&variation_id, &query.sku, pool).await {
+        Ok(problem) => HttpResponse::Ok().body(SkuCheck { problem }.render().unwrap()),
+        // Es solo una ayuda: sin aviso, y al guardar se comprueba igual
+        Err(e) => {
+            tracing::error!(error = %e, "could not check the SKU");
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }
 
 use crate::models::components::edit_product_variation_model::Identifier;
@@ -178,30 +190,26 @@ pub struct IdentifersForm{
 }
 
 #[post("/edit-identifiers/{id_variation}")]
-async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,data: web::Json<IdentifersForm>)->HttpResponse{
+async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,data: web::Json<IdentifersForm>)->HttpResponse{
     //nos van a pasar en el form un json
     let var_id = path.into_inner();
     let pool =pool_data.get_ref();
-    let form_identifiers = data.into_inner();
+    if let Err(resp) = variation_access(&panel_user, &var_id, pool).await {
+        return resp;
+    }
+let form_identifiers = data.into_inner();
     let identifiers = form_identifiers.identifiers;
     let result =set_variation_identifiers(&identifiers, &var_id, pool).await;
 
     match result{
-        Ok(numero) =>{
+        Ok(_numero) =>{
             //aqui añadir a que 
-            let modal_respuesta = Modal1{
-                text:"Identificadores editados correctamente".to_string()
-            }.render().unwrap();
-            println!("Todo correcto");
-            HttpResponse::Ok().body(modal_respuesta)
+            let modal_html = MessageModal::new("Identificadores editados correctamente").render().unwrap();
+            HttpResponse::Ok().body(modal_html)
         },
         Err(e)=>{
-            println!("Ha ocurrido un error: {}",e);
-            let modal_respuesta = Modal1{
-                text:"Ha habido un error al editar los identificadores".to_string()
-            }.render().unwrap();
-            println!("Todo incorrecto");
-            HttpResponse::Ok().body(modal_respuesta)
+            tracing::error!(error = %e, "could not save the identifiers");
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Ha habido un error al editar los identificadores")
         }
     }
 
@@ -212,30 +220,31 @@ async fn edit_identifiers(pool_data: web::Data<DbPool>,path:web::Path<Uuid>,data
 use crate::models::components::edit_product_variation_model::*;
 
 #[post("/edit-price/{id_variation}")]
-async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,data:web::Json<PriceForm>)->HttpResponse{
+async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,data:web::Json<PriceForm>)->HttpResponse{
     let form  = data.into_inner();
-    
+
     let var_id  = path.into_inner();
     let pool = pool_data.get_ref();
-    // Convertir los valores string a BigDecimal
+    if let Err(resp) = variation_access(&panel_user, &var_id, pool).await {
+        return resp;
+    }
+// Convertir los valores string a BigDecimal
     let regular_price = match form.regular.parse::<BigDecimal>() {
         Ok(price) => price,
-        Err(e) => {
-            println!("Error al convertir precio regular: {}", e);
-            return HttpResponse::BadRequest().body("Precio regular inválido");
+        Err(_) => {
+            return error_modal(Status::BAD_REQUEST, "El precio no es válido: usa un número con punto, por ejemplo 12.50");
         }
     };
     let discounted_price = match form.discount.parse::<BigDecimal>() {
         Ok(price) => price,
-        Err(e) => {
-            println!("Error al convertir precio regular: {}", e);
-            return HttpResponse::BadRequest().body("Precio Descontado inválido");
+        Err(_) => {
+            return error_modal(Status::BAD_REQUEST, "El precio de oferta no es válido: usa un número con punto, por ejemplo 9.99");
         }
     };
     let is_active = match form.discount_active.parse::<bool>() {
         Ok(value) => value,
         Err(e) => {
-            println!("{}",e);
+            tracing::warn!(error = %e, "invalid discount_active value, using false");
             false // valor predeterminado
         }
     };
@@ -251,55 +260,56 @@ async fn edit_price(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,data:web::J
     let currency = "EUR".to_string();
 
     // Llamar al servicio para actualizar el precio
-    let result_update_price = update_price_variation(&form_new,&var_id, &regular_price, &currency, pool).await;
+    let result_update_price = update_variation_price(&form_new,&var_id, &regular_price, &currency, pool).await;
 
     match result_update_price {
         Ok(_) => {
-            let modal_respuesta = Modal1 {
-                text: "Precio actualizado correctamente".to_string()
-            }.render().unwrap();
-            HttpResponse::Ok().body(modal_respuesta)
+            let modal_html = MessageModal::new("Precio actualizado correctamente").render().unwrap();
+            let trigger = json!({
+                "variation_update": { "target": ".variation-edit-container", "price": regular_price.to_string() }
+            });
+            HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal_html)
         },
         Err(e) => {
-            println!("Error al actualizar precio: {}", e);
-            let modal_respuesta = Modal1 {
-                text: "Error al actualizar el precio".to_string()
-            }.render().unwrap();
-            HttpResponse::InternalServerError().body(modal_respuesta)
+            tracing::error!(error = %e, "could not update the price");
+            error_modal(Status::INTERNAL_SERVER_ERROR, "Error al actualizar el precio")
         }
     }
 }
 
 #[post("/edit-stock/{variation_id}")]
-async fn edit_stock(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,data:web::Json<StockForm>)->HttpResponse{
+async fn edit_stock(pool_data:web::Data<DbPool>,path:web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,data:web::Json<StockForm>)->HttpResponse{
     let pool = pool_data.get_ref();
     let var_id = path.into_inner();
-    let form = data.into_inner();
+    if let Err(resp) = variation_access(&panel_user, &var_id, pool).await {
+        return resp;
+    }
+let form = data.into_inner();
     let new_stock= match form.stock.parse::<i32>(){
-        Ok(stock) => stock,
-        Err(e)=>{
-            let modal_respuesta = Modal1::new("Ha ocurrido un error").render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_respuesta)
-        }
+        Ok(stock) if stock >= 0 => stock,
+        _ => return error_modal(Status::BAD_REQUEST, "El stock debe ser un número entero, 0 o más"),
     };
 
-
-    let result_stock = set_stock_variation(&var_id, &new_stock, &pool).await;
+    let result_stock = set_variation_stock(&var_id, new_stock, &pool).await;
     match result_stock{
         Ok(_)=>{
-            let modal_respuesta = Modal1::new("Todo correcto").render().unwrap();
-            return HttpResponse::Ok().body(modal_respuesta)
+            let modal_html = MessageModal::new("Stock actualizado").render().unwrap();
+            let trigger = json!({
+                "variation_update": { "target": ".variation-edit-container", "stock": new_stock }
+            });
+            return HttpResponse::Ok()
+                .insert_header(("HX-Trigger", trigger.to_string()))
+                .body(modal_html)
         },
         Err(e)=>{
-            println!("{}",e);
-            let modal_respuesta = Modal1::new("Ha ocurrido un error").render().unwrap();
-            return HttpResponse::InternalServerError().body(modal_respuesta)
+            tracing::error!(error = %e, "could not save the stock");
+            return error_modal(Status::INTERNAL_SERVER_ERROR, "Ha ocurrido un error al guardar el stock")
         }
     }
 
-
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct WarningParameters{
@@ -312,23 +322,10 @@ pub struct WarningParameters{
     pub htmx_active:bool
 }
 
-
 #[get("/pop-warning")]
 async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
     //obtener el warning
-    /* 
-    let warning_modal = WarningModal{
-        method:params.method.clone(),
-        message:"Seguro que quieres eliminar el identificador?".to_string(),
-        endpoint:params.endpoint.clone(),
-        target:params.target.clone(),
-        swap:params.swap.clone(),
-        htmx_active:false,
-    }.render().unwrap();
-    remove target
-    */
-    println!("{:?}",params);
-    let warning_modal = WarningModal{
+    let warning_modal = ConfirmModal{
         method:params.method.clone(),
         message:params.message.clone(),
         endpoint:params.endpoint.clone(),
@@ -342,12 +339,6 @@ async fn pop_warning(params: web::Query<WarningParameters>)->HttpResponse{
 }
 
 #[delete("/delete-identifier/{id_variation}")]
-async fn delete_identifier(pool_data:web::Data<DbPool>)->HttpResponse{
-    println!("BORRANDO IDENTIFICADOR");
+async fn delete_identifier(_pool_data:web::Data<DbPool>)->HttpResponse{
     HttpResponse::Ok().finish()
 }
-
-/* 
-#[post("/create-product/{category_id}")]
-async fn create_product(pool_data: web::Data<DbPool>,path:web::Path<String>,data: web::Json<ProductForm>) -> impl Responder {
-*/

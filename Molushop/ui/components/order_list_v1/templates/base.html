@@ -1,0 +1,63 @@
+<div class="order-list-1" id="order-list-1">
+    <div class="list-header">
+        <h1>{{ i18n.t("nav-orders") }}</h1>
+        {% if !order_list.orders.is_empty() %}
+        <span class="list-count">{{ i18n.t_count("orders-count", order_list.orders.len()) }}</span>
+        {% endif %}
+    </div>
+
+    {% if !order_list.logged %}
+    <!-- data-login-required: login_modal.js abre el login solo al entrar -->
+    <div class="list-empty m-card" data-login-required>
+        <span>{{ i18n.t("orders-login-prompt") }}</span>
+        <button type="button" class="m-btn m-btn--primary open-login-modal">{{ i18n.t("nav-login") }}</button>
+    </div>
+    {% else if order_list.orders.is_empty() %}
+    <div class="list-empty m-card">
+        <span>{{ i18n.t("orders-empty") }}</span>
+        <a href="{{ i18n.url(order_list.home_url) }}" class="m-btn m-btn--primary">{{ i18n.t("home-hero-cta") }}</a>
+    </div>
+    {% else %}
+    <div class="orders">
+        {% for order in order_list.orders %}
+        <a href="{{ i18n.url(order.detail_url()) }}" class="no-generic-a order-card m-card m-card--link">
+            <div class="card-header">
+                <div class="card-id">
+                    <span class="order-number">{{ i18n.t1("order-number", "number", order.order_number.to_string()) }}</span>
+                    <span class="order-date">{{order.date_label()}}</span>
+                </div>
+                <span class="m-badge m-badge--lg m-badge--{{order.status_variant()}}">{{ i18n.t(order.status_key()) }}</span>
+            </div>
+
+            <div class="lines">
+                {% for item in order.items %}
+                <div class="line">
+                    <div class="image-cont" style="background-image:url('{{item.image}}');background-size:cover;background-position:center;"></div>
+                    <div class="line-data">
+                        <div class="title">{{item.product_name}}</div>
+                        {% if !item.variation_label.is_empty() %}
+                        <div class="variations">{{item.variation_label}}</div>
+                        {% endif %}
+                        <div class="quantity">x{{item.quantity}}</div>
+                        {% if order.mixed_status() %}
+                        <div><span class="m-badge m-badge--{{item.status_variant()}}">{{ i18n.t(item.status_key()) }}</span></div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="card-footer">
+                <span class="units">{{ i18n.t_count("order-units", order.total_units()) }}</span>
+                <div class="card-total">
+                    <span>{{ i18n.t("order-total") }}</span>
+                    <div class="money">{{ order.total_tag().localized(i18n) }}</div>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <a href="{{ i18n.url(order_list.home_url) }}" class="no-generic-a keep-shopping">{{ i18n.t("orders-keep-shopping") }}</a>
+    {% endif %}
+</div>

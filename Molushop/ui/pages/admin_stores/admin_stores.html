@@ -1,0 +1,101 @@
+{% extends "layouts/panel.html" %}
+{% block content %}
+    <div class="panel-home admin-stores">
+        <h1>Tiendas</h1>
+
+        {% if let Some(msg) = ok_message %}
+        <p class="m-alert m-alert--success admin-msg" role="status">{{msg}}</p>
+        {% endif %}
+        {% if let Some(msg) = error_message %}
+        <p class="m-alert m-alert--danger admin-msg" role="alert">{{msg}}</p>
+        {% endif %}
+
+        <section class="m-card admin-box" id="crear-tienda">
+            <h2>Crear tienda</h2>
+            {# Sugerencias para todos los campos de username de la página #}
+            <datalist id="admin-usernames">
+                {% for name in usernames %}<option value="{{name}}"></option>{% endfor %}
+            </datalist>
+            <form method="post" action="/admin/stores" class="admin-form">
+                <label class="m-field">
+                    <span class="m-label">Nombre de la tienda</span>
+                    <input class="m-input" type="text" name="store_name" maxlength="255" required>
+                </label>
+                <label class="m-field">
+                    <span class="m-label">Usuario que la gestiona (opcional)</span>
+                    {# Con el del admin ya puesto: desde el panel, lo normal es crearla para gestionarla él #}
+                    <input class="m-input" type="text" name="username" value="{{panel_nav.username}}" placeholder="username" list="admin-usernames" autocomplete="off">
+                </label>
+                <button type="submit" class="m-btn m-btn--primary">Crear tienda</button>
+            </form>
+            <p class="m-hint admin-hint">Las tiendas que creas tú nacen activas. El usuario viene con el tuyo: cámbialo si la tienda es de otro, o bórralo para crearla sin nadie. Las que solicita un vendedor llegan aquí como pendientes.</p>
+        </section>
+
+        {% if stores.is_empty() %}
+        <p class="m-alert m-alert--info panel-home-note">Todavía no hay ninguna tienda.</p>
+        {% else %}
+        <table class="admin-table" role="table">
+            <thead role="rowgroup">
+                <tr role="row">
+                    <th role="columnheader">Tienda</th>
+                    <th role="columnheader">Estado</th>
+                    <th role="columnheader">Alta</th>
+                    <th role="columnheader">Usuarios</th>
+                    <th role="columnheader">Acciones</th>
+                </tr>
+            </thead>
+            <tbody role="rowgroup">
+                {% for item in stores %}
+                <tr role="row">
+                    <td role="cell" class="admin-table__title">
+                        <a href="/panel/stores/{{item.store.id}}/products">{{item.store.store_name}}</a>
+                    </td>
+                    <td role="cell" class="admin-table__status">
+                        <span class="m-badge m-badge--{{item.store.status_variant()}}">{{item.store.status_label()}}</span>
+                    </td>
+                    <td role="cell" data-label="Alta">{{item.created}}</td>
+                    <td role="cell" class="admin-table__wide" data-label="Usuarios">
+                        {% if item.members.is_empty() %}
+                        <p class="m-hint admin-hint">Sin usuarios</p>
+                        {% endif %}
+                        <ul class="admin-members">
+                            {% for member in item.members %}
+                            <li>
+                                {{member.username}}
+                                <form method="post" action="/admin/stores/{{item.store.id}}/members/{{member.user_id}}/remove">
+                                    <button type="submit" class="m-btn m-btn--danger-link m-btn--sm" aria-label="Quitar a {{member.username}} de {{item.store.store_name}}">Quitar</button>
+                                </form>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <form method="post" action="/admin/stores/{{item.store.id}}/members" class="admin-form admin-form-inline">
+                            <input class="m-input m-input--sm" type="text" name="username" placeholder="username" required list="admin-usernames" autocomplete="off" aria-label="Usuario para asignar a {{item.store.store_name}}">
+                            <button type="submit" class="m-btn m-btn--secondary m-btn--sm">Asignar</button>
+                        </form>
+                    </td>
+                    <td role="cell" class="admin-table__actions">
+                        <form method="post" action="/admin/stores/{{item.store.id}}/status" class="admin-actions">
+                            {# 0 pendiente, 1 activa, 2 inactiva, 3 rechazada #}
+                            {% if item.store.status == 0 %}
+                            <button type="submit" name="status" value="1" class="m-btn m-btn--primary m-btn--sm">Aprobar</button>
+                            <button type="submit" name="status" value="3" class="m-btn m-btn--danger-outline m-btn--sm">Rechazar</button>
+                            {% else if item.store.status == 1 %}
+                            <button type="submit" name="status" value="2" class="m-btn m-btn--danger-outline m-btn--sm">Desactivar</button>
+                            {% else if item.store.status == 2 %}
+                            <button type="submit" name="status" value="1" class="m-btn m-btn--primary m-btn--sm">Reactivar</button>
+                            {% else if item.store.status == 3 %}
+                            <button type="submit" name="status" value="1" class="m-btn m-btn--primary m-btn--sm">Aprobar</button>
+                            {% endif %}
+                        </form>
+                        <form method="post" action="/admin/stores/{{item.store.id}}/delete" class="admin-actions admin-delete"
+                              onsubmit="return confirm('¿Borrar esta tienda? No se puede deshacer.');">
+                            <button type="submit" class="m-btn m-btn--danger-link m-btn--sm" aria-label="Borrar la tienda {{item.store.store_name}}">Borrar tienda</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+{% endblock %}

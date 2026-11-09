@@ -1,0 +1,23 @@
+{% extends "layouts/shop.html" %}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <section class="home-hero">
+        <div class="home-hero-inner">
+            <h1>{{ i18n.t("home-hero-title") }}</h1>
+            <p>{{ i18n.t("home-hero-text") }}</p>
+            <a href="#productos" class="m-btn m-btn--primary">{{ i18n.t("home-hero-cta") }}</a>
+        </div>
+    </section>
+    {% if !categories.is_empty() %}
+    {# Los mismos chips que en /search (su CSS lo carga layouts/shop.html). #}
+    <nav class="home-categories search-categories" aria-label="{{ i18n.t("categories") }}">
+        <ul>
+            {% for category in categories %}
+            <li><a class="search-chip" href="{{ i18n.url(category.url) }}">{{category.name}} <span class="search-chip__count">{{category.products}}</span></a></li>
+            {% endfor %}
+        </ul>
+    </nav>
+    {% endif %}
+    <h2 id="productos" class="home-section-title">{{ i18n.t("all-products") }}</h2>
+    {{group_cards2|safe}}
+{% endblock %}

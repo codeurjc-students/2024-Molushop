@@ -1,24 +1,44 @@
-use rinja::Template;
-use crate::models::data_transfer_objects::product::{Product,RoutesProductPanelGroup};
+use askama::Template;
+use crate::models::data_transfer_objects::product::Product;
+use crate::models::components::variations_explorer::EditUrls;
 
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
 
+/// Las imágenes recién subidas, para añadirlas a la galería sin recargar
+/// (va detrás del aviso en la respuesta de `edit_images`).
+#[derive(Template)]
+#[template(path = "components/edit_product/templates/uploaded_images.html")]
+pub struct UploadedImages{
+    pub images: Vec<ImageCategories2>,
+    pub routes: &'static Routes,
+    pub product_id: Uuid,
+    pub has_variations: bool,
+}
+
 #[derive(Template,Clone,Debug)]
 #[template(path = "components/edit_product/templates/edit_product.html")]
 pub struct EditProduct{
-    pub product: ProductEdit,
+    pub product: ProductEdit2,
     pub routes_edit_product: &'static Routes,
+    pub store_id: Uuid,
+    /// El producto como en el listado: la pestaña Variaciones usa su explorador.
+    pub panel_product: Product,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
     pub edit_general: &'static str,
     pub edit_images: &'static str,
-    //pub delete_product_modal: &'static str,
+    pub bulk_variations: &'static str,
+    pub bulk_skus: &'static str,
+    pub image_variations: &'static str,
+    pub main_image: &'static str,
+    pub edit_specs: &'static str,
+    pub delete_image_modal: &'static str,
+    pub delete_image: &'static str,
     //images
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ProductEdit{
@@ -26,6 +46,42 @@ pub struct ProductEdit{
     pub general: General,
     pub images: Images,
     pub variations: Variations
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ProductEdit2{
+    pub id: Uuid,
+    pub general: General,
+    pub images: Vec<ImageCategories2>,
+    pub variations: Variations,
+    pub specs: Specs,
+}
+
+/// Especificaciones para la pestaña: (nombre, valor; vacío si no tiene).
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct Specs{
+    /// Las que propone la categoría, en su orden: campo con etiqueta.
+    pub category: Vec<(String, String)>,
+    /// Las demás: fila con nombre y valor, que se puede renombrar o quitar.
+    pub custom: Vec<(String, String)>,
+}
+
+impl Routes {
+    /// Las del explorador de la pestaña Variaciones.
+    pub fn explorer_urls(&self) -> EditUrls<'static> {
+        EditUrls { bulk: self.bulk_variations, skus: self.bulk_skus }
+    }
+}
+
+impl ProductEdit2 {
+    /// La imagen de la cabecera, como en la tarjeta del listado: la marcada
+    /// como principal y, si no hay, la primera.
+    pub fn main_image(&self) -> Option<&str> {
+        self.images.iter()
+            .find(|i| i.is_main)
+            .or_else(|| self.images.first())
+            .map(|i| i.image_url.as_str())
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -48,6 +104,23 @@ pub struct ImageCategories{
     pub tipo: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct ImageCategories2{
+    pub id: Uuid,
+    pub image_url: String,
+    pub is_main: bool,
+    pub display_order: i32,
+    /// Las variaciones en las que sale; vacío: en todas.
+    #[serde(default)]
+    pub variation_ids: Vec<Uuid>,
+}
+
+impl ImageCategories2 {
+    /// Para `data-variations` de la galería (image-variations.js).
+    pub fn variation_ids_csv(&self) -> String {
+        self.variation_ids.iter().map(|id| id.to_string()).collect::<Vec<_>>().join(",")
+    }
+}
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Categories{

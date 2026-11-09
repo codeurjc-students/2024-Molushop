@@ -1,0 +1,46 @@
+<nav class="panel-nav" aria-label="Panel">
+    <a class="panel-nav-brand" href="/panel">Panel</a>
+    {# Solo en móvil (el CSS lo esconde desde 900px): abre y cierra el bloque de
+       la derecha (usuario, enlaces y cerrar sesión), que en móvil va plegado. #}
+    <button type="button" class="panel-nav-menu" aria-expanded="false" aria-controls="panel-nav-right"
+        _="on click if @aria-expanded is 'true' set @aria-expanded to 'false' else set @aria-expanded to 'true' end">
+        <span class="panel-nav-menu-icon" aria-hidden="true"></span>
+        <span class="panel-nav-menu-label">Menú</span>
+    </button>
+    <ul class="panel-nav-links">
+        <li><a href="/panel" {% if panel_nav.active == "home" %}class="active" aria-current="page"{% endif %}>Mis tiendas</a></li>
+        {% if let Some(store) = panel_nav.store %}
+        {% if panel_nav.can_switch_store() %}
+        <li class="panel-nav-store">
+            {# Cambia a la misma sección de la otra tienda #}
+            <select class="panel-nav-store-select" aria-label="Cambiar de tienda"
+                    _="on change set window.location.href to my value">
+                {% for s in panel_nav.stores %}
+                <option value="{{ panel_nav.store_url(s) }}"{% if panel_nav.is_current_store(s) %} selected{% endif %}>{{s.name}}</option>
+                {% endfor %}
+            </select>
+        </li>
+        {% else %}
+        <li class="panel-nav-store">{{store.name}}</li>
+        {% endif %}
+        <li><a href="/panel/stores/{{store.id}}/products" {% if panel_nav.active == "products" %}class="active" aria-current="page"{% endif %}>Productos</a></li>
+        <li><a href="/panel/stores/{{store.id}}/products/create" {% if panel_nav.active == "create" %}class="active" aria-current="page"{% endif %}>Añadir producto</a></li>
+        <li><a href="/panel/stores/{{store.id}}/orders" {% if panel_nav.active == "orders" %}class="active" aria-current="page"{% endif %}>Pedidos</a></li>
+        {% endif %}
+        {% if panel_nav.is_admin %}
+        <li><a href="/admin/stores" {% if panel_nav.active == "admin" %}class="active" aria-current="page"{% endif %}>Administración</a></li>
+        <li><a href="/admin/orders" {% if panel_nav.active == "admin_orders" %}class="active" aria-current="page"{% endif %}>Todos los pedidos</a></li>
+        {% endif %}
+    </ul>
+    <div class="panel-nav-right" id="panel-nav-right">
+        <span class="panel-nav-user">{{panel_nav.username}}{% if panel_nav.is_admin %} <span class="panel-nav-role">admin</span>{% endif %}</span>
+        {# El admin no solicita tiendas: las crea ya activas en /admin/stores #}
+        {% if panel_nav.is_admin %}
+        <a href="/admin/stores#crear-tienda">Crear tienda</a>
+        {% else %}
+        <a href="/panel/register">Solicitar tienda</a>
+        {% endif %}
+        <a href="/home">Ver tienda</a>
+        <button type="button" class="panel-nav-logout" hx-post="{{panel_nav.logout_url}}" hx-swap="none">Cerrar sesión</button>
+    </div>
+</nav>

@@ -3,7 +3,7 @@ select * from product_seller;
 select * from product_variations;
 delete from products;
 --Bici Mountain RX
-insert into product_seller (product_id, seller_id) values ('8bc8d498-cd97-4eb5-9e51-8f0a5125fc2c', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
+insert into product_seller (product_id, seller_id) values ('90dca2f3-a54e-4839-be67-2c801e6ad05e', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
 --Pala EKC
 insert into product_seller (product_id, seller_id) values ('7f91cd4c-a152-4d53-8176-f092732fedab', '2064d62a-4978-4fe7-bef2-7690ff09bdc8');
 --BMX Pro

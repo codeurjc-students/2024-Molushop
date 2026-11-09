@@ -1,0 +1,3 @@
+{# El número del carrito (CartBadge, nav1_model.rs). Con 0 no se ve; con
+   oob, sustituye al del menú; con bump, da un bote (nav1/styles.css). #}
+<span id="cart-badge" class="cart-badge{% if bump %} is-bumped{% endif %}"{% if count <= 0 %} style="display:none;"{% endif %}{% if oob %} hx-swap-oob="true"{% endif %}>{{count}}</span>

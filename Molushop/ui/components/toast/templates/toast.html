@@ -1,0 +1,11 @@
+{# Toast (átomo m-toast, ui/styles/atoms/toast.css): el texto, un enlace o
+   un botón opcional y la ×. Se quita solo a los 5 s; "closeToast" lo anima y lo quita
+   (a los 300 ms como mucho, como el modal). -#}
+<div class="m-toast"
+    _="init wait 5s then trigger closeToast end
+       on closeToast add .closing then wait for animationend or 300ms then remove me end">
+    <span class="m-toast__text">{{text}}</span>
+    {% if let Some(link) = link %}<a class="m-toast__link" href="{{link.href}}">{{link.label}}</a>{% endif %}
+    {% if let Some(action) = action %}<button type="button" class="m-toast__link m-toast__action" data-{{action.name}}="{{action.value}}">{{action.label}}</button>{% endif %}
+    <button type="button" class="m-toast__close" aria-label="{{close}}" _="on click trigger closeToast">&times;</button>
+</div>

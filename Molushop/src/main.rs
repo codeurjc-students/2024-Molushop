@@ -1,111 +1,117 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use actix_files as fs;
-use servicesX::obtain_base_categories;
-use uuid::Uuid;
-use serde_json::Value;
+use actix_web::{web, App, HttpServer};
 use std::sync::Arc;
 
 mod config; 
 pub mod schema;
-//pub mod servicesX;
-//pub mod routes;
-//pub mod controllersX;
 pub mod models;
-//pub mod client;
-//pub mod upload;
-//pub mod startup;
 
-pub mod  routes;
+pub mod routes;
 pub mod controllers;
 pub mod services;
-pub mod jobs;
+pub mod utils;
+pub mod middleware;
+pub mod constants;
+pub mod i18n;
+mod logging;
+mod app_env;
 
-use services::servicesX;
-use routes::routes_x;
-use controllers::aws::s3::aws_s3;
-use controllers::aws::aws;
-use controllers::controllersX;
 use services::aws::s3::{client, startup};
 use controllers::components;
 
 use diesel_async::pooled_connection::AsyncDieselConnectionManager;
-//use diesel_async::pooled_connection::bb8::Pool;
 use diesel_async::pooled_connection::deadpool::Pool;
-//use bb8::Pool;
 use diesel_async::AsyncPgConnection;
-use diesel_async::RunQueryDsl;
 
 use dotenvy::dotenv;
-
-use std::any::type_name;
-
-use actix_jobs::{Job, Scheduler, run_forever};
-
-use jobs::job_config::init_jobs;
-
-fn print_type_of<T>(_: &T) {
-    println!("{}", type_name::<T>());
-}
-
-struct MyJob;
-impl Job for MyJob {
-    fn cron(&self) -> &str {
-        "*/2 * * * * * *" // every two seconds
-    }
-
-    fn run(&mut self) {
-        println!("Sending an email to all our clients...");
-    }
-}
-struct MyJob2;
-impl Job for MyJob2 {
-    fn cron(&self) -> &str {
-        "*/5 * * * * * *" // every two seconds
-    }
-
-    fn run(&mut self) {
-        println!("Otro job");
-    }
-}
-
+use tracing_actix_web::TracingLogger;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    //init_jobs();
-    //hacer el pool de conexiones
     dotenv().ok();
+    // dev / pre / prod (ver app_env.rs). Si APP_ENV no vale, los logs arrancan
+    // con el entorno por defecto de esta compilación para poder escribir el error.
+    let app_env = app_env::AppEnv::from_env();
+    let current_env = *app_env.as_ref().unwrap_or(&app_env::AppEnv::default_for_build());
+    // Vive hasta el final de main: al soltarlo se escriben los logs pendientes.
+    let log_guard = logging::init(current_env);
+
+    // Configuración que, si está mal, rompe algo o deja un agujero: mejor no arrancar.
+    // Sin clave de sesión nadie podría entrar; con el buzón "log" en producción, el
+    // enlace para cambiar la contraseña de cualquiera acabaría en la consola.
+    let problems: Vec<String> = [
+        app_env.as_ref().map(|_| ()).map_err(Clone::clone),
+        services::paseto_token_session_service::check_local_secret(),
+        // Con APP_ENV inválida no se sabe qué reglas tocan: basta con su error.
+        match &app_env {
+            Ok(env) => services::mail_service::check_mail_config(*env),
+            Err(_) => Ok(()),
+        },
+    ]
+    .into_iter()
+    .filter_map(Result::err)
+    .collect();
+    if !problems.is_empty() {
+        for problem in &problems {
+            tracing::error!(%problem, "invalid configuration, the server will not start");
+        }
+        // process::exit no ejecuta los drop: soltar el guard para que salgan los logs.
+        drop(log_guard);
+        std::process::exit(1);
+    }
+    tracing::info!(app_env = %current_env, "starting Molushop");
+    // Dónde escucha: 127.0.0.1:8080 detrás de un proxy en la misma máquina (lo de
+    // siempre); 0.0.0.0:8080 dentro de Docker o en una plataforma (PaaS).
+    let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
 
     let config: AsyncDieselConnectionManager<AsyncPgConnection> = AsyncDieselConnectionManager::<AsyncPgConnection>::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set"));
     let pool:Pool<AsyncPgConnection> = Pool::builder(config).build().unwrap();
-    print_type_of(&pool);
     let pool_data = web::Data::new(pool);
 
     let client = startup::configure_and_return_s3_client().await;
     let client_data = web::Data::new(Arc::new(client));
 
-    println!("Hello, world!");
-
     HttpServer::new(move|| {
         App::new()
+            // `HttpResponse::Ok().body(html)` no pone Content-Type y el navegador tenía que
+            // adivinarlo. DefaultHeaders solo la añade si la respuesta no trae una: JSON,
+            // estáticos (actix-files) y los que ya ponen la suya no cambian.
+            .wrap(
+                actix_web::middleware::DefaultHeaders::new()
+                    .add((actix_web::http::header::CONTENT_TYPE, "text/html; charset=utf-8")),
+            )
+            // Los estáticos salen de actix-files solo con ETag/Last-Modified. Sin Cache-Control
+            // el navegador reutiliza a ciegas su copia vieja y un cambio de JS/CSS "no hace nada"
+            // hasta un Ctrl+Shift+R. Con no-cache pregunta siempre, y el ETag lo resuelve en 304.
+            .wrap_fn(|req, srv| {
+                use actix_web::dev::Service;
+                let is_static = middleware::request_log::is_static(req.path());
+                let fut = srv.call(req);
+                async move {
+                    let mut res = fut.await?;
+                    if is_static {
+                        res.headers_mut().insert(
+                            actix_web::http::header::CACHE_CONTROL,
+                            actix_web::http::header::HeaderValue::from_static("no-cache"),
+                        );
+                    }
+                    Ok(res)
+                }
+            })
+            // Contra CSRF: los POST/PUT/PATCH/DELETE tienen que venir de esta web.
+            .wrap(actix_web::middleware::from_fn(middleware::origin_check::origin_check))
+            // Una línea de log por petición con su id (X-Request-Id). Lo último que se
+            // envuelve va por fuera: TracingLogger abre el span y request_log, dentro, escribe.
+            .wrap(actix_web::middleware::from_fn(middleware::request_log::request_log))
+            .wrap(TracingLogger::<middleware::request_log::RequestSpan>::new())
             .app_data(pool_data.clone())
             .app_data(client_data.clone())
             .configure(config::static_config)
-            .configure(routes_x::config)
-            
-            .service(controllersX::prueba_insertar)
-            .service(controllersX::prueba_modificar)
-            //test
-            .service(controllers::test::scope())
-            .service(aws::scope_aws()) /*  /aws/s3/xxx  */
-            //create_product
-            .service(controllers::createProduct::create_product_controllers::scope_create_product())
+            .configure(routes::config_routes)
             .service(components::scope::scope_components())
-            // Static files
-            .service(fs::Files::new("/assets", "assets").show_files_listing())
-            
-            .service(routes_x::example)
+            // Cualquier URL que no exista: la 404 de la tienda, con la sesión
+            .default_service(web::to(routes::not_found::default_not_found).wrap(middleware::auth::Auth::new()))
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(bind_addr.as_str())?
     .run()
     .await
 }

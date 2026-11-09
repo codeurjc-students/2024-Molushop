@@ -1,4 +1,4 @@
-use rinja::Template;
+use askama::Template;
 
 use serde::{Serialize, Deserialize};
 use uuid::Uuid;
@@ -11,18 +11,24 @@ pub struct EditProductVariation{
     pub routes_edit_product: &'static Routes,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Routes{
     pub edit_general: &'static str,
     pub edit_price: &'static str,
     pub edit_stock: &'static str,
-    //pub edit_images: &'static str,
     pub new_identifier: &'static str,
     pub edit_identifiers: &'static str,
     pub warning: &'static str,
-    pub delete_identifier: &'static str
-    
+    pub delete_identifier: &'static str,
+    pub sku_check: &'static str,
+}
+
+/// El aviso bajo el campo SKU mientras se escribe (pestaña General): vacío si
+/// se puede guardar.
+#[derive(Template)]
+#[template(path = "components/edit_product_variation/templates/sku_check.html")]
+pub struct SkuCheck {
+    pub problem: Option<String>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -32,7 +38,6 @@ pub struct ProductVariationEdit{
     pub prices: Prices,
     pub stock: Stock,
     pub identifiers: Identifiers,
-    //pub images: Images,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -46,6 +51,8 @@ pub struct General{
     pub name: String,
     pub attributes: Vec<Attribute>,
     pub status: i16,
+    /// Vacío si no tiene.
+    pub sku: String,
     //images
 }
 
@@ -54,7 +61,6 @@ pub struct Attribute{
     pub name:String,
     pub value:String
 }
-
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Prices{
@@ -74,7 +80,6 @@ pub struct Identifier{
     pub name: String,
     pub value: String,
 }
-
 
 #[derive(Serialize,Deserialize,Debug,Clone)]
 pub struct PriceForm{
@@ -97,14 +102,3 @@ pub struct StockForm{
     pub stock: String
 }
 //hacer un impl a PriceData
-/* 
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct Images{
-    pub images: Vec<ImageCategories>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ImageCategories{
-    pub url: String,
-    pub tipo: String,
-}*/

@@ -1,0 +1,105 @@
+{# Los textos que cambia el JS (script.js) van en data-text-*: así salen en el idioma de la página. #}
+<div class="product-detail-principal"
+    data-text-add="{{ i18n.t("card-add-to-cart") }}"
+    data-text-sold-out="{{ i18n.t("product-sold-out") }}"
+    data-text-unavailable="{{ i18n.t("price-unavailable") }}"
+    data-text-pick-variation="{{ i18n.t("product-pick-variation") }}"
+    data-text-variation-unavailable="{{ i18n.t("product-variation-unavailable") }}"
+    data-text-quantity-positive="{{ i18n.t("product-quantity-positive") }}">
+    <div class="image-display">
+        <div class="container-image-display">
+            <div class="all-images-container">
+                {# Ya ordenada y filtrada para la variación de entrada (gallery);
+                   al elegir otra, refreshGallery la recoloca con data-variations #}
+                <div class="all-images">
+                {% for (image, visible) in product_data.gallery() %}
+                    <div class="image-s" data-variations="{{image.variation_ids_csv()}}"{% if !visible %} hidden{% endif %}>
+                        <img class="image-mini" src="{{image.image_url}}" alt="">
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+            <div class="main-image-container">
+                {% if let Some(image_url) = product_data.main_image_url() %}
+                    <img class="image-principal" src="{{image_url}}" alt="{{product_data.name}}">
+                {% else %}
+                    <img class="image-principal" src="https://tfg-vik.s3.eu-north-1.amazonaws.com/1752443059deadpool-funko.jpg" alt="{{product_data.name}}">
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="product-data">
+        <div class="title">
+            <span>{{product_data.name}}</span>
+        </div>
+        <!-- Lleva a la sección de opiniones, más abajo en la misma página. -->
+        <a class="rating-container" href="#product-reviews-1">
+            {% if product_data.rating_count > 0 %}
+            {{ product_data.stars().localized(i18n) }}
+            <span class="rating-count">{{ i18n.t_count("product-reviews-count", product_data.rating_count) }}</span>
+            {% else %}
+            <span class="rating-count">{{ i18n.t("product-no-reviews") }}</span>
+            {% endif %}
+        </a>
+        <!-- El script cambia el importe al elegir otra variación y esconde la
+             moneda si no tiene precio (updatePrice, por el id product-price). -->
+        <div class="price" id="product-price">
+            {{ product_data.price_tag().localized(i18n) }}
+        </div>
+        <div class="variations">
+            {% for variation in product_data.variations_with_stock_status %}
+            <div class="variation">
+                <div class="variation-title">
+                    <span>{{variation.name}}: </span>
+                </div>
+                <div class="variation-select">
+                {% for element in variation.values %}
+                    <div class="variation-element">
+                        {% set input_id = "var-" ~ variation.name ~ "-" ~ element.value %}
+                        <input
+                            type="radio"
+                            name="variation-{{variation.name}}"
+                            id="{{ input_id }}"
+                            value="{{ element.value }}"
+                            class="variation-input"
+                            {% if element.is_default %}checked{% endif %}
+                            {% if !element.exists %}disabled{% endif %}
+                        >
+                        <label for="{{ input_id }}" class="variation-name-cont" {% if !element.exists %}disabled{% endif %}>
+                            <span>{{element.value}}</span>
+                        </label>
+                    </div>
+                {% endfor %}
+                </div>
+            </div>
+            {% endfor%}
+        </div>
+        <div class="add-to-cart">
+            <h3>{{ i18n.t("card-add-to-cart") }}</h3>
+            <div class="add-cart-cont1">
+                <div class="quantity-product">
+                    {{ product_data.quantity_tag().localized(i18n) }}
+                </div>
+                <div class="button-container-add">
+                    {# htmx: la variación y la cantidad las pone el JS (htmx:configRequest,
+                       PRODUCT_DETAIL); la respuesta es el toast y el número del menú, por OOB #}
+                    <button type="button" class="m-btn m-btn--primary m-btn--block add-to-cart-btn"
+                        hx-post="{{product_data.cart_add_url()}}" hx-swap="none">
+                        <span>{{ i18n.t("card-add-to-cart") }}</span>
+                    </button>
+                </div>
+                {% let fav = product_data.favorite_button() %}
+                {% include "components/favorite_button/templates/button.html" %}
+            </div>
+            {# La variación elegida existe pero no tiene stock (refreshAddButton) #}
+            <p class="m-alert m-alert--warning sold-out-msg" role="status" hidden>
+                {{ i18n.t("product-sold-out-msg") }}
+            </p>
+            {# Errores de "Añadir al carrito" que se ven antes de pedir nada al servidor (showError) #}
+            <p class="m-error add-to-cart-error" role="alert" hidden></p>
+        </div>
+    </div>
+    {# Datos y no código: lo lee el JS (PRODUCT_DETAIL.init). Un `const` en un
+       <script> fallaría al llegar a otra ficha con hx-boost (ya declarado). #}
+    <script type="application/json" class="variant-map">{{ product_data.variant_map_json()|safe }}</script>
+</div>

@@ -1,15 +1,10 @@
-//use serde::de::value::Error;
 // backend/src/uploads/client.rs
 use tokio::io::AsyncReadExt as _;
-//use crate::upload::UploadedFile;
-//use crate::services::aws::s3::upload::UploadedFile;
 use super::upload::UploadedFile;
 use chrono::prelude::*;
 
 use aws_sdk_s3::types::{Delete, ObjectIdentifier};
-//use aws_sdk_s3::output::DeleteObjectsOutput;
 use std::error::Error;
-
 
 /// S3 client wrapper to expose semantic upload operations.
 #[derive(Debug, Clone)]
@@ -37,6 +32,17 @@ impl Client {
         )
     }
 
+    /// La clave del objeto a partir de la URL guardada en la BD (la de `url`).
+    /// `None` si la URL no es de este bucket: entonces no se borra nada.
+    pub fn key_from_url(&self, url: &str) -> Option<String> {
+        let base = format!(
+            "https://{}.s3.{}.amazonaws.com/",
+            self.bucket_name,
+            std::env::var("AWS_REGION").ok()?,
+        );
+        key_from_url(&base, url)
+    }
+
     /// Facilitate the upload of file to s3.
     pub async fn upload(
         &self,
@@ -49,7 +55,6 @@ impl Client {
         let file_type = self.check_extension(filename);
 
         //si el filename tiene espacios, cambiar los espacios por +
-       // let filename_new = filename.replace(" ", "+");
         
         //hacer un timestamp para el nombre del archivo
         let timestamp = Utc::now().timestamp();
@@ -118,7 +123,7 @@ impl Client {
             .filter_map(|key| ObjectIdentifier::builder().key(key).build().ok())
             .collect();
 
-        let delete = Delete::builder().set_objects(Some(objects)).build().map_err(|err|{println!("Error: {:?}",err); err})?;
+        let delete = Delete::builder().set_objects(Some(objects)).build().map_err(|err| { tracing::error!(error = ?err, "could not build the S3 delete request"); err })?;
 
         let fin= self
             .s3
@@ -131,13 +136,12 @@ impl Client {
         match fin {
             Ok(_) => Ok(()),
             Err(e) => {
-                println!("Error deleting objects: {:?}",e);
+                tracing::error!(error = ?e, "could not delete the objects from S3");
                 Err(Box::new(e))
             }
         }
         
     }
-
 
     pub async fn list_objects(&self) -> Result<Vec<String>,Box<dyn Error>> {
         let list_objects = self
@@ -161,20 +165,17 @@ impl Client {
                         Ok(keys)
                     },
                     None => {
-                        println!("No contents");
-                        //Ok(Vec::new())
-                        //Err(Box::new(std::io::Error::new(std::io::ErrorKind::Other, "No contents")))
+                        tracing::debug!("the S3 bucket is empty");
                         Err("No content")?
                     }
                 }
             },
             Err(e) => {
-                println!("Error listing objects: {:?}",e);
+                tracing::error!(error = ?e, "could not list the S3 objects");
                 Err(Box::new(e))
             }
         }
         
-        //Ok(keys)
     }
 
     fn check_extension(&self, filename: &str) -> String {
@@ -182,11 +183,40 @@ impl Client {
         let file_type;
         if extension == "jpg" || extension == "jpeg" {
             file_type = "image/jpeg";
-        } else if(extension == "png") {
+        } else if extension == "png" {
             file_type = "image/png";
         }else{
             file_type = "other";
         }
         file_type.to_string()
+    }
+}
+
+/// Deshace lo que hace `Client::url` con la clave: los `+` vuelven a ser
+/// espacios y los `%2B`, `+` (en ese orden, el inverso).
+fn key_from_url(base: &str, url: &str) -> Option<String> {
+    let key = url.strip_prefix(base)?;
+    if key.is_empty() {
+        return None;
+    }
+    Some(key.replace('+', " ").replace("%2B", "+"))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::key_from_url;
+
+    const BASE: &str = "https://tienda.s3.eu-north-1.amazonaws.com/";
+
+    #[test]
+    fn key_from_url_reverses_url_encoding() {
+        let url = format!("{BASE}1767296783Mi+foto%2B1.jpg");
+        assert_eq!(key_from_url(BASE, &url).as_deref(), Some("1767296783Mi foto+1.jpg"));
+    }
+
+    #[test]
+    fn key_from_url_rejects_other_hosts() {
+        assert_eq!(key_from_url(BASE, "https://otro.s3.eu-north-1.amazonaws.com/a.jpg"), None);
+        assert_eq!(key_from_url(BASE, BASE), None);
     }
 }

@@ -6,7 +6,6 @@ const imageManager = {
     contenedor: null,
 
     init(elemento) {
-        console.log("Loding image Manager");
         if (this.contenedor!=null&&this.contenedor==elemento){
             return
         }else{
@@ -15,7 +14,7 @@ const imageManager = {
         this.dropzone = elemento.querySelector('.dropzone');
         this.fileInput = this.dropzone.querySelector('input[type="file"]');
         this.imageGallery = elemento.querySelector(".image-gallery.new-images");
-        this.form = elemento.querySelector("#imagesForm");
+        this.form = elemento.querySelector(".images-form");
 
         // Prevenir el comportamiento por defecto del navegador para drag & drop
         ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -39,22 +38,16 @@ const imageManager = {
         this.fileInput.addEventListener('change', this.handleFiles.bind(this), false);
     },
 
+    // Subida guardada (HX-Trigger image_update): las imágenes de verdad, con
+    // sus botones, llegan del servidor fuera de banda (uploaded_images.html);
+    // aquí se quitan las vistas previas y se vacía la selección.
     updateImageLocation(element,event){
-        //cambiar de lugar la imagen
-        if(event.detail.id_value==element.id){
-            console.log(event.detail.id_value);
-            //seleccionar la
-            let new_image_container = element.querySelector(".image-gallery.new-images");
-            let new_images = new_image_container.querySelectorAll(".image-container");
-            //mover los elementos de lugar
-            let image_container = element.querySelector(".image-gallery.base-images");
-            if( new_images.length==0){
-                return;
-            }
-            new_images.forEach(image =>{
-                image_container.appendChild(image);
-            });
+        if(event.detail.id_value!=element.id){
+            return;
         }
+        element.querySelector(".image-gallery.new-images").replaceChildren();
+        element.querySelector(".image-gallery.base-images .no-images")?.remove();
+        element.querySelector('.dropzone input[type="file"]').value = '';
     },
 
     preventDefaults(e) {
@@ -71,7 +64,6 @@ const imageManager = {
     },
 
     handleDrop(e) {
-        console.log("handle_Drop");
         let dt = e.dataTransfer;
         let files = dt.files;
         
@@ -93,10 +85,11 @@ const imageManager = {
         
         this.imageGallery.innerHTML = '';
         
+        let rejected = [];
         let validFiles = files.filter(file => {
             let validTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (!validTypes.includes(file.type)) {
-                alert(`File ${file.name} is not a valid image file`);
+                rejected.push(file.name);
                 return false;
             }
             return true;
@@ -104,18 +97,25 @@ const imageManager = {
 
         if (validFiles.length === 0) {
             this.imageGallery.innerHTML = '<p class="no-images">No hay imágenes</p>';
+        }
+        // Aviso en la propia galería. El nombre va como texto: viene del
+        // fichero del usuario y no se mete como HTML.
+        if (rejected.length > 0) {
+            let note = document.createElement('p');
+            note.className = 'm-error';
+            note.textContent = `No son imágenes JPG, PNG o GIF y no se subirán: ${rejected.join(', ')}`;
+            this.imageGallery.prepend(note);
+        }
+        if (validFiles.length === 0) {
             return;
         }
-        console.log("Handle");
         validFiles.forEach((file, index) => this.previewFile(file, index));
     },
 
     previewFile(file, index) {
         let reader = new FileReader();
         reader.readAsDataURL(file);
-        console.log("Hola?");
         reader.onloadend = () => {
-            console.log("Imagen load?");
             let imageContainer = document.createElement('div');
             imageContainer.className = 'image-container';
             imageContainer.dataset.fileIndex = index;
@@ -128,7 +128,9 @@ const imageManager = {
             
             let deleteBtn = document.createElement('button');
             deleteBtn.className = 'delete-btn';
-            deleteBtn.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteBtn.type = 'button';
+            deleteBtn.setAttribute('aria-label', 'Quitar imagen');
+            deleteBtn.innerHTML = '<svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-trash" /></svg>';
             deleteBtn.onclick = () => {
                 let dataTransfer = new DataTransfer();
                 let files = Array.from(this.fileInput.files);

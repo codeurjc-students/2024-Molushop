@@ -1,0 +1,134 @@
+use std::future::{ready, Ready};
+use std::rc::Rc;
+use actix_web::{dev::{forward_ready, Service, ServiceRequest, ServiceResponse, Transform}, web, Error, HttpMessage
+};
+use futures_util::future::LocalBoxFuture;
+use uuid::Uuid;
+use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pg::AsyncPgConnection;
+type DbPool = Pool<AsyncPgConnection>;
+use crate::services::paseto_token_session_service::*;
+use crate::services::session_service::check_session;
+use std::collections::HashMap;
+use chrono::prelude::*;
+// There are two steps in middleware processing.
+// 1. Middleware initialization, middleware factory gets called with
+//    next service in chain as parameter.
+// 2. Middleware's call method gets called with normal request.
+#[derive(Clone)]
+pub struct Auth;
+
+impl Auth {
+    pub fn new() -> Self {
+        Self
+    }
+}
+
+// Middleware factory is `Transform` trait
+// `S` - type of the next service
+// `B` - type of response's body
+impl<S: 'static, B> Transform<S, ServiceRequest> for Auth
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error>,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type InitError = ();
+    type Transform = AuthMiddleware<S>;
+    type Future = Ready<Result<Self::Transform, Self::InitError>>;
+
+    fn new_transform(&self, service: S) -> Self::Future {
+        ready(Ok(AuthMiddleware { 
+            service: Rc::new(service),
+        }))
+    }
+}
+#[derive(Clone)]
+pub struct AuthMiddleware<S> {
+    service: Rc<S>,
+}
+
+#[derive(Debug,Clone)]
+pub struct SessionData{
+    pub id : Uuid,
+    /// Identificador de ESTA sesión en `user_sessions`. Lo necesita el logout para revocar
+    /// solo la sesión del navegador que lo pide y no las demás del usuario.
+    pub jti : String
+}
+
+impl<S, B> Service<ServiceRequest> for AuthMiddleware<S>
+where
+    S: Service<ServiceRequest, Response = ServiceResponse<B>, Error = Error> + 'static,
+    S::Future: 'static,
+    B: 'static,
+{
+    type Response = ServiceResponse<B>;
+    type Error = Error;
+    type Future = LocalBoxFuture<'static, Result<Self::Response, Self::Error>>;
+
+    forward_ready!(service);
+
+    fn call(&self, req: ServiceRequest) -> Self::Future {
+        // Obtener el pool desde app_data
+        let pool = req.app_data::<web::Data<DbPool>>().cloned();
+
+        let service = self.service.clone();
+
+        Box::pin(async move {
+            if let Some(pool) = pool {
+                let data_send = validate_cookie(pool.get_ref(), &req).await;
+
+                if let Some(data_session) = data_send {
+                    req.extensions_mut().insert(data_session);
+                }
+            }
+
+            service.call(req).await
+        })
+    }
+}
+
+async fn validate_cookie(pool:&DbPool,req:&ServiceRequest)->Option<SessionData>{
+    //ver si tiene una cookie ,
+    let mut claims_data = HashMap::new();
+    claims_data.insert("iss".to_string(),"Molushop.com".to_string());
+    claims_data.insert("aud".to_string(),"Molushop/user".to_string());
+    //verificar que la request tiene la cookie que queremos
+    let cookie1 = req.cookie("sesion_token");
+    if let Some(c) = cookie1{
+        let token = c.value().to_string();
+        // El token no se escribe en el log: con él se entra como el usuario.
+        
+        match validate_local_token(&token,&claims_data){
+            Ok(jti)=>{
+                if jti != "".to_string(){
+                    match check_session(&jti,&pool).await{
+                        Ok(us)=>{
+                            //verificar que: no esté revoked
+                            // esté dentro de los plazos
+                            let now = Utc::now().naive_utc();
+                            if us.is_revoked{
+                                tracing::debug!("session token was revoked");
+                            }else if !(now >= us.issued_at && now<=us.expires_at){
+                                tracing::debug!("session token has expired");
+                                //ver si aquí ponemos que se revoque el token
+                            }else{
+                                return Some(SessionData{id:us.user_id.clone(), jti:jti.clone()})
+                            }
+                        },
+                        Err(e)=>{
+                            tracing::error!(error = %e, "could not check the session");
+                        }
+                    }
+                }
+            },
+            Err(e)=>{
+                tracing::debug!(error = %e, "invalid session token");
+            }
+        }
+        // en funcioón de si el token es normal --> no devuelva nada especial
+    }
+    return None
+}

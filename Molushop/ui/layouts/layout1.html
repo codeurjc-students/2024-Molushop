@@ -1,17 +1,72 @@
 <!DOCTYPE html>
-<html lang="es">
+{# El panel y el admin, en español; la tienda pone el de la petición (shop.html). #}
+<html lang="{% block html_lang %}es{% endblock %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{page_name}}</title>
-    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
-    <script src="https://cdn.jsdelivr.net/gh/Emtyloc/json-enc-custom@main/json-enc-custom.js"></script>
-    <script src="https://unpkg.com/htmx-ext-head-support@2.0.1/head-support.js"></script>
+    {# Una página puede componer su título en la plantilla (block title) en vez de
+       traerlo hecho en `page_name`: el texto queda en el HTML, no en Rust. #}
+    <title>{% block title %}{{page_name}}{% endblock %}</title>
+    <link rel="icon" href="/assets/logos/molushop-m.svg" type="image/svg+xml">
+    <!-- Copias locales con versión fija: htmx 2.0.11, response-targets 2.0.4,
+         head-support 2.0.5, hyperscript 0.9.14, json-enc-custom 0.1.8. -->
+    <script src="/assets/htmx.js"></script>
+    <script src="/assets/response-targets.js"></script>
+    <script src="/assets/hyperscript.js"></script>
+    <script src="/assets/json-enc-custom.js"></script>
+    <script src="/assets/head-support.js"></script>
+    <link rel="preload" href="/assets/fonts/roboto-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="/static/styles/tokens.css">
+    <link rel="stylesheet" href="/static/styles/base.css">
+    <link rel="stylesheet" href="/static/styles/atoms/button.css">
+    <link rel="stylesheet" href="/static/styles/atoms/field.css">
+    <link rel="stylesheet" href="/static/styles/atoms/badge.css">
+    <link rel="stylesheet" href="/static/styles/atoms/alert.css">
+    <link rel="stylesheet" href="/static/styles/atoms/card.css">
+    <link rel="stylesheet" href="/static/styles/atoms/stars.css">
+    <link rel="stylesheet" href="/static/styles/atoms/modal.css">
+    <link rel="stylesheet" href="/static/styles/atoms/toast.css">
+    <link rel="stylesheet" href="/static/styles/atoms/price.css">
+    <link rel="stylesheet" href="/static/styles/atoms/quantity.css">
+    <script src="/static/utils/base.js"></script>
+    {# Estilos y scripts del layout que hereda (shop, panel), antes que los de
+       la página. Van en el <head> y no en el <header>: lo del <body> lo
+       sustituye htmx al volver atrás con el historial, y un <link> nuevo se
+       pinta un instante sin estilos. #}
+    {% block layout_meta %}{% endblock %}
+    {% block layout_styles %}{% endblock %}
+    {% block layout_scripts %}{% endblock %}
     {% block scripts %}{% endblock %}
     {% block styles %}{% endblock %}
 </head>
-<body hx-ext="head-support">
-    {% block content %}{% endblock %}
+{# hx-boost: los enlaces de la tienda cambian de página sin recargar (htmx
+   sustituye el body; head-support junta los <head>). El panel lo deja vacío.
+   Los formularios normales (POST sin htmx: checkout, cuenta, contraseña)
+   llevan hx-boost="false" y se envían como siempre. Lo que necesita para
+   funcionar está en ui/utils/base.js (BOOST).
+   hx-history="false": al volver atrás la página se pide otra vez al
+   servidor, en vez de sacar la copia que htmx guarda al salir (saldrían el
+   carrito o el stock de entonces). #}
+<body {% block boost %}hx-boost="true" hx-history="false"{% endblock %} hx-ext="head-support,response-targets"
+    style="margin:0"
+    data-user_logged={{user_logged}}
+>
+    <header class="full-width-header">
+        {% block header %}{% endblock %}
+    </header>
+    {# Toasts (átomo m-toast): las respuestas de htmx los añaden aquí con
+       hx-swap-oob (Toast::oob). aria-live: el lector de pantalla lee cada uno
+       al llegar. Va justo después de la cabecera a propósito: el ancla es
+       sticky y así salen debajo del nav y, al bajar, pegados arriba de la
+       pantalla (toast.css). #}
+    <div class="m-toasts-anchor">
+        <div id="m-toasts" class="m-toasts" aria-live="polite"></div>
+    </div>
+    <main class="content-wrapper">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="full-width-footer">
+        {% block footer %}{% endblock %}
+    </footer>
 </body>
 </html>

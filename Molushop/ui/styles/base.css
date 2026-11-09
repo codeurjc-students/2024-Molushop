@@ -1,0 +1,94 @@
+body{
+    font-family: var(--font-family-base);
+}
+
+button {
+  font: inherit;       /* Evita que el botón use una fuente distinta al resto del texto */
+  color: inherit;      /* Hereda el color del padre */
+  background: none;    /* Quita el gris por defecto */
+  border: none;        /* Quita el borde 3D antiguo */
+  padding: 0;          /* Quita paddings extraños de navegadores viejos */
+  cursor: pointer;     /* Asegura que siempre aparezca la "mano" */
+}
+
+button:disabled {
+  cursor: not-allowed; /* Feedback visual universal para botones bloqueados */
+}
+
+.content-wrapper{
+    /* max-width: 1500px;  Establece tu ancho máximo deseado */
+    /*margin: 0 auto; /* Centra el contenedor en la pantalla */
+     /* Padding para los márgenes laterales en móvil */
+}
+.full-width-header,
+.full-width-footer {
+    /* Por defecto, ya ocupan el 100% del ancho del body/viewport */
+    width: 100%;
+    /* Puedes añadir aquí estilos de fondo, colores, etc. */
+}
+
+.disabled{
+    display:none;
+}
+
+.no-generic-button{
+        background: none; 
+
+        /* Quita el borde por defecto (incluyendo el borde 3D en Windows) */
+        border: none;
+
+        /* Quita la sombra de texto por defecto */
+        text-shadow: none;
+
+        /* Quita el color de texto/fondo por defecto del sistema */
+        color: inherit; 
+
+        /* IMPORTANTE: Remueve los estilos nativos de los botones del sistema operativo */
+        appearance: none;
+        -webkit-appearance: none; /* Para Chrome y Safari */
+        -moz-appearance: none;    /* Para Firefox */
+
+        /* Opcional: Para cambiar el cursor y el efecto al hacer clic */
+        cursor: pointer;
+}
+
+.no-generic-a{
+    display: block;
+    text-decoration: none;
+}
+
+.icn-svg{
+  height:1em;
+  width:1em;
+  fill:currentColor;
+}
+/* Cambio de página con hx-boost (base.js, BOOST): la transición por defecto
+   del navegador (fundido). Sin ella si el sistema pide menos movimiento. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Barra de carga arriba (base.js, NAV_PROGRESS pone .is-navigating en <html>).
+   Sale a los 150 ms: si la página llega antes, no se ve. Avanza deprisa al
+   principio y cada vez más despacio, sin llegar al final hasta que llega. */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  width: 0;
+  height: 3px;
+  background-color: var(--color-primary-strong);
+  opacity: 0;
+  pointer-events: none;
+}
+html.is-navigating body::before {
+  width: 90%;
+  opacity: 1;
+  transition: width 10s cubic-bezier(0.1, 0.8, 0.2, 1) 150ms, opacity 0s 150ms;
+}

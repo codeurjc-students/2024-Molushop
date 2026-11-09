@@ -1,0 +1,42 @@
+<div class="panel-login-1"
+    data-login_url="{{panel_login.login_url}}"
+    data-next="{{panel_login.next}}"
+>
+    <div class="m-card m-card--lg cont-1">
+        <h1>Panel de Molushop</h1>
+
+        {% if panel_login.registered %}
+        <p class="m-alert m-alert--success" role="status">
+            Cuenta creada. Inicia sesión para ver tu tienda: quedará pendiente hasta que un administrador la apruebe.
+        </p>
+        {% endif %}
+
+        {% if panel_login.logged_without_access %}
+        <p class="m-alert m-alert--warning">
+            Tu usuario no tiene acceso al panel. Entra con una cuenta de vendedor o de administrador, o <a href="/panel/register">solicita una tienda</a> con esta cuenta.
+        </p>
+        {% endif %}
+
+        <form class="login-form">
+            <div class="m-field">
+                <label class="m-label" for="panel-login-username">Usuario</label>
+                <input class="m-input" id="panel-login-username" type="text" name="username" required autocomplete="username">
+            </div>
+
+            <div class="m-field">
+                <label class="m-label" for="panel-login-pass">Contraseña</label>
+                <input class="m-input" id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
+            </div>
+
+            <p class="m-error login-error" hidden></p>
+
+            <button type="submit" class="m-btn m-btn--primary">Entrar</button>
+            <a class="forgot-link" href="/password/forgot">¿Has olvidado tu contraseña?</a>
+        </form>
+
+        {% if !panel_login.logged_without_access %}
+        <a class="back-link" href="/panel/register">¿Quieres vender? Solicita tu tienda</a>
+        {% endif %}
+        <a class="back-link" href="/cart">Volver a la tienda</a>
+    </div>
+</div>

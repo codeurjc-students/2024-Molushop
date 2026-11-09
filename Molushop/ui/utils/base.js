@@ -1,0 +1,379 @@
+// Utilidades comunes; layout1 carga este fichero en todas las páginas.
+
+// Importes en el formato de la tienda ("9,00", "12.345,67"): el mismo texto que
+// pinta el servidor (constants::money::format_amount y el átomo Price). Úsalo
+// siempre que el JS escriba un precio, en vez de toFixed().
+const MONEY = {
+    // El de <html lang>: "9,00" en español, "9.00" en inglés. Igual que
+    // constants::money::format_amount_in. Se mira en cada llamada: con
+    // hx-boost la página cambia sin recargar.
+    formatters: {},
+    formatter: function() {
+        let locale = document.documentElement.lang === "en" ? "en-GB" : "es-ES";
+        this.formatters[locale] ??= new Intl.NumberFormat(locale, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+        return this.formatters[locale];
+    },
+
+    // Acepta número o texto ("150.99", que es como llega de la BD).
+    format: function(value) {
+        let number = Number(value);
+        if (!Number.isFinite(number)) { return String(value); }
+        // Sin "-0,00" para un negativo que redondea a cero, igual que en Rust.
+        if (Math.abs(number) < 0.005) { number = 0; }
+        return this.formatter().format(number);
+    }
+};
+
+// Átomo de cantidad (Quantity, ui/styles/atoms/quantity.css). Va delegado sobre
+// document: vale para los selectores que pinte el servidor y para los que
+// lleguen después por htmx o fetch, sin engancharlos uno a uno.
+//
+// - Los botones suman o restan sin salirse del min/max del input, apagan el
+//   botón del límite y lanzan `m-qty-change` (burbujea, con detail.value) desde
+//   el input. Es la señal para el componente: la ficha no hace nada hasta
+//   "Añadir al carrito"; el carrito la manda al servidor.
+// - Lo escrito a mano no lanza `m-qty-change` (el componente escucha `input` si
+//   lo quiere): solo se ajusta a los límites al salir del campo.
+const QUANTITY = {
+    limits: function(input) {
+        return { min: parseInt(input.min), max: parseInt(input.max) };
+    },
+
+    clamp: function(input, value) {
+        let { min, max } = this.limits(input);
+        if (!isNaN(min) && value < min) { value = min; }
+        if (!isNaN(max) && value > max) { value = max; }
+        return value;
+    },
+
+    // Apaga − en el mínimo y + en el máximo. Con papelera (data-label-remove,
+    // Quantity::removable), el − en el mínimo no se apaga: pasa a papelera.
+    refresh: function(input) {
+        let box = input.closest(".m-qty");
+        if (box == null) { return; }
+        let { min, max } = this.limits(input);
+        let value = parseInt(input.value);
+        let minus = box.querySelector('.m-qty__btn[data-step="-1"]');
+        let atMin = !isNaN(min) && value <= min;
+        if (minus.dataset.labelRemove) {
+            minus.disabled = false;
+            minus.classList.toggle("is-remove", atMin);
+            minus.setAttribute("aria-label", atMin ? minus.dataset.labelRemove : minus.dataset.labelDecrease);
+        } else {
+            minus.disabled = atMin;
+        }
+        box.querySelector('.m-qty__btn[data-step="1"]').disabled = !isNaN(max) && value >= max;
+    },
+
+    step: function(button) {
+        // La papelera no resta: avisa y el componente decide (el carrito borra)
+        if (button.classList.contains("is-remove")) {
+            button.dispatchEvent(new CustomEvent("m-qty-remove", { bubbles: true }));
+            return;
+        }
+        let input = button.closest(".m-qty").querySelector(".m-qty__input");
+        let current = parseInt(input.value) || 0;
+        let value = this.clamp(input, current + parseInt(button.dataset.step));
+        if (value === current) { return; }
+
+        input.value = value;
+        this.refresh(input);
+        input.dispatchEvent(new CustomEvent("m-qty-change", { bubbles: true, detail: { value } }));
+    },
+
+    init: function() {
+        document.addEventListener("click", (event) => {
+            let button = event.target.closest(".m-qty__btn");
+            if (button != null && !button.disabled) { this.step(button); }
+        });
+        document.addEventListener("input", (event) => {
+            if (event.target.classList.contains("m-qty__input")) { this.refresh(event.target); }
+        });
+        document.addEventListener("change", (event) => {
+            let input = event.target;
+            if (!input.classList.contains("m-qty__input")) { return; }
+            let { min } = this.limits(input);
+            let value = parseInt(input.value);
+            input.value = this.clamp(input, isNaN(value) ? (isNaN(min) ? 0 : min) : value);
+            this.refresh(input);
+        });
+    }
+};
+QUANTITY.init();
+
+// Toasts (átomo m-toast, toast.css): también se quitan deslizándolos hacia un
+// lado. Siguen al dedo (o al ratón) y, al soltar, se van si se han arrastrado
+// más de un tercio de su ancho o se han lanzado rápido; si no, vuelven a su
+// sitio. Un gesto que empieza en vertical es scroll (touch-action: pan-y) y
+// desde un enlace o un botón ("Deshacer", la ×) es un clic. Mientras se
+// arrastra no se cierra solo: el closeToast de los 5 s espera a soltarlo.
+const TOAST_SWIPE = {
+    THRESHOLD: 1 / 3,
+    FLICK: 0.5,   // px/ms
+    SLOP: 8,      // px antes de decidir si es arrastre o scroll
+    drag: null,
+
+    start: function(event) {
+        let toast = event.target.closest(".m-toast");
+        if (toast == null || event.button !== 0 || event.target.closest("a, button")) { return; }
+        this.drag = { toast, id: event.pointerId, x: event.clientX, y: event.clientY, dx: 0, vx: 0, lastX: event.clientX, lastT: event.timeStamp, moving: false };
+    },
+
+    move: function(event) {
+        let d = this.drag;
+        if (d == null || event.pointerId !== d.id) { return; }
+        let dx = event.clientX - d.x;
+        let dy = event.clientY - d.y;
+        if (!d.moving) {
+            if (Math.abs(dx) < this.SLOP && Math.abs(dy) < this.SLOP) { return; }
+            if (Math.abs(dy) > Math.abs(dx)) { this.drag = null; return; }
+            d.moving = true;
+            d.toast.classList.add("is-dragging");
+            // Para seguir recibiendo el movimiento aunque el dedo se salga del
+            // toast. Falla si el puntero ya no existe: entonces sin captura.
+            try { d.toast.setPointerCapture(d.id); } catch (e) { }
+        }
+        let dt = event.timeStamp - d.lastT;
+        if (dt > 0) { d.vx = (event.clientX - d.lastX) / dt; }
+        d.lastX = event.clientX;
+        d.lastT = event.timeStamp;
+        d.dx = dx;
+        d.toast.style.transform = `translateX(${dx}px)`;
+        d.toast.style.opacity = 1 - Math.min(Math.abs(dx) / d.toast.offsetWidth, 1) * 0.7;
+    },
+
+    end: function(event, cancelled) {
+        let d = this.drag;
+        if (d == null || event.pointerId !== d.id) { return; }
+        this.drag = null;
+        if (!d.moving) { return; }
+
+        let toast = d.toast;
+        toast.classList.remove("is-dragging");
+        let width = toast.offsetWidth;
+        let flick = Math.abs(d.vx) > this.FLICK && Math.sign(d.vx) === Math.sign(d.dx);
+        if (!cancelled && (Math.abs(d.dx) > width * this.THRESHOLD || flick)) {
+            // Sale por su lado; sin transición (movimiento reducido), al momento
+            toast.style.transform = `translateX(${Math.sign(d.dx) * width * 1.2}px)`;
+            toast.style.opacity = 0;
+            let done = () => toast.remove();
+            toast.addEventListener("transitionend", done, { once: true });
+            setTimeout(done, 250);
+        } else {
+            toast.style.transform = "";
+            toast.style.opacity = "";
+            // Se le acabaron los 5 s mientras se arrastraba
+            if (toast.dataset.expired) { toast.dispatchEvent(new CustomEvent("closeToast")); }
+        }
+    },
+
+    init: function() {
+        document.addEventListener("pointerdown", (event) => this.start(event));
+        document.addEventListener("pointermove", (event) => this.move(event));
+        document.addEventListener("pointerup", (event) => this.end(event, false));
+        document.addEventListener("pointercancel", (event) => this.end(event, true));
+        // En captura, antes que el "on closeToast" del toast (hyperscript)
+        document.addEventListener("closeToast", (event) => {
+            if (event.target.classList?.contains("is-dragging")) {
+                event.stopPropagation();
+                event.target.dataset.expired = "1";
+            }
+        }, true);
+    }
+};
+TOAST_SWIPE.init();
+
+// hx-boost en la tienda (layout1). Con él, los enlaces piden la página con
+// htmx y sustituyen el body, así que hay que cuidar lo que una recarga daba
+// hecho:
+// - Scripts: htmx ejecuta los <script> que trae lo que pinta, y los
+//   componentes cargan su JS en el body. Un fichero ya cargado no se vuelve
+//   a ejecutar (declararía otra vez sus const y duplicaría sus oyentes): se
+//   quita de la respuesta, también de lo que restaura el historial. Y
+//   head-support no quita los del <head>: lo que ya se ejecutó sigue vivo.
+// - Lo que no es tienda (panel, admin) va recargando: tiene otro layout.
+// - Si la página falla (404, 500...) o no hay red, también recargando, para
+//   que se vea la página de error del servidor o la del navegador.
+// - Transición suave entre páginas (View Transitions), solo al navegar.
+// El historial de la tienda no guarda copias (hx-history="false", layout1):
+// al volver atrás llega la página del servidor. El del panel sí, y también
+// se le quitan los scripts ya cargados.
+const BOOST = {
+    loaded: new Set(),
+    outside: /^\/(panel|admin)(\/|$)/,
+
+    stripLoadedScripts: function(html) {
+        document.querySelectorAll('script[src]').forEach((script) => this.loaded.add(script.src));
+        return html.replace(/<script\b[^>]*\ssrc="([^"]+)"[^>]*>\s*<\/script>/gi, (tag, src) =>
+            this.loaded.has(new URL(src, location.href).href) ? '' : tag);
+    },
+
+    reload: function(event) {
+        event.preventDefault();
+        location.assign(event.detail.requestConfig?.path ?? event.detail.pathInfo.requestPath);
+    },
+};
+
+document.addEventListener('htmx:beforeRequest', (event) => {
+    if (event.detail.boosted && BOOST.outside.test(new URL(event.detail.requestConfig.path, location.href).pathname)) {
+        BOOST.reload(event);
+    }
+});
+
+document.addEventListener('htmx:beforeSwap', (event) => {
+    if (event.detail.boosted && event.detail.isError) {
+        event.detail.shouldSwap = false;
+        location.assign(event.detail.xhr.responseURL || event.detail.pathInfo.requestPath);
+        return;
+    }
+    if (typeof event.detail.serverResponse === 'string') {
+        event.detail.serverResponse = BOOST.stripLoadedScripts(event.detail.serverResponse);
+    }
+    // Con la pestaña oculta el navegador aborta la transición (y lo apunta como error)
+    if (event.detail.boosted && !document.hidden) {
+        event.detail.swapOverride = 'innerHTML transition:true';
+    }
+});
+
+document.addEventListener('htmx:sendError', (event) => {
+    if (event.detail.boosted) { location.assign(event.detail.pathInfo.requestPath); }
+});
+
+// Atrás/adelante: el mismo fundido que al cambiar de página con el boost.
+// Solo en la tienda (body con hx-boost); el panel sigue sin transición.
+function historyTransition(event) {
+    if (document.body.hasAttribute('hx-boost') && !document.hidden) {
+        event.detail.swapSpec.transition = true;
+    }
+}
+
+document.addEventListener('htmx:historyCacheHit', (event) => {
+    event.detail.item.content = BOOST.stripLoadedScripts(event.detail.item.content);
+    historyTransition(event);
+});
+
+document.addEventListener('htmx:historyCacheMissLoad', (event) => {
+    event.detail.response = BOOST.stripLoadedScripts(event.detail.response);
+    historyTransition(event);
+});
+
+document.addEventListener('htmx:removingHeadElement', (event) => {
+    if (event.detail.headElement.tagName === 'SCRIPT') { event.preventDefault(); }
+});
+
+// Barra de carga arriba mientras llega la página (base.css, .is-navigating):
+// al pulsar un enlace con el boost y al volver atrás/adelante sin copia
+// guardada. Va en <html>, que el boost no sustituye.
+const NAV_PROGRESS = {
+    start: () => document.documentElement.classList.add('is-navigating'),
+    stop: () => document.documentElement.classList.remove('is-navigating'),
+};
+
+document.addEventListener('htmx:beforeRequest', (event) => {
+    if (event.detail.boosted) { NAV_PROGRESS.start(); }
+});
+
+document.addEventListener('htmx:historyCacheMiss', NAV_PROGRESS.start);
+
+['htmx:afterRequest', 'htmx:historyCacheMissLoad', 'htmx:historyCacheMissLoadError'].forEach((name) => {
+    document.addEventListener(name, NAV_PROGRESS.stop);
+});
+
+// Del panel o de una recarga se vuelve con la caché del navegador (bfcache):
+// la página llegaría con la barra a medias
+window.addEventListener('pageshow', NAV_PROGRESS.stop);
+
+// Errores de htmx: htmx 2 no pinta las respuestas 4xx/5xx. Las que el
+// servidor quiere enseñar (un aviso) llevan HX-Retarget (utils/hx.rs,
+// error_modal): esas se pintan. Las demás, como antes, no.
+document.addEventListener('htmx:beforeSwap', (event) => {
+    if (event.detail.isError && !event.detail.boosted && event.detail.xhr.getResponseHeader('HX-Retarget')) {
+        event.detail.shouldSwap = true;
+        event.detail.isError = false;
+    }
+});
+
+// Un aviso que llega al final de <body> con un <dialog> abierto con
+// showModal() (el login) saldría detrás: el <dialog> va en la top layer, por
+// encima de cualquier z-index, y deja inerte lo de fuera. Se pasa dentro del
+// <dialog>. Vale para todos: hx-target="body", los 4xx de response-targets y
+// los que llegan con HX-Retarget: body (429, 403, 500). Se mueve después de
+// pintarlo y no en beforeSwap porque response-targets fija el destino de los
+// errores detrás de este manejador.
+document.addEventListener('htmx:afterSwap', (event) => {
+    if (event.detail.boosted || event.detail.target !== document.body) return;
+    const dialog = document.querySelector('dialog:modal');
+    if (!dialog) return;
+    document.querySelectorAll('body > .m-modal').forEach((modal) => dialog.append(modal));
+});
+
+// Mientras dura una petición de htmx, el botón que la lanza (o los de envío
+// de su formulario) se apaga y lleva spinner (aria-busy, button.css): sin
+// esto, un doble clic manda dos veces. Para las que salen de htmx.ajax con un
+// `source` que no es ni botón ni formulario (el explorador de variaciones),
+// los botones marcados con data-busy-disable dentro de ese `source`.
+const BUSY = {
+    buttons(elt) {
+        if (elt.matches('form')) return [...elt.querySelectorAll('[type="submit"]')];
+        if (elt.matches('button')) return [elt];
+        return [...elt.querySelectorAll('[data-busy-disable]')];
+    },
+};
+
+document.addEventListener('htmx:beforeRequest', (event) => {
+    BUSY.buttons(event.detail.elt).forEach((button) => {
+        if (button.disabled) return;   // ya estaba apagado: no es nuestro
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+    });
+});
+
+document.addEventListener('htmx:afterRequest', (event) => {
+    BUSY.buttons(event.detail.elt).forEach((button) => {
+        if (button.getAttribute('aria-busy') !== 'true') return;
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+    });
+});
+
+// Con hx-push-url ("Editar" del listado) htmx guarda la página en el historial
+// mientras el botón está ocupado; al volver atrás la restaura así y ya no hay
+// petición que lo encienda. Tras restaurar no queda ninguna en marcha.
+document.addEventListener('htmx:historyRestore', () => {
+    document.querySelectorAll('button[aria-busy="true"]').forEach((button) => {
+        button.disabled = false;
+        button.removeAttribute('aria-busy');
+    });
+});
+
+// Arranque de los componentes. No vale "load" ni "DOMContentLoaded": solo
+// saltan con la carga normal, y con hx-boost la tienda cambia de página sin
+// recargar (htmx sustituye el <body>). mount() llama a init(elemento) una vez
+// por cada elemento que encaje con `selector`:
+// - los de la carga normal y los que htmx meta después (hx-boost, volver
+//   atrás con el historial, fragmentos), con htmx.onLoad;
+// - los que ya estén en la página cuando llega el script: con hx-boost, el
+//   <script src> de la página nueva puede cargarse después del cambio.
+// Va por elemento y no por página: lo que restaura el historial son
+// elementos nuevos, sin los oyentes de antes, y hay que arrancarlos otra vez.
+// Lo que vaya sobre document se pone una sola vez, fuera de init.
+const COMPONENT = {
+    mount: function(selector, init) {
+        let started = new WeakSet();
+        let run = (root) => {
+            let elements = root.matches?.(selector) ? [root] : root.querySelectorAll(selector);
+            elements.forEach((element) => {
+                if (started.has(element)) { return; }
+                started.add(element);
+                init(element);
+            });
+        };
+        htmx.onLoad(run);
+        // Mientras se lee el HTML la página está a medias: espera al htmx:load
+        // que htmx lanza sobre el body al terminar.
+        if (document.readyState !== "loading") { run(document.body); }
+    }
+};

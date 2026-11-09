@@ -1,0 +1,40 @@
+.panel-login-1{
+    display: flex;
+    justify-content: center;
+    padding: 3em 1em;
+
+    /* La caja es del átomo m-card; aquí el tamaño y la colocación de lo de dentro */
+    .cont-1{
+        width: 100%;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+
+        h1{
+            margin: 0;
+            font-size: 1.4em;
+        }
+    }
+    .login-form{
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+
+        p{
+            margin: 0;
+        }
+    }
+    .back-link{
+        color: var(--color-text-muted);
+        font-size: 0.9em;
+    }
+}
+
+/* Enlace a /password/forgot, bajo el botón de entrar */
+.forgot-link {
+    display: block;
+    margin-top: var(--space-2);
+    color: var(--color-primary-strong);
+    font-size: var(--font-size-sm);
+}

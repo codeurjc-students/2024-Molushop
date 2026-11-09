@@ -1,0 +1,57 @@
+{% extends "layouts/shop.html" %}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <div class="account-page">
+        {% if !user_logged %}
+        <div class="m-card account-box">
+            <h1>{{ i18n.t("nav-account") }}</h1>
+            <p>{{ i18n.t("account-login-prompt") }}</p>
+            <button type="button" class="m-btn m-btn--primary open-login-modal">{{ i18n.t("nav-login") }}</button>
+        </div>
+        {% else %}
+        <h1>{{ i18n.t("nav-account") }}</h1>
+        <p class="m-hint">{{ i18n.t1("account-user", "username", username) }}</p>
+
+        {% if let Some(msg) = ok_message %}
+        <p class="m-alert m-alert--success account-msg" role="status">{{msg}}</p>
+        {% endif %}
+        {% if let Some(msg) = error_message %}
+        <p class="m-alert m-alert--danger account-msg" role="alert">{{msg}}</p>
+        {% endif %}
+
+        <section class="m-card account-box">
+            <h2>{{ i18n.t("account-change-password") }}</h2>
+            {# Formulario clásico: el POST redirige aquí con ?ok= o ?error= #}
+            <form hx-boost="false" method="post" action="{{ i18n.url("/account/password") }}" class="account-form">
+                <label class="m-field">
+                    <span class="m-label">{{ i18n.t("account-current-password") }}</span>
+                    <input class="m-input" type="password" name="current" autocomplete="current-password" required>
+                </label>
+                <label class="m-field">
+                    <span class="m-label">{{ i18n.t("account-new-password") }}</span>
+                    <input class="m-input" type="password" name="new" autocomplete="new-password" minlength="8" required>
+                    <span class="m-hint">{{ i18n.t("account-password-rules") }}</span>
+                </label>
+                <label class="m-field">
+                    <span class="m-label">{{ i18n.t("account-repeat-new-password") }}</span>
+                    <input class="m-input" type="password" name="new2" autocomplete="new-password" minlength="8" required>
+                </label>
+                <button type="submit" class="m-btn m-btn--primary">{{ i18n.t("account-change-password") }}</button>
+            </form>
+            <p class="m-hint">{{ i18n.t("account-password-note") }}</p>
+        </section>
+
+        <section class="m-card account-box">
+            <h2>{{ i18n.t("account-sessions") }}</h2>
+            {% if other_sessions == 0 %}
+            <p>{{ i18n.t("account-no-other-sessions") }}</p>
+            {% else %}
+            <p>{{ i18n.t_count("account-other-sessions", other_sessions) }}</p>
+            <form hx-boost="false" method="post" action="{{ i18n.url("/account/sessions") }}">
+                <button type="submit" class="m-btn m-btn--danger-outline">{{ i18n.t("account-close-other-sessions") }}</button>
+            </form>
+            {% endif %}
+        </section>
+        {% endif %}
+    </div>
+{% endblock %}

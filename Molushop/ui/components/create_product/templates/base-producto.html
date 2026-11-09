@@ -1,82 +1,112 @@
-<h1>Formulario de {{name}}</h1>
-    <form 
+{# Sustituye todo lo de dentro de .chain: la lista de categorías se cambia por
+   la elegida y el formulario, en la misma tarjeta. #}
+<div class="top">
+    <div class="top__row">
+        <h2 class="top__title">Categoría</h2>
+        <button type="button" class="m-btn m-btn--secondary m-btn--sm" hx-get="{{change_url()}}" hx-target=".chain">Cambiar</button>
+    </div>
+    <nav aria-label="Categoría elegida">
+        <ol class="crumbs">
+            <li><button type="button" hx-get="{{routes.reset_category}}" hx-target=".chain">Categorías</button></li>
+        {% for elem in ancestors %}
+            {% if loop.last %}
+            <li aria-current="page">{{elem.name}}</li>
+            {% else %}
+            <li><button type="button" hx-get="{{routes.category_children}}/{{elem.id}}" hx-target=".chain">{{elem.name}}</button></li>
+            {% endif %}
+        {% endfor %}
+        </ol>
+    </nav>
+</div>
+    {# La respuesta no se pinta aquí: si va bien, HX-Redirect a "Editar" del
+       producto nuevo; si no, un aviso con su código (utils/hx.rs, error_modal). #}
+    <form class="product-form"
         hx-post="{{routes.create_product}}/{{category_id}}"
-        hx-traget=".objetivo"
+        hx-swap="none"
         hx-ext="json-enc-custom">
-        <div class="specsContainer" _="on load set @z to 0">
-            <h4>Specs:</h4>
-            {% for elem in specs %}
-            <div>
-                <label for="{{elem}}">{{elem}}</label>
-                <input type="text" id="{{elem}}" name="specs[{{elem}}]" required>
+        {# Mismo orden que las pestañas de Editar: General, Especificaciones y
+           Variaciones. Las tres comparten estructura (form.css): cp-section con
+           su título, cp-item para cada caja blanca, cp-row para cada fila
+           "campo + ×" y cp-actions para los botones. #}
+        <fieldset class="cp-section general">
+            <legend class="cp-section__title">General</legend>
+            <div class="cp-item general-fields">
+                <div class="m-field">
+                    <label class="m-label" for="name">Nombre</label>
+                    <input class="m-input" type="text" id="name" name="name" required>
+                </div>
+                <div class="m-field">
+                    <label class="m-label" for="brand">Marca</label>
+                    <input class="m-input" type="text" id="brand" name="brand" required>
+                </div>
+                <div class="m-field">
+                    <label class="m-label" for="id">Código</label>
+                    <input class="m-input" type="text" id="id" name="code" required>
+                </div>
+                <div class="m-field">
+                    <label class="m-label" for="price">Precio</label>
+                    <input class="m-input" pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)" inputmode="decimal" placeholder="12.50">
+                </div>
+                <div class="m-field general-fields__wide">
+                    <label class="m-label" for="description">Descripción</label>
+                    <textarea class="m-input" id="description" name="description" rows="4"></textarea>
+                </div>
             </div>
-            {% endfor %}
-            <div class="extra"></div>
-            <div class="btn-double-container">
-                <button
-                    hx-get="{{routes.add_specs}}"
-                    hx-swap="beforebegin"
-                    hx-target="closest .btn-double-container"
-                    _="on htmx:afterRequest
-                    set father to the closest .specsContainer
-                    increment father's z
-                    log father's z">Add Specs</button>
-                <button type="button" 
-                    _="on click
-                    set father to the closest .specsContainer
-                    if father's z > 0
-                        decrement father's z 
-                        set btnCont to the closest .btn-double-container
-                        set lastSpec to the previous <div/> from btnCont
-                        remove lastSpec" 
-                        >DeleteSpecs</button>
-            </div> 
-        </div>
-        
+        </fieldset>
 
+        <fieldset class="cp-section specs">
+            <legend class="cp-section__title">Especificaciones</legend>
+            <p class="m-hint">Opcionales: las que dejes en blanco no se guardan.</p>
+            <div class="cp-item specs-list">
+                {% for elem in specs %}
+                <div class="m-field">
+                    <label class="m-label" for="spec-{{elem}}">{{elem}}</label>
+                    <input class="m-input" type="text" id="spec-{{elem}}" name="specs[{{elem}}]">
+                </div>
+                {% endfor %}
+            </div>
+            <div class="cp-actions">
+                <button type="button" class="m-btn m-btn--secondary" data-specs="add-spec">+ Añadir spec</button>
+            </div>
+
+            {% include "components/create_product/templates/spec_template.html" %}
+        </fieldset>
+
+        {# Los `name` (variations[i][name], variations[i][values][j][value]) no
+           se escriben aquí: los pone `renumberVariations` (js/functions.js) por
+           la posición de cada campo, así se puede quitar cualquiera. #}
+        <fieldset class="cp-section variations">
+            <legend class="cp-section__title">Variaciones</legend>
+            <p class="m-hint">Cada variación es un atributo (Color, Talla…) con sus valores. Se crea un artículo por cada combinación.</p>
+            <div class="cp-list variations-list"></div>
+            <div class="cp-actions">
+                <button type="button" class="m-btn m-btn--secondary" data-variations="add-variation">+ Añadir variación</button>
+            </div>
+
+            <template class="tpl-variation">
+                <fieldset class="cp-item variation">
+                    <div class="m-field">
+                        <label class="m-label">Nombre</label>
+                        <input class="m-input" type="text" data-field="name" placeholder="Color" required>
+                    </div>
+                    <div class="m-field">
+                        <span class="m-label">Valores</span>
+                        <div class="cp-list variation-values"></div>
+                    </div>
+                    <div class="cp-actions">
+                        <button type="button" class="m-btn m-btn--secondary m-btn--sm" data-variations="add-value">+ Añadir valor</button>
+                        <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-variations="remove-variation">Quitar variación</button>
+                    </div>
+                </fieldset>
+            </template>
+            <template class="tpl-value">
+                <div class="cp-row variation-value">
+                    <input class="m-input" type="text" data-field="value" placeholder="Rojo" required>
+                    <button type="button" class="m-btn m-btn--danger-outline m-btn--sm" data-variations="remove-value" aria-label="Quitar valor">×</button>
+                </div>
+            </template>
+        </fieldset>
         <div>
-            <label for="id">CODE:</label>
-            <input type="text" id="id" name="code" required>
-        </div>
-        <div>
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="name" required>
-        </div>
-        <div>
-            <label for="price">Precio:</label>
-            <input pattern="^\d*\.?\d{0,2}$" type="text" id="price" name="price" required oninvalid="handleInvalid(event)">
-        </div>
-        <div>
-            <label for="brand">Marca:</label>
-            <input type="text" id="brand" name="brand" required>
-        </div>
-        <div>
-            <label for="description">Descripción:</label>
-            <textarea id="description" name="description"></textarea>
-        </div>
-        <div class="variations" _="on load set @y to 0">
-            
-            <button class="btnAddVar" 
-                hx-get="{{routes.add_variation}}" 
-                hx-target="this" 
-                hx-swap="beforebegin" 
-                _="on htmx:afterRequest
-                    set father to the closest .variations
-                    increment father's y
-                    log father's y"
-                    
-                >++ ADD VARIATION ++</button>
-            <button class="btnDelVar" type="button" 
-                _="on click
-                    set father to the closest .variations
-                    if father's y > 0
-                        decrement father's y then
-                        set varCont to the previous .cont-vars
-                        remove varCont" 
-                >-- DEL VARIATION --</button>
-        </div>
-        <div>
-            <button type="submit">Enviar</button>
+            <button type="submit" class="m-btn m-btn--primary m-btn--lg m-btn--block">Crear producto</button>
         </div>
     </form>
-    <div class="objetivo"></div>

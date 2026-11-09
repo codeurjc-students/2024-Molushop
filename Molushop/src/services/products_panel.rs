@@ -1,58 +1,156 @@
 // logica de implementación
 // obtener productos y variaciones
 use serde::{Serialize, Deserialize};
+use diesel::prelude::*;
 use diesel::result::Error;
 
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use crate::models::data_transfer_objects::product::Product;
-use crate::models::models_x::{ProductVariation,Category,Price};
+use crate::models::db::{ProductVariation,Category,Price,Products};
 use crate::models::data_transfer_objects::product;
-//use crate::schema::products::variations;
-use crate::services::servicesX::{
-    get_seller_products,
-    get_product_categories,
-    get_product_variations,
-    get_variations_with_prices
-};
-type DbPool = Pool<AsyncPgConnection>;
 use uuid::Uuid;
+use crate::services::product_service;
+use crate::services::variation_service::{get_product_variations, get_variations_with_prices};
+use crate::services::product_service::get_product_categories;
+type DbPool = Pool<AsyncPgConnection>;
 
-pub async fn get_products(user_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{
+use diesel::sql_query;
+use diesel::sql_types::{Array, Nullable, SmallInt, Text, Uuid as SqlUuid};
+use std::collections::HashMap;
+use diesel_async::{AsyncConnection, RunQueryDsl};
+use crate::constants::product_status::PRODUCT_DELETED;
+use crate::utils::db::get_connection;
 
-    let products = get_seller_products(user_id, pool).await?;
+/// "Eliminar" del panel. No borra la fila (los pedidos y las opiniones apuntan
+/// a sus variaciones): la marca como `PRODUCT_DELETED` y, en la misma
+/// transacción, la quita de los carritos activos, para que nadie se quede con
+/// una línea que ya no puede comprar, y libera los SKU de sus variaciones.
+///
+/// `store_ids`: `None` (el admin) cualquier producto; `Some(tiendas)` solo si
+/// es de una de ellas. `Ok(false)` si no existe, ya estaba borrado o es ajeno.
+pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool: &DbPool) -> Result<bool, Error> {
+    let mut conn = get_connection(pool).await?;
+    let store_ids: Option<Vec<Uuid>> = store_ids.map(|ids| ids.to_vec());
+
+    conn.transaction::<bool, Error, _>(async move |conn| {
+        let marked = sql_query(
+            "UPDATE products SET status = $1              WHERE id = $2 AND status <> $1                AND ($3::uuid[] IS NULL OR EXISTS (                    SELECT 1 FROM product_seller ps                    WHERE ps.product_id = products.id AND ps.seller_id = ANY($3)))"
+        )
+            .bind::<SmallInt, _>(PRODUCT_DELETED)
+            .bind::<SqlUuid, _>(product_id)
+            .bind::<Nullable<Array<SqlUuid>>, _>(store_ids)
+            .execute(conn)
+            .await?;
+        if marked == 0 {
+            return Ok(false);
+        }
+
+        sql_query(
+            "DELETE FROM cart_products cp              USING carts c, product_variations pv              WHERE c.id = cp.cart_id AND c.status = 1                AND pv.id = cp.product_var_id AND pv.product_id = $1"
+        )
+            .bind::<SqlUuid, _>(product_id)
+            .execute(conn)
+            .await?;
+
+        // Su SKU queda libre para otra variación de la tienda (los pedidos
+        // guardan su propia copia).
+        sql_query("UPDATE product_variations SET sku = NULL WHERE product_id = $1 AND sku IS NOT NULL")
+            .bind::<SqlUuid, _>(product_id)
+            .execute(conn)
+            .await?;
+        Ok(true)
+    }).await
+}
+
+/// Productos de una tienda para su listado del panel. Quien llama ya ha
+/// comprobado que el usuario puede entrar en esa tienda.
+pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{
+
+    let products = get_panel_products(Some(std::slice::from_ref(store_id)), pool).await?;
+    let product_ids: Vec<Uuid> = products.iter().map(|(p, _)| p.id).collect();
+    let mut images = get_main_images(&product_ids, pool).await?;
     let mut products_final:Vec<Product> = Vec::new();
 
-    for product in products{
-        let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
-        let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
-        let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
-        let vars_price: Vec<(ProductVariation,Price)> = get_variations_with_prices(&product.id, &"EUR".to_string(), &pool).await?;
-        //let variations:Vec<product::ProductVariation> = Vec::new();
-        
-        let variation_titles:Vec<String> = match product.variation_titles{
-            Some(titles) =>{
-                let titles_aux:VariationTitles = serde_json::from_value(titles).unwrap();
-                titles_aux.titulos
-            },
-            None => Vec::new()     
-        };
-        //let variations: Vec<product::ProductVariation> = vars.iter().map(|v| product::ProductVariation::from(v)).collect();  
-        let variations: Vec<product::ProductVariation> = vars_price.iter().map(|(pv,p)| product::ProductVariation::from(pv,p)).collect();  
-
-        let product_final = Product{
-            variations: variations,
-            name: product.name,
-            status: product.status,
-            code: product.code,
-            variations_titles: variation_titles,
-            categories: categories_names,
-            id: product.id
-        };
-        products_final.push(product_final);
+    for (product, _store_name) in products{
+        let image_url = images.remove(&product.id);
+        products_final.push(to_panel_product(product, store_id, image_url, pool).await?);
     }
-        
+
     Ok(products_final)
+}
+
+/// Un producto para su página de edición, con las mismas variaciones que el
+/// listado. Quien llama ya ha comprobado que es de la tienda (`product_in_store`).
+pub async fn get_product(store_id:&Uuid, product_id:&Uuid, pool: &DbPool) -> Result<Product,Error>{
+    let product = product_service::get_product(product_id, pool).await?;
+    let image_url = get_main_images(std::slice::from_ref(product_id), pool).await?.remove(product_id);
+    to_panel_product(product, store_id, image_url, pool).await
+}
+
+/// Un producto con todas sus variaciones, también las que no tienen precio en
+/// EUR (salen "No disponible"; antes el `inner_join` con `prices` las
+/// escondía y no había forma de arreglarlas desde el panel).
+async fn to_panel_product(product: Products, store_id:&Uuid, image_url: Option<String>, pool: &DbPool) -> Result<Product,Error>{
+    let currency = "EUR".to_string();
+    let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
+    let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
+    let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
+    let prices: HashMap<Uuid, Price> = get_variations_with_prices(&product.id, &currency, &pool).await?
+        .into_iter()
+        .map(|(pv, p)| (pv.id, p))
+        .collect();
+
+    let variation_titles:Vec<String> = match product.variation_titles{
+        Some(titles) =>{
+            let titles_aux:VariationTitles = serde_json::from_value(titles).unwrap();
+            titles_aux.titulos
+        },
+        None => Vec::new()
+    };
+    let variations: Vec<product::ProductVariation> = vars.iter()
+        .map(|pv| product::ProductVariation::from(pv, prices.get(&pv.id), &currency))
+        .collect();
+
+    Ok(Product{
+        variations: variations,
+        name: product.name,
+        status: product.status,
+        code: product.code,
+        variations_titles: variation_titles,
+        categories: categories_names,
+        id: product.id,
+        store_name: None,
+        store_id: *store_id,
+        image_url,
+    })
+}
+
+#[derive(diesel::QueryableByName)]
+struct MainImage {
+    #[diesel(sql_type = SqlUuid)]
+    product_id: Uuid,
+    #[diesel(sql_type = Text)]
+    image_url: String,
+}
+
+/// La imagen principal de cada producto, en una consulta para todo el listado.
+/// La marcada `is_main` y si no, la primera por `display_order`. `NULLS LAST`
+/// porque en orden descendente Postgres pone los NULL delante de los `true`.
+async fn get_main_images(product_ids: &[Uuid], pool: &DbPool) -> Result<HashMap<Uuid, String>, Error> {
+    if product_ids.is_empty() {
+        return Ok(HashMap::new());
+    }
+    let mut conn = get_connection(pool).await?;
+    let rows = sql_query(
+        "SELECT DISTINCT ON (product_id) product_id, image_url
+         FROM images_product WHERE product_id = ANY($1)
+         ORDER BY product_id, is_main DESC NULLS LAST, display_order ASC, id ASC"
+    )
+        .bind::<Array<SqlUuid>, _>(product_ids)
+        .load::<MainImage>(&mut conn)
+        .await?;
+    Ok(rows.into_iter().map(|r| (r.product_id, r.image_url)).collect())
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -60,5 +158,23 @@ pub struct VariationTitles{
     pub titulos: Vec<String>,
 }
 
-
 // obtener los productos de un vendedor 
+
+/// Productos del panel con el nombre de su tienda. `None` = todas las tiendas
+/// (admin); `Some(tiendas)` = solo las de esas tiendas. Los productos sin fila en
+/// `product_seller` (los "borrados") no salen.
+pub async fn get_panel_products(seller_filter:Option<&[Uuid]>,pool: &DbPool) -> Result<Vec<(Products,String)>,Error>{
+    use crate::schema::{product_seller,products,seller};
+    let connection = &mut get_connection(pool).await?;
+    let mut query = products::table
+        .inner_join(product_seller::table.inner_join(seller::table))
+        .select((Products::as_select(), seller::store_name))
+        // Lo "eliminado" desde el panel ya no se lista.
+        .filter(products::status.ne(crate::constants::product_status::PRODUCT_DELETED))
+        .order_by((seller::store_name, products::name))
+        .into_boxed();
+    if let Some(store_ids) = seller_filter {
+        query = query.filter(product_seller::seller_id.eq_any(store_ids));
+    }
+    query.load::<(Products,String)>(connection).await
+}

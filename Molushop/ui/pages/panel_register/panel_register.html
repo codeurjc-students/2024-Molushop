@@ -1,0 +1,56 @@
+{% extends "layouts/auth.html" %}
+{% block content %}
+    <div class="panel-login-1">
+        <div class="m-card m-card--lg cont-1">
+            <h1>Solicitar una tienda</h1>
+
+            <p class="m-alert m-alert--warning">
+                Tu tienda quedará pendiente hasta que un administrador la apruebe. Mientras tanto no podrás publicar productos.
+            </p>
+
+            {% if let Some(msg) = error %}
+            <p class="m-error login-error" role="alert">{{msg}}</p>
+            {% endif %}
+
+            <form class="login-form" method="post" action="/panel/register">
+                {% if let Some(name) = logged_username %}
+                <p>Sesión iniciada como <strong>{{name}}</strong>. La tienda se asociará a tu cuenta.</p>
+                {% else %}
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-username">Usuario</label>
+                    <input class="m-input" id="panel-register-username" type="text" name="username" value="{{username}}" required autocomplete="username">
+                </div>
+
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-email">Correo electrónico</label>
+                    <input class="m-input" id="panel-register-email" type="email" name="email" value="{{email}}" required autocomplete="email">
+                </div>
+
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-pass">Contraseña</label>
+                    <input class="m-input" id="panel-register-pass" type="password" name="pass" required autocomplete="new-password" aria-describedby="panel-register-pass-hint">
+                    <p class="m-hint" id="panel-register-pass-hint">Al menos 8 caracteres, con mayúscula, minúscula, número y un carácter especial.</p>
+                </div>
+
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-pass2">Repite la contraseña</label>
+                    <input class="m-input" id="panel-register-pass2" type="password" name="pass2" required autocomplete="new-password">
+                </div>
+                {% endif %}
+
+                <div class="m-field">
+                    <label class="m-label" for="panel-register-store">Nombre de la tienda</label>
+                    <input class="m-input" id="panel-register-store" type="text" name="store_name" value="{{store_name}}" maxlength="255" required>
+                </div>
+
+                <button type="submit" class="m-btn m-btn--primary">Solicitar tienda</button>
+            </form>
+
+            {% if logged_username.is_some() %}
+            <a class="back-link" href="/panel">Volver al panel</a>
+            {% else %}
+            <a class="back-link" href="/panel/login">Ya tengo cuenta: entrar</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

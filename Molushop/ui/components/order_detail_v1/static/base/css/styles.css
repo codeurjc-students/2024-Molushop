@@ -1,0 +1,137 @@
+.order-detail-1{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    padding: 1em;
+    max-width: 70rem;
+    margin: 0 auto;
+
+    .order-missing{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+        align-items: flex-start;
+    }
+    .order-header{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1em;
+
+        h1{
+            margin: 0;
+            font-size: 1.4em;
+        }
+        .order-number{
+            color: var(--color-text-muted);
+        }
+    }
+    /* Móvil: el resumen va debajo de las líneas; desde 900px, al lado. */
+    .order-body{
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+
+        .order-main{
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+        .order-side{
+            display: flex;
+            flex-direction: column;
+            gap: 0.5em;
+        }
+    }
+    .section-title{
+        font-size: 1.1em;
+        margin: 0.5em 0;
+    }
+    .lines{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8em;
+    }
+    .line{
+        display: flex;
+        gap: 0.8em;
+        align-items: center;
+
+        .image-cont{
+            width: 70px;
+            height: 70px;
+            border-radius: var(--radius-md);
+            flex: 0 0 auto;
+        }
+        /* min-width: 0 y overflow-wrap: un nombre con una palabra muy larga
+           se parte en vez de ensanchar la línea. */
+        .line-data{
+            flex: 1 1 auto;
+            min-width: 0;
+            overflow-wrap: anywhere;
+            display: flex;
+            flex-direction: column;
+            gap: 0.2em;
+        }
+        .line-bottom{
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 0.5em;
+        }
+        /* El título se lee como título, no como enlace azul; el subrayado al
+           pasar el ratón es lo que avisa de que lleva a la ficha. */
+        .product-link{
+            display: inline;
+            color: inherit;
+
+            &:hover, &:focus-visible{
+                text-decoration: underline;
+            }
+        }
+        .variations, .shop, .quantity{
+            font-size: 0.9em;
+            color: var(--color-text-muted);
+        }
+        .line-money{
+            display: flex;
+            gap: 0.25em;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+    }
+    .address{
+        color: var(--color-text);
+        line-height: 1.4em;
+    }
+    .data-resume{
+        display: flex;
+        flex-direction: column;
+        gap: 0.5em;
+
+        .space{
+            display: flex;
+            justify-content: space-between;
+        }
+        .money{
+            display: flex;
+            gap: 0.25em;
+        }
+        .final-total{
+            font-weight: bold;
+        }
+    }
+    .back-to-cart{
+        margin-top: 0.5em;
+    }
+}
+
+@media (min-width: 900px) {
+    .order-detail-1 .order-body{
+        flex-direction: row;
+        align-items: flex-start;
+
+        .order-side{
+            flex: 0 0 300px;
+        }
+    }
+}

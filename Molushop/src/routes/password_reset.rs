@@ -1,0 +1,184 @@
+//! "He olvidado mi contraseña": `/password/forgot` (pedir el enlace) y
+//! `/password/reset?token=...` (el enlace del email: elegir la nueva). Los POST
+//! son formularios clásicos que vuelven a su página con `?...`. La lógica está
+//! en `password_reset_service`; el envío del email, en `mail_service`.
+
+use actix_web::{http::header, web, HttpResponse};
+use crate::i18n::I18n;
+use askama::Template;
+use serde::Deserialize;
+use uuid::Uuid;
+
+use diesel_async::pooled_connection::deadpool::Pool;
+use diesel_async::pg::AsyncPgConnection;
+type DbPool = Pool<AsyncPgConnection>;
+
+use actix_web::middleware::from_fn;
+
+use crate::middleware::auth::{Auth, SessionData};
+use crate::middleware::rate_limit::{limit_password_change, limit_password_forgot};
+use crate::models::pages_models::password_forgot_page_model::PasswordForgotPage;
+use crate::models::pages_models::password_reset_page_model::PasswordResetPage;
+use crate::services::components::login_base_service;
+use crate::services::components::nav1_service::get_nav1_object;
+use crate::services::password_reset_service::{
+    request_reset, reset_password, token_is_valid, ResetError, RESET_MINUTES, RESET_URL,
+};
+use crate::services::user_service::get_user_by_id;
+
+pub static FORGOT_URL: &str = "/password/forgot";
+
+pub fn config(cfg: &mut web::ServiceConfig) {
+    cfg.service(
+        web::resource(FORGOT_URL)
+            .wrap(Auth::new())
+            .route(web::get().to(forgot_page))
+            .route(web::post().to(forgot_submit).wrap(from_fn(limit_password_forgot))),
+    )
+    .service(
+        web::resource(RESET_URL)
+            .wrap(Auth::new())
+            .route(web::get().to(reset_page))
+            .route(web::post().to(reset_submit).wrap(from_fn(limit_password_change))),
+    );
+}
+
+#[derive(Deserialize)]
+pub struct ForgotQuery {
+    sent: Option<String>,
+    error: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct ForgotForm {
+    email: String,
+}
+
+#[derive(Deserialize)]
+pub struct ResetQuery {
+    token: Option<String>,
+    done: Option<String>,
+    error: Option<String>,
+}
+
+#[derive(Deserialize)]
+pub struct ResetForm {
+    token: String,
+    new: String,
+    new2: String,
+}
+
+fn error_message(i18n: &I18n, code: &str) -> Option<String> {
+    let key = match code {
+        "mismatch" => "password-error-mismatch",
+        "weak" => "password-error-weak",
+        "db" => "auth-error",
+        _ => return None,
+    };
+    Some(i18n.t(key))
+}
+
+fn redirect(location: String) -> HttpResponse {
+    HttpResponse::SeeOther()
+        .insert_header((header::LOCATION, location))
+        .finish()
+}
+
+fn html(page: String) -> HttpResponse {
+    HttpResponse::Ok().content_type("text/html; charset=utf-8").body(page)
+}
+
+/// Lo que piden la barra y el login de todas las páginas de la tienda.
+async fn nav_parts(
+    opt_session_data: Option<web::ReqData<SessionData>>,
+    pool: &DbPool,
+) -> (bool, crate::models::components::nav1_model::Nav1Data) {
+    let user_id: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
+    let mut username = String::new();
+    let mut logged = false;
+    if let Some(id) = user_id.as_ref() {
+        if let Ok(user) = get_user_by_id(id, pool).await {
+            username = user.username;
+            logged = true;
+        }
+    }
+    (logged, get_nav1_object(username, user_id.as_ref(), pool).await)
+}
+
+async fn forgot_page(
+    i18n: I18n,
+    query: web::Query<ForgotQuery>,
+    pool_data: web::Data<DbPool>,
+    opt_session_data: Option<web::ReqData<SessionData>>,
+) -> HttpResponse {
+    let pool = pool_data.get_ref();
+    let (user_logged, nav1) = nav_parts(opt_session_data, pool).await;
+    let error_message = query.error.as_deref().and_then(|c| error_message(&i18n, c));
+    html(PasswordForgotPage {
+        user_logged,
+        page_name: i18n.t("password-forgot-page-title"),
+        nav1,
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
+        sent: query.sent.is_some(),
+        reset_minutes: RESET_MINUTES,
+        error_message,
+    }.render().unwrap())
+}
+
+async fn forgot_submit(i18n: I18n, form: web::Form<ForgotForm>, pool_data: web::Data<DbPool>) -> HttpResponse {
+    // El email y su enlace van en el idioma de la página desde la que se pide.
+    match request_reset(&form.email, i18n.lang, pool_data.get_ref()).await {
+        Ok(()) => redirect(format!("{}?sent=1", i18n.url(FORGOT_URL))),
+        Err(e) => {
+            if let ResetError::Db(detail) = &e {
+                tracing::error!(error = %detail, "could not request a password reset");
+            }
+            redirect(format!("{}?error={}", i18n.url(FORGOT_URL), e.code()))
+        }
+    }
+}
+
+async fn reset_page(
+    i18n: I18n,
+    query: web::Query<ResetQuery>,
+    pool_data: web::Data<DbPool>,
+    opt_session_data: Option<web::ReqData<SessionData>>,
+) -> HttpResponse {
+    let pool = pool_data.get_ref();
+    let query = query.into_inner();
+    let token = query.token.unwrap_or_default();
+    let token_valid = !token.is_empty()
+        && token_is_valid(&token, pool).await.unwrap_or_else(|e| {
+            tracing::error!(error = ?e, "could not check the password reset token");
+            false
+        });
+    let (user_logged, nav1) = nav_parts(opt_session_data, pool).await;
+    let error_message = query.error.as_deref().and_then(|c| error_message(&i18n, c));
+    html(PasswordResetPage {
+        user_logged,
+        page_name: i18n.t("password-reset-page-title"),
+        nav1,
+        login_base_data: login_base_service::get_login_base_model_data(),
+        i18n: i18n,
+        token,
+        token_valid,
+        done: query.done.is_some(),
+        error_message,
+    }.render().unwrap())
+}
+
+async fn reset_submit(i18n: I18n, form: web::Form<ResetForm>, pool_data: web::Data<DbPool>) -> HttpResponse {
+    match reset_password(&form.token, &form.new, &form.new2, pool_data.get_ref()).await {
+        Ok(()) => redirect(format!("{}?done=1", i18n.url(RESET_URL))),
+        // Sin token en la URL: la página dice que el enlace no vale.
+        Err(ResetError::InvalidToken) => redirect(i18n.url(RESET_URL)),
+        Err(e) => {
+            if let ResetError::Db(detail) = &e {
+                tracing::error!(error = %detail, "could not reset the password");
+            }
+            // El token ya viajaba en la URL del email: volver con él no expone nada nuevo.
+            redirect(format!("{}?token={}&error={}", i18n.url(RESET_URL), form.token, e.code()))
+        }
+    }
+}

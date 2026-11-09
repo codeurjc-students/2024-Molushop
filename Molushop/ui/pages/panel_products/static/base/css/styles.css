@@ -1,0 +1,40 @@
+/* Página de productos del panel (listado y Editar producto), mobile-first.
+
+   Reset solo dentro de la página: sin márgenes ni rellenos del navegador y
+   border-box. Va con :where() para que no sume especificidad y cualquier
+   regla de un componente o átomo (.m-btn, .m-field...) le gane. Antes era un
+   `*` global que alcanzaba también a la barra del panel y a los modales. */
+:where(.panel-products, .panel-products *) {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.panel-products {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--space-4) var(--space-3);
+}
+
+/* Título y "+ Añadir producto": en móvil, el botón debajo del título */
+.panel-products__header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+    margin-bottom: 20px;
+}
+
+.panel-products__header h1 {
+    font-size: var(--font-size-2xl);
+}
+
+@media (min-width: 600px) {
+    .panel-products {
+        padding: 20px;
+    }
+    .panel-products__header h1 {
+        font-size: 2em;
+    }
+}

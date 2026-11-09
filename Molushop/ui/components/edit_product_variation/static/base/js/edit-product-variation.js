@@ -21,28 +21,24 @@ const edit_variation = {
             });
         }); 
     },
-    change_status(element,e){
-        let status_name = "";
-        if(e.detail.status==0){
-            status_name="Draft";
-        }else if(e.detail.status==1){
-            status_name="Active";
-        }else if(e.detail.status==2){
-            status_name="Inactive";
-        }
-        let tr_target = document.querySelector("tr#"+CSS.escape(element.id));
-        tr_target.children[1].textContent=status_name;
+    // Tras guardar estado, stock o precio (HX-Trigger variation_update): la
+    // fila del explorador toma el dato nuevo y se recalculan filtros y matriz
+    // (variationsExplorer: ui/components/variations_explorer/.../script.js).
+    update_row(element,e){
+        let row = document.querySelector("tr#"+CSS.escape("var-row-"+element.id));
+        if(!row) return;
+        variationsExplorer.updateRow(row, e.detail);
+        variationsExplorer.refresh(row.closest(".c-variations-explorer"));
     },
-    add_identifier(element,endpoint){
-        element.addEventListener('click',()=>{
-            //verificar todos los identifier-row que hay --> luego alomejor hay que actualizar si se borra uno
-        });
+    // Casilla "Habilitar oferta": abre o cierra el precio de oferta de su formulario
+    toggle_sale(checkbox){
+        let form = checkbox.closest("form");
+        form.querySelector(".sale-active").value = checkbox.checked ? "true" : "false";
+        form.querySelector(".sale-price").readOnly = !checkbox.checked;
     },
     update_identifiers(element,form){
         element.addEventListener('click',(event)=>{
-            console.log("AAAA");
             event.preventDefault();
-            console.log("bbbbb");
             let identifiers_containers = form.querySelectorAll(".identifier-row");
             let identifiers={
                 identifiers:[]
@@ -109,38 +105,3 @@ function htmx_ajax_json(metodo,endpoint,target,swap,values ){
         }
     });
 }
-
-
-function init_edit_product(){
-    let navItems = document.querySelectorAll('.nav-item');
-    
-    navItems.forEach(item => {
-        item.addEventListener('click', function() {
-            // Remover clase active de todas las pestañas
-            navItems.forEach(nav => nav.classList.remove('active'));
-            
-            // Remover clase active de todos los contenidos
-            document.querySelectorAll('.tab-pane').forEach(pane => {
-                pane.classList.remove('active');
-            });
-            
-            // Agregar clase active a la pestaña seleccionada
-            this.classList.add('active');
-            
-            // Mostrar el contenido correspondiente
-            let tabId = this.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
-        });
-    }); 
-}
-/*
-document.addEventListener('DOMContentLoaded', function() {
-    edit_product.init_edit_product();
-});
-
-window.addEventListener('popstate', function(evt) { 
-    edit_product.init_edit_product();
-});
-
-document.addEventListener('htmx:afterSwap', () => edit_product.init_edit_product());
-*/

@@ -1,0 +1,25 @@
+/* Átomo: estrellas de valoración. Lo pinta el struct Stars
+   (src/models/components/stars.rs, plantilla en ui/components/stars/);
+   aquí solo va el tamaño.
+
+     {{ reviews.stars() }}   (el modelo devuelve Stars::new(...) o Stars::sm(...))
+
+   Tamaños: (normal, 20px de alto), --sm (16px, tarjeta de producto)
+
+   El ancho es siempre cinco veces el alto: el viewBox mide 100x20. El dorado
+   y el vacío los trae el sprite stars.svg (--color-rating es el mismo dorado). */
+
+.m-stars {
+    display: inline-block;
+    flex-shrink: 0;
+    width: 100px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+/* ---- Tamaños ---- */
+
+.m-stars--sm {
+    width: 80px;
+    height: 16px;
+}

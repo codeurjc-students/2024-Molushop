@@ -1,52 +1,35 @@
-use crate::models::models_x::ProductForm;
+use crate::models::db::ProductForm;
 use crate::models::product_variation::{ProductVariation,VariationValue};
-//use crate::schema::product_variations::attributes;
 use uuid::Uuid;
-//use serde_json::Value;
-use crate::services::servicesX::{insert_product_variation,insert_product_variations, insert_prices_variations};
+use crate::services::variation_service::{insert_product_variation, insert_product_variations};
+use crate::services::price_service::insert_variation_prices;
 use diesel::result::Error;
 
-use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
-type DbPool = Pool<AsyncPgConnection>;
 
-pub async fn create_product_variations(product: ProductForm, product_id: Uuid, pool:&DbPool) -> Result<usize,Error> {
-    let variations = product.variations;
-    match variations{
+/// Crea las variaciones del producto y sus precios. Recibe la conexión de la
+/// transacción de `create_full_product`: si falla el precio, las
+/// variaciones tampoco quedan (antes quedaban sin fila en `prices`).
+pub async fn create_product_variations(product: &ProductForm, product_id: Uuid, conn: &mut AsyncPgConnection) -> Result<usize,Error> {
+    match product.variations.clone(){
         Some(variations) => {
             let vec_attributes: Vec<ProductVariation> = serde_json::from_value::<Vec<ProductVariation>>(variations).unwrap_or_default();
-            
-            let all_combinations = get_all_combinations(&vec_attributes);
-            
-            let variations_ids= insert_product_variations(&product_id,all_combinations,&pool).await?;
 
-            let number= insert_prices_variations(&variations_ids,&product.price,"EUR",&pool).await?;  
+            let all_combinations = get_all_combinations(&vec_attributes);
+
+            let variations_ids= insert_product_variations(&product_id,all_combinations,conn).await?;
+
+            let number= insert_variation_prices(&variations_ids,&product.price,"EUR",conn).await?;
             Ok(number)
         },
         None => {
-            let variation =  vec![insert_product_variation(&product_id,pool).await?];
-            let number= insert_prices_variations(&variation,&product.price,"EUR",&pool).await?;
+            let variation =  vec![insert_product_variation(&product_id,conn).await?];
+            let number= insert_variation_prices(&variation,&product.price,"EUR",conn).await?;
             Ok(number)
-            
+
         }
     }
-    //let variations_stuct = serde_json::from_value::<Vec<ProductVariation>>(variations).unwrap;
 }
-/*
-fn combinar_listas<T: Clone>(lista1: &[T], lista2: &[T]) -> Vec<T> {
-    let mut resultado:Vec<T> = Vec::with_capacity(lista1.len() + lista2.len());
-    resultado.extend(lista1.iter().cloned());
-    resultado.extend(lista2.iter().cloned());
-    resultado
-}
-
-fn clone_and_add<T: Clone>(lista: &[T], elemento: T) -> Vec<T> {
-    let mut nueva_lista = Vec::with_capacity(lista.len() + 1);
-    nueva_lista.extend(lista.iter().cloned());
-    nueva_lista.push(elemento);
-    nueva_lista
-    }
-*/
 fn generate_combinations(
     variations: &[ProductVariation],
     current_combination: &mut Vec<VariationValue>,

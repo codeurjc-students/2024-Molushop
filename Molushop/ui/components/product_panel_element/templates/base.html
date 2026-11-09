@@ -1,33 +1,36 @@
-<!--Hacer variable -->
-{% let variation_titles = product.variations_titles %}
-
-
-<div class="c-product-panel-element product-card" id="card-{{product.id}}">
+<div class="c-product-panel-element product-card" id="card-{{product.id}}"
+    data-search-name="{{product.name}}" data-search-skus="{{product.skus()}}">
     <div class="product-main">
-        <!--Aqui ponemos las imagenes que tengamos, si no tiene --->
-        <img src="https://via.placeholder.com/150" alt="Producto" class="product-image">
+        {% if let Some(image_url) = product.image_url %}
+            <img src="{{image_url}}" alt="{{product.name}}" class="product-image" loading="lazy">
+        {% else %}
+            <div class="product-image product-image--empty" aria-hidden="true">Sin imagen</div>
+        {% endif %}
         <div class="product-info">
             {% if product.status == 0 %}
-                <span class="product-status status-inactive">Draft</span>
+                <span class="m-badge m-badge--neutral product-status">Draft</span>
             {% else if product.status ==1 %}
-                <span class="product-status status-active">Activo</span>
+                <span class="m-badge m-badge--success product-status">Activo</span>
             {% else if product.status ==2 %}
-                <span class="product-status status-inactive">Inactivo</span>
+                <span class="m-badge m-badge--danger product-status">Inactivo</span>
             {% endif %}
             <h3 class="product-title">{{product.name}}</h3>
-            <!-- <p>SKU: CAM-001</p> -->
+            {% if let Some(store) = product.store_name %}
+                <p class="product-store">Tienda: {{store}}</p>
+            {% endif %}
+            {# Si la búsqueda encaja por SKU, cuáles (script.js de product_panel_group) #}
+            <p class="m-hint product-sku-match" data-sku-match hidden></p>
             {% for cat in product.categories %}
                 <p>{{cat}}</p>
             {% endfor %}
             <div class="product-actions">
-            <!--    <a href="/products-panel/edit/{{product.id}}"><button class="action-btn edit-btn">Editar</button></a> -->
-                <button class="action-btn edit-btn"
-                    hx-get="/products-panel/edit/{{product.id}}"
+                <button type="button" class="m-btn m-btn--secondary m-btn--sm"
+                    hx-get="/panel/stores/{{product.store_id}}/products/edit/{{product.id}}"
                     hx-target="closest .c-product-panel-group"
                     hx-swap="outerHTML"
                     hx-push-url="true"
                 >Editar</button>
-                <button class="action-btn delete-btn" 
+                <button type="button" class="m-btn m-btn--danger-outline m-btn--sm"
                     hx-get="{{routes.delete_product_modal}}/{{product.id}}"
                     hx-target="body"
                     hx-swap="beforeend"
@@ -36,36 +39,19 @@
         </div>
     </div>
     
-    <button class="toggle-variations"
-        _="on click toggle .hidden on next .variations end"
-        >Mostrar variaciones {{product.variations.len()}}</button>
-    
-    <div class="variations hidden">
-        <div class="variation-item variation-header">
-            {% for cat_var in variation_titles %}
-                <div>{{cat_var}}</div>
-            {% endfor %}
-            <div>Precio</div>
-            <div>Stock</div>
-            <div>Estado</div>
-        </div>
-        {% for variation_elem in product.variations%}
-            <div class="variation-item">
-                {% for var in variation_elem.variation %}
-                    <div>{{var.value}}</div>
-                {% endfor %}
-                <div>{{variation_elem.price}}€</div>
-                <div>{{variation_elem.stock}}</div>
-                <div>
-                {% if variation_elem.status == 0 %}
-                        <span class="product-status status-inactive">Draft</span>
-                {% else if variation_elem.status ==1 %}
-                        <span class="product-status status-active">Activo</span>
-                {% else if variation_elem.status ==2 %}
-                        <span class="product-status status-inactive">Inactivo</span>
-                {% endif %}
-                </div>
-            </div>
-        {% endfor %}
+    {# El explorador (filtros, tabla y matriz: variations_explorer) se pide la
+       primera vez que se abre; si falla, el siguiente clic lo vuelve a pedir.
+       El hyperscript solo pliega y despliega. #}
+    <button type="button" class="toggle-variations" aria-expanded="false"
+        hx-get="{{routes.variations}}/{{product.id}}"
+        hx-target="next .product-variations"
+        hx-trigger="click[this.dataset.loaded !== 'true']"
+        hx-on::after-request="if (event.detail.successful) this.dataset.loaded = 'true'"
+        _="on click toggle .hidden on next .product-variations
+            then js(me) me.setAttribute('aria-expanded', String(!me.nextElementSibling.classList.contains('hidden'))) end end"
+        >Mostrar variaciones ({{product.variations.len()}})</button>
+
+    <div class="product-variations hidden">
+        <p class="m-hint">Cargando variaciones…</p>
     </div>
 </div>

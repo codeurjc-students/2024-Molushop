@@ -1,0 +1,41 @@
+{# Pie de la tienda (layout shop). Usa las rutas de `nav1` e `i18n`, que tienen todas las páginas de la tienda. #}
+<div class="footer1">
+  <div class="footer1-container">
+    <div class="footer1-brand">
+      <img src="/assets/logos/molushop.svg" alt="Molushop" />
+      <p>{{ i18n.t("footer-tagline") }}</p>
+    </div>
+    <nav class="footer1-col" aria-label="{{ i18n.t("footer-shop") }}">
+      <h2>{{ i18n.t("footer-shop") }}</h2>
+      <ul>
+        <li><a href="{{ i18n.url(nav1.routes.home) }}">{{ i18n.t("footer-home") }}</a></li>
+        <li><a href="{{ i18n.url(nav1.routes.cart) }}">{{ i18n.t("nav-cart") }}</a></li>
+        <li><a href="{{ i18n.url(nav1.routes.orders) }}">{{ i18n.t("nav-orders") }}</a></li>
+      </ul>
+    </nav>
+    <nav class="footer1-col" aria-label="Molushop">
+      <h2>Molushop</h2>
+      <ul>
+        <li><a href="{{ i18n.url("/about-us") }}">{{ i18n.t("footer-about") }}</a></li>
+        <li><a href="/panel/register" hx-boost="false">{{ i18n.t("footer-sell") }}</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer1-bottom">
+    <p class="footer1-copy">&copy; 2026 Molushop</p>
+    {# Recarga entera (sin hx-boost): cambia el idioma de toda la página, también el <head>. #}
+    <nav class="footer1-lang" aria-label="{{ i18n.t("lang-label") }}">
+      <ul>
+        {% for lang in i18n.languages() %}
+        <li>
+          {% if lang.current %}
+          <span aria-current="true" lang="{{lang.code}}">{{lang.name}}</span>
+          {% else %}
+          <a href="{{lang.url}}" hreflang="{{lang.code}}" lang="{{lang.code}}" hx-boost="false">{{lang.name}}</a>
+          {% endif %}
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  </div>
+</div>

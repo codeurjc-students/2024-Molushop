@@ -1,0 +1,10 @@
+{# Modal de mensaje (MessageModal): un texto y "Aceptar". #}
+{% extends "components/modal/templates/shell.html" %}
+{% block close_label %}{{close}}{% endblock %}
+{% block body %}<div>
+    <p>{{text}}</p>
+    {% if let Some(reference) = reference %}<p class="m-modal__ref">{{reference}}</p>{% endif %}
+</div>{% endblock %}
+{% block actions %}
+<button type="button" class="m-btn m-btn--primary" _="init call me.focus() end on click trigger closeModal">{{accept}}</button>
+{% endblock %}

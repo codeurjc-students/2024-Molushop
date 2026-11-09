@@ -1,0 +1,241 @@
+use askama::Template;
+
+use crate::constants::product_status::{PRODUCT_ACTIVE, PRODUCT_DRAFT};
+use crate::models::data_transfer_objects::product::{Product, ProductVariation};
+
+/// Las variaciones de un producto en el listado del panel: filtros (uno por
+/// atributo y por estado), tabla y matriz con los ejes a elegir. El servidor
+/// solo pinta la tabla; filtrar y montar la matriz lo hace el JS a partir de
+/// sus filas (`ui/components/variations_explorer/static/base/js/script.js`).
+///
+/// Se pinta como el átomo de precio:
+///
+///     {{ product.variations_explorer() }}
+#[derive(Template)]
+#[template(path = "components/variations_explorer/templates/variations_explorer.html")]
+pub struct VariationsExplorer<'a> {
+    pub product: &'a Product,
+    /// `Some`: página de edición del producto. Columna "Editar" que abre el
+    /// editor de la variación (las filas llevan `id="var-row-{id}"`), barra
+    /// de edición en bloque y edición de los SKU en la tabla.
+    pub edit: Option<EditUrls<'a>>,
+}
+
+/// A dónde mandan la edición en bloque y la de los SKU (+ "/{id del producto}").
+#[derive(Clone, Copy)]
+pub struct EditUrls<'a> {
+    pub bulk: &'a str,
+    pub skus: &'a str,
+}
+
+impl<'a> VariationsExplorer<'a> {
+    pub fn titles(&self) -> &[String] {
+        &self.product.variations_titles
+    }
+
+    /// `Borrow`: la plantilla la llama con `loop.index0`, que Askama pasa por
+    /// referencia.
+    pub fn title(&self, i: impl std::borrow::Borrow<usize>) -> &str {
+        self.titles().get(*i.borrow()).map(|t| t.as_str()).unwrap_or("")
+    }
+
+    pub fn total(&self) -> usize {
+        self.product.variations.len()
+    }
+
+    /// Valor del atributo `i` de una variación. Se busca por nombre (el orden
+    /// de `attributes` no tiene por qué ser el de los títulos) y, si no casa,
+    /// por posición.
+    fn value_of<'v>(&self, pv: &'v ProductVariation, i: usize) -> &'v str {
+        let title = self.titles().get(i);
+        pv.variation.iter()
+            .find(|v| Some(&v.name) == title)
+            .or_else(|| pv.variation.get(i))
+            .map(|v| v.value.as_str())
+            .unwrap_or("—")
+    }
+
+    /// Valores distintos del atributo `i`, en el orden en que aparecen.
+    fn values_of(&self, i: usize) -> Vec<String> {
+        let mut values: Vec<String> = Vec::new();
+        for pv in &self.product.variations {
+            let value = self.value_of(pv, i);
+            if !values.iter().any(|v| v == value) {
+                values.push(value.to_string());
+            }
+        }
+        values
+    }
+
+    /// Los valores de todos los atributos, en el orden de los títulos.
+    pub fn all_values(&self, pv: &ProductVariation) -> Vec<String> {
+        (0..self.titles().len()).map(|i| self.value_of(pv, i).to_string()).collect()
+    }
+
+    /// (posición, título, valores) de cada atributo, para los selectores.
+    pub fn filters(&self) -> Vec<(usize, String, Vec<String>)> {
+        self.titles().iter().enumerate()
+            .map(|(i, title)| (i, title.clone(), self.values_of(i)))
+            .collect()
+    }
+
+    /// Ordenadas por sus valores (S, M, L…), atributo a atributo, en vez de
+    /// por el orden de la base de datos.
+    pub fn sorted_variations(&self) -> Vec<&'a ProductVariation> {
+        let orders: Vec<Vec<String>> = (0..self.titles().len()).map(|i| self.values_of(i)).collect();
+        let mut list: Vec<&'a ProductVariation> = self.product.variations.iter().collect();
+        list.sort_by_key(|pv| {
+            orders.iter().enumerate()
+                .map(|(i, values)| values.iter().position(|v| v == self.value_of(pv, i)).unwrap_or(usize::MAX))
+                .collect::<Vec<usize>>()
+        });
+        list
+    }
+
+    /// Clase de estado de la fila; el JS la usa para filtrar y colorear la matriz.
+    pub fn state_class(&self, pv: &ProductVariation) -> &'static str {
+        match pv.status {
+            PRODUCT_ACTIVE if pv.stock <= 0 => "is-out",
+            PRODUCT_ACTIVE => "is-active",
+            PRODUCT_DRAFT => "is-draft",
+            _ => "is-inactive",
+        }
+    }
+
+    pub fn status_label(&self, pv: &ProductVariation) -> &'static str {
+        match pv.status {
+            PRODUCT_ACTIVE => "Activo",
+            PRODUCT_DRAFT => "Draft",
+            _ => "Inactivo",
+        }
+    }
+
+    pub fn status_variant(&self, pv: &ProductVariation) -> &'static str {
+        match pv.status {
+            PRODUCT_ACTIVE => "success",
+            PRODUCT_DRAFT => "neutral",
+            _ => "danger",
+        }
+    }
+}
+
+/// Lo que pinta ya es HTML: sin esto, `{{ product.variations_explorer() }}`
+/// sale escapado en la tarjeta. Los valores del vendedor los escapa la propia
+/// plantilla (ver el test `pinta_las_filas_con_sus_datos_y_escapa_los_valores`).
+impl askama::filters::HtmlSafe for VariationsExplorer<'_> {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::models::data_transfer_objects::product::Variation;
+    use bigdecimal::BigDecimal;
+    use uuid::Uuid;
+
+    fn variation(attrs: &[(&str, &str)], status: i16, stock: i32) -> ProductVariation {
+        ProductVariation {
+            id: Uuid::nil(),
+            price: Some(BigDecimal::from(10)),
+            currency: "EUR".to_string(),
+            stock,
+            status,
+            sku: String::new(),
+            variation: attrs.iter()
+                .map(|(n, v)| Variation { name: n.to_string(), value: v.to_string() })
+                .collect(),
+        }
+    }
+
+    fn product(variations: Vec<ProductVariation>) -> Product {
+        Product {
+            variations,
+            name: "Tienda de campaña".to_string(),
+            status: PRODUCT_ACTIVE,
+            code: "T1".to_string(),
+            variations_titles: vec!["Tamaño".to_string(), "Color".to_string()],
+            categories: Vec::new(),
+            id: Uuid::nil(),
+            store_name: None,
+            store_id: Uuid::nil(),
+            image_url: None,
+        }
+    }
+
+    /// Ordena las filas por sus valores, en el orden en que aparecen en el producto.
+    #[test]
+    fn sorts_by_value_appearance_order() {
+        // Los atributos llegan en otro orden que los títulos: se casan por nombre.
+        let p = product(vec![
+            variation(&[("Tamaño", "1"), ("Color", "Rojo")], PRODUCT_DRAFT, 0),
+            variation(&[("Color", "Verde"), ("Tamaño", "2")], PRODUCT_DRAFT, 0),
+            variation(&[("Tamaño", "2"), ("Color", "Rojo")], PRODUCT_DRAFT, 0),
+            variation(&[("Tamaño", "1"), ("Color", "Verde")], PRODUCT_DRAFT, 0),
+        ]);
+        let explorer = p.variations_explorer();
+        let order: Vec<Vec<String>> = explorer.sorted_variations().iter().map(|pv| explorer.all_values(pv)).collect();
+        assert_eq!(order, vec![
+            vec!["1", "Rojo"], vec!["1", "Verde"], vec!["2", "Rojo"], vec!["2", "Verde"],
+        ]);
+        assert_eq!(explorer.filters()[1], (1, "Color".to_string(), vec!["Rojo".to_string(), "Verde".to_string()]));
+    }
+
+    /// Pinta cada fila con sus datos y escapa los valores que escribe el vendedor.
+    #[test]
+    fn renders_rows_with_data_and_escapes_values() {
+        let p = product(vec![
+            variation(&[("Tamaño", "1"), ("Color", "<b>Rojo</b>")], PRODUCT_ACTIVE, 7),
+        ]);
+        let html = p.variations_explorer().render().unwrap();
+        assert!(html.contains(r#"<table class="ve-table">"#));
+        assert!(html.contains(r#"data-a0="1""#));
+        assert!(html.contains(r#"data-label="Color""#));
+        assert!(html.contains(r#"data-state="is-active""#));
+        assert!(!html.contains("<b>Rojo</b>"), "un valor del vendedor no puede llegar como HTML");
+        // Con dos atributos hay matriz
+        assert!(html.contains(r#"data-panel="matrix""#));
+        // En el listado no hay botón de editar ni edición en bloque
+        assert!(!html.contains("var-row-"));
+        assert!(!html.contains("data-bulk-url"));
+        assert!(!html.contains("data-sku-url"));
+    }
+
+    /// La tabla editable lleva el botón de editar cada fila; sin precio, sale "No disponible".
+    #[test]
+    fn editable_has_button_and_no_price_is_unavailable() {
+        let mut pv = variation(&[("Tamaño", "1"), ("Color", "Rojo")], PRODUCT_ACTIVE, 7);
+        pv.price = None;
+        let p = product(vec![pv]);
+        let html = p.variations_explorer_editable(EditUrls { bulk: "/bulk", skus: "/skus" }).render().unwrap();
+        assert!(html.contains(r#"id="var-row-00000000-0000-0000-0000-000000000000""#));
+        assert!(html.contains("edit-product-variation/spawn/00000000-0000-0000-0000-000000000000"));
+        assert!(html.contains(r#"data-price="" "#.trim_end()));
+        assert!(html.contains("No disponible"));
+        assert!(html.contains(r#"data-sku-url="/skus/"#));
+        assert!(html.contains(r#"data-bulk-url="/bulk/00000000-0000-0000-0000-000000000000""#));
+    }
+
+    /// Como lo usa la tarjeta del panel: dentro de otra plantilla, sin `|safe`.
+    #[derive(Template)]
+    #[template(source = "<div>{{ product.variations_explorer() }}</div>", ext = "html")]
+    struct Card<'a> {
+        product: &'a Product,
+    }
+
+    /// Incluido en otra plantilla, el componente no sale escapado (y los valores siguen escapados).
+    #[test]
+    fn not_escaped_inside_another_template() {
+        let p = product(vec![variation(&[("Tamaño", "1"), ("Color", "<b>Rojo</b>")], PRODUCT_ACTIVE, 7)]);
+        let html = Card { product: &p }.render().unwrap();
+        assert!(html.contains(r#"<div class="c-variations-explorer">"#), "el componente sale escapado");
+        assert!(!html.contains("<b>Rojo</b>"));
+    }
+
+    /// Activa sin stock es su propio estado (is-out), no is-active.
+    #[test]
+    fn active_without_stock_is_its_own_state() {
+        let p = product(Vec::new());
+        let explorer = p.variations_explorer();
+        assert_eq!(explorer.state_class(&variation(&[], PRODUCT_ACTIVE, 3)), "is-active");
+        assert_eq!(explorer.state_class(&variation(&[], PRODUCT_ACTIVE, 0)), "is-out");
+        assert_eq!(explorer.state_class(&variation(&[], PRODUCT_DRAFT, 5)), "is-draft");
+    }
+}

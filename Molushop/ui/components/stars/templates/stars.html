@@ -1,0 +1,8 @@
+{# Átomo de estrellas: el cálculo está en src/models/components/stars.rs. Cada
+   estrella mide 20 de ancho dentro del viewBox, así que el grupo se escala
+   con el alto que le dé el CSS (m-stars, m-stars--sm). #}
+<svg class="m-stars{% if small %} m-stars--sm{% endif %}" viewBox="0 0 100 20" role="img" aria-label="{{label()}}" focusable="false">
+    {%- for icon in icons() %}
+    <use href="/assets/svg/icons/stars.svg#stars-{{icon}}-star" x="{{loop.index0 * 20}}" />
+    {%- endfor %}
+</svg>

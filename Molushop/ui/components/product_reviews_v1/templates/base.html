@@ -1,0 +1,129 @@
+<div class="product-reviews-1" id="product-reviews-1">
+    <div class="reviews-header">
+        <h2>{{ i18n.t("reviews-title") }}</h2>
+        {% if !reviews.is_empty() %}
+        <span class="reviews-count">{{ i18n.t_count("product-reviews-count", reviews.total) }}</span>
+        {% endif %}
+    </div>
+
+    {% if reviews.can_review %}
+    <!-- Éxito: el servidor devuelve la sección entera y sustituye a esta.
+         400/403/500: sólo el hueco de errores, para no borrar lo escrito
+         (extensión response-targets, que ya carga layout1.html). El 403 es
+         quien ya no cumple la regla (no le consta ninguna línea entregada). -->
+    <form class="review-form m-card"
+        hx-post="{{reviews.routes.save}}"
+        hx-target="#product-reviews-1"
+        hx-swap="outerHTML"
+        hx-ext="response-targets"
+        hx-target-400="#review-form-error"
+        hx-target-403="#review-form-error"
+        hx-target-500="#review-form-error">
+        <span class="form-title">{% if reviews.has_my_review() %}{{ i18n.t("reviews-edit") }}{% else %}{{ i18n.t("reviews-write") }}{% endif %}</span>
+        <input type="hidden" name="product_id" value="{{reviews.product_id}}">
+
+        <!-- Del 5 al 1 a propósito: el CSS les da la vuelta con row-reverse
+             para que "~" pinte la marcada y las de menos puntuación. -->
+        <fieldset class="star-input">
+            <legend>{{ i18n.t("reviews-your-rating") }}</legend>
+            <input type="radio" id="review-star-5" name="rating_value" value="5" required{% if reviews.my_rating() == 5 %} checked{% endif %}>
+            <label for="review-star-5"><span class="sr-only">{{ i18n.t_count("reviews-stars", 5) }}</span></label>
+            <input type="radio" id="review-star-4" name="rating_value" value="4"{% if reviews.my_rating() == 4 %} checked{% endif %}>
+            <label for="review-star-4"><span class="sr-only">{{ i18n.t_count("reviews-stars", 4) }}</span></label>
+            <input type="radio" id="review-star-3" name="rating_value" value="3"{% if reviews.my_rating() == 3 %} checked{% endif %}>
+            <label for="review-star-3"><span class="sr-only">{{ i18n.t_count("reviews-stars", 3) }}</span></label>
+            <input type="radio" id="review-star-2" name="rating_value" value="2"{% if reviews.my_rating() == 2 %} checked{% endif %}>
+            <label for="review-star-2"><span class="sr-only">{{ i18n.t_count("reviews-stars", 2) }}</span></label>
+            <input type="radio" id="review-star-1" name="rating_value" value="1"{% if reviews.my_rating() == 1 %} checked{% endif %}>
+            <label for="review-star-1"><span class="sr-only">{{ i18n.t_count("reviews-stars", 1) }}</span></label>
+        </fieldset>
+
+        <label class="sr-only" for="review-comment">{{ i18n.t("reviews-comment-label") }}</label>
+        <textarea class="m-input" id="review-comment" name="comment" rows="4"
+            maxlength="{{reviews.max_comment_len()}}"
+            placeholder="{{ i18n.t("reviews-comment-placeholder") }}">{{reviews.my_comment()}}</textarea>
+
+        <div class="m-error form-error" id="review-form-error"></div>
+
+        <div class="form-actions">
+            <button type="submit" class="m-btn m-btn--primary publish-review">{% if reviews.has_my_review() %}{{ i18n.t("reviews-save") }}{% else %}{{ i18n.t("reviews-publish") }}{% endif %}</button>
+            {% if reviews.has_my_review() %}
+            {% include "components/product_reviews_v1/templates/delete_button.html" %}
+            {% endif %}
+        </div>
+    </form>
+    {% else if reviews.logged %}
+    <div class="review-login m-card">
+        <span>{{ i18n.t("reviews-buyers-only") }}</span>
+        {% if reviews.has_my_review() %}
+        <!-- Opinó con la regla anterior (bastaba un pedido) o se le canceló: ya no la edita,
+             pero lo que escribió es suyo y puede quitarlo. -->
+        <div class="m-error form-error" id="review-form-error"></div>
+        {% include "components/product_reviews_v1/templates/delete_button.html" %}
+        {% endif %}
+    </div>
+    {% else %}
+    <!-- Sin .open-login-modal: ese enganche se hace una vez al cargar y este
+         botón puede llegar después, dentro del "ver más". Lo recoge script.js
+         por delegación y lanza auth-required. -->
+    <div class="review-login m-card">
+        <span>{{ i18n.t("reviews-login-prompt") }}</span>
+        <button type="button" class="m-btn m-btn--primary review-login-btn">{{ i18n.t("reviews-login-button") }}</button>
+    </div>
+    {% endif %}
+
+    {% if reviews.is_empty() %}
+    <div class="reviews-empty m-card">
+        <span>{{ i18n.t("reviews-empty") }}</span>
+    </div>
+    {% else %}
+    <div class="reviews-summary m-card">
+        <div class="summary-average">
+            <span class="average-number">{{ reviews.average_label(i18n) }}</span>
+            {{ reviews.stars().localized(i18n) }}
+            <span class="average-total">{{ i18n.t_count("reviews-average-total", reviews.total) }}</span>
+        </div>
+
+        <div class="summary-bars">
+            {% for bar in reviews.bars() %}
+            <div class="bar-row">
+                <span class="bar-star">{{bar.star}}</span>
+                <div class="bar-track">
+                    <div class="bar-fill" style="width:{{bar.percent}}%"></div>
+                </div>
+                <span class="bar-count">{{bar.count}}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="reviews">
+        {% for review in reviews.items %}
+        <article class="review m-card">
+            <div class="review-header">
+                <div class="avatar">{{review.initial()}}</div>
+                <div class="review-who">
+                    <span class="author">{{review.author}}{% if reviews.is_mine(review.id) %} <span class="m-badge m-badge--success mine-tag">{{ i18n.t("reviews-mine") }}</span>{% endif %}</span>
+                    <span class="review-date">{{review.date_label()}}</span>
+                </div>
+                {{ review.stars().localized(i18n) }}
+            </div>
+            {% if review.has_comment() %}
+            <p class="review-comment">{{review.comment_text()}}</p>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </div>
+
+    {% if reviews.has_more() %}
+    <!-- Repinta la sección entera con una página más: el fragmento que devuelve
+         el controlador es este mismo div, sin el script del wrapper. -->
+    <button type="button" class="m-btn m-btn--secondary more-reviews"
+        hx-get="{{reviews.next_page_url()}}"
+        hx-target="#product-reviews-1"
+        hx-swap="outerHTML">
+        {{ reviews.more_label(i18n) }}
+    </button>
+    {% endif %}
+    {% endif %}
+</div>

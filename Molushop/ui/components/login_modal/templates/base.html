@@ -1,0 +1,6 @@
+
+<dialog class="login_modal">
+    <!-- Solo se enseña si un 401 llega a una página que se pintó con sesión (login_modal.js) -->
+    <p class="m-alert m-alert--warning login_modal-notice" role="alert" hidden>{{ i18n.t("auth-session-ended") }}</p>
+    {% include "components/login_base/templates/login_base.html"%}
+</dialog>

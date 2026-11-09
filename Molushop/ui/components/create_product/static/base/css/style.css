@@ -1,0 +1,138 @@
+/* Selector de categoría del alta de producto. La caja es del átomo m-card;
+   aquí solo la cabecera (título y miga de pan) y la lista. Mobile-first: las
+   filas de la lista, más altas desde 900px. El ancho y el relleno de la
+   página los pone .panel-products (pages/panel_products). */
+
+.cont-base .chain {
+    padding: var(--space-3);
+}
+
+.chain {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.top {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-bottom: var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+}
+
+/* Con la categoría ya elegida: "Categoría" y el botón "Cambiar" en una fila */
+.top__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.top__title {
+    margin: 0;
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text);
+}
+
+/* Miga de pan: "Categorías › Ropa › Camisetas". Las anteriores son botones
+   con aspecto de enlace; la última, la actual, en texto normal. */
+.crumbs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.crumbs li {
+    display: flex;
+    align-items: center;
+}
+
+.crumbs li:not(:last-child)::after {
+    content: '›';
+    margin-left: var(--space-1);
+}
+
+.crumbs li[aria-current] {
+    color: var(--color-text);
+    font-weight: var(--font-weight-medium);
+}
+
+.crumbs button {
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--color-primary-strong);
+    cursor: pointer;
+}
+
+.crumbs button:hover {
+    text-decoration: underline;
+}
+
+.crumbs button:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+.list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+/* Cada categoría es un botón a todo el ancho, con "›" a la derecha */
+.list button {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-bg);
+    font: inherit;
+    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+    transition: background-color var(--transition-fast),
+                border-color var(--transition-fast);
+}
+
+.list button::after {
+    content: '›';
+    color: var(--color-text-muted);
+}
+
+.list button:hover {
+    background: var(--color-bg-soft);
+    border-color: var(--color-primary-strong);
+}
+
+.list button:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+}
+
+@media (min-width: 600px) {
+    .cont-base .chain {
+        padding: var(--space-4);
+    }
+}
+
+@media (min-width: 900px) {
+    .list button {
+        padding: var(--space-4) var(--space-5);
+    }
+}

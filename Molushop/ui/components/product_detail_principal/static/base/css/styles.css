@@ -1,0 +1,223 @@
+/* Ficha de producto, mobile-first.
+   Móvil: imagen grande arriba, miniaturas en fila debajo y los datos a todo el ancho.
+   Desde 900px: miniaturas en columna a la izquierda de la imagen y los datos al lado. */
+.product-detail-principal{
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    max-width: 70rem;
+    margin: 0 auto;
+    padding: var(--space-4);
+    box-sizing: border-box;
+
+    .image-display{
+        /* En tablet no ocupa todo el ancho: la foto sería enorme */
+        width: 100%;
+        max-width: 32rem;
+        align-self: center;
+        min-width: 0;
+        .container-image-display{
+            display: flex;
+            flex-direction: column-reverse;
+            gap: var(--space-2);
+            .all-images-container{
+                min-width: 0;
+                .all-images{
+                    display: flex;
+                    gap: var(--space-2);
+                    overflow-x: auto;
+                    .image-s{
+                        flex-shrink: 0;
+                        width: 64px;
+                        height: 64px;
+                        background-color: var(--color-bg-soft);
+                        border-radius: var(--radius-sm);
+                        overflow: hidden;
+                        .image-mini{
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                        }
+                    }
+                }
+                .all-images::-webkit-scrollbar {
+                    /* Oculta la barra de scroll */
+                    width: 0;
+                    height: 0;
+                    display: none;
+                }
+            }
+            .main-image-container{
+                aspect-ratio: 1 / 1;
+                background-color: var(--color-bg-soft);
+                .image-principal{
+                    display: block;
+                    width: 100%;
+                    height: 100%;
+                    object-fit: contain;
+                }
+            }
+        }
+    }
+    .product-data{
+        display: flex;
+        gap: 0.5em;
+        flex-direction: column;
+        min-width: 0;
+        .title{
+            font-size: var(--font-size-xl);
+            font-weight: bold;
+            line-height: var(--line-height-tight);
+        }
+        .rating-container{
+            display: flex;
+            align-items: center;
+            gap: var(--space-2);
+            align-self: flex-start;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+            text-decoration: none;
+
+            &:hover .rating-count{
+                text-decoration: underline;
+            }
+        }
+        .variations{
+            display: flex;
+            flex-direction: column;
+            gap: 1em;
+            .variation{
+                display: flex;
+                flex-direction: column;
+                gap: 0.5em;
+                .variation-select{
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: var(--space-2);
+                    .variation-element{
+                        .variation-input{
+                            /* Fuera del flujo e invisible; se pulsa su label */
+                            position: absolute;
+                            opacity: 0;
+                            width: 0;
+                            height: 0;
+                            pointer-events: none;
+                        }
+                        .variation-name-cont{
+                            display: inline-block;
+                            padding: 0.5em 0.7em;
+                            border-radius: 1em;
+                            border: 3px solid var(--color-border);
+                        }
+                        .variation-name-cont:not([disabled]):hover{
+                            border-color: var(--color-primary);
+                        }
+                        .variation-input:checked + .variation-name-cont {
+                            border-color: var(--color-primary-strong);
+                            background-color: var(--color-primary-soft);
+                        }
+                        /* Con lo demás elegido, este valor da una combinación
+                           agotada. Se puede pulsar: se elige y sale como agotada. */
+                        .variation-name-cont.is-out-of-stock span{
+                            text-decoration: line-through;
+                            color: var(--color-text-muted);
+                        }
+                        .variation-name-cont.is-out-of-stock{
+                            border-style: dashed;
+                        }
+                        .variation-name-cont[disabled]{
+                            background-color: var(--gray-100);
+                            border-color: var(--color-disabled);
+                            color: var(--color-text-muted);
+                            cursor: not-allowed;
+                            opacity: 0.6;
+                        }
+
+                        .variation-image-cont{
+                            display: flex;
+                            border-radius: 5px;
+                            max-width: 70px;
+                            border: 3px solid var(--color-border);
+                            .variation-image{
+                                width: 100%;
+                                border-radius: 1px;
+                            }
+                        }
+                        .variation-image-cont:not([disabled]):hover{
+                            border-color: var(--color-primary);
+                        }
+                    }
+                }
+            }
+        }
+        .add-to-cart{
+            display: flex;
+            flex-direction: column;
+            .add-cart-cont1{
+                display: flex;
+                flex-direction: row;
+                gap: 0.5em;
+                .quantity-product{
+                    /* flex para que la caja de cantidad mida lo mismo de alto que el botón */
+                    display: flex;
+                }
+                .button-container-add{
+                    /* El aspecto del botón es del átomo m-btn; aquí solo su hueco.
+                       Ocupa lo que queda al lado de la cantidad. min-width: 0 deja
+                       que encoja por debajo del ancho del texto: si no, en un móvil
+                       pequeño la fila no cabe y el corazón se sale por la derecha. */
+                    display: flex;
+                    flex: 1;
+                    min-width: 0;
+                    .add-to-cart-btn{
+                        /* m-btn no parte el texto (nowrap): aquí, si no cabe, en dos líneas */
+                        white-space: normal;
+                    }
+                }
+            }
+        }
+    }
+}
+
+@media (min-width: 600px) {
+    .product-detail-principal .add-to-cart .add-cart-cont1 .button-container-add{
+        flex: 0 1 auto;
+        min-width: 12em;
+    }
+}
+
+@media (min-width: 900px) {
+    .product-detail-principal{
+        flex-direction: row;
+        align-items: flex-start;
+        gap: var(--space-6);
+
+        .image-display{
+            flex: 0 1 560px;
+            max-width: none;
+            .container-image-display{
+                flex-direction: row;
+                .all-images-container{
+                    /* La columna mide lo mismo que la imagen grande: la lista va
+                       en absoluto y toma la altura de la fila. */
+                    position: relative;
+                    flex: 0 0 64px;
+                    .all-images{
+                        position: absolute;
+                        inset: 0;
+                        flex-direction: column;
+                        overflow-x: hidden;
+                        overflow-y: auto;
+                    }
+                }
+                .main-image-container{
+                    flex: 1;
+                    max-height: 500px;
+                }
+            }
+        }
+        .product-data{
+            flex: 1;
+        }
+    }
+}
