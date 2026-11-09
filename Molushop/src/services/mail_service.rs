@@ -32,6 +32,40 @@ pub enum MailError {
     UnknownProvider(String),
 }
 
+/// Proveedores programados en `send`. Al añadir "ses" o "smtp", ponerlos aquí.
+const KNOWN_PROVIDERS: &[&str] = &["log"];
+
+/// Comprueba la configuración del correo antes de arrancar el servidor.
+pub fn check_mail_config() -> Result<(), String> {
+    validate_mail_config(
+        env::var("MAIL_PROVIDER").ok().as_deref(),
+        env::var("PUBLIC_BASE_URL").ok().as_deref(),
+        cfg!(not(debug_assertions)),
+    )
+}
+
+/// En release, `log` (o nada) está prohibido: escribiría en la consola el
+/// enlace para cambiar la contraseña de cualquiera. Y sin `PUBLIC_BASE_URL`
+/// los enlaces de los emails apuntarían a 127.0.0.1.
+fn validate_mail_config(provider: Option<&str>, base_url: Option<&str>, release: bool) -> Result<(), String> {
+    let provider = provider.map(str::trim).filter(|p| !p.is_empty());
+    if let Some(p) = provider {
+        if !KNOWN_PROVIDERS.contains(&p) {
+            return Err(format!("MAIL_PROVIDER \"{}\" is not implemented (known: {})", p, KNOWN_PROVIDERS.join(", ")));
+        }
+    }
+    if release {
+        match provider {
+            None | Some("log") => return Err("MAIL_PROVIDER must be a real provider in release, not \"log\"".to_string()),
+            _ => {}
+        }
+        if base_url.map(str::trim).unwrap_or("").is_empty() {
+            return Err("PUBLIC_BASE_URL must be set in release".to_string());
+        }
+    }
+    Ok(())
+}
+
 /// Manda el email por el proveedor configurado.
 pub async fn send(mail: &Mail) -> Result<(), MailError> {
     let provider = env::var("MAIL_PROVIDER").unwrap_or_else(|_| "log".to_string());
@@ -82,6 +116,24 @@ fn password_reset_mail(to: &str, username: &str, link: &str, minutes: i64, lang:
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn development_allows_the_log_mailbox() {
+        assert!(validate_mail_config(None, None, false).is_ok());
+        assert!(validate_mail_config(Some("log"), None, false).is_ok());
+    }
+
+    #[test]
+    fn release_refuses_log_or_missing_provider() {
+        assert!(validate_mail_config(None, Some("https://molushop.example"), true).is_err());
+        assert!(validate_mail_config(Some("log"), Some("https://molushop.example"), true).is_err());
+    }
+
+    #[test]
+    fn unknown_provider_is_refused_everywhere() {
+        assert!(validate_mail_config(Some("smtpp"), None, false).is_err());
+        assert!(validate_mail_config(Some("smtpp"), Some("https://molushop.example"), true).is_err());
+    }
 
     #[test]
     fn password_reset_mail_in_each_language() {

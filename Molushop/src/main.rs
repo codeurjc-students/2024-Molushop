@@ -27,11 +27,25 @@ use tracing_actix_web::TracingLogger;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
-    logging::init();
+    // Vive hasta el final de main: al soltarlo se escriben los logs pendientes.
+    let log_guard = logging::init();
 
-    // Sin una clave de sesión válida nadie podría entrar: mejor no arrancar.
-    if let Err(problem) = services::paseto_token_session_service::check_local_secret() {
-        tracing::error!(%problem, "invalid configuration, the server will not start");
+    // Configuración que, si está mal, rompe algo o deja un agujero: mejor no arrancar.
+    // Sin clave de sesión nadie podría entrar; con el buzón "log" en producción, el
+    // enlace para cambiar la contraseña de cualquiera acabaría en la consola.
+    let problems: Vec<String> = [
+        services::paseto_token_session_service::check_local_secret(),
+        services::mail_service::check_mail_config(),
+    ]
+    .into_iter()
+    .filter_map(Result::err)
+    .collect();
+    if !problems.is_empty() {
+        for problem in &problems {
+            tracing::error!(%problem, "invalid configuration, the server will not start");
+        }
+        // process::exit no ejecuta los drop: soltar el guard para que salgan los logs.
+        drop(log_guard);
         std::process::exit(1);
     }
     // Dónde escucha: 127.0.0.1:8080 detrás de un proxy en la misma máquina (lo de
