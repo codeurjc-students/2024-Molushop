@@ -15,6 +15,7 @@
 
 use std::env;
 
+use crate::app_env::AppEnv;
 use crate::i18n::Lang;
 
 /// Un email ya redactado.
@@ -36,32 +37,29 @@ pub enum MailError {
 const KNOWN_PROVIDERS: &[&str] = &["log"];
 
 /// Comprueba la configuración del correo antes de arrancar el servidor.
-pub fn check_mail_config() -> Result<(), String> {
+pub fn check_mail_config(app_env: AppEnv) -> Result<(), String> {
     validate_mail_config(
         env::var("MAIL_PROVIDER").ok().as_deref(),
         env::var("PUBLIC_BASE_URL").ok().as_deref(),
-        cfg!(not(debug_assertions)),
+        app_env,
     )
 }
 
-/// En release, `log` (o nada) está prohibido: escribiría en la consola el
-/// enlace para cambiar la contraseña de cualquiera. Y sin `PUBLIC_BASE_URL`
-/// los enlaces de los emails apuntarían a 127.0.0.1.
-fn validate_mail_config(provider: Option<&str>, base_url: Option<&str>, release: bool) -> Result<(), String> {
+/// En `prod`, `log` (o nada) está prohibido: escribiría en la consola el
+/// enlace para cambiar la contraseña de cualquiera. Fuera de `dev`, sin
+/// `PUBLIC_BASE_URL` los enlaces de los emails apuntarían a 127.0.0.1.
+fn validate_mail_config(provider: Option<&str>, base_url: Option<&str>, app_env: AppEnv) -> Result<(), String> {
     let provider = provider.map(str::trim).filter(|p| !p.is_empty());
     if let Some(p) = provider {
         if !KNOWN_PROVIDERS.contains(&p) {
             return Err(format!("MAIL_PROVIDER \"{}\" is not implemented (known: {})", p, KNOWN_PROVIDERS.join(", ")));
         }
     }
-    if release {
-        match provider {
-            None | Some("log") => return Err("MAIL_PROVIDER must be a real provider in release, not \"log\"".to_string()),
-            _ => {}
-        }
-        if base_url.map(str::trim).unwrap_or("").is_empty() {
-            return Err("PUBLIC_BASE_URL must be set in release".to_string());
-        }
+    if !app_env.allows_log_mailbox() && matches!(provider, None | Some("log")) {
+        return Err(format!("MAIL_PROVIDER must be a real provider with APP_ENV={}, not \"log\"", app_env));
+    }
+    if app_env.requires_public_base_url() && base_url.map(str::trim).unwrap_or("").is_empty() {
+        return Err(format!("PUBLIC_BASE_URL must be set with APP_ENV={}", app_env));
     }
     Ok(())
 }
@@ -117,22 +115,30 @@ fn password_reset_mail(to: &str, username: &str, link: &str, minutes: i64, lang:
 mod tests {
     use super::*;
 
+    const URL: Option<&str> = Some("https://molushop.example");
+
     #[test]
-    fn development_allows_the_log_mailbox() {
-        assert!(validate_mail_config(None, None, false).is_ok());
-        assert!(validate_mail_config(Some("log"), None, false).is_ok());
+    fn development_allows_the_log_mailbox_without_public_url() {
+        assert!(validate_mail_config(None, None, AppEnv::Dev).is_ok());
+        assert!(validate_mail_config(Some("log"), None, AppEnv::Dev).is_ok());
     }
 
     #[test]
-    fn release_refuses_log_or_missing_provider() {
-        assert!(validate_mail_config(None, Some("https://molushop.example"), true).is_err());
-        assert!(validate_mail_config(Some("log"), Some("https://molushop.example"), true).is_err());
+    fn pre_allows_the_log_mailbox_but_needs_public_url() {
+        assert!(validate_mail_config(Some("log"), URL, AppEnv::Pre).is_ok());
+        assert!(validate_mail_config(Some("log"), None, AppEnv::Pre).is_err());
+    }
+
+    #[test]
+    fn prod_refuses_log_or_missing_provider() {
+        assert!(validate_mail_config(None, URL, AppEnv::Prod).is_err());
+        assert!(validate_mail_config(Some("log"), URL, AppEnv::Prod).is_err());
     }
 
     #[test]
     fn unknown_provider_is_refused_everywhere() {
-        assert!(validate_mail_config(Some("smtpp"), None, false).is_err());
-        assert!(validate_mail_config(Some("smtpp"), Some("https://molushop.example"), true).is_err());
+        assert!(validate_mail_config(Some("smtpp"), None, AppEnv::Dev).is_err());
+        assert!(validate_mail_config(Some("smtpp"), URL, AppEnv::Prod).is_err());
     }
 
     #[test]

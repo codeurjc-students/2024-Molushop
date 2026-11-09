@@ -13,6 +13,7 @@ pub mod middleware;
 pub mod constants;
 pub mod i18n;
 mod logging;
+mod app_env;
 
 use services::aws::s3::{client, startup};
 use controllers::components;
@@ -27,15 +28,24 @@ use tracing_actix_web::TracingLogger;
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
+    // dev / pre / prod (ver app_env.rs). Si APP_ENV no vale, los logs arrancan
+    // con el entorno por defecto de esta compilación para poder escribir el error.
+    let app_env = app_env::AppEnv::from_env();
+    let current_env = *app_env.as_ref().unwrap_or(&app_env::AppEnv::default_for_build());
     // Vive hasta el final de main: al soltarlo se escriben los logs pendientes.
-    let log_guard = logging::init();
+    let log_guard = logging::init(current_env);
 
     // Configuración que, si está mal, rompe algo o deja un agujero: mejor no arrancar.
     // Sin clave de sesión nadie podría entrar; con el buzón "log" en producción, el
     // enlace para cambiar la contraseña de cualquiera acabaría en la consola.
     let problems: Vec<String> = [
+        app_env.as_ref().map(|_| ()).map_err(Clone::clone),
         services::paseto_token_session_service::check_local_secret(),
-        services::mail_service::check_mail_config(),
+        // Con APP_ENV inválida no se sabe qué reglas tocan: basta con su error.
+        match &app_env {
+            Ok(env) => services::mail_service::check_mail_config(*env),
+            Err(_) => Ok(()),
+        },
     ]
     .into_iter()
     .filter_map(Result::err)
@@ -48,6 +58,7 @@ async fn main() -> std::io::Result<()> {
         drop(log_guard);
         std::process::exit(1);
     }
+    tracing::info!(app_env = %current_env, "starting Molushop");
     // Dónde escucha: 127.0.0.1:8080 detrás de un proxy en la misma máquina (lo de
     // siempre); 0.0.0.0:8080 dentro de Docker o en una plataforma (PaaS).
     let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
