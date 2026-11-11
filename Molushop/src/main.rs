@@ -18,9 +18,6 @@ mod app_env;
 use services::aws::s3::{client, startup};
 use controllers::components;
 
-use diesel_async::pooled_connection::AsyncDieselConnectionManager;
-use diesel_async::pooled_connection::deadpool::Pool;
-use diesel_async::AsyncPgConnection;
 
 use dotenvy::dotenv;
 use tracing_actix_web::TracingLogger;
@@ -63,8 +60,9 @@ async fn main() -> std::io::Result<()> {
     // siempre); 0.0.0.0:8080 dentro de Docker o en una plataforma (PaaS).
     let bind_addr = std::env::var("BIND_ADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
 
-    let config: AsyncDieselConnectionManager<AsyncPgConnection> = AsyncDieselConnectionManager::<AsyncPgConnection>::new(std::env::var("DATABASE_URL").expect("DATABASE_URL must be set"));
-    let pool:Pool<AsyncPgConnection> = Pool::builder(config).build().unwrap();
+    // Con TLS si la URL lo pide (Neon: sslmode=require); ver utils/db.rs.
+    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let pool = utils::db::build_pool(&database_url).expect("could not build the database pool");
     let pool_data = web::Data::new(pool);
 
     let client = startup::configure_and_return_s3_client().await;

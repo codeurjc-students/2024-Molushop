@@ -1,0 +1,18 @@
+# Lo que no entra en la imagen. Fuera, sobre todo, los secretos y `target/`
+# (gigas, y compilado para Windows: no serviría dentro de Linux).
+target/
+.env
+.env.*
+.git/
+.vscode/
+
+# Material de trabajo que no hace falta para compilar ni para ejecutar
+backups/
+aaaPruebas/
+sql code/
+seeds/
+migrations/
+notas.txt
+*.sh
+CLAUDE.md
+compose.yaml
