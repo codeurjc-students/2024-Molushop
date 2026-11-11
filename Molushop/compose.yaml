@@ -1,0 +1,19 @@
+# Arrancar la imagen de Molushop EN LOCAL (Docker en WSL), contra la base que diga .env.docker
+# (hoy, Neon). Render no usa este fichero: construye con el Dockerfile y las variables van en su panel.
+#
+#   docker compose up --build    construye si hace falta y arranca (Ctrl+C para parar)
+#   docker compose down          borra el contenedor parado
+#
+# Chuleta completa: Obsidian, ADocuPlus/Probar Docker en local contra Neon.md
+
+services:
+  app:
+    build: .
+    image: molushop
+    container_name: molushop
+    # 8081 en Windows para no chocar con el `cargo watch` del 8080
+    ports:
+      - "8081:8080"
+    # Fuera de git (.env.* en el .gitignore): copia del .env con DATABASE_URL de Neon, APP_ENV=pre,
+    # PUBLIC_BASE_URL=http://localhost:8081 y MAIL_PROVIDER=log. Con finales de línea LF.
+    env_file: .env.docker
