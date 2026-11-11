@@ -10,9 +10,9 @@ pub fn static_config(cfg: &mut web::ServiceConfig) {
     let path_components = Path::new("./ui/components");
     let path_pages = Path::new("./ui/pages");
 
-    cfg.service(fs::Files::new("/static/utils", Path::new("./ui/utils")).show_files_listing());
-    cfg.service(fs::Files::new("/static/styles", Path::new("./ui/styles")).show_files_listing());
-    cfg.service(fs::Files::new("/assets", Path::new("./ui/assets")).show_files_listing());
+    cfg.service(fs::Files::new("/static/utils", Path::new("./ui/utils")));
+    cfg.service(fs::Files::new("/static/styles", Path::new("./ui/styles")));
+    cfg.service(fs::Files::new("/assets", Path::new("./ui/assets")));
 
     // Configurar rutas estáticas para "components"
     configure_static_routes(cfg,path_components ).expect("Error configurando rutas estáticas para components");
@@ -34,7 +34,7 @@ fn configure_static_routes(cfg: &mut web::ServiceConfig, path: &Path) -> std::io
                 if base_path.exists() {
                     let xtra = path.strip_prefix("./ui").unwrap().to_str().unwrap().replace("\\", "/");
                     let route = format!("/static/{}", xtra);
-                    cfg.service(fs::Files::new(&route, &base_path).show_files_listing());
+                    cfg.service(fs::Files::new(&route, &base_path));
                 }
             }
         }
@@ -57,7 +57,7 @@ fn configure_static_routes_recursive(cfg: &mut web::ServiceConfig, path: &Path) 
         if let Ok(relative_path) = path.strip_prefix("./ui") {
             let xtra = relative_path.to_str().unwrap_or("").replace("\\", "/");
             let route = format!("/static/{}", xtra);
-            cfg.service(fs::Files::new(&route, &base_path).show_files_listing());
+            cfg.service(fs::Files::new(&route, &base_path));
         }
     }
 
