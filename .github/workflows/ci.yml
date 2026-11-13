@@ -1,0 +1,64 @@
+# Tests en cada PR y push a develop.
+#
+# El despliegue en Render (job `deploy`, al final) está comentado: de momento se
+# despliega a mano. Render se creó con el repositorio público por URL, así que no
+# despliega solo; para automatizarlo haría falta su Deploy Hook (secreto
+# RENDER_DEPLOY_HOOK_URL). Documentado en el Obsidian:
+# ADocuPlus/Despliegue con Dockerfile.md, apartado 7.1.
+
+name: CI (develop)
+
+on:
+  push:
+    branches: [develop]
+  pull_request:
+    branches: [develop, main]
+  workflow_dispatch:
+
+# Dos pushes seguidos: se cancela el anterior y solo se despliega el último.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Molushop
+    steps:
+      - uses: actions/checkout@v5
+
+      # diesel con la feature "postgres" enlaza con libpq (igual que en el Dockerfile)
+      - name: Instalar libpq
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libpq-dev
+
+      # Misma versión que el Dockerfile (rust:1.99)
+      - uses: dtolnay/rust-toolchain@1.99
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: Molushop
+
+      - name: Tests
+        run: cargo test --locked
+
+  # DESACTIVADO (2026-11-12): de momento se despliega a mano en Render (Manual Deploy).
+  # Para activarlo: crear el secreto RENDER_DEPLOY_HOOK_URL y quitar los comentarios.
+  #
+  # deploy:
+  #   needs: test
+  #   # Solo en push a develop (o lanzado a mano), nunca en un PR
+  #   if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Avisar a Render (Deploy Hook)
+  #       env:
+  #         HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+  #       run: |
+  #         if [ -z "$HOOK" ]; then
+  #           echo "Falta el secreto RENDER_DEPLOY_HOOK_URL" >&2
+  #           exit 1
+  #         fi
+  #         curl -fsS -X POST "$HOOK" > /dev/null
+  #         echo "Despliegue pedido a Render"
