@@ -30,7 +30,9 @@
                     </div>
 
                     <button type="submit" class="m-btn m-btn--primary m-btn--block">{{ i18n.t("auth-login-submit") }}</button>
-                    <a class="forgot-link" href="{{ i18n.url("/password/forgot") }}">{{ i18n.t("auth-forgot") }}</a>
+                    {# hx-boost="false": dentro del form heredaría su hx-target="body" + hx-swap="beforeend"
+                       y pegaría la página al final del body, detrás del modal. Navegación normal. #}
+                    <a class="forgot-link" href="{{ i18n.url("/password/forgot") }}" hx-boost="false">{{ i18n.t("auth-forgot") }}</a>
                     <label class="m-check">
                         <input type="checkbox" checked="checked" name="remember"> {{ i18n.t("auth-remember") }}
                     </label>
