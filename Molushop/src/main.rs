@@ -65,6 +65,8 @@ async fn main() -> std::io::Result<()> {
     // Con TLS si la URL lo pide (Neon: sslmode=require); ver utils/db.rs.
     let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     let pool = utils::db::build_pool(&database_url).expect("could not build the database pool");
+    // Borra cada hora (y ahora) las sesiones y enlaces de contraseña caducados hace más de una semana.
+    services::expired_rows_cleanup::spawn(pool.clone());
     let pool_data = web::Data::new(pool);
 
     let client = startup::configure_and_return_s3_client().await;
