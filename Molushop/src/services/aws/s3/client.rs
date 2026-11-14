@@ -11,35 +11,30 @@ use std::error::Error;
 pub struct Client {
     s3: aws_sdk_s3::Client,
     bucket_name: String,
+    region: String,
 }
 
 impl Client {
-    /// Construct S3 client wrapper.
+    /// Construct S3 client wrapper. Bucket y región se leen una vez aquí; las dos
+    /// variables ya se comprobaron al arrancar (utils::required_env).
     pub fn new(config: aws_sdk_s3::Config) -> Client {
         Client {
             s3: aws_sdk_s3::Client::from_conf(config),
-            bucket_name: std::env::var("AWS_S3_BUCKET_NAME").unwrap(),
+            bucket_name: std::env::var("AWS_S3_BUCKET_NAME").expect("AWS_S3_BUCKET_NAME is checked at startup"),
+            region: std::env::var("AWS_REGION").expect("AWS_REGION is checked at startup"),
         }
     }
 
     pub fn url(&self, key: &str) -> String {
         let new_key1 = key.replace("+","%2B"); // en la url se cambian los espacios por +
         let new_key = new_key1.replace(" ","+"); // en la url se cambian los espacios por +
-        format!(
-            "https://{}.s3.{}.amazonaws.com/{new_key}",
-            std::env::var("AWS_S3_BUCKET_NAME").unwrap(),
-            std::env::var("AWS_REGION").unwrap(),
-        )
+        format!("https://{}.s3.{}.amazonaws.com/{new_key}", self.bucket_name, self.region)
     }
 
     /// La clave del objeto a partir de la URL guardada en la BD (la de `url`).
     /// `None` si la URL no es de este bucket: entonces no se borra nada.
     pub fn key_from_url(&self, url: &str) -> Option<String> {
-        let base = format!(
-            "https://{}.s3.{}.amazonaws.com/",
-            self.bucket_name,
-            std::env::var("AWS_REGION").ok()?,
-        );
+        let base = format!("https://{}.s3.{}.amazonaws.com/", self.bucket_name, self.region);
         key_from_url(&base, url)
     }
 

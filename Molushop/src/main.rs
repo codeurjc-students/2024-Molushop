@@ -35,7 +35,9 @@ async fn main() -> std::io::Result<()> {
     // Configuración que, si está mal, rompe algo o deja un agujero: mejor no arrancar.
     // Sin clave de sesión nadie podría entrar; con el buzón "log" en producción, el
     // enlace para cambiar la contraseña de cualquiera acabaría en la consola.
-    let problems: Vec<String> = [
+    // Primero las variables obligatorias sin valor por defecto (BD y S3).
+    let mut problems: Vec<String> = utils::required_env::check_required_vars();
+    problems.extend([
         app_env.as_ref().map(|_| ()).map_err(Clone::clone),
         services::paseto_token_session_service::check_local_secret(),
         // Con APP_ENV inválida no se sabe qué reglas tocan: basta con su error.
@@ -45,8 +47,7 @@ async fn main() -> std::io::Result<()> {
         },
     ]
     .into_iter()
-    .filter_map(Result::err)
-    .collect();
+    .filter_map(Result::err));
     if !problems.is_empty() {
         for problem in &problems {
             tracing::error!(%problem, "invalid configuration, the server will not start");
