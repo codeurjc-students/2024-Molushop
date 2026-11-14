@@ -71,6 +71,9 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move|| {
         App::new()
+            // HEAD como GET sin cuerpo (Render hace HEAD / al arrancar). El primer wrap
+            // es el de más dentro: el log de peticiones sigue viendo HEAD.
+            .wrap(actix_web::middleware::from_fn(middleware::head_as_get::head_as_get))
             // `HttpResponse::Ok().body(html)` no pone Content-Type y el navegador tenía que
             // adivinarlo. DefaultHeaders solo la añade si la respuesta no trae una: JSON,
             // estáticos (actix-files) y los que ya ponen la suya no cambian.

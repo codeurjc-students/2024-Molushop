@@ -3,3 +3,4 @@ pub mod panel_guard;
 pub mod rate_limit;
 pub mod origin_check;
 pub mod request_log;
+pub mod head_as_get;
