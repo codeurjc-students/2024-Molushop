@@ -1,9 +1,8 @@
-# Tests en cada PR y push a develop.
+# Tests en cada PR y push a develop; si pasan y es un push a develop, despliega.
 #
-# El despliegue en Render (job `deploy`, al final) está comentado: de momento se
-# despliega a mano. Render se creó con el repositorio público por URL, así que no
-# despliega solo; para automatizarlo haría falta su Deploy Hook (secreto
-# RENDER_DEPLOY_HOOK_URL). Documentado en el Obsidian:
+# Render se creó con el repositorio público por URL, así que no despliega solo:
+# el job `deploy` llama a su Deploy Hook (secreto RENDER_DEPLOY_HOOK_URL) y Render
+# construye el último commit de develop. Documentado en el Obsidian:
 # ADocuPlus/Despliegue con Dockerfile.md, apartado 7.1.
 
 name: CI (develop)
@@ -43,22 +42,21 @@ jobs:
       - name: Tests
         run: cargo test --locked
 
-  # DESACTIVADO (2026-11-12): de momento se despliega a mano en Render (Manual Deploy).
-  # Para activarlo: crear el secreto RENDER_DEPLOY_HOOK_URL y quitar los comentarios.
-  #
-  # deploy:
-  #   needs: test
-  #   # Solo en push a develop (o lanzado a mano), nunca en un PR
-  #   if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Avisar a Render (Deploy Hook)
-  #       env:
-  #         HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-  #       run: |
-  #         if [ -z "$HOOK" ]; then
-  #           echo "Falta el secreto RENDER_DEPLOY_HOOK_URL" >&2
-  #           exit 1
-  #         fi
-  #         curl -fsS -X POST "$HOOK" > /dev/null
-  #         echo "Despliegue pedido a Render"
+  # Despliega en Render solo si los tests pasan. Necesita el secreto
+  # RENDER_DEPLOY_HOOK_URL (Settings -> Secrets and variables -> Actions).
+  deploy:
+    needs: test
+    # Solo en push a develop (o lanzado a mano), nunca en un PR
+    if: github.ref == 'refs/heads/develop' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Avisar a Render (Deploy Hook)
+        env:
+          HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$HOOK" ]; then
+            echo "Falta el secreto RENDER_DEPLOY_HOOK_URL" >&2
+            exit 1
+          fi
+          curl -fsS -X POST "$HOOK" > /dev/null
+          echo "Despliegue pedido a Render"
