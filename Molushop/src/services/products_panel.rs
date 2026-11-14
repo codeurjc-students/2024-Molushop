@@ -101,13 +101,10 @@ async fn to_panel_product(product: Products, store_id:&Uuid, image_url: Option<S
         .map(|(pv, p)| (pv.id, p))
         .collect();
 
-    let variation_titles:Vec<String> = match product.variation_titles{
-        Some(titles) =>{
-            let titles_aux:VariationTitles = serde_json::from_value(titles).unwrap();
-            titles_aux.titulos
-        },
-        None => Vec::new()
-    };
+    let variation_titles: Vec<String> =
+        crate::utils::db_json::parse_db_json::<VariationTitles>(product.variation_titles, "variation_titles", &product.id)
+            .map(|titles| titles.titulos)
+            .unwrap_or_default();
     let variations: Vec<product::ProductVariation> = vars.iter()
         .map(|pv| product::ProductVariation::from(pv, prices.get(&pv.id), &currency))
         .collect();

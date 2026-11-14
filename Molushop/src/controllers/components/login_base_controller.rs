@@ -107,7 +107,15 @@ async fn create_user(i18n: I18n, form:web::Json<FormRegister>,pool_data:web::Dat
     //hacer verificaciones
     // 1. Estructura de correo correcta?
     // Validar los datos
-    let is_validated = form_register_validation(&form_register,&pool).await.unwrap();
+    // Consulta la BD (email y usuario libres): si falla, aviso de error y no un panic
+    let is_validated = match form_register_validation(&form_register, &pool).await {
+        Ok(result) => result,
+        Err(e) => {
+            tracing::error!(error = %e, "could not validate the registration form");
+            let modal_render = MessageModal::translated(&i18n, "auth-error").render().unwrap();
+            return HttpResponse::InternalServerError().body(modal_render)
+        }
+    };
     //Si esta todo correcto, crear el usuario
 
     if !is_validated.is_valid {

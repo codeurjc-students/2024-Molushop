@@ -74,10 +74,8 @@ impl ProductVariation{
     /// `currency` es la que se ha pedido: la de `otro_p` o, si falta el
     /// precio, la que se le pintará al lado de "No disponible".
     pub fn from(otro_pv:&db::ProductVariation,otro_p:Option<&db::Price>,currency:&str)->Self{
-        let vars: Vec<Variation> = match &otro_pv.attributes {
-            Some(vars_xtra) => serde_json::from_value(vars_xtra.clone()).unwrap(),
-            None => Vec::new()
-        };
+        let vars: Vec<Variation> =
+            crate::utils::db_json::parse_db_json(otro_pv.attributes.clone(), "attributes", &otro_pv.id).unwrap_or_default();
         
         ProductVariation{
             id: otro_pv.id,

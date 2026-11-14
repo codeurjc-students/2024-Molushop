@@ -18,10 +18,8 @@ pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,
         .iter()
         .map(|var| {
             //tengo que obtener el json
-            let vars:Vec<Attribute> = match &var.attributes{
-                Some(vars_xtra) => serde_json::from_value(vars_xtra.clone()).unwrap(),
-                None=>Vec::new()
-            };
+            let vars: Vec<Attribute> =
+                crate::utils::db_json::parse_db_json(var.attributes.clone(), "attributes", &var.id).unwrap_or_default();
             Variation{
             id: var.id.clone(),
             attributes: vars,
@@ -41,13 +39,8 @@ pub async fn get_product(product_id:&Uuid, pool:&DbPool) -> Result<ProductEdit2,
     };
     //si es null que devuelva un vector vacio
 
-    let images = match product2.images_product{
-        Some(imgs) =>{
-            let final_images:Vec<ImageCategories2> = serde_json::from_value(imgs).unwrap();
-            final_images    
-        },
-        None =>  Vec::new()
-    };
+    let images: Vec<ImageCategories2> =
+        crate::utils::db_json::parse_db_json(product2.images_product, "images_product", product_id).unwrap_or_default();
 
     let specs = crate::services::product_specs_service::get_specs(product_id, pool).await?;
 

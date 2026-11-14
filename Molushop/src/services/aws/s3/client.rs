@@ -1,6 +1,6 @@
 // backend/src/uploads/client.rs
-use tokio::io::AsyncReadExt as _;
-use super::upload::UploadedFile;
+use std::path::Path;
+use super::upload::{UploadError, UploadedFile};
 use chrono::prelude::*;
 
 use aws_sdk_s3::types::{Delete, ObjectIdentifier};
@@ -43,38 +43,31 @@ impl Client {
         &self,
         file: &actix_multipart::form::tempfile::TempFile,
         key_prefix: &str,
-    ) -> UploadedFile {
-        let filename = file.file_name.as_deref().expect("TODO");
+    ) -> Result<UploadedFile, UploadError> {
+        let filename = file
+            .file_name
+            .as_deref()
+            .filter(|name| !name.trim().is_empty())
+            .ok_or(UploadError::MissingFileName)?;
 
         //obtener la extension del archivo
         let file_type = self.check_extension(filename);
 
         //si el filename tiene espacios, cambiar los espacios por +
-        
+
         //hacer un timestamp para el nombre del archivo
         let timestamp = Utc::now().timestamp();
 
         let key = format!("{key_prefix}{timestamp}{filename}");
         let s3_url = self
-            .put_object_from_file(file.file.path().to_str().unwrap(), &key, &file_type)
-            .await;
-        UploadedFile::new(filename, key, s3_url)
+            .put_object_from_file(file.file.path(), &key, &file_type)
+            .await?;
+        Ok(UploadedFile::new(filename, key, s3_url))
     }
 
     /// Real upload of file to S3
-    async fn put_object_from_file(&self, local_path: &str, key: &str, file_type:&str) -> String {
-        let mut file = tokio::fs::File::open(local_path).await.unwrap();
-
-        let size_estimate = file
-            .metadata()
-            .await
-            .map(|md| md.len())
-            .unwrap_or(1024)
-            .try_into()
-            .expect("file too big");
-
-        let mut contents = Vec::with_capacity(size_estimate);
-        file.read_to_end(&mut contents).await.unwrap();
+    async fn put_object_from_file(&self, local_path: &Path, key: &str, file_type: &str) -> Result<String, UploadError> {
+        let contents = tokio::fs::read(local_path).await.map_err(UploadError::Read)?;
 
         let mut put_object_request = self
             .s3
@@ -87,12 +80,14 @@ impl Client {
             put_object_request = put_object_request.content_type(file_type);
         }
 
-        let _res = put_object_request
+        // Con DisplayErrorContext: el Display del error a secas solo diría
+        // "service error", sin el motivo (credenciales, permisos, bucket...).
+        put_object_request
             .send()
             .await
-            .expect("Failed to put object");
+            .map_err(|e| UploadError::S3(format!("{}", aws_sdk_s3::error::DisplayErrorContext(e))))?;
 
-        self.url(key)
+        Ok(self.url(key))
     }
 
     /// Attempts to delete object from S3. Returns true if successful.
@@ -155,7 +150,7 @@ impl Client {
                     Some(keys) => {
                         let keys = keys
                             .into_iter()
-                            .map(|object| object.key.expect("No key"))
+                            .filter_map(|object| object.key)
                             .collect();
                         Ok(keys)
                     },
@@ -174,7 +169,7 @@ impl Client {
     }
 
     fn check_extension(&self, filename: &str) -> String {
-        let extension = filename.split('.').last().unwrap();
+        let extension = filename.rsplit('.').next().unwrap_or_default();
         let file_type;
         if extension == "jpg" || extension == "jpeg" {
             file_type = "image/jpeg";

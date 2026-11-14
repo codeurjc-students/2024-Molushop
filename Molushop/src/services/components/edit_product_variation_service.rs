@@ -22,13 +22,8 @@ pub async fn start(product_var_id:&Uuid, pool:&DbPool) -> Result<ProductVariatio
 
     //obtener el vector  de Atributos:
     
-    let attributes:Vec<Attribute> = match product_var.attributes{
-        Some(att) =>{
-            let aaa:Vec<Attribute> =serde_json::from_value(att).unwrap();
-            aaa
-        },
-        None => vec![]
-    };
+    let attributes: Vec<Attribute> =
+        crate::utils::db_json::parse_db_json(product_var.attributes, "attributes", product_var_id).unwrap_or_default();
     //obtener el nomrbe a partir de los valores del 
     let name = concatenate_attribute_values(&attributes);
 

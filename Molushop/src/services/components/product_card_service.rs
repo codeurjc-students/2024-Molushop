@@ -42,13 +42,8 @@ pub async fn get_product_card_object(id:&Uuid,pool:&DbPool)->ProductCardData{
         BigDecimal::from(0)
     };
     //obtener las imagenes
-    let images = match product.images{
-        Some(imgs) =>{
-            let final_images:Images = serde_json::from_value(imgs).unwrap();
-            final_images    
-        },
-        None => Images{images: Vec::new()}
-    };
+    let images: Images = crate::utils::db_json::parse_db_json(product.images, "images", id)
+        .unwrap_or(Images { images: Vec::new() });
     let img_url = if !images.images.is_empty(){
         images.images[0].url.clone()
     }else{

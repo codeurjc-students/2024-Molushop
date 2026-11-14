@@ -1,6 +1,6 @@
 use askama::Template;
 use crate::models::db::ProductForPageRow;
-use serde_json::{Value, from_value};
+use serde_json::Value;
 use crate::controllers::components::cart_add_controller::ROUTES as CART_ROUTES;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
@@ -263,14 +263,8 @@ impl From<ProductForPageRow> for ProductDetailPrincipalData {
 /// el valor por defecto, como antes, pero ahora queda en el log: con el `.ok()`
 /// a secas, una variación sin precio dejaba la ficha sin variaciones y nadie se
 /// enteraba de por qué.
-fn parse_json<T: serde::de::DeserializeOwned>(value: Option<Value>, field: &str, product_id: &Uuid) -> Option<T> {
-    match from_value::<T>(value?) {
-        Ok(parsed) => Some(parsed),
-        Err(e) => {
-            tracing::warn!(%product_id, field, error = %e, "could not parse a product page field");
-            None
-        }
-    }
+fn parse_json<T: serde::de::DeserializeOwned>(value: Option<Value>, field: &'static str, product_id: &Uuid) -> Option<T> {
+    crate::utils::db_json::parse_db_json(value, field, product_id)
 }
 
 #[cfg(test)]

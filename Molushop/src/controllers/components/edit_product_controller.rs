@@ -27,6 +27,7 @@ type DbPool = Pool<AsyncPgConnection>;
 
 use std::sync::Arc;
 use crate::services::aws::s3::client::Client;
+use crate::services::aws::s3::upload::UploadError;
 use actix_multipart::form::{
         tempfile::TempFile,
         MultipartForm
@@ -358,7 +359,27 @@ let client_data_x = client_data.get_ref().as_ref();
     let mut vec_images2:Vec<NewProductImage> = Vec::new();
 
     for f in form.files {
-        let uploaded_file = client_data_x.upload(&f,"").await;
+        let uploaded_file = match client_data_x.upload(&f, "").await {
+            Ok(uploaded) => uploaded,
+            Err(e) => {
+                // Todo o nada: las que ya se subieron en esta petición no llegan a la
+                // BD, así que se borran de S3 para no dejarlas huérfanas.
+                for done in &vec_images2 {
+                    if let Some(key) = client_data_x.key_from_url(&done.image_url) {
+                        if !client_data_x.delete_file(&key).await {
+                            tracing::warn!(%key, "could not delete an orphaned image from S3 after a failed upload");
+                        }
+                    }
+                }
+                return match e {
+                    UploadError::MissingFileName => error_modal(Status::BAD_REQUEST, "Falta el nombre de algún fichero: no se ha subido ninguna imagen"),
+                    other => {
+                        tracing::error!(%product_id, error = %other, "could not upload an image to S3");
+                        error_modal(Status::INTERNAL_SERVER_ERROR, "No se han podido subir las imágenes: inténtalo de nuevo")
+                    }
+                };
+            }
+        };
         vec_images2.push(NewProductImage{
             id: Uuid::new_v4(),
             product_id: product_id.clone(),
