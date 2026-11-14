@@ -146,10 +146,14 @@
                 <div class="image-upload-section">
                     <h3>Imágenes del producto</h3>
                     <div class="dropzone">
-                        <input type="file" name="file" multiple accept="image/*">
+                        {# Los límites salen de utils/upload_limits.rs (UPLOAD_MAX_IMAGE_MB);
+                           images.js los lee de aquí y el servidor los vuelve a comprobar. #}
+                        <input type="file" name="file" multiple accept="image/jpeg,image/png,image/webp"
+                            data-max-mb="{{product.max_image_mb()}}" data-max-files="{{product.max_images_per_upload()}}">
                         <div class="dropzone-content">
                             <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-upload" /></svg>
                             <p>Arrastra aquí las imágenes o pulsa para subirlas</p>
+                            <p class="dropzone-hint">JPG, PNG o WebP · hasta {{product.max_image_mb()}} MB cada una · {{product.max_images_per_upload()}} como mucho a la vez</p>
                         </div>
                     </div>
                     <div class="image-gallery new-images">

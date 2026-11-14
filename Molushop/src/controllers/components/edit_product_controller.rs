@@ -340,6 +340,30 @@ struct UploadForm {
     files: Vec<TempFile>,
 }
 
+/// Cuántas, cuánto pesa cada una y si es JPG, PNG o WebP (por su contenido).
+/// Devuelve el `Content-Type` de cada fichero, en el mismo orden, o el texto
+/// del aviso con el primer problema.
+fn check_upload(files: &[TempFile]) -> Result<Vec<&'static str>, String> {
+    use crate::utils::upload_limits::{image_type_of_file, max_image_bytes, max_image_mb, MAX_IMAGES_PER_UPLOAD};
+    if files.is_empty() {
+        return Err("No has elegido ninguna imagen".to_string());
+    }
+    if files.len() > MAX_IMAGES_PER_UPLOAD {
+        return Err(format!("Como mucho {} imágenes a la vez: no se ha subido ninguna", MAX_IMAGES_PER_UPLOAD));
+    }
+    files
+        .iter()
+        .map(|f| {
+            let name = f.file_name.as_deref().unwrap_or("sin nombre");
+            if f.size > max_image_bytes() {
+                return Err(format!("\"{}\" pesa más de {} MB: no se ha subido ninguna imagen", name, max_image_mb()));
+            }
+            image_type_of_file(f.file.path())
+                .ok_or_else(|| format!("\"{}\" no es una imagen JPG, PNG o WebP: no se ha subido ninguna", name))
+        })
+        .collect()
+}
+
 #[derive(Debug)]
 pub struct ImageData2{
     pub url: String,
@@ -356,10 +380,18 @@ async fn edit_images(path: web::Path<Uuid>,panel_user: web::ReqData<PanelUser>,c
         return resp;
     }
 let client_data_x = client_data.get_ref().as_ref();
+
+    // Todo se comprueba antes de subir nada: una imagen mala para la subida entera.
+    // El navegador ya filtra lo mismo (images.js); esto es para lo que llegue sin él.
+    let content_types = match check_upload(&form.files) {
+        Ok(types) => types,
+        Err(text) => return error_modal(Status::BAD_REQUEST, &text),
+    };
+
     let mut vec_images2:Vec<NewProductImage> = Vec::new();
 
-    for f in form.files {
-        let uploaded_file = match client_data_x.upload(&f, "").await {
+    for (f, content_type) in form.files.iter().zip(content_types) {
+        let uploaded_file = match client_data_x.upload(f, "", content_type).await {
             Ok(uploaded) => uploaded,
             Err(e) => {
                 // Todo o nada: las que ya se subieron en esta petición no llegan a la

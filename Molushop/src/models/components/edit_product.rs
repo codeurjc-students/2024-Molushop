@@ -74,6 +74,16 @@ impl Routes {
 }
 
 impl ProductEdit2 {
+    /// Límites de la subida (utils::upload_limits), para el texto de la pestaña
+    /// Imágenes y para que images.js filtre antes de enviar.
+    pub fn max_image_mb(&self) -> usize {
+        crate::utils::upload_limits::max_image_mb()
+    }
+
+    pub fn max_images_per_upload(&self) -> usize {
+        crate::utils::upload_limits::MAX_IMAGES_PER_UPLOAD
+    }
+
     /// La imagen de la cabecera, como en la tarjeta del listado: la marcada
     /// como principal y, si no hay, la primera.
     pub fn main_image(&self) -> Option<&str> {

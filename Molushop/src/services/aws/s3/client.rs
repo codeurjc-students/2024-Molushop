@@ -43,15 +43,13 @@ impl Client {
         &self,
         file: &actix_multipart::form::tempfile::TempFile,
         key_prefix: &str,
+        content_type: &str,
     ) -> Result<UploadedFile, UploadError> {
         let filename = file
             .file_name
             .as_deref()
             .filter(|name| !name.trim().is_empty())
             .ok_or(UploadError::MissingFileName)?;
-
-        //obtener la extension del archivo
-        let file_type = self.check_extension(filename);
 
         //si el filename tiene espacios, cambiar los espacios por +
 
@@ -60,25 +58,23 @@ impl Client {
 
         let key = format!("{key_prefix}{timestamp}{filename}");
         let s3_url = self
-            .put_object_from_file(file.file.path(), &key, &file_type)
+            .put_object_from_file(file.file.path(), &key, content_type)
             .await?;
         Ok(UploadedFile::new(filename, key, s3_url))
     }
 
-    /// Real upload of file to S3
-    async fn put_object_from_file(&self, local_path: &Path, key: &str, file_type: &str) -> Result<String, UploadError> {
+    /// Real upload of file to S3. `content_type` lo decide quien llama a partir
+    /// del contenido del fichero (utils::upload_limits::image_type_of_file).
+    async fn put_object_from_file(&self, local_path: &Path, key: &str, content_type: &str) -> Result<String, UploadError> {
         let contents = tokio::fs::read(local_path).await.map_err(UploadError::Read)?;
 
-        let mut put_object_request = self
+        let put_object_request = self
             .s3
             .put_object()
             .bucket(&self.bucket_name)
             .key(key)
+            .content_type(content_type)
             .body(aws_sdk_s3::primitives::ByteStream::from(contents));
-
-        if file_type != "other" {
-            put_object_request = put_object_request.content_type(file_type);
-        }
 
         // Con DisplayErrorContext: el Display del error a secas solo diría
         // "service error", sin el motivo (credenciales, permisos, bucket...).
@@ -165,20 +161,7 @@ impl Client {
                 Err(Box::new(e))
             }
         }
-        
-    }
 
-    fn check_extension(&self, filename: &str) -> String {
-        let extension = filename.rsplit('.').next().unwrap_or_default();
-        let file_type;
-        if extension == "jpg" || extension == "jpeg" {
-            file_type = "image/jpeg";
-        } else if extension == "png" {
-            file_type = "image/png";
-        }else{
-            file_type = "other";
-        }
-        file_type.to_string()
     }
 }
 

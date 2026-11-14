@@ -80,32 +80,55 @@ const imageManager = {
         this.handleFiles({ target: { files: dataTransfer.files } });
     },
 
+    // Filtra lo que el servidor rechazaría (utils/upload_limits.rs): formato,
+    // tamaño por imagen y cuántas a la vez. Los límites vienen del input
+    // (data-max-mb, data-max-files), que los saca del servidor.
     handleFiles(e) {
         let files = [...e.target.files];
-        
+        let maxMb = Number(this.fileInput.dataset.maxMb) || 5;
+        let maxFiles = Number(this.fileInput.dataset.maxFiles) || 10;
+        let validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+
         this.imageGallery.innerHTML = '';
-        
-        let rejected = [];
+
+        let wrongType = [];
+        let tooBig = [];
         let validFiles = files.filter(file => {
-            let validTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (!validTypes.includes(file.type)) {
-                rejected.push(file.name);
+                wrongType.push(file.name);
+                return false;
+            }
+            if (file.size > maxMb * 1024 * 1024) {
+                tooBig.push(file.name);
                 return false;
             }
             return true;
         });
+        let tooMany = validFiles.length > maxFiles ? validFiles.splice(maxFiles).map(f => f.name) : [];
+
+        // Lo que se envía es el input: se deja solo con las válidas, para que el
+        // servidor no rechace la subida entera por una imagen mala.
+        if (validFiles.length !== files.length) {
+            let dataTransfer = new DataTransfer();
+            validFiles.forEach(file => dataTransfer.items.add(file));
+            this.fileInput.files = dataTransfer.files;
+        }
 
         if (validFiles.length === 0) {
             this.imageGallery.innerHTML = '<p class="no-images">No hay imágenes</p>';
         }
-        // Aviso en la propia galería. El nombre va como texto: viene del
-        // fichero del usuario y no se mete como HTML.
-        if (rejected.length > 0) {
+        // Avisos en la propia galería. Los nombres van como texto: vienen de los
+        // ficheros del usuario y no se meten como HTML.
+        let notes = [];
+        if (wrongType.length > 0) notes.push(`No son JPG, PNG o WebP y no se subirán: ${wrongType.join(', ')}`);
+        if (tooBig.length > 0) notes.push(`Pesan más de ${maxMb} MB y no se subirán: ${tooBig.join(', ')}`);
+        if (tooMany.length > 0) notes.push(`Como mucho ${maxFiles} a la vez; no se subirán: ${tooMany.join(', ')}`);
+        notes.reverse().forEach(text => {
             let note = document.createElement('p');
             note.className = 'm-error';
-            note.textContent = `No son imágenes JPG, PNG o GIF y no se subirán: ${rejected.join(', ')}`;
+            note.textContent = text;
             this.imageGallery.prepend(note);
-        }
+        });
         if (validFiles.length === 0) {
             return;
         }
