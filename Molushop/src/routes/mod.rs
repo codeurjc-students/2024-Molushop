@@ -33,7 +33,20 @@ pub fn config_routes(cfg: &mut web::ServiceConfig) {
     ui_catalog::config(cfg);
     sandbox::config(cfg);
     panel::config(cfg);
+
+    cfg.route("/favicon.ico", web::get().to(favicon));
 }
+
+/// Las páginas ya enlazan su icono (`layouts/layout1.html`), pero bots, buscadores
+/// y algunos clientes piden `/favicon.ico` sin leer el HTML, y daba 404. Se manda
+/// al mismo SVG; 301 porque no va a cambiar (el cliente lo recuerda y no repite).
+async fn favicon() -> actix_web::HttpResponse {
+    actix_web::HttpResponse::MovedPermanently()
+        .insert_header((actix_web::http::header::LOCATION, FAVICON_URL))
+        .finish()
+}
+
+const FAVICON_URL: &str = "/assets/logos/molushop-m.svg";
 
 /// Las páginas de la tienda: las que existen en cada idioma.
 fn shop_routes(cfg: &mut web::ServiceConfig) {
