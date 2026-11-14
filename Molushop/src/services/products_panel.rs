@@ -7,12 +7,10 @@ use diesel::result::Error;
 use diesel_async::pooled_connection::deadpool::Pool;
 use diesel_async::pg::AsyncPgConnection;
 use crate::models::data_transfer_objects::product::Product;
-use crate::models::db::{ProductVariation,Category,Price,Products};
+use crate::models::db::{ProductVariation,Price,Products};
 use crate::models::data_transfer_objects::product;
 use uuid::Uuid;
 use crate::services::product_service;
-use crate::services::variation_service::{get_product_variations, get_variations_with_prices};
-use crate::services::product_service::get_product_categories;
 type DbPool = Pool<AsyncPgConnection>;
 
 use diesel::sql_query;
@@ -65,51 +63,106 @@ pub async fn delete_product(product_id: &Uuid, store_ids: Option<&[Uuid]>, pool:
 
 /// Productos de una tienda para su listado del panel. Quien llama ya ha
 /// comprobado que el usuario puede entrar en esa tienda.
+///
+/// Todo por lotes: los productos, sus imágenes y `load_panel_extras` son 5
+/// consultas para todo el listado (antes, 3 más por producto).
 pub async fn get_products(store_id:&Uuid,pool: &DbPool) -> Result<Vec<Product>,Error>{
-
     let products = get_panel_products(Some(std::slice::from_ref(store_id)), pool).await?;
     let product_ids: Vec<Uuid> = products.iter().map(|(p, _)| p.id).collect();
     let mut images = get_main_images(&product_ids, pool).await?;
-    let mut products_final:Vec<Product> = Vec::new();
+    let mut extras = load_panel_extras(&product_ids, PANEL_CURRENCY, pool).await?;
 
-    for (product, _store_name) in products{
-        let image_url = images.remove(&product.id);
-        products_final.push(to_panel_product(product, store_id, image_url, pool).await?);
-    }
-
-    Ok(products_final)
+    Ok(products
+        .into_iter()
+        .map(|(product, _store_name)| {
+            let image_url = images.remove(&product.id);
+            to_panel_product(product, store_id, image_url, &mut extras)
+        })
+        .collect())
 }
 
 /// Un producto para su página de edición, con las mismas variaciones que el
 /// listado. Quien llama ya ha comprobado que es de la tienda (`product_in_store`).
 pub async fn get_product(store_id:&Uuid, product_id:&Uuid, pool: &DbPool) -> Result<Product,Error>{
     let product = product_service::get_product(product_id, pool).await?;
-    let image_url = get_main_images(std::slice::from_ref(product_id), pool).await?.remove(product_id);
-    to_panel_product(product, store_id, image_url, pool).await
+    let ids = std::slice::from_ref(product_id);
+    let image_url = get_main_images(ids, pool).await?.remove(product_id);
+    let mut extras = load_panel_extras(ids, PANEL_CURRENCY, pool).await?;
+    Ok(to_panel_product(product, store_id, image_url, &mut extras))
+}
+
+/// El panel enseña los precios en euros.
+const PANEL_CURRENCY: &str = "EUR";
+
+/// Categorías, variaciones y precios de varios productos, ya repartidos.
+#[derive(Default)]
+struct PanelExtras {
+    /// Nombres de las categorías, por producto.
+    categories: HashMap<Uuid, Vec<String>>,
+    /// Todas las variaciones, por producto.
+    variations: HashMap<Uuid, Vec<ProductVariation>>,
+    /// El precio en `PANEL_CURRENCY`, por variación.
+    prices: HashMap<Uuid, Price>,
+}
+
+/// Una consulta por tabla para todos los productos (`= ANY`), con una sola
+/// conexión del pool.
+async fn load_panel_extras(product_ids: &[Uuid], currency: &str, pool: &DbPool) -> Result<PanelExtras, Error> {
+    use crate::schema::{category, category_product, prices, product_variations as pv};
+    if product_ids.is_empty() {
+        return Ok(PanelExtras::default());
+    }
+    let connection = &mut get_connection(pool).await?;
+
+    let category_rows: Vec<(Uuid, String)> = category::table
+        .inner_join(category_product::table.on(category::id.eq(category_product::category_id)))
+        .filter(category_product::product_id.eq_any(product_ids))
+        .select((category_product::product_id, category::name))
+        .load(connection)
+        .await?;
+
+    let variation_rows: Vec<ProductVariation> = pv::table
+        .filter(pv::product_id.eq_any(product_ids))
+        .load(connection)
+        .await?;
+
+    let variation_ids: Vec<Uuid> = variation_rows.iter().map(|v| v.id).collect();
+    let price_rows: Vec<Price> = prices::table
+        .filter(prices::variation_id.eq_any(&variation_ids))
+        .filter(prices::currency.eq(currency))
+        .load(connection)
+        .await?;
+
+    let mut extras = PanelExtras::default();
+    for (product_id, name) in category_rows {
+        extras.categories.entry(product_id).or_default().push(name);
+    }
+    for variation in variation_rows {
+        extras.variations.entry(variation.product_id).or_default().push(variation);
+    }
+    for price in price_rows {
+        extras.prices.insert(price.variation_id, price);
+    }
+    Ok(extras)
 }
 
 /// Un producto con todas sus variaciones, también las que no tienen precio en
 /// EUR (salen "No disponible"; antes el `inner_join` con `prices` las
 /// escondía y no había forma de arreglarlas desde el panel).
-async fn to_panel_product(product: Products, store_id:&Uuid, image_url: Option<String>, pool: &DbPool) -> Result<Product,Error>{
-    let currency = "EUR".to_string();
-    let categories: Vec<Category> = get_product_categories(&product.id, &pool).await?;
-    let categories_names:Vec<String> = categories.iter().map(|c| c.name.clone()).collect();
-    let vars: Vec<ProductVariation> = get_product_variations(&product.id, &pool).await?;
-    let prices: HashMap<Uuid, Price> = get_variations_with_prices(&product.id, &currency, &pool).await?
-        .into_iter()
-        .map(|(pv, p)| (pv.id, p))
-        .collect();
+fn to_panel_product(product: Products, store_id:&Uuid, image_url: Option<String>, extras: &mut PanelExtras) -> Product{
+    let currency = PANEL_CURRENCY.to_string();
+    let categories_names: Vec<String> = extras.categories.remove(&product.id).unwrap_or_default();
+    let vars: Vec<ProductVariation> = extras.variations.remove(&product.id).unwrap_or_default();
 
     let variation_titles: Vec<String> =
         crate::utils::db_json::parse_db_json::<VariationTitles>(product.variation_titles, "variation_titles", &product.id)
             .map(|titles| titles.titulos)
             .unwrap_or_default();
     let variations: Vec<product::ProductVariation> = vars.iter()
-        .map(|pv| product::ProductVariation::from(pv, prices.get(&pv.id), &currency))
+        .map(|pv| product::ProductVariation::from(pv, extras.prices.get(&pv.id), &currency))
         .collect();
 
-    Ok(Product{
+    Product{
         variations: variations,
         name: product.name,
         status: product.status,
@@ -120,7 +173,7 @@ async fn to_panel_product(product: Products, store_id:&Uuid, image_url: Option<S
         store_name: None,
         store_id: *store_id,
         image_url,
-    })
+    }
 }
 
 #[derive(diesel::QueryableByName)]

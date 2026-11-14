@@ -10,7 +10,7 @@ use serde_json::Value;
 use uuid::Uuid;
 
 use crate::models::components::edit_product_variation_model::Identifier;
-use crate::models::db::{IdentifierVariation, NewIdentifierVariation, NewProductVariation, Price, ProductVariation};
+use crate::models::db::{IdentifierVariation, NewIdentifierVariation, NewProductVariation, ProductVariation};
 use crate::models::product_variation::VariationValue;
 use crate::utils::db::get_connection;
 
@@ -56,20 +56,6 @@ pub async fn get_product_variation(variation_id: &Uuid, pool: &DbPool) -> Result
     use crate::schema::product_variations as pv;
     let connection = &mut get_connection(pool).await?;
     pv::table.find(variation_id).first::<ProductVariation>(connection).await
-}
-
-/// Las variaciones del producto con su precio en esa moneda (las que no
-/// tienen precio no salen).
-pub async fn get_variations_with_prices(product_id: &Uuid, currency: &str, pool: &DbPool) -> Result<Vec<(ProductVariation, Price)>, Error> {
-    use crate::schema::product_variations as pv;
-    use crate::schema::prices as p;
-    let connection = &mut get_connection(pool).await?;
-    pv::table
-        .inner_join(p::table.on(pv::id.eq(p::variation_id)))
-        .filter(p::currency.eq(currency))
-        .filter(pv::product_id.eq(product_id))
-        .load::<(ProductVariation, Price)>(connection)
-        .await
 }
 
 pub async fn get_variation_identifiers(variation_id: &Uuid, pool: &DbPool) -> Result<Vec<IdentifierVariation>, Error> {

@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use crate::controllers::components::edit_product_controller::FormGeneral;
 use crate::models::error::ServiceError;
-use crate::models::db::{Category, NewProduct, ProductCardRow, ProductForPageRow, ProductForm, ProductWithImagesRow, Products};
+use crate::models::db::{NewProduct, ProductCardRow, ProductForPageRow, ProductForm, ProductWithImagesRow, Products};
 use crate::services::create_product_variations::create_product_variations;
 use crate::services::product_specs_service::clean_specs;
 use crate::utils::db::get_connection;
@@ -97,17 +97,6 @@ pub async fn get_product(product_id: &Uuid, pool: &DbPool) -> Result<Products, E
     use crate::schema::products;
     let connection = &mut get_connection(pool).await?;
     products::table.find(product_id).first::<Products>(connection).await
-}
-
-pub async fn get_product_categories(product_id: &Uuid, pool: &DbPool) -> Result<Vec<Category>, Error> {
-    use crate::schema::{category, category_product};
-    let connection = &mut get_connection(pool).await?;
-    category::table
-        .inner_join(category_product::table.on(category::id.eq(category_product::category_id)))
-        .filter(category_product::product_id.eq(product_id))
-        .select(Category::as_select())
-        .load::<Category>(connection)
-        .await
 }
 
 pub async fn update_product_general(product_id: &Uuid, form: FormGeneral, pool: &DbPool) -> Result<usize, Error> {
