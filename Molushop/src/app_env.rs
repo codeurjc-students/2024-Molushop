@@ -3,16 +3,17 @@
 //! La misma imagen compilada en release sirve para `pre` y `prod`; solo
 //! cambian las variables. Lo que decide cada entorno:
 //!
-//! | `APP_ENV` | Buzón `MAIL_PROVIDER=log` | `PUBLIC_BASE_URL` | Logs por defecto   |
-//! |-----------|---------------------------|-------------------|--------------------|
-//! | `dev`     | sí                        | no hace falta     | texto, app `debug` |
-//! | `pre`     | sí                        | obligatoria       | JSON, app `info`   |
-//! | `prod`    | no                        | obligatoria       | JSON, app `info`   |
+//! | `APP_ENV` | Buzón `MAIL_PROVIDER=log` | `PUBLIC_BASE_URL` | Nivel de log por defecto |
+//! |-----------|---------------------------|-------------------|--------------------------|
+//! | `dev`     | sí                        | no hace falta     | app `debug`              |
+//! | `pre`     | sí                        | obligatoria       | app `info`               |
+//! | `prod`    | no                        | obligatoria       | app `info`               |
 //!
 //! - Sin `APP_ENV`: `prod` en release y `dev` en una compilación de desarrollo.
 //!   Olvidarla deja el modo más estricto, nunca el más permisivo.
 //! - Una compilación release no acepta `dev`: no arranca.
-//! - `RUST_LOG` y `LOG_FORMAT`, si están puestas, ganan a lo de la tabla.
+//! - `RUST_LOG`, si está puesta, gana a lo de la tabla. El formato de los logs
+//!   (texto, o JSON con `LOG_FORMAT=json`) no depende del entorno.
 //! - `/ui` y `/sandbox` NO dependen de esto sino de la compilación
 //!   (`cfg!(debug_assertions)`): en una imagen release ese código no existe, y
 //!   una variable mal puesta no puede publicarlo.
@@ -48,11 +49,6 @@ impl AppEnv {
 
     /// Fuera de desarrollo los enlaces de los emails tienen que llevar el dominio.
     pub fn requires_public_base_url(self) -> bool {
-        self != AppEnv::Dev
-    }
-
-    /// Logs en JSON si no se dice otra cosa con `LOG_FORMAT`.
-    pub fn json_logs_by_default(self) -> bool {
         self != AppEnv::Dev
     }
 

@@ -4,8 +4,9 @@
 //!   `warn,Molushop=debug`). Sin ella: `debug` de la app con `APP_ENV=dev` e
 //!   `info` en `pre` y `prod`; de las dependencias, solo `warn` y el arranque
 //!   del servidor.
-//! - `LOG_FORMAT=json` saca una línea JSON por evento y cualquier otro valor,
-//!   texto legible. Sin ella: texto en `dev`, JSON en `pre` y `prod`.
+//! - Texto legible por defecto, en todos los entornos. `LOG_FORMAT=json` saca
+//!   una línea JSON por evento: solo hace falta si un programa lee los logs
+//!   (Datadog, Loki...). En el visor de Render se leen mejor en texto.
 //!
 //! Los `log::` de las dependencias (actix) también pasan por aquí.
 //!
@@ -41,10 +42,7 @@ pub fn init(app_env: AppEnv) -> WorkerGuard {
         // Colores solo en una terminal: en un fichero saldrían los códigos ANSI.
         .with_ansi(std::io::stdout().is_terminal());
 
-    let json = match env::var("LOG_FORMAT") {
-        Ok(format) => format.eq_ignore_ascii_case("json"),
-        Err(_) => app_env.json_logs_by_default(),
-    };
+    let json = env::var("LOG_FORMAT").is_ok_and(|format| format.trim().eq_ignore_ascii_case("json"));
     if json {
         builder.json().init();
     } else {
