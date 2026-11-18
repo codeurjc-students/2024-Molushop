@@ -40,15 +40,6 @@ pub async fn get_user_by_username(username: &str, pool: &DbPool) -> Result<UserA
         .await
 }
 
-pub async fn get_user_by_id(user_id: &Uuid, pool: &DbPool) -> Result<UserAuth, Error> {
-    let connection = &mut get_connection(pool).await?;
-    base_user::table
-        .filter(base_user::id.eq(user_id))
-        .select(user_auth_columns())
-        .first::<UserAuth>(connection)
-        .await
-}
-
 /// Las columnas de `UserAuth`, en su orden.
 fn user_auth_columns() -> (base_user::id, base_user::username, base_user::name, base_user::lastname, base_user::email, base_user::password) {
     (base_user::id, base_user::username, base_user::name, base_user::lastname, base_user::email, base_user::password)

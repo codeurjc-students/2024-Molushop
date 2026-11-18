@@ -14,7 +14,6 @@ use crate::services::components::checkout_get_service::get_checkout_object;
 use crate::models::components::checkout_v1::CheckoutData;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::user_service::get_user_by_id;
 
 /// `?lines=id1,id2`: qué líneas de la cesta se están comprando. Sin él se
 /// compra el carrito entero.
@@ -62,20 +61,12 @@ pub async fn render_checkout_page(
     checkout: CheckoutData,
     pool: &DbPool
 ) -> String {
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-
-    if let Some(user_id) = user_id {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
+    let (user_logged, nav1) = shop_nav(user_id, pool).await;
 
     CheckoutPage{
         user_logged,
         page_name:i18n.t("checkout-page-title"),
-        nav1:get_nav1_object(user_name, user_id, pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         checkout

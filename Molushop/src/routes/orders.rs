@@ -13,7 +13,6 @@ use crate::services::components::nav1_service::*;
 use crate::services::components::order_get_service::{get_order_object, get_orders_list_object};
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::user_service::get_user_by_id;
 use serde::Deserialize;
 
 /// Query de la ficha. `nuevo=1` lo pone la redirección del checkout al confirmar.
@@ -51,20 +50,12 @@ async fn get_orders(
 
     let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
 
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-
-    if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
+    let (user_logged, nav1) = shop_nav(user_id_opt.as_ref(), pool).await;
 
     let orders_render = OrdersPage{
         user_logged,
         page_name:i18n.t("orders-page-title"),
-        nav1:get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         order_list:get_orders_list_object(user_id_opt.as_ref(), pool).await
@@ -86,15 +77,7 @@ async fn get_order(
 
     let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
 
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-
-    if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
+    let (user_logged, nav1) = shop_nav(user_id_opt.as_ref(), pool).await;
 
     let mut order = get_order_object(user_id_opt.as_ref(), &order_id, pool).await;
     // Solo un pedido encontrado puede ser "nuevo": con ?nuevo=1 en la URL de un pedido
@@ -104,7 +87,7 @@ async fn get_order(
     let order_render = OrderPage{
         user_logged,
         page_name:i18n.t("order-page-title"),
-        nav1:get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         order

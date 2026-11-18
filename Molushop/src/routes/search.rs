@@ -15,10 +15,10 @@ use crate::constants::urls::SEARCH_URL;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::product_card_group_model::{CardFilter, ProductCardGroup};
 use crate::models::pages_models::search_page_model::{CategoryLink, SearchPage};
-use crate::services::components::{login_base_service, nav1_service::get_nav1_object};
+use crate::services::components::{login_base_service};
 use crate::services::components::product_card_group_service::get_product_card_group_page;
 use crate::services::search_service::{ancestors, category_counts, children};
-use crate::services::user_service::get_user_by_id;
+use crate::services::components::nav1_service::shop_nav;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.route(SEARCH_URL, web::get().to(search).wrap(Auth::new()));
@@ -78,15 +78,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
         String::new()
     };
 
-    let mut user_name = String::new();
-    let mut user_logged = false;
-    if let Some(user_id) = user_id.as_ref() {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
-    let mut nav1 = get_nav1_object(user_name, user_id.as_ref(), pool).await;
+    let (user_logged, mut nav1) = shop_nav(user_id.as_ref(), pool).await;
     nav1.search = filter.q.clone().unwrap_or_default();
 
     let render = SearchPage {

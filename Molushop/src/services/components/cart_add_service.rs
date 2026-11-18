@@ -8,7 +8,6 @@ use uuid::Uuid;
 use crate::schema::{carts, cart_products, product_seller, product_variations, prices, products, seller};
 use crate::constants::product_status::PRODUCT_ACTIVE;
 use crate::services::panel_role_service::STORE_ACTIVE;
-use diesel::OptionalExtension;
 use crate::models::db::{Cart, ProductVariation, Price};
 use crate::models::error::ServiceError;
 
@@ -123,6 +122,8 @@ pub async fn add_to_cart(
     Ok("Producto añadido al carrito".to_string())
 }
 
+/// Las unidades del carrito activo del usuario, en una consulta (0 sin carrito
+/// o si falla la BD: es solo el número del menú).
 pub async fn get_cart_item_count(
     user_id: &Uuid,
     pool: &DbPool,
@@ -132,24 +133,16 @@ pub async fn get_cart_item_count(
         Err(_) => return 0,
     };
 
-    let cart: Option<Cart> = carts::table
+    carts::table
+        .inner_join(cart_products::table)
         .filter(carts::user_id.eq(user_id))
         .filter(carts::status.eq(1_i16))
-        .first::<Cart>(&mut conn)
+        .select(diesel::dsl::sum(cart_products::quantity))
+        .first::<Option<i64>>(&mut conn)
         .await
-        .optional()
-        .unwrap_or(None);
-
-    match cart {
-        Some(c) => {
-            cart_products::table
-                .filter(cart_products::cart_id.eq(&c.id))
-                .select(diesel::dsl::sum(cart_products::quantity))
-                .first::<Option<i64>>(&mut conn)
-                .await
-                .unwrap_or(None)
-                .unwrap_or(0)
-        }
-        None => 0,
-    }
+        .unwrap_or_else(|e| {
+            tracing::error!(error = ?e, "could not count the cart units");
+            None
+        })
+        .unwrap_or(0)
 }

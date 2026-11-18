@@ -14,7 +14,6 @@ use crate::services::components::{
 };
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
@@ -29,30 +28,13 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 async fn get_cart(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-    let mut user_id_opt: Option<Uuid> = None;
-
-    if let Some(req_session_data) = opt_session_data{
-        let session_data = req_session_data.into_inner();
-        let user_id = session_data.id;
-        user_id_opt = Some(user_id);
-        match get_user_by_id(&user_id,&pool).await{
-            Ok(user)=>{
-                user_name = user.username;
-                user_logged = true;
-            }
-            Err(e)=>{
-                tracing::error!(error = ?e, "could not load the logged user");
-            }
-        }
-
-    }
+    let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
+    let (user_logged, nav1) = shop_nav(user_id_opt.as_ref(), pool).await;
 
     let cart_render = CartPage{
         user_logged,
         page_name:i18n.t("cart-page-title"),
-        nav1:get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         cart_total:get_cart_total_object(user_id_opt.as_ref(), pool).await

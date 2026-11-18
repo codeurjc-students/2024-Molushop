@@ -11,7 +11,6 @@ use crate::models::pages_models::about_us_page_model::*;
 use crate::services::components::nav1_service::*;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::services::components::login_base_service;
-use crate::services::user_service::get_user_by_id;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
@@ -32,20 +31,12 @@ async fn get_about_us(
 
     let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
 
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-
-    if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
+    let (user_logged, nav1) = shop_nav(user_id_opt.as_ref(), pool).await;
 
     let about_us_render = AboutUsPage{
         user_logged,
         page_name:i18n.t("about-page-title"),
-        nav1:get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n
     }.render().unwrap();

@@ -13,9 +13,9 @@ type DbPool = Pool<AsyncPgConnection>;
 use crate::constants::urls::{FAVORITES_URL, HOME_URL};
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::pages_models::favorites_page_model::FavoritesPage;
-use crate::services::components::{login_base_service, nav1_service::get_nav1_object};
+use crate::services::components::{login_base_service};
 use crate::services::favorites_service::favorite_cards;
-use crate::services::user_service::get_user_by_id;
+use crate::services::components::nav1_service::shop_nav;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     // Sin el wrap, opt_session_data llega None y la lista sale vacía
@@ -31,15 +31,7 @@ async fn get_favorites(
 
     let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
 
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-
-    if let Some(user_id) = user_id_opt.as_ref() {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
+    let (user_logged, nav1) = shop_nav(user_id_opt.as_ref(), pool).await;
 
     let products = match user_id_opt.as_ref() {
         Some(user_id) => match favorite_cards(user_id, pool).await {
@@ -55,7 +47,7 @@ async fn get_favorites(
     let render = FavoritesPage{
         user_logged,
         page_name: i18n.t("favorites-page-title"),
-        nav1: get_nav1_object(user_name, user_id_opt.as_ref(), pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n,
         products,

@@ -20,11 +20,10 @@ use crate::middleware::rate_limit::{limit_password_change, limit_password_forgot
 use crate::models::pages_models::password_forgot_page_model::PasswordForgotPage;
 use crate::models::pages_models::password_reset_page_model::PasswordResetPage;
 use crate::services::components::login_base_service;
-use crate::services::components::nav1_service::get_nav1_object;
 use crate::services::password_reset_service::{
     request_reset, reset_password, token_is_valid, ResetError, RESET_MINUTES, RESET_URL,
 };
-use crate::services::user_service::get_user_by_id;
+use crate::services::components::nav1_service::shop_nav;
 
 pub static FORGOT_URL: &str = "/password/forgot";
 
@@ -94,15 +93,7 @@ async fn nav_parts(
     pool: &DbPool,
 ) -> (bool, crate::models::components::nav1_model::Nav1Data) {
     let user_id: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
-    let mut username = String::new();
-    let mut logged = false;
-    if let Some(id) = user_id.as_ref() {
-        if let Ok(user) = get_user_by_id(id, pool).await {
-            username = user.username;
-            logged = true;
-        }
-    }
-    (logged, get_nav1_object(username, user_id.as_ref(), pool).await)
+    shop_nav(user_id.as_ref(), pool).await
 }
 
 async fn forgot_page(

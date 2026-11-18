@@ -8,8 +8,8 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 
 use crate::models::pages_models::not_found_page_model::NotFoundPage;
-use crate::services::components::{nav1_service::get_nav1_object, login_base_service};
-use crate::services::user_service::get_user_by_id;
+use crate::services::components::login_base_service;
+use crate::services::components::nav1_service::shop_nav;
 use crate::middleware::auth::SessionData;
 
 /// La página 404 de la tienda, con la barra y la sesión del usuario. La usan
@@ -17,20 +17,13 @@ use crate::middleware::auth::SessionData;
 /// no está a la venta, como la ficha de un producto. Los textos son claves de
 /// `locales/*/shop.ftl`.
 pub async fn not_found_page(i18n: I18n, page_name: &str, title: &str, message: &str, user_id: Option<&Uuid>, pool: &DbPool) -> HttpResponse {
-    let mut user_name = "".to_string();
-    let mut user_logged = false;
-    if let Some(user_id) = user_id {
-        if let Ok(user) = get_user_by_id(user_id, pool).await {
-            user_name = user.username;
-            user_logged = true;
-        }
-    }
+    let (user_logged, nav1) = shop_nav(user_id, pool).await;
 
     let (page_name, title, message) = (i18n.t(page_name), i18n.t(title), i18n.t(message));
     let render = NotFoundPage{
         user_logged,
         page_name,
-        nav1: get_nav1_object(user_name, user_id, pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         title,

@@ -20,8 +20,7 @@ use crate::middleware::rate_limit::limit_password_change;
 use crate::models::pages_models::account_page_model::AccountPage;
 use crate::services::account_service::{change_password, other_sessions_count, revoke_other_sessions, AccountError};
 use crate::services::components::login_base_service;
-use crate::services::components::nav1_service::get_nav1_object;
-use crate::services::user_service::get_user_by_id;
+use crate::services::components::nav1_service::shop_nav;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg.service(
@@ -92,14 +91,10 @@ async fn account_page(
     let session = opt_session_data.map(|d| d.into_inner());
     let user_id: Option<Uuid> = session.as_ref().map(|s| s.id);
 
-    let mut username = String::new();
-    let mut user_logged = false;
+    let (user_logged, nav1) = shop_nav(user_id.as_ref(), pool).await;
+    let username = nav1.name.clone();
     let mut other_sessions = 0;
     if let Some(session) = session.as_ref() {
-        if let Ok(user) = get_user_by_id(&session.id, pool).await {
-            username = user.username;
-            user_logged = true;
-        }
         other_sessions = other_sessions_count(&session.id, &session.jti, pool).await.unwrap_or_else(|e| {
             tracing::error!(error = ?e, "could not count the other sessions");
             0
@@ -112,7 +107,7 @@ async fn account_page(
     let page = AccountPage {
         user_logged,
         page_name: i18n.t("account-page-title"),
-        nav1: get_nav1_object(username.clone(), user_id.as_ref(), pool).await,
+        nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n,
         username,
