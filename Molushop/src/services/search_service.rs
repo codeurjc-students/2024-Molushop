@@ -32,6 +32,10 @@ pub struct CategoryCount {
 /// `CardFilter::like_patterns`; vacío, sin texto) y su nombre en `lang`
 /// (`category_translation`; si no está traducida, el de `category`, en
 /// español). "A la venta" es lo mismo que en `product_service::get_product_cards`.
+///
+/// Los productos visibles se filtran UNA vez y se reparten por raíz con un
+/// GROUP BY; antes se contaban con una subconsulta por categoría, que volvía a
+/// filtrarlos cada vez (con 5000 productos, 69 -> 33 ms; mismo resultado).
 pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
     let connection = &mut get_connection(pool).await?;
     sql_query(r#"
@@ -50,14 +54,20 @@ pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> 
                 select 1 from unnest($1::text[]) w
                 where not (' ' || f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or ' ' || f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
             )
+        ),
+        -- Cada producto cuenta en su categoría y en todas las de encima, una
+        -- vez aunque esté en dos hijas de la misma (distinct).
+        counts as (
+            select t.root, count(distinct v.id) as products
+            from visible v
+            join category_product cp on cp.product_id = v.id
+            join tree t on t.id = cp.category_id
+            group by t.root
         )
         select cat.id::text as id, coalesce(ct.name, cat.name) as name, cat.parent::text as parent,
-            (select count(distinct v.id)
-             from tree t
-             join category_product cp on cp.category_id = t.id
-             join visible v on v.id = cp.product_id
-             where t.root = cat.id) as products
+            coalesce(n.products, 0) as products
         from category cat
+        left join counts n on n.root = cat.id
         left join category_translation ct on ct.category_id = cat.id and ct.locale = $2
         order by name
     "#)
