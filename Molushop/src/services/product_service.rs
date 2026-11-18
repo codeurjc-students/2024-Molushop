@@ -12,7 +12,7 @@ use uuid::Uuid;
 
 use crate::controllers::components::edit_product_controller::FormGeneral;
 use crate::models::error::ServiceError;
-use crate::models::db::{NewProduct, ProductCardRow, ProductForPageRow, ProductForm, ProductWithImagesRow, Products};
+use crate::models::db::{NewProduct, ProductCardRow, ProductForPageRow, ProductForm, Products};
 use crate::services::create_product_variations::create_product_variations;
 use crate::services::product_specs_service::clean_specs;
 use crate::utils::db::get_connection;
@@ -193,31 +193,6 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], ran
         .bind::<diesel::sql_types::Nullable<Text>, _>(category)
         .bind::<diesel::sql_types::Nullable<Text>, _>(rank)
         .load::<ProductCardRow>(connection).await?;
-    Ok(results)
-}
-
-/// No filtra por vendedor: quien llame tiene que haber comprobado antes la
-/// propiedad (`panel_role_service::can_edit_product`).
-pub async fn get_product_with_images(product_id: &Uuid, pool:&DbPool)->Result<ProductWithImagesRow,Error>{
-    let connection = &mut get_connection(pool).await?;
-    let results = sql_query(r#"
-        select p.*,
-            json_agg(json_build_object(
-                'id', i.id,
-                'image_url', i.image_url,
-                'is_main', i.is_main,
-                'display_order', i.display_order,
-                -- Las variaciones en las que sale (ninguna: en todas)
-                'variation_ids', COALESCE(
-                    (SELECT json_agg(ipv.variation_id) FROM images_product_variations ipv WHERE ipv.image_id = i.id),
-                    '[]'::json)
-            ) ORDER BY i.is_main IS TRUE DESC, i.display_order) FILTER (WHERE i.id IS NOT NULL) as images_product
-        FROM products p
-        LEFT JOIN images_product i on p.id = i.product_id
-        WHERE p.id = $1
-        GROUP BY p.id
-    "#).bind::<diesel::sql_types::Uuid,_>(product_id)
-        .get_result::<ProductWithImagesRow>(connection).await?;
     Ok(results)
 }
 

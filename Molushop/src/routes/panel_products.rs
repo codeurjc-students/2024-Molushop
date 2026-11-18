@@ -154,12 +154,7 @@ async fn products_edit(
         }
     }
 
-    let loaded = match edit_product::get_product(&product_id, pool).await {
-        Ok(product_edit) => products_panel::get_product(&store.id, &product_id, pool).await
-            .map(|panel_product| (product_edit, panel_product)),
-        Err(e) => Err(e),
-    };
-    let (product_edit, panel_product) = match loaded {
+    let (product_edit, panel_product) = match edit_product::get_editor(&store.id, &product_id, pool).await {
         Ok(loaded) => loaded,
         Err(e) => {
             tracing::error!(%product_id, error = %e, "could not load the product");

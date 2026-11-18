@@ -46,12 +46,6 @@ type DbPool = Pool<AsyncPgConnection>;
     Ok(new_id)
  }
 
-pub async fn get_product_variations(product_id: &Uuid, pool: &DbPool) -> Result<Vec<ProductVariation>, Error> {
-    use crate::schema::product_variations as pv;
-    let connection = &mut get_connection(pool).await?;
-    pv::table.filter(pv::product_id.eq(product_id)).load::<ProductVariation>(connection).await
-}
-
 pub async fn get_product_variation(variation_id: &Uuid, pool: &DbPool) -> Result<ProductVariation, Error> {
     use crate::schema::product_variations as pv;
     let connection = &mut get_connection(pool).await?;

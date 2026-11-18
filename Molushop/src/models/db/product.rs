@@ -4,7 +4,7 @@
 use bigdecimal::BigDecimal;
 use diesel::pg::sql_types::Jsonb;
 use diesel::prelude::*;
-use diesel::sql_types::{Bool, Json, Nullable, Numeric, SmallInt, Text, Uuid as SqlUuid};
+use diesel::sql_types::{Nullable, Numeric, Text, Uuid as SqlUuid};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use uuid::Uuid;
@@ -131,34 +131,6 @@ pub struct ProductCardRow {
     pub rating_average: f64,
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     pub rating_count: i64,
-}
-#[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
-#[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct ProductWithImagesRow{
-    #[diesel(sql_type = SqlUuid)]
-    pub id: Uuid,
-    #[diesel(sql_type = Nullable<Text>)]
-    pub code: Option<String>,
-    #[diesel(sql_type = Nullable<Text>)]
-    pub name: Option<String>,
-    #[diesel(sql_type = Nullable<Text>)]
-    pub description: Option<String>,
-    #[diesel(sql_type = Nullable<Text>)]
-    pub brand: Option<String>,
-    #[diesel(sql_type = Nullable<SmallInt>)]
-    pub status: Option<i16>,
-    #[diesel(sql_type = Nullable<Jsonb>)]
-    pub specs: Option<Value>,
-    #[diesel(sql_type = Nullable<Jsonb>)]
-    pub variations: Option<Value>,
-    #[diesel(sql_type = Nullable<Jsonb>)]
-    pub variation_titles: Option<Value>,
-    #[diesel(sql_type = Nullable<Jsonb>)]
-    pub images: Option<Value>,
-    #[diesel(sql_type = Nullable<Bool>)]
-    pub published: Option<bool>,
-    #[diesel(sql_type = Nullable<Json>)]
-    pub images_product: Option<Value>
 }
 
 #[derive(QueryableByName, Serialize, Deserialize, Debug, Clone)]
