@@ -36,6 +36,36 @@
     overflow-wrap: anywhere;
 }
 
+/* La página de una tienda: nombre, "desde" y nº de productos, y su buscador
+   (en móvil a todo el ancho; desde 600px, de 28rem como mucho). */
+.store-header{
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+.store-header__meta{
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+.store-search{
+    display: flex;
+    gap: var(--space-2);
+}
+.store-search .m-input{
+    flex: 1;
+    min-width: 0;
+}
+@media (min-width: 600px){
+    .store-search{
+        max-width: 28rem;
+    }
+}
+.search-title--sub{
+    font-size: var(--font-size-lg);
+}
+
 .search-clear{
     display: inline-block;
     margin-top: var(--space-2);

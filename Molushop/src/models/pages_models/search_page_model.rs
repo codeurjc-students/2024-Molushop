@@ -13,8 +13,22 @@ pub struct CategoryLink{
     pub products: i64,
 }
 
+/// La cabecera de la página de una tienda (`/stores/{id}`).
+#[derive(Clone,Debug)]
+pub struct StoreHeader{
+    pub name: String,
+    /// Su página, sin filtros (`/stores/{id}`): el buscador de la tienda envía aquí.
+    pub url: String,
+    /// "En Molushop desde noviembre de 2026", ya traducido.
+    pub since: String,
+    /// Productos a la venta, sin contar el texto ni la categoría.
+    pub products: i64,
+}
+
 /// Búsqueda de la tienda (`/search?q=&category=`): el título, las migas de la
 /// categoría elegida, las subcategorías para afinar y la rejilla de tarjetas.
+/// La página de una tienda (`/stores/{id}`) es la misma con `store`: su
+/// cabecera y su buscador, y todo filtrado a sus productos.
 #[derive(Template,Clone,Debug)]
 #[template(path="pages/search/search.html")]
 pub struct SearchPage{
@@ -38,4 +52,9 @@ pub struct SearchPage{
     /// La rejilla ya pintada (`ProductCardGroup`); vacía si no hay nada.
     pub results: String,
     pub has_results: bool,
+    /// `Some` en la página de una tienda.
+    pub store: Option<StoreHeader>,
+    /// El botón del aviso de "no hay nada": todos los productos (o los de la
+    /// tienda, sin filtros).
+    pub see_all_url: String,
 }

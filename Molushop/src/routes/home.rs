@@ -59,7 +59,7 @@ use crate::models::pages_models::search_page_model::CategoryLink;
 /// Los chips de la portada: las categorías de arriba del todo que tienen algo
 /// a la venta, cada una con su búsqueda. Si falla, la portada sale sin ellos.
 async fn home_categories(lang: Lang, pool: &DbPool) -> Vec<CategoryLink> {
-    let categories = match category_counts(&[], lang, pool).await {
+    let categories = match category_counts(&[], None, lang, pool).await {
         Ok(categories) => categories,
         Err(e) => {
             tracing::error!(error = %e, "could not load the home categories");

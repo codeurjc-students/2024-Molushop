@@ -2,6 +2,7 @@ use askama::Template;
 use serde::{Serialize, Deserialize};
 use crate::models::components::product_card_model::*;
 use crate::i18n::I18n;
+use uuid::Uuid;
 
 #[derive(Template,Clone,Debug)]
 #[template(path="components/product_card_group/templates/product_card_group.html")]
@@ -22,15 +23,21 @@ pub struct ProductCardGroupPage<'a>{
     pub i18n: &'a I18n,
 }
 
-/// Lo que filtra la rejilla de tarjetas: la portada va sin nada y la búsqueda
-/// (`/search`) con el texto y la categoría. Viaja en la URL tal cual (`?q=`,
-/// `?category=`), también en la de "Cargar más".
+/// Lo que filtra la rejilla de tarjetas: la portada va sin nada, la búsqueda
+/// (`/search`) con el texto y la categoría y la página de una tienda
+/// (`/stores/{id}`) además con la tienda. Viaja en la URL tal cual (`?q=`,
+/// `?category=`, `?store=`), también en la de "Cargar más".
 #[derive(Serialize, Deserialize, Default, Clone, Debug)]
 pub struct CardFilter {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub q: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub category: Option<String>,
+    /// Solo los productos de esta tienda. En la página de la tienda ya va en
+    /// la ruta, así que sus enlaces la quitan (`without_store`); "Cargar más"
+    /// la necesita.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub store: Option<Uuid>,
 }
 
 /// Como mucho, palabras y caracteres de la búsqueda que se usan.
@@ -49,7 +56,12 @@ impl CardFilter {
         let clean = |value: Option<String>| value
             .map(|v| v.trim().chars().take(MAX_QUERY_CHARS).collect::<String>())
             .filter(|v| !v.is_empty());
-        CardFilter { q: clean(q), category: clean(category) }
+        CardFilter { q: clean(q), category: clean(category), store: None }
+    }
+
+    /// El mismo filtro, solo con los productos de `store` (`None`: de todas).
+    pub fn with_store(self, store: Option<Uuid>) -> Self {
+        CardFilter { store, ..self }
     }
 
     /// Un patrón de ILIKE por palabra, con `\`, `%` y `_` escapados para que se
@@ -81,12 +93,17 @@ impl CardFilter {
 
     /// El mismo filtro con otra categoría (`None`: todas).
     pub fn with_category(&self, category: Option<&str>) -> Self {
-        CardFilter { q: self.q.clone(), category: category.map(str::to_string) }
+        CardFilter { category: category.map(str::to_string), ..self.clone() }
     }
 
     /// El mismo filtro sin el texto.
     pub fn without_query(&self) -> Self {
-        CardFilter { q: None, category: self.category.clone() }
+        CardFilter { q: None, ..self.clone() }
+    }
+
+    /// El mismo filtro sin la tienda.
+    pub fn without_store(&self) -> Self {
+        CardFilter { store: None, ..self.clone() }
     }
 
     /// `base` con el filtro y, si se da, la página (`/search?q=...&page=2`).
@@ -144,5 +161,16 @@ mod tests {
         let filter = CardFilter::new(Some("camiseta roja&".into()), Some("CLOT".into()));
         assert_eq!(filter.url("/search", Some(2)), "/search?q=camiseta+roja%26&category=CLOT&page=2");
         assert_eq!(filter.without_query().url("/search", None), "/search?category=CLOT");
+    }
+
+    /// La tienda viaja en la URL de "Cargar más" y se conserva al cambiar de
+    /// categoría o quitar el texto; `without_store` la quita.
+    #[test]
+    fn store_survives_the_other_changes() {
+        let store = Uuid::parse_str("0193a0b4-2f0e-7c3a-9b1d-5e6f7a8b9c0d").unwrap();
+        let filter = CardFilter::new(Some("taza".into()), None).with_store(Some(store));
+        assert_eq!(filter.url("/p", Some(2)), format!("/p?q=taza&store={}&page=2", store));
+        assert_eq!(filter.with_category(Some("HOME")).without_query().url("/p", None), format!("/p?category=HOME&store={}", store));
+        assert_eq!(filter.without_store().url("/stores/x", None), "/stores/x?q=taza");
     }
 }

@@ -14,7 +14,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use crate::constants::urls::SEARCH_URL;
 use crate::middleware::auth::{Auth, SessionData};
 use crate::models::components::product_card_group_model::{CardFilter, ProductCardGroup};
-use crate::models::pages_models::search_page_model::{CategoryLink, SearchPage};
+use crate::models::pages_models::search_page_model::{CategoryLink, SearchPage, StoreHeader};
 use crate::services::components::{login_base_service};
 use crate::services::components::product_card_group_service::get_product_card_group_page;
 use crate::services::search_service::{ancestors, category_counts, children};
@@ -31,11 +31,20 @@ pub struct SearchQuery {
 }
 
 async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data<DbPool>, opt_session_data: Option<web::ReqData<SessionData>>) -> HttpResponse {
-    let pool = pool_data.get_ref();
     let query = query.into_inner();
-    let mut filter = CardFilter::new(query.q, query.category);
+    let user_id = opt_session_data.map(|session_data| session_data.into_inner().id);
+    render_search(i18n, CardFilter::new(query.q, query.category), None, user_id.as_ref(), pool_data.get_ref()).await
+}
 
-    let categories = match category_counts(&filter.like_patterns(), i18n.lang, pool).await {
+/// La búsqueda o, con `store`, la página de esa tienda (`routes::stores`): en
+/// ese caso `filter.store` es su id y los enlaces van a su página.
+pub async fn render_search(i18n: I18n, mut filter: CardFilter, store: Option<StoreHeader>, user_id: Option<&uuid::Uuid>, pool: &DbPool) -> HttpResponse {
+    // Adónde llevan las migas, los chips y "quitar la búsqueda". La tienda ya
+    // va en la ruta: fuera de la URL (sí sigue en la de "Cargar más").
+    let base = store.as_ref().map(|s| s.url.clone()).unwrap_or_else(|| SEARCH_URL.to_string());
+    let page_url = |f: &CardFilter| f.without_store().url(&base, None);
+
+    let categories = match category_counts(&filter.like_patterns(), filter.store.as_ref(), i18n.lang, pool).await {
         Ok(categories) => categories,
         Err(e) => {
             tracing::error!(error = %e, "could not load the search categories");
@@ -53,7 +62,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
 
     let link = |id: Option<&str>, name: &str, products: i64| CategoryLink {
         name: name.to_string(),
-        url: filter.with_category(id).url(SEARCH_URL, None),
+        url: page_url(&filter.with_category(id)),
         products,
     };
     let mut breadcrumb = Vec::new();
@@ -66,8 +75,7 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
         .map(|c| link(Some(&c.id), &c.name, c.products))
         .collect();
 
-    let user_id = opt_session_data.map(|session_data| session_data.into_inner().id);
-    let (products, more_url) = get_product_card_group_page(1, &filter, user_id.as_ref(), pool).await;
+    let (products, more_url) = get_product_card_group_page(1, &filter, user_id, pool).await;
     let has_results = !products.is_empty();
     let results = if has_results {
         ProductCardGroup { products, more_url, i18n: &i18n }.render().unwrap_or_else(|e| {
@@ -78,8 +86,12 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
         String::new()
     };
 
-    let (user_logged, mut nav1) = shop_nav(user_id.as_ref(), pool).await;
-    nav1.search = filter.q.clone().unwrap_or_default();
+    let (user_logged, mut nav1) = shop_nav(user_id, pool).await;
+    // En la tienda, lo buscado va en su propio buscador, no en el de la barra
+    // (que busca en todas).
+    if store.is_none() {
+        nav1.search = filter.q.clone().unwrap_or_default();
+    }
 
     let render = SearchPage {
         user_logged,
@@ -90,9 +102,11 @@ async fn search(i18n: I18n, query: web::Query<SearchQuery>, pool_data: web::Data
         category: selected.map(|c| c.name.clone()),
         breadcrumb,
         categories: subcategories,
-        clear_query_url: filter.q.as_ref().map(|_| filter.without_query().url(SEARCH_URL, None)),
+        clear_query_url: filter.q.as_ref().map(|_| page_url(&filter.without_query())),
         results,
         has_results,
+        see_all_url: base.clone(),
+        store,
     }.render().unwrap();
 
     HttpResponse::Ok().content_type("text/html; charset=utf-8").body(render)

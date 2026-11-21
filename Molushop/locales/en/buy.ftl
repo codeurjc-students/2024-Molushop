@@ -13,6 +13,8 @@ product-reviews-count = { $count ->
    *[other] { $count } reviews
 }
 product-no-reviews = No reviews yet
+# Goes before the store name, which links to its page.
+product-sold-by = Sold by
 product-sold-out = Sold out
 product-sold-out-msg = This option is sold out right now. Choose another one or come back later.
 product-pick-variation = Choose a valid option.

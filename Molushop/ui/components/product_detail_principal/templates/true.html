@@ -32,6 +32,9 @@
         <div class="title">
             <span>{{product_data.name}}</span>
         </div>
+        {% if let Some(store_url) = product_data.store_url() %}
+        <p class="sold-by">{{ i18n.t("product-sold-by") }} <a href="{{ i18n.url(store_url) }}">{{product_data.store_name}}</a></p>
+        {% endif %}
         <!-- Lleva a la sección de opiniones, más abajo en la misma página. -->
         <a class="rating-container" href="#product-reviews-1">
             {% if product_data.rating_count > 0 %}

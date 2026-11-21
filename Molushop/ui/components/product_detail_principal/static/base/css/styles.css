@@ -69,6 +69,17 @@
             font-weight: bold;
             line-height: var(--line-height-tight);
         }
+        /* "Vendido por <tienda>": enlace a la página de la tienda. */
+        .sold-by{
+            margin: 0;
+            color: var(--color-text-muted);
+            font-size: var(--font-size-sm);
+
+            a{
+                color: var(--color-text);
+                font-weight: 600;
+            }
+        }
         .rating-container{
             display: flex;
             align-items: center;

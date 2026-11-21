@@ -103,3 +103,30 @@ i18n-test-count = { $count ->
     [one] { $count } producto
    *[other] { $count } productos
 }
+
+## Página de una tienda
+store-products = { $count ->
+    [one] 1 producto
+   *[other] { $count } productos
+}
+# $month es el número del mes (1-12); $year, el año.
+store-since = En Molushop desde { $month ->
+    [1] enero
+    [2] febrero
+    [3] marzo
+    [4] abril
+    [5] mayo
+    [6] junio
+    [7] julio
+    [8] agosto
+    [9] septiembre
+    [10] octubre
+    [11] noviembre
+   *[12] diciembre
+} de { $year }
+store-search-placeholder = Busca en esta tienda
+store-search-label = Buscar en { $store }
+store-see-all = Ver todos los productos de la tienda
+store-notfound-page-title = Tienda no disponible
+store-notfound-title = Esta tienda no está disponible
+store-notfound-text = Puede que ya no esté abierta o que el enlace no sea correcto.

@@ -13,6 +13,8 @@ product-reviews-count = { $count ->
    *[other] { $count } opiniones
 }
 product-no-reviews = Sin opiniones todavía
+# Va delante del nombre de la tienda, que es un enlace a su página.
+product-sold-by = Vendido por
 product-sold-out = Agotado
 product-sold-out-msg = Esta variación está agotada ahora mismo. Elige otra o vuelve más tarde.
 product-pick-variation = Selecciona una variación válida.

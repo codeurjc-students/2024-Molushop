@@ -17,6 +17,7 @@ pub mod account;
 pub mod password_reset;
 pub mod not_found;
 pub mod search;
+pub mod stores;
 pub mod lang;
 
 use actix_web::web;
@@ -52,6 +53,7 @@ const FAVICON_URL: &str = "/assets/logos/molushop-m.svg";
 fn shop_routes(cfg: &mut web::ServiceConfig) {
     home::config(cfg);
     search::config(cfg);
+    stores::config(cfg);
     about_us::config(cfg);
     product::config(cfg);
     cart::config(cfg);

@@ -1,5 +1,6 @@
 {% extends "layouts/shop.html" %}
-{# Búsqueda de la tienda (SearchPage). Su CSS lo carga layouts/shop.html.
+{# Búsqueda de la tienda (SearchPage) y página de una tienda (con `store`: su
+   cabecera y su buscador encima). Su CSS lo carga layouts/shop.html.
    Las categorías son enlaces normales: con hx-boost cambian la URL sin recargar. #}
 {# El título, para el <title> y el <h1>. #}
 {% macro search_title() %}
@@ -9,10 +10,21 @@
 {%- else -%}{{ i18n.t("all-products") }}
 {%- endif -%}
 {% endmacro %}
-{% block title %}{% call search_title() %}{% endcall %} | Molushop{% endblock %}
+{% block title %}{% if let Some(store) = store %}{{store.name}}{% else %}{% call search_title() %}{% endcall %}{% endif %} | Molushop{% endblock %}
 {% block content %}
     {% include "components/login_modal/login_modal.html"%}
     <section class="search-page">
+        {% if let Some(store) = store %}
+        <header class="store-header">
+            <h1 class="search-title">{{store.name}}</h1>
+            <p class="store-header__meta">{{store.since}} · {{ i18n.t_count("store-products", store.products) }}</p>
+            {# Busca solo en esta tienda; al buscar se vuelve a todas las categorías. #}
+            <form class="store-search" action="{{ i18n.url(store.url) }}" method="get" role="search">
+                <input class="m-input" type="search" name="q" value="{% if let Some(q) = query %}{{q}}{% endif %}" placeholder="{{ i18n.t("store-search-placeholder") }}" aria-label="{{ i18n.t1("store-search-label", "store", store.name) }}" maxlength="100" enterkeyhint="search">
+                <button class="m-btn m-btn--primary" type="submit">{{ i18n.t("nav-search-submit") }}</button>
+            </form>
+        </header>
+        {% endif %}
         {% if !breadcrumb.is_empty() %}
         <nav class="search-breadcrumb" aria-label="{{ i18n.t("search-breadcrumb-label") }}">
             <ol>
@@ -26,7 +38,11 @@
             </ol>
         </nav>
         {% endif %}
+        {% if store.is_none() %}
         <h1 class="search-title">{% call search_title() %}{% endcall %}</h1>
+        {% else if query.is_some() || category.is_some() %}
+        <h2 class="search-title search-title--sub">{% call search_title() %}{% endcall %}</h2>
+        {% endif %}
         {% if let Some(url) = clear_query_url %}
         <a class="search-clear" href="{{ i18n.url(url) }}">{{ i18n.t("search-clear-query") }}</a>
         {% endif %}
@@ -47,7 +63,13 @@
         <svg class="icn-svg search-empty__icon" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-search" /></svg>
         <h2>{{ i18n.t("search-empty-title") }}</h2>
         <p>{{ i18n.t("search-empty-text") }}</p>
-        <a href="{{ i18n.url(nav1.routes.search) }}" class="m-btn m-btn--primary">{{ i18n.t("see-all-products") }}</a>
+        {% if let Some(store) = store %}
+        {% if store.products > 0 %}
+        <a href="{{ i18n.url(see_all_url) }}" class="m-btn m-btn--primary">{{ i18n.t("store-see-all") }}</a>
+        {% endif %}
+        {% else %}
+        <a href="{{ i18n.url(see_all_url) }}" class="m-btn m-btn--primary">{{ i18n.t("see-all-products") }}</a>
+        {% endif %}
     </section>
     {% endif %}
 {% endblock %}

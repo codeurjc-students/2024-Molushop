@@ -138,6 +138,13 @@ impl Default for ProductDetailPrincipalData {
 }
 
 impl ProductDetailPrincipalData {
+    /// La página de la tienda que lo vende ("Vendido por"). `None` sin tienda
+    /// (el id nulo del valor por defecto): la ficha solo enseña productos de
+    /// tiendas activas, así que no debería pasar.
+    pub fn store_url(&self) -> Option<String> {
+        (!self.store_id.is_nil()).then(|| format!("{}{}", crate::constants::urls::STORE_URL_PREFIX, self.store_id))
+    }
+
     /// Las estrellas de la media, para la cabecera.
     pub fn stars(&self) -> Stars {
         Stars::new(self.rating_average)

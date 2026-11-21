@@ -57,7 +57,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
     };
 
     // Si algo falla, se sugiere lo que haya: "Buscar" sigue funcionando igual.
-    let products = match get_product_cards(MAX_PRODUCTS, 0, &filter.like_patterns(), filter.rank_text().as_deref(), None, pool).await {
+    let products = match get_product_cards(MAX_PRODUCTS, 0, &filter.like_patterns(), filter.rank_text().as_deref(), None, None, pool).await {
         Ok(cards) => cards.into_iter().map(ProductCardData::from).collect(),
         Err(e) => {
             tracing::error!(error = %e, "could not load the suggested products");
@@ -65,7 +65,7 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
         }
     };
     // Las categorías con productos (de cualquier nombre), filtradas aquí por el suyo.
-    let categories = match category_counts(&[], i18n.lang, pool).await {
+    let categories = match category_counts(&[], None, i18n.lang, pool).await {
         Ok(all) => named_like(&all, q)
             .into_iter()
             .take(MAX_CATEGORIES)

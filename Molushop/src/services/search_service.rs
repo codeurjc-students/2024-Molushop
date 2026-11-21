@@ -3,7 +3,8 @@
 //! texto buscado. Las tarjetas las da `product_card_group_service`.
 
 use diesel::sql_query;
-use diesel::sql_types::{Array, BigInt, Nullable, Text};
+use diesel::sql_types::{Array, BigInt, Nullable, Text, Uuid as SqlUuid};
+use uuid::Uuid;
 use diesel::QueryableByName;
 use diesel::result::Error;
 use diesel_async::RunQueryDsl;
@@ -29,14 +30,15 @@ pub struct CategoryCount {
 }
 
 /// Todas las categorías con su recuento para `patterns` (los de
-/// `CardFilter::like_patterns`; vacío, sin texto) y su nombre en `lang`
+/// `CardFilter::like_patterns`; vacío, sin texto), solo de `store` si se da,
+/// y su nombre en `lang`
 /// (`category_translation`; si no está traducida, el de `category`, en
 /// español). "A la venta" es lo mismo que en `product_service::get_product_cards`.
 ///
 /// Los productos visibles se filtran UNA vez y se reparten por raíz con un
 /// GROUP BY; antes se contaban con una subconsulta por categoría, que volvía a
 /// filtrarlos cada vez (con 5000 productos, 69 -> 33 ms; mismo resultado).
-pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
+pub async fn category_counts(patterns: &[String], store: Option<&Uuid>, lang: Lang, pool: &DbPool) -> Result<Vec<CategoryCount>, Error> {
     let connection = &mut get_connection(pool).await?;
     sql_query(r#"
         with recursive tree as (
@@ -50,6 +52,7 @@ pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> 
             join product_seller ps on ps.product_id = p.id
             join seller s on s.id = ps.seller_id and s.status = 1
             where p.status = 1
+            and ($3::uuid is null or s.id = $3)
             and not exists (
                 select 1 from unnest($1::text[]) w
                 where not (' ' || f_unaccent(coalesce(p.name, '')) ilike f_unaccent(w) or ' ' || f_unaccent(coalesce(p.brand, '')) ilike f_unaccent(w))
@@ -73,6 +76,7 @@ pub async fn category_counts(patterns: &[String], lang: Lang, pool: &DbPool) -> 
     "#)
         .bind::<Array<Text>, _>(patterns)
         .bind::<Text, _>(lang.code())
+        .bind::<Nullable<SqlUuid>, _>(store)
         .load::<CategoryCount>(connection).await
 }
 

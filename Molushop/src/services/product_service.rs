@@ -120,7 +120,7 @@ pub async fn update_product_general(product_id: &Uuid, form: FormGeneral, pool: 
 /// `category`: esa categoría o cualquiera por debajo de ella. Lo que cuenta
 /// como "a la venta" y la búsqueda los repite `search_service::category_counts`:
 /// si cambian aquí, también allí.
-pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], rank: Option<&str>, category: Option<&str>, pool:&DbPool)->Result<Vec<ProductCardRow>,Error>{
+pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], rank: Option<&str>, category: Option<&str>, store: Option<&Uuid>, pool:&DbPool)->Result<Vec<ProductCardRow>,Error>{
     let connection = &mut get_connection(pool).await?;
     let results = sql_query(r#"
         select p.id,
@@ -157,6 +157,8 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], ran
         join product_seller ps on p.id=ps.product_id
         join seller s on ps.seller_id=s.id and s.status = 1
         where p.status = 1
+        -- La página de una tienda: solo los suyos (idx_product_seller_seller).
+        and ($6::uuid is null or s.id = $6)
         -- Búsqueda: cada palabra tiene que salir en el nombre o en la marca,
         -- sin contar acentos (f_unaccent, migración unaccent_search). Con un
         -- espacio delante del campo: "% h%" es una palabra que empieza por h
@@ -192,6 +194,7 @@ pub async fn get_product_cards(limit: i64, offset: i64, patterns: &[String], ran
         .bind::<diesel::sql_types::Array<Text>, _>(patterns)
         .bind::<diesel::sql_types::Nullable<Text>, _>(category)
         .bind::<diesel::sql_types::Nullable<Text>, _>(rank)
+        .bind::<diesel::sql_types::Nullable<diesel::sql_types::Uuid>, _>(store)
         .load::<ProductCardRow>(connection).await?;
     Ok(results)
 }

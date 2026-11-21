@@ -49,12 +49,14 @@ pub struct PageQuery {
     pub page: Option<i64>,
     pub q: Option<String>,
     pub category: Option<String>,
+    /// La página de una tienda: solo sus productos.
+    pub store: Option<uuid::Uuid>,
 }
 
 #[get("/page")]
 async fn page(i18n: I18n, query: web::Query<PageQuery>, pool_data: web::Data<DbPool>, req: HttpRequest) -> HttpResponse {
     let query = query.into_inner();
-    let filter = CardFilter::new(query.q, query.category);
+    let filter = CardFilter::new(query.q, query.category).with_store(query.store);
     let user_id = req.extensions().get::<SessionData>().map(|s| s.id);
     let (products, more_url) = get_product_card_group_page(query.page.unwrap_or(2), &filter, user_id.as_ref(), pool_data.get_ref()).await;
     HttpResponse::Ok().body(ProductCardGroupPage { products, more_url, i18n: &i18n }.render().unwrap())
