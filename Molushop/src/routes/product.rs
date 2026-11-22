@@ -30,23 +30,30 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 
 }
 
-async fn get_product(i18n: I18n, path: web::Path<Uuid>, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
+/// El id llega como texto: uno mal escrito da la misma 404 de la ficha que un
+/// producto que no existe (con `Path<Uuid>`, actix respondía un 404 en texto
+/// plano con el error de parseo: "UUID parsing failed...").
+async fn get_product(i18n: I18n, path: web::Path<String>, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
-    let product_id = path.into_inner();
     let user_id_opt: Option<Uuid> = opt_session_data.map(|d| d.into_inner().id);
 
-    let mut product_data = match get_product_object(&product_id,&pool).await {
-        Ok(Some(product_data)) => product_data,
-        // No está a la venta (no existe, desactivado o tienda inactiva)
-        Ok(None) => return not_found_page(
+    let product = match Uuid::parse_str(&path.into_inner()) {
+        Ok(product_id) => match get_product_object(&product_id,&pool).await {
+            Ok(product_data) => product_data.map(|product_data| (product_id, product_data)),
+            Err(_) => return HttpResponse::InternalServerError().finish(),
+        },
+        Err(_) => None,
+    };
+    // No está a la venta (no existe, desactivado o tienda inactiva) o el id no es válido
+    let Some((product_id, mut product_data)) = product else {
+        return not_found_page(
             i18n,
             "product-notfound-page-title",
             "product-notfound-title",
             "product-notfound-text",
             user_id_opt.as_ref(),
             pool
-        ).await,
-        Err(_) => return HttpResponse::InternalServerError().finish(),
+        ).await;
     };
 
     // El corazón lleno si ya lo tiene guardado. Si la consulta falla, la ficha
