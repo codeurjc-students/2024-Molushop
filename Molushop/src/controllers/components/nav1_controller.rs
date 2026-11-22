@@ -8,7 +8,7 @@ type DbPool = Pool<AsyncPgConnection>;
 use crate::models::components::nav1_model::*;
 use super::{login_base_controller, search_suggestions_controller};
 use crate::services::components::nav1_service::*;
-use crate::constants::urls::{ACCOUNT_URL, FAVORITES_URL, ORDERS_URL, SEARCH_URL};
+use crate::constants::urls::{ACCOUNT_URL, FAVORITES_URL, ORDERS_URL, SEARCH_URL, STORES_URL};
 
 static SCOPE: &str = "/nav1";
 
@@ -24,6 +24,7 @@ lazy_static! { //al ser lazy static se ejecuta una sola vez ya que se reutiliza
         account: ACCOUNT_URL.to_string(),
         logout: login_base_controller::ROUTES.logout.to_string(),
         search: SEARCH_URL.to_string(),
+        stores: STORES_URL.to_string(),
         suggestions: search_suggestions_controller::ROUTES.suggestions.clone()
         //login: Box::leak(format!("{}{}/login",SCOPE_COMPONENTS, SCOPE1).into_boxed_str())
     };

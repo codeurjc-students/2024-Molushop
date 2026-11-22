@@ -69,6 +69,8 @@ pub struct Routes{
     pub account: String,
     pub logout: String,
     pub search: String,
+    /// Directorio de tiendas: en la barra desde 600px; en móvil, dentro del menú de perfil.
+    pub stores: String,
     /// Las sugerencias que salen bajo el buscador mientras se escribe.
     pub suggestions: String
 }

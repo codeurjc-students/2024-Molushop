@@ -16,6 +16,7 @@ nav-cart = Carrito
 nav-profile = Perfil
 nav-orders = Mis pedidos
 nav-favorites = Mis favoritos
+nav-stores = Tiendas
 nav-account = Mi cuenta
 nav-logout = Cerrar sesión
 nav-login = Identifícate
@@ -130,3 +131,12 @@ store-see-all = Ver todos los productos de la tienda
 store-notfound-page-title = Tienda no disponible
 store-notfound-title = Esta tienda no está disponible
 store-notfound-text = Puede que ya no esté abierta o que el enlace no sea correcto.
+
+## Directorio de tiendas (/stores)
+stores-page-title = Tiendas | Molushop
+stores-title = Tiendas
+stores-count = { $count ->
+    [one] 1 tienda
+   *[other] { $count } tiendas
+}
+stores-empty = Todavía no hay tiendas abiertas.

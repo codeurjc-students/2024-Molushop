@@ -15,6 +15,7 @@ nav-cart = Cart
 nav-profile = Profile
 nav-orders = My orders
 nav-favorites = My favorites
+nav-stores = Stores
 nav-account = My account
 nav-logout = Log out
 nav-login = Sign in
@@ -129,3 +130,12 @@ store-see-all = See all products in this store
 store-notfound-page-title = Store unavailable
 store-notfound-title = This store isn't available
 store-notfound-text = It may no longer be open, or the link may be wrong.
+
+## Store directory (/stores)
+stores-page-title = Stores | Molushop
+stores-title = Stores
+stores-count = { $count ->
+    [one] 1 store
+   *[other] { $count } stores
+}
+stores-empty = There are no open stores yet.

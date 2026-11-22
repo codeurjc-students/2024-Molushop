@@ -2,6 +2,8 @@
 pub const PRODUCT_URL_PREFIX: &str = "/producto/";
 /// Página pública de una tienda: `/stores/{id}` (sus productos, con buscador y categorías).
 pub const STORE_URL_PREFIX: &str = "/stores/";
+/// Directorio de tiendas: las ACTIVAS, con enlace a la página de cada una.
+pub const STORES_URL: &str = "/stores";
 pub const CART_URL: &str = "/cart";
 pub const CHECKOUT_URL: &str = "/checkout";
 /// Página de un pedido ya confirmado, a donde redirige el POST de confirmación.

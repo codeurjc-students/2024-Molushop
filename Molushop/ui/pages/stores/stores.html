@@ -1,0 +1,33 @@
+{% extends "layouts/shop.html" %}
+{# Directorio de tiendas (StoresPage): una tarjeta por tienda activa, que lleva
+   a su página (/stores/{id}). Sin logo de tienda: la foto de su primer producto. #}
+{% block content %}
+    {% include "components/login_modal/login_modal.html"%}
+    <div class="stores-page">
+        <div class="stores-header">
+            <h1>{{ i18n.t("stores-title") }}</h1>
+            {% if !stores.is_empty() %}
+            <span class="stores-count">{{ i18n.t_count("stores-count", stores.len()) }}</span>
+            {% endif %}
+        </div>
+
+        {% if stores.is_empty() %}
+        <div class="stores-empty m-card">
+            <span>{{ i18n.t("stores-empty") }}</span>
+            <a href="{{ i18n.url(home_url) }}" class="m-btn m-btn--primary">{{ i18n.t("home-hero-cta") }}</a>
+        </div>
+        {% else %}
+        <ul class="stores-grid">
+            {% for store in stores %}
+            <li>
+                <a class="store-card m-card m-card--link m-card--sm" href="{{ i18n.url(store.url) }}">
+                    <img class="store-card__image" src="{{store.image}}" alt="" loading="lazy">
+                    <span class="store-card__name">{{store.name}}</span>
+                    <span class="store-card__meta">{{ i18n.t_count("store-products", store.products) }}</span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+{% endblock %}

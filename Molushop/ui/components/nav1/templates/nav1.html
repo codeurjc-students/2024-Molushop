@@ -26,6 +26,8 @@
       <div id="nav1-suggestions" class="nav1-suggestions" hidden></div>
     </div>
     <div class="right-block">
+      {# Desde 600px; en móvil no cabe y va dentro del menú de perfil (.profile-menu-stores) #}
+      <a class="nav1-stores" href="{{ i18n.url(nav1.routes.stores) }}">{{ i18n.t("nav-stores") }}</a>
       <div class="cart">
         <a class="cart-icon" href="{{ i18n.url(nav1.routes.cart) }}" aria-label="{{ i18n.t("nav-cart") }}">
           <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-cart" /></svg>
@@ -38,6 +40,7 @@
           <svg class="icn-svg" aria-hidden="true"><use href="/assets/svg/icons/full.svg#icon-user" /></svg>
         </button>
         <div id="profile-menu" class="profile-menu" hidden>
+          <a class="profile-menu-stores" href="{{ i18n.url(nav1.routes.stores) }}">{{ i18n.t("nav-stores") }}</a>
           {% if nav1.logged %}
           <ul class="profile-menu-list">
             <li><a href="{{ i18n.url(nav1.routes.orders) }}">{{ i18n.t("nav-orders") }}</a></li>
