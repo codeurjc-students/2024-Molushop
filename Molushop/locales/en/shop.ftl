@@ -139,3 +139,4 @@ stores-count = { $count ->
    *[other] { $count } stores
 }
 stores-empty = There are no open stores yet.
+stores-see-all = See all stores

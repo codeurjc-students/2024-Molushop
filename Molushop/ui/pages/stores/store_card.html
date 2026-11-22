@@ -1,0 +1,7 @@
+{# Tarjeta de una tienda (StoreCard): en /stores y en la franja de la portada.
+   Necesita `store` e `i18n`. Su CSS, en pages/stores. #}
+<a class="store-card m-card m-card--link m-card--sm" href="{{ i18n.url(store.url) }}">
+    <img class="store-card__image" src="{{store.image}}" alt="" loading="lazy">
+    <span class="store-card__name">{{store.name}}</span>
+    <span class="store-card__meta">{{ i18n.t_count("store-products", store.products) }}</span>
+</a>

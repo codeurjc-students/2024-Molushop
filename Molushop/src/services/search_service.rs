@@ -108,17 +108,23 @@ pub fn children<'a>(categories: &'a [CategoryCount], parent: Option<&str>) -> Ve
 /// `SHORT_WORD_CHARS` letras, al principio de una palabra del nombre.
 /// Para las sugerencias del buscador: las categorías son pocas y se filtran aquí.
 pub fn named_like<'a>(categories: &'a [CategoryCount], q: &str) -> Vec<&'a CategoryCount> {
-    let words: Vec<String> = q.split_whitespace().map(fold).collect();
-    if words.is_empty() { return Vec::new(); }
-    let matches = |name: &str, word: &str| if word.chars().count() <= SHORT_WORD_CHARS {
-        name.split_whitespace().any(|part| part.starts_with(word))
-    } else {
-        name.contains(word)
-    };
     categories.iter()
         .filter(|c| c.products > 0)
-        .filter(|c| { let name = fold(&c.name); words.iter().all(|w| matches(&name, w)) })
+        .filter(|c| name_matches(&c.name, q))
         .collect()
+}
+
+/// Si `name` lleva todas las palabras de `q`, con las reglas de `named_like`.
+/// También para las tiendas de las sugerencias. Sin palabras, `false`.
+pub fn name_matches(name: &str, q: &str) -> bool {
+    let words: Vec<String> = q.split_whitespace().map(fold).collect();
+    if words.is_empty() { return false; }
+    let name = fold(name);
+    words.iter().all(|word| if word.chars().count() <= SHORT_WORD_CHARS {
+        name.split_whitespace().any(|part| part.starts_with(word.as_str()))
+    } else {
+        name.contains(word.as_str())
+    })
 }
 
 /// Minúsculas y sin acentos, para comparar ("Electrónica" -> "electronica").

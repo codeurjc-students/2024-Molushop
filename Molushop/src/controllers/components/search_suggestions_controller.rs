@@ -18,6 +18,8 @@ use crate::models::components::product_card_model::ProductCardData;
 use crate::models::pages_models::search_page_model::CategoryLink;
 use crate::services::search_service::{category_counts, named_like};
 use crate::services::product_service::get_product_cards;
+use crate::services::public_store_service::{list_active_stores, stores_named_like};
+use crate::routes::stores::store_card;
 
 type DbPool = Pool<AsyncPgConnection>;
 
@@ -27,6 +29,7 @@ pub static SCOPE: &str = "/search-suggestions";
 const MIN_CHARS: usize = 2;
 const MAX_PRODUCTS: i64 = 5;
 const MAX_CATEGORIES: usize = 3;
+const MAX_STORES: usize = 3;
 
 pub struct Routes {
     pub suggestions: String,
@@ -81,9 +84,19 @@ async fn suggestions(i18n: I18n, query: web::Query<SuggestionsQuery>, pool_data:
         }
     };
 
+    // Las tiendas activas son pocas: se traen todas y se filtran aquí, como las categorías.
+    let stores = match list_active_stores(pool).await {
+        Ok(all) => stores_named_like(all, q, MAX_STORES).into_iter().map(store_card).collect(),
+        Err(e) => {
+            tracing::error!(error = %e, "could not load the suggested stores");
+            Vec::new()
+        }
+    };
+
     let render = SearchSuggestions {
         query: q.to_string(),
         categories,
+        stores,
         products,
         all_url: filter.url(SEARCH_URL, None),
         i18n: &i18n,

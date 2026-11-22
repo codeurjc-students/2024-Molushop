@@ -1,6 +1,7 @@
 /* Directorio de tiendas (pages/stores), mobile-first. Cabecera y aviso como
    en "Mis favoritos"; la tarjeta es el átomo m-card--link con la foto del
-   primer producto, el nombre y cuántos productos tiene.
+   primer producto, el nombre y cuántos productos tiene (pages/stores/store_card.html,
+   también en la franja de la portada: por eso .store-card va suelta).
    Rejilla: 2 columnas en móvil, 3 desde 600px y 4 desde 900px. */
 .stores-page {
     max-width: 70rem;
@@ -40,33 +41,33 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: var(--space-3);
     }
+}
 
-    .store-card {
-        display: flex;
-        flex-direction: column;
-        gap: var(--space-1);
-        height: 100%;
-    }
+.store-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    height: 100%;
+}
 
-    .store-card__image {
-        display: block;
-        width: 100%;
-        aspect-ratio: 1 / 1;
-        object-fit: contain;
-        margin-bottom: var(--space-2);
-        border-radius: var(--radius-sm);
-        background-color: var(--color-bg-soft);
-    }
+.store-card__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    margin-bottom: var(--space-2);
+    border-radius: var(--radius-sm);
+    background-color: var(--color-bg-soft);
+}
 
-    .store-card__name {
-        font-weight: var(--font-weight-bold);
-        overflow-wrap: anywhere;
-    }
+.store-card__name {
+    font-weight: var(--font-weight-bold);
+    overflow-wrap: anywhere;
+}
 
-    .store-card__meta {
-        font-size: var(--font-size-sm);
-        color: var(--color-text-muted);
-    }
+.store-card__meta {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
 }
 
 @media (min-width: 600px) {

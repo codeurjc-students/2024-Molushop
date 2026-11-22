@@ -18,6 +18,20 @@
         </ul>
     </nav>
     {% endif %}
+    {% if !stores.is_empty() %}
+    {# Las tiendas con más productos (las tarjetas de /stores); en móvil, en fila deslizable. #}
+    <section class="home-stores" aria-labelledby="home-stores-title">
+        <div class="home-stores__head">
+            <h2 id="home-stores-title">{{ i18n.t("stores-title") }}</h2>
+            <a href="{{ i18n.url(stores_url) }}">{{ i18n.t("stores-see-all") }}</a>
+        </div>
+        <ul class="home-stores__list">
+            {% for store in stores %}
+            <li>{% include "pages/stores/store_card.html" %}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
     <h2 id="productos" class="home-section-title">{{ i18n.t("all-products") }}</h2>
     {{group_cards2|safe}}
 {% endblock %}

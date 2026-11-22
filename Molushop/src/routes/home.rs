@@ -7,7 +7,7 @@ use diesel_async::pg::AsyncPgConnection;
 type DbPool = Pool<AsyncPgConnection>;
 use askama::Template;
 use crate::middleware::auth::Auth;
-use crate::constants::urls::{HOME_URL, SEARCH_URL};
+use crate::constants::urls::{HOME_URL, SEARCH_URL, STORES_URL};
 
 pub fn config(cfg: &mut web::ServiceConfig) {
     cfg
@@ -55,6 +55,9 @@ use crate::services::components::login_base_service;
 use crate::services::search_service::{category_counts, children};
 use crate::models::components::product_card_group_model::CardFilter;
 use crate::models::pages_models::search_page_model::CategoryLink;
+use crate::models::pages_models::stores_page_model::StoreCard;
+use crate::routes::stores::store_card;
+use crate::services::public_store_service::{biggest_stores, list_active_stores};
 
 /// Los chips de la portada: las categorías de arriba del todo que tienen algo
 /// a la venta, cada una con su búsqueda. Si falla, la portada sale sin ellos.
@@ -77,6 +80,20 @@ async fn home_categories(lang: Lang, pool: &DbPool) -> Vec<CategoryLink> {
         .collect()
 }
 
+/// Cuántas tiendas salen en la franja de la portada.
+const HOME_STORES: usize = 6;
+
+/// La franja "Tiendas" de la portada: las de más productos. Si falla, sin ella.
+async fn home_stores(pool: &DbPool) -> Vec<StoreCard> {
+    match list_active_stores(pool).await {
+        Ok(stores) => biggest_stores(stores, HOME_STORES).into_iter().map(store_card).collect(),
+        Err(e) => {
+            tracing::error!(error = %e, "could not load the home stores");
+            Vec::new()
+        }
+    }
+}
+
 async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_session_data:Option<web::ReqData<SessionData>>)-> HttpResponse{
     let pool = pool_data.get_ref();
     
@@ -88,6 +105,8 @@ async fn get_home(i18n: I18n, pool_data:web::Data<DbPool>,_req: HttpRequest,opt_
         page_name:i18n.t("home-page-title"),
         group_cards2:get_product_card_group_render_all(&i18n, user_id_opt.as_ref(), &pool).await,
         categories:home_categories(i18n.lang, pool).await,
+        stores:home_stores(pool).await,
+        stores_url: STORES_URL,
         nav1,
         login_base_data: login_base_service::get_login_base_model_data(),
         i18n: i18n

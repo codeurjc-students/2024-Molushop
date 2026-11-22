@@ -59,7 +59,8 @@ async fn stores_page(i18n: I18n, pool_data: web::Data<DbPool>, opt_session_data:
     HttpResponse::Ok().body(render)
 }
 
-fn store_card(store: StoreListItem) -> StoreCard {
+/// La tarjeta de una tienda: en `/stores`, en la portada y en las sugerencias.
+pub fn store_card(store: StoreListItem) -> StoreCard {
     StoreCard {
         url: store_url(&store.id),
         name: store.store_name,

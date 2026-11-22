@@ -76,12 +76,14 @@ pub struct Routes{
 }
 
 /// Sugerencias del buscador (`/components/search-suggestions?q=`): categorías
-/// cuyo nombre encaja, los primeros productos y el enlace a todos los resultados.
+/// cuyo nombre encaja, las tiendas igual, los primeros productos y el enlace a todos los resultados.
 #[derive(Template,Clone,Debug)]
 #[template(path="components/nav1/templates/suggestions.html")]
 pub struct SearchSuggestions<'a>{
     pub query: String,
     pub categories: Vec<CategoryLink>,
+    /// Tiendas con productos cuyo nombre encaja, a su página (`/stores/{id}`).
+    pub stores: Vec<crate::models::pages_models::stores_page_model::StoreCard>,
     pub products: Vec<ProductCardData>,
     /// La búsqueda completa (`/search?q=`).
     pub all_url: String,

@@ -140,3 +140,4 @@ stores-count = { $count ->
    *[other] { $count } tiendas
 }
 stores-empty = Todavía no hay tiendas abiertas.
+stores-see-all = Ver todas las tiendas
