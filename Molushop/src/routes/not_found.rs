@@ -1,4 +1,4 @@
-use actix_web::{web, HttpResponse, http::Method};
+use actix_web::{web, HttpMessage, HttpRequest, HttpResponse, http::Method};
 use crate::i18n::I18n;
 use uuid::Uuid;
 use askama::Template;
@@ -11,6 +11,7 @@ use crate::models::pages_models::not_found_page_model::NotFoundPage;
 use crate::services::components::login_base_service;
 use crate::services::components::nav1_service::shop_nav;
 use crate::middleware::auth::SessionData;
+use crate::middleware::request_log::is_static;
 
 /// La página 404 de la tienda, con la barra y la sesión del usuario. La usan
 /// la ruta por defecto (cualquier URL que no exista) y las páginas de algo que
@@ -33,20 +34,31 @@ pub async fn not_found_page(i18n: I18n, page_name: &str, title: &str, message: &
     HttpResponse::NotFound().content_type("text/html; charset=utf-8").body(render)
 }
 
-/// Ruta por defecto (main.rs): ninguna otra encaja. Solo una página pedida con
-/// GET lleva la 404 de la tienda; un fragmento de htmx, un POST o un estático
-/// que no existe (CSS, imagen...) se quedan en un 404 sin cuerpo. El boost pide
+/// Ruta por defecto (main.rs): ninguna otra encaja. Lleva `Auth` para que la
+/// barra salga con la sesión.
+pub async fn default_not_found(req: HttpRequest) -> HttpResponse {
+    not_found_response(&req).await
+}
+
+/// La respuesta a algo que no existe: una URL sin ruta o con un trozo que no se
+/// puede leer (`middleware::invalid_path`). Solo una página pedida con GET lleva
+/// la 404 de la tienda; un fragmento de htmx, un POST o un estático que no
+/// existe (CSS, imagen...) se quedan en un 404 sin cuerpo. El boost pide
 /// páginas con HX-Request, pero también con HX-Boosted.
-pub async fn default_not_found(i18n: I18n, req: actix_web::HttpRequest, pool_data: web::Data<DbPool>, opt_session_data: Option<web::ReqData<SessionData>>) -> HttpResponse {
+/// La sesión la deja `Auth` en la petición si la ruta lo lleva; si no, sale
+/// como si no hubiera.
+pub async fn not_found_response(req: &HttpRequest) -> HttpResponse {
     let is_fragment = req.headers().contains_key("HX-Request") && !req.headers().contains_key("HX-Boosted");
-    let is_static = ["/static/", "/assets/", "/css/"].iter().any(|prefix| req.path().starts_with(prefix));
-    if req.method() != Method::GET || is_fragment || is_static {
+    if req.method() != Method::GET || is_fragment || is_static(req.path()) {
         return HttpResponse::NotFound().finish();
     }
+    let Some(pool_data) = req.app_data::<web::Data<DbPool>>() else {
+        return HttpResponse::NotFound().finish();
+    };
 
-    let user_id = opt_session_data.map(|session_data| session_data.into_inner().id);
+    let user_id = req.extensions().get::<SessionData>().map(|session_data| session_data.id);
     not_found_page(
-        i18n,
+        I18n::from_http_request(req),
         "notfound-page-title",
         "notfound-title",
         "notfound-text",

@@ -4,3 +4,4 @@ pub mod rate_limit;
 pub mod origin_check;
 pub mod request_log;
 pub mod head_as_get;
+pub mod invalid_path;

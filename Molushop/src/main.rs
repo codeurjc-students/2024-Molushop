@@ -74,8 +74,11 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move|| {
         App::new()
-            // HEAD como GET sin cuerpo (Render hace HEAD / al arrancar). El primer wrap
-            // es el de más dentro: el log de peticiones sigue viendo HEAD.
+            // Un id de la URL que no se puede leer (/orders/abc): la 404 de la
+            // tienda en vez del texto de error de actix (con path_config, abajo).
+            .wrap(actix_web::middleware::from_fn(middleware::invalid_path::invalid_path_not_found))
+            // HEAD como GET sin cuerpo (Render hace HEAD / al arrancar). Casi el de más
+            // dentro (solo invalid_path va antes): el log de peticiones sigue viendo HEAD.
             .wrap(actix_web::middleware::from_fn(middleware::head_as_get::head_as_get))
             // `HttpResponse::Ok().body(html)` no pone Content-Type y el navegador tenía que
             // adivinarlo. DefaultHeaders solo la añade si la respuesta no trae una: JSON,
@@ -112,6 +115,8 @@ async fn main() -> std::io::Result<()> {
             .app_data(client_data.clone())
             // Subidas multipart (imágenes): sin esto, actix acepta 50 MB por petición.
             .app_data(utils::upload_limits::multipart_config())
+            // Errores de web::Path: 404 marcado, que invalid_path_not_found convierte en la página
+            .app_data(middleware::invalid_path::path_config())
             .configure(config::static_config)
             .configure(routes::config_routes)
             .service(components::scope::scope_components())
