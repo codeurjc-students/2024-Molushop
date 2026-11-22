@@ -1,4 +1,5 @@
 {% extends "layouts/auth.html" %}
+{% import "atoms/password.html" as password %}
 {% block content %}
     <div class="panel-login-1">
         <div class="m-card m-card--lg cont-1">
@@ -28,13 +29,19 @@
 
                 <div class="m-field">
                     <label class="m-label" for="panel-register-pass">Contraseña</label>
-                    <input class="m-input" id="panel-register-pass" type="password" name="pass" required autocomplete="new-password" aria-describedby="panel-register-pass-hint">
+                    <div class="m-password">
+                        <input class="m-input" id="panel-register-pass" type="password" name="pass" required autocomplete="new-password" aria-describedby="panel-register-pass-hint">
+                        {% call password::toggle("Mostrar contraseña") %}{% endcall %}
+                    </div>
                     <p class="m-hint" id="panel-register-pass-hint">Al menos 8 caracteres, con mayúscula, minúscula, número y un carácter especial.</p>
                 </div>
 
                 <div class="m-field">
                     <label class="m-label" for="panel-register-pass2">Repite la contraseña</label>
-                    <input class="m-input" id="panel-register-pass2" type="password" name="pass2" required autocomplete="new-password">
+                    <div class="m-password">
+                        <input class="m-input" id="panel-register-pass2" type="password" name="pass2" required autocomplete="new-password">
+                        {% call password::toggle("Mostrar contraseña") %}{% endcall %}
+                    </div>
                 </div>
                 {% endif %}
 

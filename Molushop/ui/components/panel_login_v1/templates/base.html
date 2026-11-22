@@ -1,3 +1,4 @@
+{% import "atoms/password.html" as password %}
 <div class="panel-login-1"
     data-login_url="{{panel_login.login_url}}"
     data-next="{{panel_login.next}}"
@@ -25,7 +26,10 @@
 
             <div class="m-field">
                 <label class="m-label" for="panel-login-pass">Contraseña</label>
-                <input class="m-input" id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
+                <div class="m-password">
+                    <input class="m-input" id="panel-login-pass" type="password" name="pass" required autocomplete="current-password">
+                    {% call password::toggle("Mostrar contraseña") %}{% endcall %}
+                </div>
             </div>
 
             <p class="m-error login-error" hidden></p>

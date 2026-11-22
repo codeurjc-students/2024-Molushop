@@ -9,6 +9,8 @@ auth-email = Email
 auth-email-placeholder = you@email.com
 auth-password = Password
 auth-password-placeholder = Your password
+# Eye button (m-password atom); aria-pressed tells the state.
+password-show = Show password
 auth-password-repeat = Repeat password
 auth-login-submit = Sign in
 auth-register-submit = Create account

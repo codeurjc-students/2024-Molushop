@@ -1,4 +1,5 @@
 {% extends "layouts/shop.html" %}
+{% import "atoms/password.html" as password %}
 {% block content %}
     {% include "components/login_modal/login_modal.html"%}
     <div class="account-page">
@@ -25,16 +26,25 @@
             <form hx-boost="false" method="post" action="{{ i18n.url("/account/password") }}" class="account-form">
                 <label class="m-field">
                     <span class="m-label">{{ i18n.t("account-current-password") }}</span>
-                    <input class="m-input" type="password" name="current" autocomplete="current-password" required>
+                    <div class="m-password">
+                        <input class="m-input" type="password" name="current" autocomplete="current-password" required>
+                        {% call password::toggle(i18n.t("password-show")) %}{% endcall %}
+                    </div>
                 </label>
                 <label class="m-field">
                     <span class="m-label">{{ i18n.t("account-new-password") }}</span>
-                    <input class="m-input" type="password" name="new" autocomplete="new-password" minlength="8" required>
+                    <div class="m-password">
+                        <input class="m-input" type="password" name="new" autocomplete="new-password" minlength="8" required>
+                        {% call password::toggle(i18n.t("password-show")) %}{% endcall %}
+                    </div>
                     <span class="m-hint">{{ i18n.t("account-password-rules") }}</span>
                 </label>
                 <label class="m-field">
                     <span class="m-label">{{ i18n.t("account-repeat-new-password") }}</span>
-                    <input class="m-input" type="password" name="new2" autocomplete="new-password" minlength="8" required>
+                    <div class="m-password">
+                        <input class="m-input" type="password" name="new2" autocomplete="new-password" minlength="8" required>
+                        {% call password::toggle(i18n.t("password-show")) %}{% endcall %}
+                    </div>
                 </label>
                 <button type="submit" class="m-btn m-btn--primary">{{ i18n.t("account-change-password") }}</button>
             </form>

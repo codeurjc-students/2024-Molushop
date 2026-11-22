@@ -9,6 +9,8 @@ auth-email = Email
 auth-email-placeholder = tu@email.com
 auth-password = Contraseña
 auth-password-placeholder = Tu contraseña
+# Botón del ojo (átomo m-password); el estado lo dice aria-pressed.
+password-show = Mostrar contraseña
 auth-password-repeat = Repite la contraseña
 auth-login-submit = Entrar
 auth-register-submit = Crear cuenta

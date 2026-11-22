@@ -12,6 +12,8 @@
    Error:     clase `is-invalid` en el m-input y un m-error debajo
    Apagado:   atributo `disabled`; `readonly` se ve igual pero deja copiar
    Casillas:  <label class="m-check"><input type="checkbox"> Texto</label>
+   Contraseña con ojo: el input dentro de un .m-password con el botón de
+              atoms/password.html (ver/ocultar, PASSWORD_TOGGLE en base.js)
    En línea:  m-field--inline pone la etiqueta y el control en la misma fila */
 
 .m-field {
@@ -97,6 +99,52 @@ textarea.m-input {
 }
 .m-input.is-invalid:focus {
     box-shadow: 0 0 0 3px var(--color-danger-soft);
+}
+
+/* ---- Contraseña con botón de ver/ocultar ---- */
+/* El botón va encima del borde derecho del input; el input deja su hueco. */
+
+.m-password {
+    position: relative;
+}
+.m-password .m-input {
+    padding-right: 2.75rem;
+}
+/* Edge pone su propio ojo: con el nuestro saldrían dos */
+.m-password .m-input::-ms-reveal {
+    display: none;
+}
+.m-password__toggle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 2.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    background-color: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+}
+.m-password__toggle:hover {
+    color: var(--color-text);
+}
+.m-password__toggle:focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: -2px;
+}
+.m-password__icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+/* Oculta: el ojo (para verla). Visible: el ojo tachado (para ocultarla). */
+.m-password__toggle[aria-pressed="true"] .m-password__icon--show,
+.m-password__toggle:not([aria-pressed="true"]) .m-password__icon--hide {
+    display: none;
 }
 
 /* ---- Casillas y radios ---- */

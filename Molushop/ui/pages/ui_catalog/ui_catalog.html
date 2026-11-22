@@ -1,4 +1,5 @@
 {% extends "layouts/layout1.html" %}
+{% import "atoms/password.html" as password %}
 {# Catálogo del sistema de diseño: enseña las variables de tokens.css y cada
    átomo con sus variantes. Los colores y medidas no se repiten aquí: el script
    los lee de las propias variables (atributo data-token). #}
@@ -236,7 +237,10 @@
         <div class="ui-demo ui-demo--fields">
             <div class="m-field">
                 <label class="m-label" for="ui-campo-ayuda">Contraseña</label>
-                <input class="m-input" id="ui-campo-ayuda" type="password" aria-describedby="ui-campo-ayuda-hint">
+                <div class="m-password">
+                    <input class="m-input" id="ui-campo-ayuda" type="password" aria-describedby="ui-campo-ayuda-hint">
+                    {% call password::toggle("Mostrar contraseña") %}{% endcall %}
+                </div>
                 <p class="m-hint" id="ui-campo-ayuda-hint">Al menos 8 caracteres.</p>
             </div>
             <div class="m-field">

@@ -104,6 +104,31 @@ const QUANTITY = {
 };
 QUANTITY.init();
 
+// Ver u ocultar una contraseña (átomo m-password: atoms/password.html y
+// field.css). Escucha en el documento: vale también para lo que llega con htmx
+// (el modal de login). Al enviar el formulario vuelve a ocultarla, para que no
+// se quede a la vista si el formulario sigue en pantalla.
+const PASSWORD_TOGGLE = {
+    set: function(button, visible) {
+        let input = button.closest(".m-password").querySelector("input");
+        input.type = visible ? "text" : "password";
+        button.setAttribute("aria-pressed", visible ? "true" : "false");
+    },
+
+    init: function() {
+        document.addEventListener("click", (event) => {
+            let button = event.target.closest(".m-password__toggle");
+            if (button == null) { return; }
+            this.set(button, button.getAttribute("aria-pressed") !== "true");
+        });
+        document.addEventListener("submit", (event) => {
+            event.target.querySelectorAll('.m-password__toggle[aria-pressed="true"]')
+                .forEach((button) => this.set(button, false));
+        }, true);
+    }
+};
+PASSWORD_TOGGLE.init();
+
 // Toasts (átomo m-toast, toast.css): también se quitan deslizándolos hacia un
 // lado. Siguen al dedo (o al ratón) y, al soltar, se van si se han arrastrado
 // más de un tercio de su ancho o se han lanzado rápido; si no, vuelven a su
