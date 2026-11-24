@@ -1,0 +1,27 @@
+# Garage: S3 simulado SOLO para desarrollo local (un nodo, sin réplicas).
+# Lo arranca compose.yaml de esta carpeta; la primera vez, setup.sh crea el bucket y la clave.
+# Chuleta: Obsidian, ADocuPlus/S3 simulado en local.md
+
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "sqlite"
+replication_factor = 1
+
+# Comunicación entre nodos. Con un solo nodo y el 3901 sin publicar, el secreto no
+# protege nada fuera del contenedor: por eso puede ir aquí (no vale para producción).
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+rpc_secret = "6d6f6c7573686f702d6465762d6f6e6c792d6c6f63616c2d6761726167652121"
+
+# API S3 (la usa la app para subir y borrar). La región tiene que coincidir con AWS_REGION.
+[s3_api]
+s3_region = "garage"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.localhost"
+
+# Lectura pública por HTTP (las <img> del navegador): http://<bucket>.web.localhost:3902/<clave>
+# Los navegadores resuelven *.localhost a 127.0.0.1 solos, sin tocar el fichero hosts.
+[s3_web]
+bind_addr = "[::]:3902"
+root_domain = ".web.localhost"
+index = "index.html"

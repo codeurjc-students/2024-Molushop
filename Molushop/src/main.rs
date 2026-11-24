@@ -41,6 +41,7 @@ async fn main() -> std::io::Result<()> {
         app_env.as_ref().map(|_| ()).map_err(Clone::clone),
         services::paseto_token_session_service::check_local_secret(),
         utils::upload_limits::check_upload_config(),
+        startup::check_s3_config(),
         // Con APP_ENV inválida no se sabe qué reglas tocan: basta con su error.
         match &app_env {
             Ok(env) => services::mail_service::check_mail_config(*env),

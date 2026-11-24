@@ -11,31 +11,37 @@ use std::error::Error;
 pub struct Client {
     s3: aws_sdk_s3::Client,
     bucket_name: String,
-    region: String,
+    /// Dirección pública de los objetos, con `/` al final: la de AWS o, con un S3
+    /// simulado en local, `S3_PUBLIC_BASE_URL` (ver `public_base_url`).
+    public_base: String,
 }
 
 impl Client {
     /// Construct S3 client wrapper. Bucket y región se leen una vez aquí; las dos
     /// variables ya se comprobaron al arrancar (utils::required_env).
     pub fn new(config: aws_sdk_s3::Config) -> Client {
+        let bucket_name = std::env::var("AWS_S3_BUCKET_NAME").expect("AWS_S3_BUCKET_NAME is checked at startup");
+        let region = std::env::var("AWS_REGION").expect("AWS_REGION is checked at startup");
+        let public_base = public_base_url(
+            std::env::var("S3_PUBLIC_BASE_URL").ok().as_deref(),
+            &bucket_name,
+            &region,
+        );
         Client {
             s3: aws_sdk_s3::Client::from_conf(config),
-            bucket_name: std::env::var("AWS_S3_BUCKET_NAME").expect("AWS_S3_BUCKET_NAME is checked at startup"),
-            region: std::env::var("AWS_REGION").expect("AWS_REGION is checked at startup"),
+            bucket_name,
+            public_base,
         }
     }
 
     pub fn url(&self, key: &str) -> String {
-        let new_key1 = key.replace("+","%2B"); // en la url se cambian los espacios por +
-        let new_key = new_key1.replace(" ","+"); // en la url se cambian los espacios por +
-        format!("https://{}.s3.{}.amazonaws.com/{new_key}", self.bucket_name, self.region)
+        format!("{}{}", self.public_base, encode_key(key))
     }
 
     /// La clave del objeto a partir de la URL guardada en la BD (la de `url`).
     /// `None` si la URL no es de este bucket: entonces no se borra nada.
     pub fn key_from_url(&self, url: &str) -> Option<String> {
-        let base = format!("https://{}.s3.{}.amazonaws.com/", self.bucket_name, self.region);
-        key_from_url(&base, url)
+        key_from_url(&self.public_base, url)
     }
 
     /// Facilitate the upload of file to s3.
@@ -165,31 +171,108 @@ impl Client {
     }
 }
 
-/// Deshace lo que hace `Client::url` con la clave: los `+` vuelven a ser
-/// espacios y los `%2B`, `+` (en ese orden, el inverso).
+/// Dirección pública de los objetos del bucket, siempre con `/` al final.
+/// Sin `S3_PUBLIC_BASE_URL` (o vacía), la de AWS (Render y el S3 real); con ella,
+/// la que se dé (p. ej. la web de Garage en local).
+fn public_base_url(configured: Option<&str>, bucket: &str, region: &str) -> String {
+    match configured.map(str::trim).filter(|base| !base.is_empty()) {
+        Some(base) => format!("{}/", base.trim_end_matches('/')),
+        None => format!("https://{bucket}.s3.{region}.amazonaws.com/"),
+    }
+}
+
+/// La clave para la URL: todo lo que no sea letra o cifra ASCII, `-._~` o `/`
+/// va como `%XX` (UTF-8), así que el espacio es `%20`. Antes el espacio iba
+/// como `+`, que solo entiende AWS (Garage, como cualquier servidor web, busca
+/// un `+` de verdad); esas URL antiguas siguen en la BD, ver `key_from_url`.
+fn encode_key(key: &str) -> String {
+    let mut out = String::with_capacity(key.len());
+    for byte in key.bytes() {
+        if byte.is_ascii_alphanumeric() || b"-._~/".contains(&byte) {
+            out.push(byte as char);
+        } else {
+            out.push_str(&format!("%{byte:02X}"));
+        }
+    }
+    out
+}
+
+/// La clave del objeto a partir de su URL: deshace `encode_key` y también la
+/// forma antigua (espacio = `+`, `+` = `%2B`). Ninguna de las dos deja un `+`
+/// literal en la URL, así que todo `+` es un espacio.
 fn key_from_url(base: &str, url: &str) -> Option<String> {
     let key = url.strip_prefix(base)?;
     if key.is_empty() {
         return None;
     }
-    Some(key.replace('+', " ").replace("%2B", "+"))
+    Some(percent_decode(&key.replace('+', " ")))
+}
+
+/// `%XX` -> el byte. Un `%` que no va seguido de dos cifras hex se deja tal cual
+/// (podía venir en el nombre de un fichero antiguo).
+fn percent_decode(text: &str) -> String {
+    let bytes = text.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        let hex = bytes.get(i + 1..i + 3).and_then(|h| std::str::from_utf8(h).ok());
+        match (bytes[i], hex.and_then(|h| u8::from_str_radix(h, 16).ok())) {
+            (b'%', Some(byte)) => {
+                out.push(byte);
+                i += 3;
+            }
+            (byte, _) => {
+                out.push(byte);
+                i += 1;
+            }
+        }
+    }
+    String::from_utf8_lossy(&out).into_owned()
 }
 
 #[cfg(test)]
 mod tests {
-    use super::key_from_url;
+    use super::{encode_key, key_from_url, public_base_url};
 
     const BASE: &str = "https://tienda.s3.eu-north-1.amazonaws.com/";
 
+    /// Las URL guardadas antes del cambio (espacio = `+`) se siguen reconociendo.
     #[test]
-    fn key_from_url_reverses_url_encoding() {
+    fn key_from_url_reads_the_old_plus_encoding() {
         let url = format!("{BASE}1767296783Mi+foto%2B1.jpg");
         assert_eq!(key_from_url(BASE, &url).as_deref(), Some("1767296783Mi foto+1.jpg"));
+    }
+
+    #[test]
+    fn encode_key_uses_percent_encoding() {
+        assert_eq!(encode_key("1767296783Mi foto+1 ñ#?.jpg"), "1767296783Mi%20foto%2B1%20%C3%B1%23%3F.jpg");
+        assert_eq!(encode_key("carpeta/a-b_c.~1.png"), "carpeta/a-b_c.~1.png");
+    }
+
+    #[test]
+    fn key_from_url_reverses_encode_key() {
+        for key in ["1767296783Mi foto+1 ñ#?.jpg", "simple.png", "50%.jpg", "carpeta/x y.webp"] {
+            let url = format!("{BASE}{}", encode_key(key));
+            assert_eq!(key_from_url(BASE, &url).as_deref(), Some(key));
+        }
     }
 
     #[test]
     fn key_from_url_rejects_other_hosts() {
         assert_eq!(key_from_url(BASE, "https://otro.s3.eu-north-1.amazonaws.com/a.jpg"), None);
         assert_eq!(key_from_url(BASE, BASE), None);
+    }
+
+    #[test]
+    fn public_base_defaults_to_aws() {
+        assert_eq!(public_base_url(None, "tienda", "eu-north-1"), BASE);
+        assert_eq!(public_base_url(Some("  "), "tienda", "eu-north-1"), BASE);
+    }
+
+    #[test]
+    fn public_base_uses_the_configured_one_with_a_single_slash() {
+        let local = "http://molushop-dev.web.localhost:3902/";
+        assert_eq!(public_base_url(Some("http://molushop-dev.web.localhost:3902"), "x", "y"), local);
+        assert_eq!(public_base_url(Some("http://molushop-dev.web.localhost:3902//"), "x", "y"), local);
     }
 }

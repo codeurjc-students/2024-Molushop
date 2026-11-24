@@ -1,0 +1,24 @@
+# S3 simulado para desarrollo local (Garage) en el Docker de WSL. Render NO lo usa: allí va el S3 de AWS.
+#
+#   docker compose up            arranca (Ctrl+C para parar); en VS Code, la tarea "Garage: up"
+#   bash setup.sh                la primera vez (con Garage arrancado): bucket, clave y web pública
+#   docker compose down          borra el contenedor; los datos siguen en los volúmenes
+#   docker compose down -v       borra también los datos (bucket, clave e imágenes)
+#
+# Chuleta (arrancar, este fichero y setup.sh en detalle): Obsidian, ADocuPlus/Arrancar Garage (S3 local).md
+
+services:
+  garage:
+    image: dxflrs/garage:v2.6.0
+    container_name: molushop-garage
+    ports:
+      - "127.0.0.1:3900:3900"   # API S3 (S3_ENDPOINT_URL)
+      - "127.0.0.1:3902:3902"   # web pública (S3_PUBLIC_BASE_URL)
+    volumes:
+      - ./garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+
+volumes:
+  garage-meta:
+  garage-data:
