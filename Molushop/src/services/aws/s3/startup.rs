@@ -1,6 +1,7 @@
 
 use crate::client::Client;
 use dotenvy::dotenv;
+use crate::app_env::AppEnv;
 use std::env;
 
 //este codigo 
@@ -43,6 +44,26 @@ fn endpoint_url() -> Option<String> {
     env::var("S3_ENDPOINT_URL").ok().filter(|url| !url.trim().is_empty())
 }
 
+/// Una línea al arrancar con el S3 que se usa: Garage (u otro, con su dirección)
+/// o el de AWS. En `dev` contra AWS es un `warn`: se puede hacer a propósito,
+/// pero así se ve enseguida si ha sido sin querer.
+pub fn log_s3_target(app_env: AppEnv) {
+    let bucket = env::var("AWS_S3_BUCKET_NAME").unwrap_or_default();
+    let region = env::var("AWS_REGION").unwrap_or_default();
+    match endpoint_url() {
+        Some(endpoint) => tracing::info!(%endpoint, %bucket, %region, "S3 storage ready"),
+        None if is_production_s3_from_dev(app_env, None) => tracing::warn!(
+            endpoint = "aws", %bucket, %region,
+            "using the production AWS S3 from dev"
+        ),
+        None => tracing::info!(endpoint = "aws", %bucket, %region, "S3 storage ready"),
+    }
+}
+
+fn is_production_s3_from_dev(app_env: AppEnv, endpoint: Option<&str>) -> bool {
+    app_env == AppEnv::Dev && endpoint.is_none_or(|url| url.trim().is_empty())
+}
+
 /// Con `S3_ENDPOINT_URL` hace falta `S3_PUBLIC_BASE_URL`: si no, las imágenes se
 /// subirían al S3 simulado y sus URL apuntarían al de AWS.
 pub fn check_s3_config() -> Result<(), String> {
@@ -62,7 +83,17 @@ fn endpoint_pair_problem(endpoint: Option<&str>, public_base: Option<&str>) -> R
 
 #[cfg(test)]
 mod tests {
-    use super::endpoint_pair_problem;
+    use super::{endpoint_pair_problem, is_production_s3_from_dev};
+    use crate::app_env::AppEnv;
+
+    #[test]
+    fn warns_only_for_aws_from_dev() {
+        assert!(is_production_s3_from_dev(AppEnv::Dev, None));
+        assert!(is_production_s3_from_dev(AppEnv::Dev, Some(" ")));
+        assert!(!is_production_s3_from_dev(AppEnv::Dev, Some("http://127.0.0.1:3900")));
+        assert!(!is_production_s3_from_dev(AppEnv::Pre, None));
+        assert!(!is_production_s3_from_dev(AppEnv::Prod, None));
+    }
 
     #[test]
     fn aws_without_endpoint_is_fine() {

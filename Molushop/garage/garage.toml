@@ -1,6 +1,5 @@
 # Garage: S3 simulado SOLO para desarrollo local (un nodo, sin réplicas).
 # Lo arranca compose.yaml de esta carpeta; la primera vez, setup.sh crea el bucket y la clave.
-# Chuleta: Obsidian, ADocuPlus/S3 simulado en local.md
 
 metadata_dir = "/var/lib/garage/meta"
 data_dir = "/var/lib/garage/data"

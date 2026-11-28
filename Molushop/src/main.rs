@@ -71,6 +71,7 @@ async fn main() -> std::io::Result<()> {
     let pool_data = web::Data::new(pool);
 
     let client = startup::configure_and_return_s3_client().await;
+    startup::log_s3_target(current_env);
     let client_data = web::Data::new(Arc::new(client));
 
     HttpServer::new(move|| {
